@@ -539,18 +539,18 @@ class Placer:
     def placer_metadata(self):
 
         obj = self.mobject
-
+        print(1)
         # ...Placer tag
         placer_tag_attr_name = "PlacerTag"
         pm.addAttr(obj, longName=placer_tag_attr_name, dataType="string", keyable=0)
         pm.setAttr(obj + "." + placer_tag_attr_name, self.name, type="string")
-
+        print(2)
         # ...Side
         placer_side_attr_name = "Side"
         pm.addAttr(obj, longName=placer_side_attr_name, dataType="string", keyable=0)
         attr_input = self.side if self.side else "None"
         pm.setAttr(obj + "." + placer_side_attr_name, attr_input, type="string")
-
+        print(3)
         # ...Aim object
         placer_aimObj_attr_name = "AimObj"
         if isinstance(self.aim_obj, str) or not self.aim_obj:
@@ -565,9 +565,9 @@ class Placer:
             for i in range(3):
                 letter = letters[i]
                 pm.addAttr(obj, longName=letter, keyable=0, attributeType="double", parent=placer_aimObj_attr_name)
-
+        print(4)
         # ...Up object
-        placer_upObj_attr_name = "UpObj"
+        '''placer_upObj_attr_name = "UpObj"
         if isinstance(self.up_obj, str) or not self.up_obj:
             pm.addAttr(obj, longName=placer_upObj_attr_name, dataType="string", keyable=0)
             if self.up_obj:
@@ -579,22 +579,23 @@ class Placer:
             letters = ("x", "y", "z")
             for i in range(3):
                 letter = letters[i]
-                pm.addAttr(obj, longName=letter, keyable=0, attributeType="double", parent=placer_upObj_attr_name)
-
+                pm.addAttr(obj, longName=letter, keyable=0, attributeType="double", parent=placer_upObj_attr_name)'''
+        print(5)
         # ...Has vector handles
         placer_hasVectorHandles_attr_name = "HasVectorHandles"
         pm.addAttr(obj, longName=placer_hasVectorHandles_attr_name, attributeType="bool", keyable=0,
                    defaultValue=self.has_vector_handles)
-
+        print(6)
         # ...IK distance
         if self.ik_distance:
             placer_ikDist_attr_name = "IkDistance"
             pm.addAttr(obj, longName=placer_ikDist_attr_name, attributeType="float", keyable=0,
                        defaultValue=self.ik_distance)
-
+        print(7)
         # ...Orienter data
         # ...Connect targets
         # ...
 
 
         pm.addAttr(self.mobject, longName="ReceivedConnectors", dataType="string", keyable=0)
+        print(8)

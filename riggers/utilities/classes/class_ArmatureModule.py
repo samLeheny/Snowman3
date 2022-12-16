@@ -205,7 +205,7 @@ class ArmatureModule:
 
     ####################################################################################################################
     def create_module_placers(self):
-        
+
         placers_attr_string = "PlacerNodes"
 
         self.module_ctrl = self.create_module_root_ctrl( name=self.name, side=self.side, parent=self.rig_root_grp)
