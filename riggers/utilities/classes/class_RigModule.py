@@ -1,0 +1,217 @@
+# Title: class_RigModule.py
+# Author: Sam Leheny
+# Contact: samleheny@live.com
+
+# Description:
+
+
+###########################
+##### Import Commands #####
+import importlib
+import pymel.core as pm
+
+import Snowman.utilities.general_utils as gen_utils
+reload(gen_utils)
+
+import Snowman.utilities.node_utils as node_utils
+reload(node_utils)
+
+import Snowman.utilities.rig_utils as rig_utils
+reload(rig_utils)
+
+import Snowman.riggers.utilities.armature_utils as arm_utils
+reload(arm_utils)
+
+import Snowman.dictionaries.nameConventions as nameConventions
+reload(nameConventions)
+nom = nameConventions.create_dict()
+
+import Snowman.riggers.dictionaries.control_colors as control_colors
+reload(control_colors)
+ctrl_colors = control_colors.create_dict()
+
+import Snowman.riggers.utilities.classes.class_Placer as classPlacer
+reload(classPlacer)
+Placer = classPlacer.Placer
+
+import Snowman.riggers.utilities.directories.get_module_data as get_module_data
+reload(get_module_data)
+###########################
+###########################
+
+
+###########################
+######## Variables ########
+vis_switch_enum_strings = {
+    "placers" : "PlacersVis",
+    "orienters" : "OrientersVis",
+    "controls" : "ControlsVis"
+}
+dir_string = {"module_build": "Snowman.riggers.modules.{}.build.build"}
+###########################
+###########################
+
+
+
+
+
+########################################################################################################################
+class RigModule:
+    def __init__(
+        self,
+        name = None,
+        armature_module = None,
+        module_tag = None,
+        body_pieces = None,
+        prelim_ctrls = None,
+        side = None,
+        is_driven_side = None,
+        piece_keys = None,
+        rig_module_type = None,
+    ):
+        self.name = gen_utils.get_clean_name(name)
+        self.armature_module = armature_module
+        self.body_pieces = body_pieces
+        self.rig_module_type = rig_module_type
+        self.prelim_ctrls = prelim_ctrls if prelim_ctrls else get_module_data.placers(
+            self.rig_module_type, side=side, is_driven_side=is_driven_side)
+        self.side = side
+        self.side_tag = "{0}_".format(self.side) if self.side else ""
+        self.module_tag = module_tag if module_tag else self.side_tag+self.name
+        self.placer_color = ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
+        self.is_driven_side = is_driven_side
+        self.piece_keys = piece_keys
+
+        # Initialized variables
+        self.rig_module_grp = None
+        self.no_transform_grp = None
+        self.transform_grp = None
+        self.bind_jnts = {}
+        self.ctrls = {}
+        self.placers = {}
+        self.pv_placers = {}
+        self.orienters = {}
+        self.setup_module_ctrl = None
+        self.settings_ctrl = None
+        self.mConstruct = None
+        self.sockets
+
+
+
+
+
+    """
+    --------- METHODS --------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    create_rig_module_grp
+    get_armature_placers
+    get_armature_orienters
+    get_setup_module_ctrl
+    populate_rig_module
+    --------------------------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    """
+
+
+
+
+
+    ####################################################################################################################
+    def create_rig_module_grp(self, parent=None):
+
+        self.rig_module_grp = pm.group(name="{0}{1}_{2}".format(self.side_tag, self.name, "RIG"), world=1, em=1)
+
+        pm.addAttr(self.rig_module_grp, longName="RigScale", attributeType="float", defaultValue=1.0, keyable=0)
+
+        self.transform_grp = pm.group(name="transform", p=self.rig_module_grp, em=1)
+        self.no_transform_grp = pm.group(name="no_transform", p=self.rig_module_grp, em=1)
+        self.no_transform_grp.inheritsTransform.set(0, lock=1)
+
+        self.rig_module_grp.setParent(parent) if parent else None
+
+        if self.side == nom.rightSideTag:
+            gen_utils.flip(self.rig_module_grp)
+            gen_utils.flip(self.no_transform_grp)
+
+
+        # --------------------------------------------------------------------------------------------------------------
+        pm.select(clear=1)
+        return self.rig_module_grp
+
+
+
+
+
+    ####################################################################################################################
+    def get_armature_placers(self):
+
+        for key in self.piece_keys:
+
+            self.placers[key] = Placer(name=key,
+                                       side=self.side,
+                                       get=True)
+
+
+        return self.placers
+
+
+
+
+
+    ####################################################################################################################
+    def get_armature_orienters(self):
+
+        armature_placers = arm_utils.get_placers_in_module(self.armature_module)
+
+        for placer in armature_placers.values():
+            key = pm.getAttr(placer+"."+"PlacerTag")
+            self.orienters[key] = pm.listConnections(placer+"."+"OrienterNode", s=1, d=0)[0]
+
+
+
+
+
+    ####################################################################################################################
+    def get_setup_module_ctrl(self):
+
+        search_string = "::{}{}_{}".format(self.side_tag, self.name, nom.animCtrl)
+
+        if pm.ls(search_string):
+            self.setup_module_ctrl = pm.ls(search_string)[0]
+        else:
+            self.setup_module_ctrl = None
+
+        return self.setup_module_ctrl
+
+
+
+
+
+    ####################################################################################################################
+    def populate_rig_module(self, rig_parent=None):
+
+        m = importlib.import_module(dir_string["module_build"].format(self.rig_module_type))
+        reload(m)
+
+        exception_types = ["root"]
+        if not self.module_tag in exception_types:
+
+            # ...Create biped_spine rig group
+            self.create_rig_module_grp(parent=rig_parent)
+            # ...Get orienters from armature
+            self.get_armature_orienters()
+
+            self.get_setup_module_ctrl()
+
+            ctrl_data = get_module_data.anim_ctrls(self.rig_module_type, side=self.side,
+                                                   module_ctrl=self.setup_module_ctrl)
+            for key in ctrl_data:
+
+                self.ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
+
+                ctrl_data[key].finalize_anim_ctrl()
+
+
+        self.mConstruct = m.build(rig_module=self, rig_parent=rig_parent)
+
+        return self.mConstruct

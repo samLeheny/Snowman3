@@ -1,0 +1,1 @@
+- When hiding connected placers, also hide their connector curves.
