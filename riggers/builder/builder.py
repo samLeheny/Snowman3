@@ -7,34 +7,34 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
-
-import Snowman.riggers.utilities.classes.class_Armature as classArmature
-import Snowman.riggers.utilities.classes.class_Rig as classRig
-reload(classArmature)
-reload(classRig)
+import Snowman3.riggers.utilities.classes.class_Armature as classArmature
+import Snowman3.riggers.utilities.classes.class_Rig as classRig
+importlib.reload(classArmature)
+importlib.reload(classRig)
 Armature = classArmature.Armature
 Rig = classRig.Rig
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.utilities.bodyRigWrapup as rigWrapup
-reload(rigWrapup)
+import Snowman3.riggers.utilities.bodyRigWrapup as rigWrapup
+importlib.reload(rigWrapup)
 
-import Snowman.riggers.utilities.directories.get_armature_data as get_armature_data
-reload(get_armature_data)
+import Snowman3.riggers.utilities.directories.get_armature_data as get_armature_data
+importlib.reload(get_armature_data)
 ###########################
 ###########################
 
 
 ###########################
 ######## Variables ########
-dir_string = {"module_build": "Snowman.riggers.modules.{}.build.build"}
+dir_string = {"module_build": "Snowman3.riggers.modules.{}.build.build"}
 ###########################
 ###########################
 

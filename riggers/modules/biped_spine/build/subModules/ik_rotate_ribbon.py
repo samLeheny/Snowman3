@@ -9,20 +9,20 @@
 ##### Import Commands #####
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
+import Snowman3.utilities.general_utils as gen_utils
 reload(gen_utils)
 
-import Snowman.utilities.node_utils as node_utils
+import Snowman3.utilities.node_utils as node_utils
 reload(node_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
+import Snowman3.utilities.rig_utils as rig_utils
 reload(rig_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
+import Snowman3.dictionaries.nameConventions as nameConventions
 reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.modules.biped_spine.utilities.animCtrls as animCtrls
+import Snowman3.riggers.modules.biped_spine.utilities.animCtrls as animCtrls
 reload(animCtrls)
 ###########################
 ###########################

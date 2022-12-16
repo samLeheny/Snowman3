@@ -7,19 +7,20 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 ###########################
 ###########################
@@ -96,7 +97,7 @@ class LimbRig:
 
         # Get segment lengths
         len_list = []
-        for i in xrange(self.point_count - 1):
+        for i in range(self.point_count - 1):
             len_list.append(gen_utils.distance_between(position_1=self.default_point_positions[i],
                                                        position_2=self.default_point_positions[i + 1]))
 
@@ -270,7 +271,7 @@ class LimbRig:
         # ...Create joints ---------------------------------------------------------------------------------------------
         blend_jnts_list = []
 
-        for i in xrange(self.point_count):
+        for i in range(self.point_count):
             jnt = rig_utils.joint(name="{}_blend".format(self.seg_names[i]), side=self.side, joint_type=nom.nonBindJnt,
                                   radius=0.5)
             blend_jnts_list.append(jnt)
@@ -290,7 +291,7 @@ class LimbRig:
 
 
         # Position Jnts ------------------------------------------------------------------------------------------------
-        for i in xrange(1, len(self.blend_jnts)):
+        for i in range(1, len(self.blend_jnts)):
             self.blend_jnts[i].tx.set(self.seg_lengths[i-1])
 
 
@@ -305,7 +306,7 @@ class LimbRig:
 
 
         # ...Clean joint rotations -------------------------------------------------------------------------------------
-        for i in xrange(1, self.point_count):
+        for i in range(1, self.point_count):
             self.blend_jnts[i].jointOrient.set(self.blend_jnts[i].rotate.get() + self.blend_jnts[i].jointOrient.get())
             self.blend_jnts[i].rotate.set(0, 0, 0)
 
@@ -344,7 +345,7 @@ class LimbRig:
         ik_jnts_list = []
         ik_constraint_target_list = []
 
-        for i in xrange(self.point_count):
+        for i in range(self.point_count):
 
             jnt = rig_utils.joint(name="{}_ik".format(self.seg_names[i]), side=self.side, joint_type=nom.nonBindJnt,
                                   radius=0.75, color=2)
@@ -361,7 +362,7 @@ class LimbRig:
 
 
         # ...Parent joints into a chain --------------------------------------------------------------------------------
-        for i in xrange(1, self.point_count):
+        for i in range(1, self.point_count):
             self.ik_jnts[i].setParent(self.ik_jnts[i - 1])
 
 
@@ -377,7 +378,7 @@ class LimbRig:
 
 
         # Position Jnts ------------------------------------------------------------------------------------------------
-        for i in xrange(1, len(self.ik_jnts)):
+        for i in range(1, len(self.ik_jnts)):
             self.ik_jnts[i].tx.set(self.seg_lengths[i - 1])
 
         # Orient Jnts --------------------------------------------------------------------------------------------------
@@ -391,7 +392,7 @@ class LimbRig:
 
 
         # ...Clean joint rotations -------------------------------------------------------------------------------------
-        for i in xrange(1, self.point_count):
+        for i in range(1, self.point_count):
             self.ik_jnts[i].jointOrient.set( self.ik_jnts[i].rotate.get() + self.ik_jnts[i].jointOrient.get() )
             self.ik_jnts[i].rotate.set(0, 0, 0)
 
@@ -575,7 +576,7 @@ class LimbRig:
         # ...Outfit blend attribute with mult nodes to get to 0-to-1 space from a 0-to-10 attr input -------------------
         blend_plugs = gen_utils.create_attr_blend_nodes(attr="fkIk", node=self.ctrls["rig_socket"], reverse=True)
 
-        for i in xrange(len(self.fk_ctrls)):
+        for i in range(len(self.fk_ctrls)):
 
             constraint = pm.orientConstraint(self.fk_ctrls[i], self.ik_constraint_targets[i], self.blend_jnts[i])
             weights = pm.orientConstraint(constraint, query=1, weightAliasList=1)
@@ -585,7 +586,7 @@ class LimbRig:
             self.blend_jnts[i].jointOrient.set(0, 0, 0)
 
 
-        for i in xrange(2):
+        for i in range(2):
             blend = pm.shadingNode("blendTwoAttr", au=1)
             self.fk_ctrls[i].getParent().sx.connect(blend.input[0])
             self.ik_jnts[i].sx.connect(blend.input[1])
@@ -835,7 +836,7 @@ class LimbRig:
         fk_ctrls_list = []
         fk_ctrl_caps = []
 
-        for i in xrange(self.seg_count):
+        for i in range(self.seg_count):
 
             # ...Create and parent control
             par = fk_ctrl_caps[i - 1] if i > 0 else None
@@ -984,7 +985,7 @@ class LimbRig:
 
         old_seg_lengths, new_seg_lengths = self.seg_lengths, self.final_seg_lengths
 
-        for i in xrange(self.seg_count-1):
+        for i in range(self.seg_count-1):
 
             upscale_mult = new_seg_lengths[i] / old_seg_lengths[i]
 

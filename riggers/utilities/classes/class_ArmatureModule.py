@@ -7,36 +7,37 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import numpy as np
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.dictionaries.control_colors as control_colors
-reload(control_colors)
+import Snowman3.riggers.dictionaries.control_colors as control_colors
+importlib.reload(control_colors)
 ctrl_colors = control_colors.create_dict()
 
-import Snowman.riggers.utilities.classes.class_Placer as classPlacer
-reload(classPlacer)
+import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
+importlib.reload(classPlacer)
 Placer = classPlacer.Placer
 
-import Snowman.riggers.utilities.classes.class_SetupControl as classSetupControl
-reload(classSetupControl)
+import Snowman3.riggers.utilities.classes.class_SetupControl as classSetupControl
+importlib.reload(classSetupControl)
 SetupControl = classSetupControl.SetupControl
 
-import Snowman.riggers.utilities.directories.get_module_data as get_module_data
-reload(get_module_data)
+import Snowman3.riggers.utilities.directories.get_module_data as get_module_data
+importlib.reload(get_module_data)
 ###########################
 ###########################
 

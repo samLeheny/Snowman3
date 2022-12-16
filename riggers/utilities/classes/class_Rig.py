@@ -7,23 +7,24 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.riggers.utilities.armature_utils as arm_utils
-reload(arm_utils)
+import Snowman3.riggers.utilities.armature_utils as arm_utils
+importlib.reload(arm_utils)
 
-import Snowman.riggers.utilities.directories.get_armature_data as get_armature_data
-reload(get_armature_data)
+import Snowman3.riggers.utilities.directories.get_armature_data as get_armature_data
+importlib.reload(get_armature_data)
 
-import Snowman.riggers.utilities.classes.class_RigModule as class_RigModules
-reload(class_RigModules)
+import Snowman3.riggers.utilities.classes.class_RigModule as class_RigModules
+importlib.reload(class_RigModules)
 RigModule = class_RigModules.RigModule
 ###########################
 ###########################

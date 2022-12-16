@@ -7,25 +7,26 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.modules.root.setup.subModules.ctrl_vis_conditions as vis_conditions
-reload(vis_conditions)
+import Snowman3.riggers.modules.root.setup.subModules.ctrl_vis_conditions as vis_conditions
+importlib.reload(vis_conditions)
 
-import Snowman.riggers.dictionaries.body_attributes as body_attributes
-reload(body_attributes)
+import Snowman3.riggers.dictionaries.body_attributes as body_attributes
+importlib.reload(body_attributes)
 attrNom = body_attributes.create_dict()
 
-import Snowman.riggers.modules.root.utilities.placers as armature_module_placers
-import Snowman.riggers.modules.root.utilities.prelimCtrls as root_prelimControls
-reload(armature_module_placers)
-reload(root_prelimControls)
+import Snowman3.riggers.modules.root.utilities.placers as armature_module_placers
+import Snowman3.riggers.modules.root.utilities.prelimCtrls as root_prelimControls
+importlib.reload(armature_module_placers)
+importlib.reload(root_prelimControls)
 ###########################
 ###########################
 

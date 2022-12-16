@@ -9,22 +9,23 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 import maya.OpenMaya as om
 import maya.api.OpenMaya as om2
 import math as math
 import numpy as np
 
-import Snowman.dictionaries.nurbsCurvePrefabs as nurbsCurvePrefabs
-reload(nurbsCurvePrefabs)
+import Snowman3.dictionaries.nurbsCurvePrefabs as nurbsCurvePrefabs
+importlib.reload(nurbsCurvePrefabs)
 curve_prefabs = nurbsCurvePrefabs.create_dict()
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.utilities.get_utils as get_utils
-reload(get_utils)
+import Snowman3.utilities.get_utils as get_utils
+importlib.reload(get_utils)
 ###########################
 ###########################
 
@@ -131,7 +132,7 @@ def get(node):
 
     # ...Check argument integrity
     if node not in node_functions.keys():
-        print "Invalid argument: {}".format(node)
+        print("Invalid argument: {}".format(node))
         return None
 
     # ...If valid arg provided, fire the corresponding 'get' function and return the node
@@ -673,7 +674,7 @@ def normalize_vector(vector):
     c_len = np.linalg.norm(c)
 
     normalized_c = []
-    for i in xrange(len(c)):
+    for i in range(len(c)):
         normalized_c.append(c[i] / abs(c_len))
 
     normalized_c = tuple(normalized_c)
@@ -999,7 +1000,7 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
         curve = pm.circle(name=name, sections=cv_count, degree=3)[0]
 
         # Move CVs into provided positions( plus any provided scale offset and point offset )
-        for i in xrange(0, len(cvs)):
+        for i in range(0, len(cvs)):
             pm.move( pm.NurbsCurveCV(curve, i), cvs[i], absolute=1 )
 
 
@@ -1010,10 +1011,10 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
     # Build a list of points at which to place the curve's CVs (incorporating scale and points_offset)
     points = []
 
-    for i in xrange(len(cvs)):
+    for i in range(len(cvs)):
 
         final_point_coords = []
-        for n in xrange(3):
+        for n in range(3):
             final_point_coords.append(cvs[i][n] * scale[n] + (points_offset[n] * x_offset_direction))
 
         points.append(tuple(final_point_coords))
@@ -1135,7 +1136,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
             output = [output]
 
         if len(output) < new_length:
-            for i in xrange(len(output), new_length):
+            for i in range(len(output), new_length):
                 output.append(output[0])
 
         return output
@@ -1170,7 +1171,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
         "periodic": ["periodic", "Periodic", "closed", "Closed", "close", "Close"]
     }
 
-    for i in xrange(len(form)):
+    for i in range(len(form)):
 
         string_is_recognized = False
 
@@ -1233,7 +1234,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
 
     ##### BUILD SHAPES #####
     crvs = []
-    for i in xrange(shape_count):
+    for i in range(shape_count):
         shape_form = form[i]
         shape_cvs = cvs[i]
         shape_degree = degree[i]
@@ -1259,7 +1260,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
     # ...Parent shapes together under a single transform node
     crv_obj = crvs[0]
 
-    for i in xrange(1, len(crvs)):
+    for i in range(1, len(crvs)):
         pm.parent(crvs[i].getShape(), crv_obj, relative=1, shape=1)
         pm.delete(crvs[i])
 
@@ -1294,7 +1295,7 @@ def rename_shapes(obj):
 
     # ...Compose dictionary of new shape names
     new_shape_names = []
-    for i in xrange(len(shapes)):
+    for i in range(len(shapes)):
         shape = shapes[i]
         new_name = "{}Shape{}".format( get_clean_name(obj), str(i+1) )
         new_shape_names.append(new_name)
@@ -1591,7 +1592,7 @@ def match_position(obj, match_to, method="parent", preserve_scale=1, enforce_sca
     if preserve_scale:
         scale_vals = list(obj.scale.get())
         axes = ["x", "y", "z"]
-        for i in xrange(3):
+        for i in range(3):
             if scale_vals[i] > 0:
                 pm.setAttr("{}.s{}".format(obj, axes[i]), 1)
             elif scale_vals[i] < 0:
@@ -1673,7 +1674,7 @@ def get_opposite_side_obj(obj):
             break
 
     if not opp_side_tag:
-        print "Object: '{0}' is not sided. Can't get opposite sided object.".format(obj)
+        print("Object: '{0}' is not sided. Can't get opposite sided object.".format(obj))
         return None
 
     # Get expected name of opposite obj
@@ -1684,7 +1685,7 @@ def get_opposite_side_obj(obj):
 
 
     if not obj:
-        print "Unable to find opposite side object. Expected an object of name: '{0}'".format(opp_obj_check_string)
+        print("Unable to find opposite side object. Expected an object of name: '{0}'".format(opp_obj_check_string))
 
 
     return opp_obj
@@ -1699,7 +1700,7 @@ def position_between(obj, between, ratios=None, include_orientation=False):
 
     if not ratios:
         ratios = []
-        for i in xrange(len(between)):
+        for i in range(len(between)):
             ratios.append(1.0/len(between))
 
 
@@ -1723,7 +1724,7 @@ def position_between(obj, between, ratios=None, include_orientation=False):
 
 
     # ...Apply weights
-    for i in xrange(len(ratios)):
+    for i in range(len(ratios)):
         pm.setAttr(weights[i], ratios[i])
 
 
@@ -1964,7 +1965,7 @@ def convert_offset(obj, reverse=False):
     attr_list = ["tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz", "shearXY", "shearXZ", "shearYZ"]
     lock_list = []
 
-    for i in xrange(len(attr_list)):
+    for i in range(len(attr_list)):
 
         attr = "{}.{}".format(obj, attr_list[i])
         if pm.getAttr(attr, lock=1):
@@ -2011,7 +2012,7 @@ def convert_offset(obj, reverse=False):
         zero_out(obj)
 
         # ...Re-lock any transform values that were locked
-        for i in xrange(len(attr_list)):
+        for i in range(len(attr_list)):
             if lock_status[i] == 1:
                 attr = "{}.{}".format(obj, attr_list[i])
                 pm.setAttr(attr, lock=1, keyable=0)
@@ -2251,7 +2252,7 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
         if not target_has_parent:
             offset_parent_matrix_input = matrix_blend + '.outputMatrix'
             
-        for i in xrange(len(source_objs)):
+        for i in range(len(source_objs)):
             
             if i == 0:
                 pm.connectAttr(source_objs[i] + '.worldMatrix[0]', matrix_blend + '.inputMatrix')
@@ -2277,7 +2278,7 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
 
         #offset_matrix_input, mult_matrix, world_matrix_input = None, None, None
 
-        for i in xrange(len(source_objs)):
+        for i in range(len(source_objs)):
             offset = pm.shadingNode('multMatrix', name='tempMultMatrix', au=1)
             pm.connectAttr(target_obj + '.worldMatrix[0]', offset + '.matrixIn[0]')
             pm.connectAttr(source_objs[i] + '.worldInverseMatrix[0]', offset + '.matrixIn[1]')
@@ -2293,7 +2294,7 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
 
         if multiple_sources:
             offset_matrix_blend = pm.shadingNode('blendMatrix', name='matrix_blend', au=1)
-            for i in xrange(len(source_objs)):
+            for i in range(len(source_objs)):
                 if i == 0:
                     pm.connectAttr(source_objs[i] + '.offsetMatrix_{}'.format(get_clean_name(target_obj)),
                                    offset_matrix_blend + '.inputMatrix')
@@ -2370,11 +2371,11 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
         pass
     if multiple_sources:
         weights = []
-        for i in xrange(1, len(source_objs)):
+        for i in range(1, len(source_objs)):
             weights.append(matrix_blend+'.target[{}].weight'.format(str(i-1)))
         output['weights'] = weights
         if maintain_offset:
-            for i in xrange(1, len(source_objs)):
+            for i in range(1, len(source_objs)):
                 output['offsetWeights'] = offset_matrix_blend+'.target[{}].weight'.format(str(i-1))
 
     return output
@@ -2401,7 +2402,7 @@ def get_shape_center(obj):
 
     shapes = obj.getShapes()
 
-    for i in xrange(len(shapes)):
+    for i in range(len(shapes)):
         shape = shapes[i]
 
         obj_list = om2.MSelectionList()
@@ -2461,7 +2462,7 @@ def reset_transform_to_shape_center(obj):
         
         cv_count = None
         
-        for i in xrange(0, cv_count):
+        for i in range(0, cv_count):
             pm.move(pm.NurbsCurveCV(shape, i), counter_vector, relative=True)
 
 
@@ -2481,7 +2482,7 @@ def scale_obj_shape(obj, scale=(1, 1, 1)):
 
         cv_count = shape.numCVs()
 
-        for i in xrange(cv_count):
+        for i in range(cv_count):
 
             # ...Get vert world position
             cv_pos = pm.pointPosition(shape.cv[i], world=1)
@@ -2555,7 +2556,7 @@ def get_shape_info_from_obj(obj=None):
     cv_counts = [shape.numCVs() for shape in shapes]
     cv_positions = []
 
-    for i in xrange(len(shapes)):
+    for i in range(len(shapes)):
         shape_cvs = ([[cv.x, cv.y, cv.z] for cv in shapes[i].getCVs()])
 
         # ...If degree of 3, the last three CVs will be repeats. Remove them from final list
@@ -2735,7 +2736,7 @@ def get_attr_data(attr, node):
 
     # ...Check attribute exists
     if not pm.attributeQuery(attr, node=node, exists=1):
-        print "Attribute '{}' does not exist".format(node + "." + attr)
+        print("Attribute '{}' does not exist".format(node + "." + attr))
         return None
 
     # ...Query attribute information and compose into a dictionary

@@ -7,8 +7,9 @@
 
 ###########################
 ##### Import Commands #####
-import Snowman.riggers.utilities.classes.class_AnimControl as class_AnimControl
-reload(class_AnimControl)
+import importlib
+import Snowman3.riggers.utilities.classes.class_AnimControl as class_AnimControl
+importlib.reload(class_AnimControl)
 ###########################
 ###########################
 

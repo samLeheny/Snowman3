@@ -7,31 +7,32 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.utilities.classes.class_VectorHandle as classVectorHandle
-reload(classVectorHandle)
+import Snowman3.riggers.utilities.classes.class_VectorHandle as classVectorHandle
+importlib.reload(classVectorHandle)
 VectorHandle = classVectorHandle.VectorHandle
 
-import Snowman.riggers.dictionaries.control_colors as ctrl_colors_dict
-reload(ctrl_colors_dict)
+import Snowman3.riggers.dictionaries.control_colors as ctrl_colors_dict
+importlib.reload(ctrl_colors_dict)
 ctrl_colors = ctrl_colors_dict.create_dict()
 
-import Snowman.riggers.utilities.classes.class_Orienter as classOrienter
-reload(classOrienter)
+import Snowman3.riggers.utilities.classes.class_Orienter as classOrienter
+importlib.reload(classOrienter)
 Orienter = classOrienter.Orienter
 ###########################
 ###########################
@@ -177,7 +178,7 @@ class Placer:
 
         placer = pm.ls(placer_search_string)
         if not placer:
-            print "Unable to find placer from string: '{}'".format(placer_search_string)
+            print("Unable to find placer from string: '{}'".format(placer_search_string))
         else:
             self.mobject = placer[0]
 
@@ -248,21 +249,21 @@ class Placer:
 
         # ...Check that placer is sided
         if not self.side:
-            print "Placer '{0}' has not assigned side, and therefore, has no opposite placer".format(self.mobject)
+            print("Placer '{0}' has not assigned side, and therefore, has no opposite placer".format(self.mobject))
             return None
 
         # ...Check that placer's side is valid (left or right)
         if not self.side in (nom.leftSideTag, nom.rightSideTag):
-            print "Side for placer '{0}': {1}." \
+            print("Side for placer '{0}': {1}." \
                   "Can only find opposite placers if assigned side is '{2}' or '{3}'".format(self.mobject, self.side,
-                                                                                    nom.leftSideTag, nom.rightSideTag)
+                                                                                    nom.leftSideTag, nom.rightSideTag))
 
         # ...Find and get opposite placer
         opposite_placer = None
         opposite_placer = gen_utils.get_opposite_side_obj(self.mobject)
 
         if not opposite_placer:
-            print "Unable to find opposite placer for placer: '{0}'".format(self.mobject)
+            print("Unable to find opposite placer for placer: '{0}'".format(self.mobject))
             return None
 
 
@@ -279,7 +280,7 @@ class Placer:
         opposite_placer = self.get_opposite_placer()
 
         if not opposite_placer:
-            print "No opposite placer found. Cannot setup live symmetry for placer '{0}'".format(self.mobject)
+            print("No opposite placer found. Cannot setup live symmetry for placer '{0}'".format(self.mobject))
             return None
 
 
@@ -411,7 +412,7 @@ class Placer:
                 if pm.ls(get_placer_string):
                     aim_target_obj = pm.ls(get_placer_string)[0]
                 else:
-                    print "Unable to find object: '{}'".format(get_placer_string)
+                    print("Unable to find object: '{}'".format(get_placer_string))
 
                 offset = gen_utils.buffer_obj(self.aim_vector_handle.mobject, suffix="MOD")
                 pm.pointConstraint(aim_target_obj, offset)
@@ -429,7 +430,7 @@ class Placer:
                 if pm.ls(get_placer_string):
                     up_target_obj = pm.ls(get_placer_string)[0]
                 else:
-                    print "Unable to find object: '{}'".format(get_placer_string)
+                    print("Unable to find object: '{}'".format(get_placer_string))
 
                 offset = gen_utils.buffer_obj(self.up_vector_handle.mobject, suffix="MOD")
                 pm.pointConstraint(up_target_obj, offset)
@@ -561,7 +562,7 @@ class Placer:
         elif type(self.aim_obj) in (tuple, list):
             pm.addAttr(obj, longName=placer_aimObj_attr_name, attributeType="compound", keyable=0, numberOfChildren=3)
             letters = ("x", "y", "z")
-            for i in xrange(3):
+            for i in range(3):
                 letter = letters[i]
                 pm.addAttr(obj, longName=letter, keyable=0, attributeType="double", parent=placer_aimObj_attr_name)
 
@@ -576,7 +577,7 @@ class Placer:
         elif type(self.up_obj) in (tuple, list):
             pm.addAttr(obj, longName=placer_upObj_attr_name, attributeType="compound", keyable=0, numberOfChildren=3)
             letters = ("x", "y", "z")
-            for i in xrange(3):
+            for i in range(3):
                 letter = letters[i]
                 pm.addAttr(obj, longName=letter, keyable=0, attributeType="double", parent=placer_upObj_attr_name)
 

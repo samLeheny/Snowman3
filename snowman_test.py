@@ -1,11 +1,12 @@
 ### ...Full Body ##############################################################################
+import importlib
 import pymel.core as pm
 import maya.cmds as mc
 import json
-import Snowman.riggers.builder.builder as builder
-reload(builder)
-import Snowman.riggers.IO.armature_IO as IO
-reload(IO)
+import Snowman3.riggers.builder.builder as builder
+importlib.reload(builder)
+import Snowman3.riggers.IO.armature_IO as IO
+importlib.reload(IO)
 ArmatureDataIO = IO.ArmatureDataIO
 
 # ...New Scene

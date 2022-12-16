@@ -7,8 +7,9 @@
 
 ###########################
 ##### Import Commands #####
-import Snowman.riggers.modules.leg_plantigrade.utilities.prelimCtrls as prelimCtrls
-reload(prelimCtrls)
+import importlib
+import Snowman3.riggers.modules.leg_plantigrade.utilities.prelimCtrls as prelimCtrls
+importlib.reload(prelimCtrls)
 ###########################
 ###########################
 

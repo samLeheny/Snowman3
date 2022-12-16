@@ -7,16 +7,17 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 ###########################
 ###########################
@@ -447,7 +448,7 @@ def orienter(name=None, side=None, scale=1):
 
     # Color orienter
     shapes = orienter.getShapes()
-    for i in xrange(len(shapes)):
+    for i in range(len(shapes)):
         gen_utils.set_color(shapes[i], colors[i])
 
 
@@ -463,7 +464,7 @@ def joint_rot_to_ori(joint):
 
     jointOrient_attrs = ("jointOrientX", "jointOrientY", "jointOrientZ")
 
-    for i in xrange(3):
+    for i in range(3):
         pm.setAttr(joint + "." + jointOrient_attrs[i],
                    pm.getAttr(joint + "." + jointOrient_attrs[i]) + pm.getAttr(joint + "." + gen_utils.rotate_attrs[i]))
 
@@ -635,7 +636,7 @@ def ribbon_plane(name, start_obj, end_obj, up_obj, density, up_vector=(0, 1, 0),
     # Create output math nodes and connect them to nurbs strip shape
     surf_point_nodes, four_by_four_nodes, decomp_nodes = [], [], []
 
-    for i in xrange(0, density):
+    for i in range(0, density):
 
         n = i + 1
 
@@ -756,7 +757,7 @@ def apply_ctrl_locks(ctrl):
             info = ( int(string_list[0]), int(string_list[1]), int(string_list[2]) )
 
             # ...Lock transform attribute in accordance with extracted lock info
-            for i in xrange(len(ctrl_transforms)):
+            for i in range(len(ctrl_transforms)):
                 ctrl_transforms[i].set(lock=info[i], keyable=info[i]^1)
 
             # ...Remove left over lock info attribute. We're finished with it
@@ -957,7 +958,7 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
 
 
 
-    for i in xrange(ctrl_resolution):
+    for i in range(ctrl_resolution):
 
         ctrl = control(ctrl_info={"shape": "square",
                                   "scale": [ctrl_size, ctrl_size, ctrl_size],
@@ -1076,7 +1077,7 @@ def space_switch(target, sources, source_names, name, attr_node, attr_name=None,
 
     # ...Create attribute ----------------------------------------------------------------------------------------------
     enum_name_string = source_names[0]
-    for i in xrange(1, len(source_names)):
+    for i in range(1, len(source_names)):
         enum_name_string += ":{}".format(source_names[i])
     enum_name_string += ":Global"
 
@@ -1091,7 +1092,7 @@ def space_switch(target, sources, source_names, name, attr_node, attr_name=None,
     locs.append(global_space_loc)
 
     local_locs = []
-    for i in xrange(len(sources)):
+    for i in range(len(sources)):
         loc = pm.spaceLocator(name="{}{}_{}_SPACE".format(side_tag, name, source_names[i]))
         local_locs.append(loc)
         locs.append(loc)
@@ -1110,11 +1111,11 @@ def space_switch(target, sources, source_names, name, attr_node, attr_name=None,
 
     blend_matrix = node_utils.blendMatrix(inputMatrix=local_locs[0].worldMatrix,
                                           targetMatrix=global_space_loc.worldMatrix)
-    for i in xrange(1, len(local_locs)):
+    for i in range(1, len(local_locs)):
         local_locs[i].worldMatrix.connect(blend_matrix.target[i].targetMatrix)
     global_space_loc.worldMatrix.connect(blend_matrix.target[len(local_locs)].targetMatrix)
 
-    for i in xrange(1, len(local_locs)+1):
+    for i in range(1, len(local_locs)+1):
         con = node_utils.condition(firstTerm=attr_node + "." + attr_name, secondTerm=i, operation="equal",
                                    colorIfTrue=(1, 0, 0), colorIfFalse=(0, 1, 1),
                                    outColor=(blend_matrix.target[i].weight, None, None))

@@ -7,20 +7,21 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.modules.leg_plantigrade.utilities.animCtrls as animCtrls
-reload(animCtrls)
+import Snowman3.riggers.modules.leg_plantigrade.utilities.animCtrls as animCtrls
+importlib.reload(animCtrls)
 
-import Snowman.riggers.utilities.classes.class_LimbRig as class_LimbRig
-reload(class_LimbRig)
+import Snowman3.riggers.utilities.classes.class_LimbRig as class_LimbRig
+importlib.reload(class_LimbRig)
 LimbRig = class_LimbRig.LimbRig
 ###########################
 ###########################

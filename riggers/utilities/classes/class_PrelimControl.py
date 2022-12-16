@@ -7,16 +7,17 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 ###########################
 ###########################
@@ -136,7 +137,7 @@ class PrelimControl:
 
                     constraint_weights = pm.pointConstraint(position_constraint, q=1, weightAliasList=1)
                     [pm.setAttr(constraint_weights[i], self.position_weights[i]) for i in
-                     xrange(len(constraint_weights))]
+                     range(len(constraint_weights))]
 
 
 
@@ -167,7 +168,7 @@ class PrelimControl:
                         ori_string = "::{0}{1}_{2}".format(self.side_tag, key, nom.orienter)
 
                         if not pm.objExists(ori_string):
-                            print "Could not find orienter '{}' in scene".format(ori_string)
+                            print("Could not find orienter '{}' in scene".format(ori_string))
 
                         else:
                             ori = pm.ls("::{0}{1}_{2}".format(self.side_tag, key, nom.orienter))

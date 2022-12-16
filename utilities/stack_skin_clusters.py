@@ -171,7 +171,7 @@ def load_skin_weights(mesh, path=None, rebind=False):
 		pm.select(influence_objects, mesh, r=True)
 		mesh_skin = pm.skinCluster(tsb=True, mi=3, dr=4.0, n=mesh+"SkClus")
 
-	for index, bind_input in zip(xrange(influence_count), bind_inputs):
+	for index, bind_input in zip(range(influence_count), bind_inputs):
 		if bind_input:
 			bind_input = pm.PyNode(bind_input)
 			try_matrix_connect(bind_input, mesh_skin.bindPreMatrix[index])
@@ -181,7 +181,7 @@ def load_skin_weights(mesh, path=None, rebind=False):
 	mesh_mfn    = get_mfn_mesh(mesh_shape)
 	mesh_dp     = get_dag_path(mesh_shape.longName())
 	components  = get_complete_components(mesh_mfn)
-	all_indices = om2.MIntArray(xrange(influence_count))
+	all_indices = om2.MIntArray(range(influence_count))
 
 	skin_mfn.setWeights(mesh_dp, components, all_indices, weights)
 	
@@ -217,13 +217,13 @@ def copy_skin_weights(source, source_skin, target, target_skin):
 	mat_inputs  = [ (x.inputs(plugs=True)[0] if x.isConnected() else None) for x in source_skin.matrix ]
 	mat_values  = [ x.get() for x in source_skin.matrix ]
 
-	for index, bind_value, mat_value in zip(xrange(influence_count), bind_values, mat_values):
+	for index, bind_value, mat_value in zip(range(influence_count), bind_values, mat_values):
 		## can't be guaranteed what state things will be in at this point
 		## so set them in a try/catch
 		try_matrix_set(target_skin.bindPreMatrix[index], bind_value)
 		try_matrix_set(target_skin.matrix[index], mat_value)
 
-	for index, bind_input, mat_input in zip(xrange(influence_count), bind_inputs, mat_inputs):
+	for index, bind_input, mat_input in zip(range(influence_count), bind_inputs, mat_inputs):
 		if bind_input:
 			try_matrix_connect(bind_input, target_skin.bindPreMatrix[index])
 		if mat_input:
@@ -235,7 +235,7 @@ def copy_skin_weights(source, source_skin, target, target_skin):
 	target_mesh  = get_mfn_mesh(target_shape)
 	target_dp    = get_dag_path(target_shape.longName())
 	components   = get_complete_components(target_mesh)
-	all_indices  = om2.MIntArray(xrange(influence_count))
+	all_indices  = om2.MIntArray(range(influence_count))
 	
 	target_mfn.setWeights(target_dp, components, all_indices, weights)
 
@@ -365,7 +365,7 @@ def mesh_to_face_layers(mesh, connect_original=False):
 	# BlendShape chaining
 	all_duplicates = list(sorted(all_duplicates))
 
-	for index in xrange(1,len(all_duplicates)):
+	for index in range(1,len(all_duplicates)):
 		source = all_duplicates[index-1]
 		target = all_duplicates[index]
 		pm.blendShape( source, target, weight=(0, 1), before=True, name="{0}_INPUT".format(target) )

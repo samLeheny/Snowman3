@@ -7,14 +7,15 @@
 
 ###########################
 ##### Import Commands #####
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import importlib
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.riggers.modules.biped_spine.setup.subModules.waist_ribbon as waist_ribbon
-reload(waist_ribbon)
+import Snowman3.riggers.modules.biped_spine.setup.subModules.waist_ribbon as waist_ribbon
+importlib.reload(waist_ribbon)
 
-import Snowman.riggers.modules.biped_spine.utilities.prelimCtrls as prelimCtrls
-reload(prelimCtrls)
+import Snowman3.riggers.modules.biped_spine.utilities.prelimCtrls as prelimCtrls
+importlib.reload(prelimCtrls)
 ###########################
 ###########################
 
@@ -75,7 +76,7 @@ def build(armature_module):
 
 
     spine_seg_count = len(armature_module.placers.keys())
-    for i in xrange(spine_seg_count+1):
+    for i in range(spine_seg_count+1):
 
         pin = gen_utils.point_on_surface_matrix(ribbon_sys["nurbsPlane"].getShape() + ".worldSpace",
                                                 parameter_U=0.5, parameter_V=(1.0 / spine_seg_count) * i,

@@ -1,7 +1,8 @@
+import importlib
 import pymel.core as pm
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 
 # Constants
 nom = nameConventions.create_dict()

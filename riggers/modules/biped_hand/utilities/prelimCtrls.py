@@ -8,19 +8,20 @@
 
 ###########################
 ##### Import Commands #####
-import Snowman.riggers.utilities.classes.class_PrelimControl as class_PrelimControl
-reload(class_PrelimControl)
+import importlib
+import Snowman3.riggers.utilities.classes.class_PrelimControl as class_PrelimControl
+importlib.reload(class_PrelimControl)
 
-import Snowman.dictionaries.nurbsCurvePrefabs as nurbsCurvePrefabs
-reload(nurbsCurvePrefabs)
+import Snowman3.dictionaries.nurbsCurvePrefabs as nurbsCurvePrefabs
+importlib.reload(nurbsCurvePrefabs)
 curve_prefabs = nurbsCurvePrefabs.create_dict()
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.dictionaries.control_colors as ctrl_colors_dict
-reload(ctrl_colors_dict)
+import Snowman3.riggers.dictionaries.control_colors as ctrl_colors_dict
+importlib.reload(ctrl_colors_dict)
 ctrl_colors = ctrl_colors_dict.create_dict()
 ###########################
 ###########################

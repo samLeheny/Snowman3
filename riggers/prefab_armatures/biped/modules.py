@@ -7,8 +7,9 @@
 
 ###########################
 ##### Import Commands #####
-import Snowman.riggers.utilities.classes.class_ArmatureModule as armatureModule
-reload(armatureModule)
+import importlib
+import Snowman3.riggers.utilities.classes.class_ArmatureModule as armatureModule
+importlib.reload(armatureModule)
 Module = armatureModule.ArmatureModule
 ###########################
 ###########################

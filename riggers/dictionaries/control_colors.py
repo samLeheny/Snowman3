@@ -7,8 +7,9 @@
 
 ###########################
 ##### Import Commands #####
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import importlib
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 ###########################
 ###########################

@@ -7,16 +7,17 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 ###########################
 ###########################
@@ -116,23 +117,23 @@ class Orienter:
 
         # ...Check that orienter is sided
         if not self.side:
-            print "Orienter '{0}' has not assigned side, and therefore, has no opposite orienter".format(self.mobject)
+            print("Orienter '{0}' has not assigned side, and therefore, has no opposite orienter".format(self.mobject))
             return None
 
         # ...Check that orienter's side is valid (left or right)
         if not self.side in (nom.leftSideTag, nom.rightSideTag):
-            print "Side for orienter '{0}': {1}." \
+            print("Side for orienter '{0}': {1}." \
                   "Can only find opposite orienters if assigned side is '{2}' or '{3}'".format(self.mobject,
-                                                                                             self.side,
-                                                                                             nom.leftSideTag,
-                                                                                             nom.rightSideTag)
+                                                                                               self.side,
+                                                                                               nom.leftSideTag,
+                                                                                               nom.rightSideTag))
 
         # ...Find and get opposite orienter
         opposite_orienter = None
         opposite_orienter = gen_utils.get_opposite_side_obj(self.mobject)
 
         if not opposite_orienter:
-            print "Unable to find opposite orienter for placer: '{0}'".format(self.mobject)
+            print("Unable to find opposite orienter for placer: '{0}'".format(self.mobject))
             return None
 
         return opposite_orienter

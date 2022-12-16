@@ -7,20 +7,21 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.dictionaries.control_colors as ctrl_colors_dict
-reload(ctrl_colors_dict)
+import Snowman3.riggers.dictionaries.control_colors as ctrl_colors_dict
+importlib.reload(ctrl_colors_dict)
 ctrl_colors = ctrl_colors_dict.create_dict()
 ###########################
 ###########################

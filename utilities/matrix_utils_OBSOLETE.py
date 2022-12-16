@@ -9,10 +9,11 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 ###########################
 ###########################
 
@@ -214,7 +215,7 @@ def convert_offset(obj, reverse=False):
     attr_list = ["tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz", "shearXY", "shearXZ", "shearYZ"]
     lock_list = []
 
-    for i in xrange(len(attr_list)):
+    for i in range(len(attr_list)):
 
         attr = "{}.{}".format(obj, attr_list[i])
         if pm.getAttr(attr, lock=1):
@@ -262,7 +263,7 @@ def convert_offset(obj, reverse=False):
         gen_utils.zero_out(obj)
 
         # Re-lock any transform values that were locked
-        for i in xrange(len(attr_list)):
+        for i in range(len(attr_list)):
             if lock_status[i] == 1:
                 attr = "{}.{}".format(obj, attr_list[i])
                 pm.setAttr(attr, lock=1, keyable=0)

@@ -493,7 +493,7 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
     if input1:
         if type(input1) in [list, tuple]:
             input1 = tuple(input1) if type(input1) == list else None
-            for i in xrange(3):
+            for i in range(3):
                 if type(input1[i]) in [int, float]:
                     pm.setAttr(node + "." + input1_array[i], input1[i])
                 else:
@@ -507,7 +507,7 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
     if input2:
         if type(input2) in [list, tuple]:
             input2 = tuple(input2) if type(input2) == list else None
-            for i in xrange(3):
+            for i in range(3):
                 if type(input2[i]) in [int, float]:
                     pm.setAttr(node + "." + input2_array[i], input2[i])
                 else:
@@ -530,7 +530,7 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
     if output:
         if type(output) in [list, tuple]:
             output = tuple(output) if type(output) == list else None
-            for i in xrange(3):
+            for i in range(3):
                 pm.connectAttr(node + "." + output_array[i], output[i])
 
         else:
@@ -628,7 +628,7 @@ def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFal
 
 
 
-    for i in xrange(3):
+    for i in range(3):
 
 
         if type(colorIfTrue[i]) in [int, float]:
@@ -674,7 +674,7 @@ def fourByFourMatrix(input=None, output=None, name=None):
 
 
     if input:
-        for i in xrange(len(input)):
+        for i in range(len(input)):
             if type(input[i]) in [int, float]:
                 pm.setAttr(node + "." + input_attrs[i], input[i])
             else:
@@ -732,7 +732,7 @@ def multMatrix(name=None, matrixIn=None, matrixSum=None):
         if not type(matrixIn) in (list, tuple):
             matrixIn = (matrixIn,)
 
-        for i in xrange(len(matrixIn)):
+        for i in range(len(matrixIn)):
             pm.connectAttr(matrixIn[i], node.matrixIn[i])
 
 
@@ -740,7 +740,7 @@ def multMatrix(name=None, matrixIn=None, matrixSum=None):
         if not type(matrixSum) in (list, tuple):
             matrixSum = (matrixSum,)
 
-        for i in xrange(len(matrixSum)):
+        for i in range(len(matrixSum)):
             pm.connectAttr(node.matrixSum, matrixSum[i])
 
 
@@ -770,7 +770,7 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
         if not type(outputQuat) in (list, tuple):
             outputQuat = (outputQuat,)
 
-        for i in xrange(len(outputQuat)):
+        for i in range(len(outputQuat)):
             pm.connectAttr(node.outputQuat, outputQuat[i], f=force)
 
 
@@ -778,7 +778,7 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
         if not type(outputTranslate) in (list, tuple):
             outputTranslate = (outputTranslate,)
 
-        for i in xrange(len(outputTranslate)):
+        for i in range(len(outputTranslate)):
             pm.connectAttr(node.outputTranslate, outputTranslate[i], f=force)
 
 
@@ -786,7 +786,7 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
         if not type(outputRotate) in (list, tuple):
             outputRotate = (outputRotate,)
 
-        for i in xrange(len(outputRotate)):
+        for i in range(len(outputRotate)):
             pm.connectAttr(node.outputRotate, outputRotate[i], f=force)
 
 
@@ -794,7 +794,7 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
         if not type(outputScale) in (list, tuple):
             outputScale = (outputScale,)
 
-        for i in xrange(len(outputScale)):
+        for i in range(len(outputScale)):
             pm.connectAttr(node.outputScale, outputScale[i], f=force)
 
 
@@ -802,7 +802,7 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
         if not type(outputShear) in (list, tuple):
             outputShear = (outputShear,)
 
-        for i in xrange(len(outputShear)):
+        for i in range(len(outputShear)):
             pm.connectAttr(node.outputShear, outputShear[i], f=force)
 
 
@@ -825,7 +825,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
 
     if input:
         sub_plugs = ("inputR", "inputG", "inputB")
-        for i in xrange(3):
+        for i in range(3):
             if input[i]:
                 if type(input[i]) in (int, float):
                     pm.setAttr(node + "." + sub_plugs[i], input[i])
@@ -835,7 +835,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
 
     if min:
         sub_plugs = ("minR", "minG", "minB")
-        for i in xrange(3):
+        for i in range(3):
             if min[i]:
                 if type(min[i]) in (int, float):
                     pm.setAttr(node + "." + sub_plugs[i], min[i])
@@ -845,7 +845,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
 
     if max:
         sub_plugs = ("maxR", "maxG", "maxB")
-        for i in xrange(3):
+        for i in range(3):
             if max[i]:
                 if type(max[i]) in (int, float):
                     pm.setAttr(node + "." + sub_plugs[i], max[i])
@@ -855,7 +855,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
 
     if output:
         sub_plugs = ("outputR", "outputG", "outputB")
-        for i in xrange(3):
+        for i in range(3):
             if output[i]:
                 pm.connectAttr(node + "." + sub_plugs[i], output[i])
 
@@ -883,49 +883,49 @@ def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, 
     if targetMatrix:
         if not type(targetMatrix) in (list, tuple):
             targetMatrix = (targetMatrix,)
-        for i in xrange(len(targetMatrix)):
+        for i in range(len(targetMatrix)):
             pm.connectAttr(targetMatrix[i], node.target[i].targetMatrix)
 
 
     if useMatrix:
         if not type(useMatrix) in (list, tuple):
             useMatrix = (useMatrix,)
-        for i in xrange(len(useMatrix)):
+        for i in range(len(useMatrix)):
             pm.connectAttr(useMatrix[i], node.target[i].useMatrix)
 
 
     if weight:
         if not type(weight) in (list, tuple):
             weight = (weight,)
-        for i in xrange(len(weight)):
+        for i in range(len(weight)):
             pm.connectAttr(weight[i], node.target[i].weight)
 
 
     if useScale:
         if not type(useScale) in (list, tuple):
             useScale = (useScale,)
-        for i in xrange(len(useScale)):
+        for i in range(len(useScale)):
             pm.connectAttr(useScale[i], node.target[i].useScale)
 
 
     if useTranslate:
         if not type(useTranslate) in (list, tuple):
             useTranslate = (useTranslate,)
-        for i in xrange(len(useTranslate)):
+        for i in range(len(useTranslate)):
             pm.connectAttr(useTranslate[i], node.target[i].useTranslate)
 
 
     if useShear:
         if not type(useShear) in (list, tuple):
             useShear = (useShear,)
-        for i in xrange(len(useShear)):
+        for i in range(len(useShear)):
             pm.connectAttr(useShear[i], node.target[i].useShear)
 
 
     if useRotate:
         if not type(useRotate) in (list, tuple):
             useRotate = (useRotate,)
-        for i in xrange(len(useRotate)):
+        for i in range(len(useRotate)):
             pm.connectAttr(useRotate[i], node.target[i].useRotate)
 
 
@@ -933,7 +933,7 @@ def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, 
     if outputMatrix:
         if not type(outputMatrix) in (list, tuple):
             outputMatrix = (outputMatrix,)
-        for i in xrange(len(outputMatrix)):
+        for i in range(len(outputMatrix)):
             pm.connectAttr(node.outputMatrix, outputMatrix[i])
 
 

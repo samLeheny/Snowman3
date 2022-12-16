@@ -7,13 +7,14 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.riggers.modules.biped_hand.utilities.prelimCtrls as prelimCtrls
-reload(prelimCtrls)
+import Snowman3.riggers.modules.biped_hand.utilities.prelimCtrls as prelimCtrls
+importlib.reload(prelimCtrls)
 
-import Snowman.riggers.utilities.classes.class_SetupControl as classSetupControl
-reload(classSetupControl)
+import Snowman3.riggers.utilities.classes.class_SetupControl as classSetupControl
+importlib.reload(classSetupControl)
 SetupControl = classSetupControl.SetupControl
 ###########################
 ###########################

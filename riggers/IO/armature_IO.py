@@ -7,15 +7,15 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 import maya.cmds as mc
 import json
 import os
-import Snowman.riggers.utilities.armature_utils as amtr_utils
-reload(amtr_utils)
+import Snowman3.riggers.utilities.armature_utils as amtr_utils
+importlib.reload(amtr_utils)
 ###########################
 ###########################
-
 
 ###########################
 ######## Variables ########

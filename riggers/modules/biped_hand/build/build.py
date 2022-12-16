@@ -7,23 +7,24 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.modules.biped_hand.utilities.animCtrls as animCtrls
-reload(animCtrls)
+import Snowman3.riggers.modules.biped_hand.utilities.animCtrls as animCtrls
+importlib.reload(animCtrls)
 
 ###########################
 ###########################
@@ -71,7 +72,7 @@ def build(rig_module, rig_parent=None):
         prev_seg_connector = None
 
         # ...Run procedure for each segment in finger
-        for i in xrange(start_index, start_index + seg_count):
+        for i in range(start_index, start_index + seg_count):
 
 
             n = str(i) if i > 0 else "meta"
@@ -161,7 +162,7 @@ def build(rig_module, rig_parent=None):
         finger = finger_rigs[key]
 
         # Curling
-        for i in xrange(1, len(finger["segs"])):
+        for i in range(1, len(finger["segs"])):
             seg = finger["segs"][i]
             curl_buffer = seg["curl_buffer"] = gen_utils.buffer_obj(seg["ctrl"])
             quickPose_ctrl.rz.connect(curl_buffer.rz)

@@ -1,17 +1,18 @@
+import importlib
 import pymel.core as pm
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.riggers.modules.root.utilities.animCtrls as animCtrls
-reload(animCtrls)
+import Snowman3.riggers.modules.root.utilities.animCtrls as animCtrls
+importlib.reload(animCtrls)
 
 
 

@@ -7,17 +7,18 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.dictionaries.body_attributes as body_attributes
-reload(body_attributes)
+import Snowman3.riggers.dictionaries.body_attributes as body_attributes
+importlib.reload(body_attributes)
 attrNom = body_attributes.create_dict()
 ###########################
 ###########################
@@ -109,7 +110,7 @@ def build_conditions(attr_node, grps):
         )
         ctrl_vis_conditions.append(node)
 
-    for i in xrange(0, len(ctrl_vis_switch_enum_strings) - 1):
+    for i in range(0, len(ctrl_vis_switch_enum_strings) - 1):
         condition_node(ctrl_vis_switch_enum_strings[i+1], i + 1)
 
 

@@ -7,19 +7,20 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 ###########################
 ###########################
@@ -51,7 +52,7 @@ def install(spine_module, symmetry):
     nurbs_plane.ty.set(waist_length/2)
 
     # ...Match isoparms to placers
-    for i in xrange(2, 5):
+    for i in range(2, 5):
         for j in range (4):
 
             cv = pm.ls(nurbs_plane.getShape().cv[j][i])[0]
@@ -69,13 +70,13 @@ def install(spine_module, symmetry):
 
     # ...Create joints that will drive ribbon nurbsPlane
     ribbon_jnts = [rig_utils.joint(name="setupSpineRibbon_{}".format(str(i + 1)),
-                                   joint_type=nom.nonBindJnt) for i in xrange(0, 5)]
+                                   joint_type=nom.nonBindJnt) for i in range(0, 5)]
 
     ribbon_jnts_grp = pm.group(name="ribbon_jnts", world=1, em=1)
     ribbon_jnts_grp.visibility.set(0)
 
     # ...Position joints
-    for i in xrange(0, 5):
+    for i in range(0, 5):
         mult_matrix = node_utils.multMatrix(matrixIn=(spine_placers["spine_{}".format(i+1)].mobject.worldMatrix,
                                                       ribbon_jnts[i].parentInverseMatrix))
         node_utils.decomposeMatrix(inputMatrix=mult_matrix.matrixSum, outputTranslate=ribbon_jnts[i].translate,

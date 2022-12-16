@@ -7,12 +7,14 @@
 
 ###########################
 ##### Import Commands #####
-import Snowman.riggers.utilities.classes.class_Armature as armature
-reload(armature)
+import importlib
+
+import Snowman3.riggers.utilities.classes.class_Armature as armature
+importlib.reload(armature)
 Armature = armature.Armature
 
-import Snowman.riggers.utilities.directories.get_armature_data as get_armature_data
-reload(get_armature_data)
+import Snowman3.riggers.utilities.directories.get_armature_data as get_armature_data
+importlib.reload(get_armature_data)
 ###########################
 ###########################
 

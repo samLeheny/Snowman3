@@ -7,28 +7,29 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.modules.foot_plantigrade.utilities.animCtrls as animCtrls
-reload(animCtrls)
+import Snowman3.riggers.modules.foot_plantigrade.utilities.animCtrls as animCtrls
+importlib.reload(animCtrls)
 
-import Snowman.riggers.modules.foot_plantigrade.build.fkFoot as fkFoot
-reload(fkFoot)
-import Snowman.riggers.modules.foot_plantigrade.build.ikFoot as ikFoot
-reload(ikFoot)
+import Snowman3.riggers.modules.foot_plantigrade.build.fkFoot as fkFoot
+importlib.reload(fkFoot)
+import Snowman3.riggers.modules.foot_plantigrade.build.ikFoot as ikFoot
+importlib.reload(ikFoot)
 ###########################
 ###########################
 
@@ -73,7 +74,7 @@ def build(rig_module, rig_parent=None):
     bind_jnts = {}
     bind_jnt_keys = ("foot", "ball", "ball_end")
     bind_chain_buffer = None
-    for i in xrange(len(bind_jnt_keys)):
+    for i in range(len(bind_jnt_keys)):
         key = bind_jnt_keys[i]
         par = bind_jnts[bind_jnt_keys[i-1]] if i > 0 else None
         bind_jnts[key] = rig_utils.joint(name=key, joint_type=nom.bindJnt, side=rig_module.side, radius=0.5, parent=par)
@@ -83,7 +84,7 @@ def build(rig_module, rig_parent=None):
     bind_chain_buffer.setParent(rig_module.transform_grp)
     gen_utils.zero_out(bind_chain_buffer)
 
-    for i in xrange(len(bind_jnt_keys)):
+    for i in range(len(bind_jnt_keys)):
         key = bind_jnt_keys[i]
         if i == 0:
             pm.matchTransform(bind_chain_buffer, rig_module.orienters[key])

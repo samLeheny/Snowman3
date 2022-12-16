@@ -7,14 +7,15 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 ###########################
 ###########################
 
@@ -64,7 +65,7 @@ class AnimControl:
                 self.prelim_ctrl = search[0]
 
         if not self.prelim_ctrl:
-            print "Unable to find prelim control corresponding to: '{}'".format(self.ctrl_name_tag)
+            print("Unable to find prelim control corresponding to: '{}'".format(self.ctrl_name_tag))
 
         return self.prelim_ctrl
 

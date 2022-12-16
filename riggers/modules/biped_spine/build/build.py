@@ -7,34 +7,35 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 
-import Snowman.utilities.general_utils as gen_utils
-reload(gen_utils)
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 
-import Snowman.utilities.node_utils as node_utils
-reload(node_utils)
+import Snowman3.utilities.node_utils as node_utils
+importlib.reload(node_utils)
 
-import Snowman.utilities.rig_utils as rig_utils
-reload(rig_utils)
+import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(rig_utils)
 
-import Snowman.dictionaries.nameConventions as nameConventions
-reload(nameConventions)
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman.riggers.modules.biped_spine.build.subModules.fk_ribbon as build_fk_ribbon
-reload(build_fk_ribbon)
+import Snowman3.riggers.modules.biped_spine.build.subModules.fk_ribbon as build_fk_ribbon
+importlib.reload(build_fk_ribbon)
 
-import Snowman.riggers.modules.biped_spine.build.subModules.ik_translate_ribbon \
+import Snowman3.riggers.modules.biped_spine.build.subModules.ik_translate_ribbon \
     as build_ik_translate_ribbon
-reload(build_ik_translate_ribbon)
+importlib.reload(build_ik_translate_ribbon)
 
-import Snowman.riggers.modules.biped_spine.build.subModules.ik_rotate_ribbon \
+import Snowman3.riggers.modules.biped_spine.build.subModules.ik_rotate_ribbon \
     as build_ik_rotate_ribbon
-reload(build_ik_rotate_ribbon)
+importlib.reload(build_ik_rotate_ribbon)
 
-import Snowman.riggers.modules.biped_spine.build.subModules.ik_output_ribbon as build_ik_output_ribbon
-reload(build_ik_output_ribbon)
+import Snowman3.riggers.modules.biped_spine.build.subModules.ik_output_ribbon as build_ik_output_ribbon
+importlib.reload(build_ik_output_ribbon)
 ###########################
 ###########################
 
@@ -93,7 +94,7 @@ def build(rig_module, rig_parent=None):
 
     bind_jnts = []
     bind_jnt_attach_nodes = []
-    for i in xrange(bind_jnt_count):
+    for i in range(bind_jnt_count):
 
         jnt = rig_utils.joint(name="spine_{}".format(str(i+1)), joint_type=nom.bindJnt, radius=1.25)
         jnt_buffer = gen_utils.buffer_obj(jnt)
@@ -138,7 +139,7 @@ def build(rig_module, rig_parent=None):
                enumName="Off:On")
     pm.setAttr(ctrls["settings"] + '.' + attr_names["tweak_ctrl_vis"], channelBox=1)
 
-    for i in xrange(7):
+    for i in range(7):
         ctrl = ctrls["spine_tweak_{}".format(i+1)]
         ctrl_buffer = gen_utils.buffer_obj(ctrl)
         ctrl_buffer.setParent(bind_jnts[i].getParent())
