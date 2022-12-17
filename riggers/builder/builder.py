@@ -34,7 +34,7 @@ importlib.reload(get_armature_data)
 
 ###########################
 ######## Variables ########
-dir_string = {"module_build": "Snowman3.riggers.modules.{}.build.build"}
+
 ###########################
 ###########################
 
@@ -68,7 +68,6 @@ def build_armature_in_scene(armature):
 def build_prefab_armature(prefab_tag, symmetry_mode=None):
 
     armature = get_armature_data.armature(prefab_tag, symmetry_mode=symmetry_mode)
-
     build_armature_in_scene(armature)
 
     return armature
@@ -85,7 +84,6 @@ def build_armature_from_data(data):
                         symmetry_mode = data["symmetry_mode"],
                         modules = data["modules"])
     armature.modules_from_data()
-
     build_armature_in_scene(armature)
 
     return armature

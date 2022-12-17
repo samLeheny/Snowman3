@@ -9,8 +9,11 @@
 ##### Import Commands #####
 import importlib
 import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
+import Snowman3.riggers.utilities.classes.class_PoleVectorPlacer as classPoleVectorPlacer
 importlib.reload(classPlacer)
+importlib.reload(classPoleVectorPlacer)
 Placer = classPlacer.Placer
+PoleVectorPlacer = classPoleVectorPlacer.PoleVectorPlacer
 ###########################
 ###########################
 
@@ -344,51 +347,51 @@ def create_placers(side=None, is_driven_side=None):
         ),
 
 
-        Placer(
+        PoleVectorPlacer(
             name = "ik_index",
             side = side,
             position = (12.36, 10, 2.49),
-            ik_distance = 10,
+            pv_distance = 10,
             size = 0.35,
             has_vector_handles = False,
         ),
 
 
-        Placer(
+        PoleVectorPlacer(
             name = "ik_middle",
             side = side,
             position = (12.76, 10, 0.49),
-            ik_distance = 10,
+            pv_distance = 10,
             size = 0.35,
             has_vector_handles = False,
         ),
 
 
-        Placer(
+        PoleVectorPlacer(
             name = "ik_ring",
             side = side,
             position = (12.36, 10, -1.51),
-            ik_distance = 10,
+            pv_distance = 10,
             size = 0.35,
             has_vector_handles = False,
         ),
 
 
-        Placer(
+        PoleVectorPlacer(
             name = "ik_pinky",
             side = side,
             position = (9.95, 10, -3.51),
-            ik_distance = 10,
+            pv_distance = 10,
             size = 0.35,
             has_vector_handles = False,
         ),
 
 
-        Placer(
+        PoleVectorPlacer(
             name = "ik_thumb",
             side = side,
             position = (8.25, 0, 14.51),
-            ik_distance = 10,
+            pv_distance = 10,
             size = 0.35,
             has_vector_handles = False,
         )

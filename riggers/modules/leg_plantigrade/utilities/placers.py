@@ -9,8 +9,11 @@
 ##### Import Commands #####
 import importlib
 import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
+import Snowman3.riggers.utilities.classes.class_PoleVectorPlacer as classPoleVectorPlacer
 importlib.reload(classPlacer)
+importlib.reload(classPoleVectorPlacer)
 Placer = classPlacer.Placer
+PoleVectorPlacer = classPoleVectorPlacer.PoleVectorPlacer
 ###########################
 ###########################
 
@@ -79,11 +82,11 @@ def create_placers(side=None, is_driven_side=None):
         ),
 
 
-        Placer(
+        PoleVectorPlacer(
             name = "ik_knee",
             side = side,
             position = (0, -45, 54.57),
-            ik_distance = 50,
+            pv_distance = 50,
             size = 1.25,
             has_vector_handles = False,
         )

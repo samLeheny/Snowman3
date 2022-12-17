@@ -98,6 +98,7 @@ add_attr
 get_attr_data
 migrate_attr
 migrate_connections
+drive_attr
 '''
 #####################################################################################################################---
 #####################################################################################################################---
@@ -2831,3 +2832,18 @@ def migrate_connections(old_attr, new_attr):
     plugs = pm.listConnections(old_attr, source=0, destination=1, plugs=1)
     for plug in plugs:
         pm.connectAttr(new_attr, plug, force=1)
+
+
+
+
+
+#####################################################################################################################---
+def drive_attr(obj_1, obj_2, attr):
+
+    if not type(attr) in (list, tuple):
+        attr = (attr,)
+
+    for a in attr:
+        if not pm.listConnections(obj_2 + "." + a, source=1):
+            pm.connectAttr(obj_1 + "." + a, obj_2 + "." + a)
+            pm.setAttr(obj_2 + "." + a, lock=1, keyable=0, channelBox=1)

@@ -250,6 +250,7 @@ class ArmatureModule:
         # ...Parent placers group to control
         mult_matrix = node_utils.multMatrix(matrixIn=(self.module_ctrl.mobject.worldMatrix,
                                                       self.rig_subGrps["placers"].parentInverseMatrix))
+
         node_utils.decomposeMatrix(inputMatrix=mult_matrix.matrixSum,
                                    outputTranslate=self.rig_subGrps["placers"].translate,
                                    outputRotate=self.rig_subGrps["placers"].rotate,
@@ -274,15 +275,12 @@ class ArmatureModule:
     def aim_module_orienters(self):
 
         for key in self.ordered_placer_keys:
-
             placer = self.placers[key]
             orienter = placer.orienter
 
             if orienter:
-
                 # ...Sort returned data
                 self.orienters[key] = orienter
-
                 # ...orienter.aim_orienter(orient_constrain_target=self.module_ctrl.mobject)
                 placer.aim_orienter()
 
