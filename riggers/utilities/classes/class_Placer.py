@@ -60,7 +60,6 @@ class Placer:
         color = None,
         parent = None,
         vector_handle_data = None,
-        placer_data = None,
         orienter_data = None,
         ik_distance = None,
         connect_targets = None,
@@ -78,7 +77,6 @@ class Placer:
         self.vector_handle_grp = None
         self.vector_handle_data = vector_handle_data
         self.connector_curve = None
-        self.placer_data = placer_data
         self.buffer_node = None
         self.orienter_data = orienter_data
         self.orienter = None

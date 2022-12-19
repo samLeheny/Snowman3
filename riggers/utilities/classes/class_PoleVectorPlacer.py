@@ -63,7 +63,6 @@ class PoleVectorPlacer(Placer):
         side = None,
         color = None,
         parent = None,
-        placer_data = None,
         orienter_data = None,
         connect_targets = None,
     ):
@@ -94,7 +93,6 @@ class PoleVectorPlacer(Placer):
             side=side,
             color=color,
             parent=parent,
-            placer_data=placer_data,
             orienter_data=orienter_data,
             connect_targets=connect_targets,
         )
