@@ -71,6 +71,8 @@ class PoleVectorPlacer(Placer):
         connect_targets = None,
     ):
         self.pv_distance = pv_distance
+        self.pv_curve = None
+        self.mid_point_loc = None
 
         if orienter_data:
             for key in ("world_up_type",
@@ -116,16 +118,29 @@ class PoleVectorPlacer(Placer):
 
 
 
+    """
+    --------- METHODS --------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    install_reverse_ik
+    hide_reverse_ik
+    mid_chain_locator
+    --------------------------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    """
+
+
+
+
+
     #################################################################################################################---
-    def install_reverse_ik(self, pv_chain_mid=None, limb_start=None, limb_end=None, scale_node=None,
-                           connector_crv_parent=None, module=None, hide=False):
+    def install_reverse_ik(self, pv_chain_mid=None, limb_start=None, limb_end=None,  connector_crv_parent=None,
+                           module=None, hide=False):
 
         # ...Variable initializations
-        pv_chain_start = limb_start
-        pv_chain_end = limb_end
+        pv_chain_start, pv_chain_end = limb_start, limb_end
 
-        # ...Take note of placer's current parent (this placer will receive a new parent,
-        # ...which itself will end up back here)
+        # ...Take note of placer's current parent ( placer will receive a new parent, which itself will end up back
+        #   here)
         placer_orig_parent = self.mobject.getParent()
 
         # ...Get lengths of limb segments
@@ -135,28 +150,12 @@ class PoleVectorPlacer(Placer):
                                                 inMatrix2=pv_chain_end.worldMatrix)
 
         # ...Create and position midway locator
-        sum = node_utils.floatMath(floatA=seg_1_dist + ".distance", floatB=seg_2_dist + ".distance",
-                                   operation="add")
-        div_1 = node_utils.floatMath(operation="divide", floatA=seg_2_dist + ".distance", floatB=sum.outFloat)
-        div_2 = node_utils.floatMath(operation="divide", floatA=seg_1_dist + ".distance", floatB=sum.outFloat)
+        self.mid_chain_locator(seg_1_dist, seg_2_dist, pv_chain_start, pv_chain_end, pv_chain_mid)
 
-        mid_point_loc = pm.spaceLocator(name='{}pvMidpoint_{}_{}'.format(self.side_tag, self.name, nom.locator))
-        mid_point_loc_shape = mid_point_loc.getShape()
-        mid_point_loc_shape.visibility.set(0)
-
-        # ...Keep midway locator between start and end of limb
-        constraint = pm.pointConstraint(pv_chain_start, pv_chain_end, mid_point_loc)
-        weights = pm.pointConstraint(constraint, query=1, weightAliasList=1)
-        pm.connectAttr(div_1.outFloat, weights[0])
-        pm.connectAttr(div_2.outFloat, weights[1])
-
-        # ...Aim midway locator at mid-limb placer
-        pm.aimConstraint(pv_chain_mid, mid_point_loc, worldUpType="object", worldUpObject=pv_chain_end,
-                         aimVector=[0, 0, 1], upVector=[1, 0, 0])
 
         # ...Position pole vector placer
         pv_end_loc = pm.spaceLocator(name="{}pvEnd_{}_{}".format(self.side_tag, self.name, nom.locator))
-        pv_end_loc.setParent(mid_point_loc)
+        pv_end_loc.setParent(self.mid_point_loc)
         gen_utils.zero_out(pv_end_loc)
 
         # ...Make pole vector offset relative to limb length
@@ -179,23 +178,55 @@ class PoleVectorPlacer(Placer):
         module.pv_placers[self.name] = self
 
         # ...Make connector curve linking ik placers to limb
-        crv = rig_utils.connector_curve(line_width=1, end_driver_1=pv_chain_mid, end_driver_2=self.mobject,
+        self.pv_curve = rig_utils.connector_curve(line_width=1, end_driver_1=pv_chain_mid, end_driver_2=self.mobject,
                                         override_display_type=1, parent=connector_crv_parent,
                                         inheritsTransform=False, use_locators=False)[0]
 
         # ...Hide reverse IK system (optional)
-        if hide:
-            for node in (crv, self.mobject):
-                gen_utils.break_connections(node.visibility)
-                node.visibility.set(lock=0)
-                node.visibility.set(0, lock=1)
-
-            # ...Lock down PV placer's transforms
-            [pm.setAttr(self.mobject + "." + attr,
-                        lock=1, keyable=0) for attr in gen_utils.keyable_transform_attrs]
+        self.hide_reverse_ik() if hide else None
 
         [pm.setAttr(self.mobject + "." + attr, lock=1, keyable=0) for attr in ("tx", "ty")]
 
         pm.select(clear=1)
+        return self.mid_point_loc
 
-        return mid_point_loc
+
+
+
+
+    #################################################################################################################---
+    def hide_reverse_ik(self):
+
+        for node in (self.pv_curve, self.mobject):
+            gen_utils.break_connections(node.visibility)
+            node.visibility.set(lock=0)
+            node.visibility.set(0, lock=1)
+
+            # ...Lock down PV placer's transforms
+        [pm.setAttr(self.mobject + "." + attr,
+                    lock=1, keyable=0) for attr in gen_utils.keyable_transform_attrs]
+
+
+
+
+
+    #################################################################################################################---
+    def mid_chain_locator(self, seg_1_dist, seg_2_dist, pv_chain_start, pv_chain_end, pv_chain_mid):
+
+        sum = node_utils.floatMath(floatA=seg_1_dist + ".distance", floatB=seg_2_dist + ".distance",
+                                   operation="add")
+        div_1 = node_utils.floatMath(operation="divide", floatA=seg_2_dist + ".distance", floatB=sum.outFloat)
+        div_2 = node_utils.floatMath(operation="divide", floatA=seg_1_dist + ".distance", floatB=sum.outFloat)
+
+        self.mid_point_loc = pm.spaceLocator(name='{}pvMidpoint_{}_{}'.format(self.side_tag, self.name, nom.locator))
+        self.mid_point_loc.getShape().visibility.set(0)
+
+        # ...Keep midway locator between start and end of limb
+        constraint = pm.pointConstraint(pv_chain_start, pv_chain_end, self.mid_point_loc)
+        weights = pm.pointConstraint(constraint, query=1, weightAliasList=1)
+        div_1.outFloat.connect(weights[0])
+        div_2.outFloat.connect(weights[1])
+
+        # ...Aim midway locator at mid-limb placer
+        pm.aimConstraint(pv_chain_mid, self.mid_point_loc, worldUpType="object", worldUpObject=pv_chain_end,
+                         aimVector=[0, 0, 1], upVector=[1, 0, 0])

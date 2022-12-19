@@ -35,8 +35,8 @@ def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coor
             side = side,
             position = (0, 0, 0),
             size = placer_size,
-            aim_obj = "ball",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "ball"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data = {"aim_vector" : (1, 0 ,0),
                              "up_vector" : (0, 0, -1)},
         ),
@@ -47,8 +47,8 @@ def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coor
             side = side,
             position = (0, -7.5, 11.8),
             size = placer_size,
-            aim_obj = "ball_end",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "ball_end"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data = {"aim_vector" : (1, 0, 0),
                              "up_vector" : (0, 0, -1)},
             connect_targets = ("foot",)
@@ -60,7 +60,6 @@ def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coor
             side = side,
             position = (0, -7.5, 16.73),
             size = placer_size,
-            has_vector_handles = False,
             orienter_data = {"match_to" : "ball"},
             connect_targets = ("ball",)
         ),
@@ -71,7 +70,6 @@ def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coor
             side = side,
             position = (0, ground_coord, 11.8),
             size = placer_size * 0.55,
-            has_vector_handles = False,
         ),
 
 
@@ -80,7 +78,6 @@ def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coor
             side = side,
             position = (0, ground_coord, 19),
             size = placer_size * 0.55,
-            has_vector_handles = False,
         ),
 
 
@@ -89,7 +86,6 @@ def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coor
             side = side,
             position = (-4.5, ground_coord, 11.8),
             size = placer_size * 0.55,
-            has_vector_handles = False,
         ),
 
 
@@ -98,7 +94,6 @@ def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coor
             side = side,
             position = (4.5, ground_coord, 11.8),
             size = placer_size * 0.55,
-            has_vector_handles = False,
         ),
 
 
@@ -107,7 +102,6 @@ def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coor
             side = side,
             position = (0, ground_coord, -4),
             size = placer_size * 0.55,
-            has_vector_handles = False,
         )
 
     )

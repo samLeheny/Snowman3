@@ -70,7 +70,6 @@ nurbs_curve
 curve_obj
 rename_shapes
 prefab_curve_obj
-placer
 side_tag_from_string
 break_connections
 get_clean_name
@@ -110,7 +109,7 @@ drive_attr
 #####################################################################################################################---
 def get(node):
     """
-        And entry point function to fire one of various functions to find and get specific nodes in the scene.
+        An entry point function to fire one of various functions to find and get specific nodes in the scene.
         Args:
             node (string): The key to specify which 'get' function to be run inside this function (what node to
                 look for)
@@ -1417,72 +1416,6 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
 
 
 #####################################################################################################################---
-def placer(name=None, color=None, placer_data=None, placer_type="curve_obj", side=None, size=None, parent=None):
-    """
-    Args:
-        name (string):
-        color (int):
-        placer_data (dict):
-        placer_type (string):
-        side (string):
-        size (numeric):
-        parent (dagObj):
-    Return:
-    """
-
-    placer = None
-
-
-    # ...Determine whether using data given in arguments or derived from a provided placer_data_dictionary
-    if placer_data and not name:
-        name = [ placer_data["name"] if placer_data["name"] else None ][0]
-
-    if placer_data and not size:
-        size = [ placer_data["size"] if placer_data["size"] else 1.0 ][0]
-
-
-    # ...Determine placer tag
-    side_tag_string = ""
-    if side:
-        side_tag_string = "{0}_".format( side_tag_from_string(side) )
-
-
-    # ...Compose placer name
-    placer_name = "{0}{1}_{2}".format(side_tag_string, name, nom.placer)
-
-
-    # ...Determine placer shape mode (sphere or curve obj?)
-    placer_mode = placer_type if placer_type else None
-
-    if not placer_mode:
-        pm.error("Parameter 'placer_mode' received invalid input: '{0}'".format(placer_type))
-
-
-
-    if placer_mode == "box_curve_obj":
-        placer = prefab_curve_construct(prefab="box_placer", name=placer_name, color=color, scale=size, side=side)
-
-    if placer_mode == "sphere_curve_obj":
-        placer = prefab_curve_construct(prefab="sphere_placer", name=placer_name, color=color, scale=size * 0.75,
-                                        side=side)
-
-    elif placer_mode == "sphere_obj":
-        placer = pm.polySphere(name=placer_name, radius=size, subdivisionsX=12, subdivisionsY=12)[0]
-        pm.delete(constructionHistory=1)
-
-
-    if parent:
-        placer.setParent(parent)
-
-
-
-    return placer
-
-
-
-
-
-#####################################################################################################################---
 def side_tag_from_string(side):
     """
     Takes in string describing directions left, right, or middle and returns a correctly formatted side tag that can be
@@ -2675,11 +2608,11 @@ def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, c
         if attribute_type == "compound":
             pm.addAttr(
                 obj,
-                long_name=long_name,
-                nice_name=nice_name,
-                attribute_type=attribute_type,
+                longName=long_name,
+                niceName=nice_name,
+                attributeType=attribute_type,
                 keyable=keyable,
-                number_of_children=number_of_children
+                numberOfChildren=number_of_children
             )
         else:
             if parent:

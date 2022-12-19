@@ -38,8 +38,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (0, 0, 0),
             size = 1.25,
-            aim_obj = "calf",
-            up_obj = "ik_knee",
+            vector_handle_data={"aim": {"obj": "calf"},
+                                "up": {"obj": "ik_knee"}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 0, -1)}
         ),
@@ -50,8 +50,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (0, -45, 4.57),
             size = 1.25,
-            aim_obj = "calf_end",
-            up_obj = "ik_knee",
+            vector_handle_data={"aim": {"obj": "calf_end"},
+                                "up": {"obj": "ik_knee"}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 0, -1)},
             connect_targets=("thigh",)
@@ -63,8 +63,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (0, -91, 0),
             size = 1.25,
-            aim_obj = "ankle_end",
-            up_obj = (0, 0, 1),
+            vector_handle_data={"aim": {"obj": "ankle_end"},
+                                "up": {"coord": (0, 0, 1)}},
             orienter_data = {"aim_vector" : (1, 0 ,0),
                              "up_vector" : (0, 0, -1)},
             connect_targets=("calf",)
@@ -76,7 +76,6 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (0, -101, 0),
             size = 1,
-            has_vector_handles = False,
             orienter_data = {"match_to" : "calf_end"},
             connect_targets=("calf_end",)
         ),
@@ -88,7 +87,6 @@ def create_placers(side=None, is_driven_side=None):
             position = (0, -45, 54.57),
             pv_distance = 50,
             size = 1.25,
-            has_vector_handles = False,
         )
 
     )

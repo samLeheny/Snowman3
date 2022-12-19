@@ -40,7 +40,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 ######## Variables ########
 attr_strings = {"vector_handles_vis": "VectorHandlesVis",
                 "orienter_vis": "OrienterVis"}
-default_placer_shape_type = "sphere_curve_obj"
+default_placer_shape_type = "sphere_placer"
 ###########################
 ###########################
 
@@ -61,7 +61,7 @@ class Placer:
         parent = None,
         aim_obj = None,
         up_obj = None,
-        has_vector_handles = True,
+        vector_handle_data = None,
         placer_data = None,
         orienter_data = None,
         ik_distance = None,
@@ -78,7 +78,7 @@ class Placer:
         self.up_vector_handle = None
         self.aim_vector_handle = None
         self.vector_handle_grp = None
-        self.has_vector_handles = has_vector_handles
+        self.vector_handle_data = vector_handle_data
         self.aim_obj = aim_obj
         self.up_obj = up_obj
         self.connector_curve = None
@@ -110,14 +110,14 @@ class Placer:
                         "up_target"):
                 if key not in self.placer_data.keys():
                     self.placer_data[key] = None
-            for key in ("has_vector_handles",):
-                if key not in self.placer_data.keys():
-                    self.placer_data[key] = True
 
 
 
 
-    '''
+    """
+    --------- METHODS --------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    create_placer_in_scene
     create_mobject
     create_vector_handles
     dull_color
@@ -128,36 +128,33 @@ class Placer:
     make_benign
     create_orienter
     aim_orienter
-    ######################################################## install_reverse_ik
     placer_metadata
-    '''
+    --------------------------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    """
 
 
 
 
     ####################################################################################################################
-    def create_mobject(self):
+    def create_placer_in_scene(self):
         """
-        Creates the placer mobject in the scene.
-            Wraps it in an applies metadata in hidden attributes.
-            Installs vector handles and orienter.
-            Wraps placer in offset group.
-            Positions placer.
+        - Creates the placer mobject in the scene.
+            - Assigns metadata to placer in hidden attributes.
+            - Installs vector handles.
+            - Installs orienter.
+            - Wraps placer in offset group.
+            - Positions placer.
         Returns:
             (mObj): Placer.
         """
 
         # ...Create placer
-        self.mobject = gen_utils.placer(name = self.name,
-                                        size = self.size,
-                                        placer_type = self.shape_type,
-                                        side = self.side,
-                                        parent = self.parent,
-                                        color = self.color)
+        self.create_mobject()
         # ...Metadata
         self.placer_metadata()
         # ...Vector handles. Aim Handle and Up Handle
-        self.create_vector_handles() if self.has_vector_handles else None
+        self.create_vector_handles() if self.vector_handle_data else None
         # ...Buffer group
         self.buffer_node = gen_utils.buffer_obj(self.mobject)
         # ...Position placer
@@ -167,6 +164,24 @@ class Placer:
 
 
         return self.mobject
+
+
+
+
+
+    ####################################################################################################################
+    def create_mobject(self):
+        """
+        Creates placer MObject in scene based on class properties.
+        """
+
+        # ...Compose placer name
+        placer_name = "{0}{1}_{2}".format(self.side_tag, self.name, nom.placer)
+        # ...Create placer MObject
+        self.mobject = gen_utils.prefab_curve_construct(prefab=self.shape_type, name=placer_name, color=self.color,
+                                                  scale=self.size, side=self.side)
+        # ...Parent placer
+        self.mobject.setParent(self.parent) if self.parent else None
 
 
 
@@ -193,13 +208,9 @@ class Placer:
 
 
     #################################################################################################################---
-    def dull_color(self, placer=None, gray_out=True, hide=False):
+    def dull_color(self, hide=False):
 
-        # ...If no specific placer provided, default to using THIS placer
-        if not placer:
-            placer = self.mobject
-
-        for shape in placer.getShapes():
+        for shape in self.mobject.getShapes():
             shape.overrideEnabled.set(1)
             shape.overrideDisplayType.set(1)
             if hide:
@@ -266,14 +277,14 @@ class Placer:
 
         par = parent if parent else self.mobject
 
-        self.connector_curve = rig_utils.connector_curve( name = "{}{}".format(self.side_tag, self.name),
-                                                          line_width = 1.5,
-                                                          end_driver_1 = self.mobject,
-                                                          end_driver_2 = target.mobject,
-                                                          override_display_type = 2,
-                                                          parent = par,
-                                                          inheritsTransform = False,
-                                                          use_locators = False)[0]
+        self.connector_curve = rig_utils.connector_curve(name = "{}{}".format(self.side_tag, self.name),
+                                                         line_width = 1.5,
+                                                         end_driver_1 = self.mobject,
+                                                         end_driver_2 = target.mobject,
+                                                         override_display_type = 2,
+                                                         parent = par,
+                                                         inheritsTransform = False,
+                                                         use_locators = False)[0]
 
         source_attr_name = "SourcePlacer"
         pm.addAttr(self.connector_curve, longName=source_attr_name, dataType="string", keyable=0)
@@ -375,100 +386,6 @@ class Placer:
 
 
 
-    '''
-    #################################################################################################################---
-    def install_reverse_ik(self, pv_chain_mid=None, limb_start=None, limb_end=None, scale_node=None,
-                           connector_crv_parent=None, module=None, hide=False):
-
-        # ...Variable initializations
-        pv_chain_start = limb_start
-        pv_chain_end = limb_end
-
-
-        # ...Take note of placer's current parent (this placer will receive a new parent,
-        # ...which itself will end up back here)
-        placer_orig_parent = self.mobject.getParent()
-
-        # ...Get lengths of limb segments
-        seg_1_dist = node_utils.distanceBetween(inMatrix1=pv_chain_start.worldMatrix,
-                                                inMatrix2=pv_chain_mid.worldMatrix)
-        seg_2_dist = node_utils.distanceBetween(inMatrix1=pv_chain_mid.worldMatrix,
-                                                inMatrix2=pv_chain_end.worldMatrix)
-
-        # ...Create and position midway locator
-        sum = node_utils.floatMath(floatA=seg_1_dist + ".distance", floatB=seg_2_dist + ".distance", operation="add")
-        div_1 = node_utils.floatMath(operation="divide", floatA=seg_2_dist + ".distance", floatB=sum.outFloat)
-        div_2 = node_utils.floatMath(operation="divide", floatA=seg_1_dist + ".distance", floatB=sum.outFloat)
-
-        mid_point_loc = pm.spaceLocator(name='{}pvMidpoint_{}_{}'.format(self.side_tag, self.name, nom.locator))
-        mid_point_loc_shape = mid_point_loc.getShape()
-        mid_point_loc_shape.visibility.set(0)
-
-        # ...Keep midway locator between start and end of limb
-        constraint = pm.pointConstraint(pv_chain_start, pv_chain_end, mid_point_loc)
-        weights = pm.pointConstraint(constraint, query=1, weightAliasList=1)
-        pm.connectAttr(div_1.outFloat, weights[0])
-        pm.connectAttr(div_2.outFloat, weights[1])
-
-        # ...Aim midway locator at mid-limb placer
-        pm.aimConstraint(pv_chain_mid, mid_point_loc, worldUpType="object", worldUpObject=pv_chain_end,
-                         aimVector=[0, 0, 1], upVector=[1, 0, 0])
-
-        # ...Position pole vector placer
-        pv_end_loc = pm.spaceLocator(name="{}pvEnd_{}_{}".format(self.side_tag, self.name, nom.locator))
-        pv_end_loc.setParent(mid_point_loc)
-        gen_utils.zero_out(pv_end_loc)
-
-        # ...Make pole vector offset relative to limb length
-        add = node_utils.addDoubleLinear(input1=seg_1_dist.distance, input2=seg_2_dist.distance)
-        div_1 = node_utils.floatMath(floatA=add.output, floatB=add.output.get(), operation="divide")
-        decomp = node_utils.decomposeMatrix(inputMatrix=module.module_ctrl.mobject.worldMatrix)
-        div_2 = node_utils.floatMath(floatA=div_1.outFloat, floatB=decomp.outputScale.outputScaleX, operation="divide")
-        mult = node_utils.multDoubleLinear(input1=div_2.outFloat, input2=self.ik_distance)
-        mult.output.connect(pv_end_loc.tz)
-
-        pm.matchTransform(self.buffer_node, pv_end_loc)
-        gen_utils.convert_offset(self.buffer_node)
-
-        mult_matrix = node_utils.multMatrix(matrixIn=(pv_end_loc.worldMatrix, self.buffer_node.parentInverseMatrix))
-        decomp = node_utils.decomposeMatrix(inputMatrix=mult_matrix.matrixSum,
-                                            outputTranslate=self.buffer_node.translate,
-                                            outputRotate=self.buffer_node.rotate)
-
-        module.pv_placers[self.name] = self
-
-
-
-        # ...Make connector curve linking ik placers to limb
-        crv = rig_utils.connector_curve(line_width=1, end_driver_1=pv_chain_mid, end_driver_2=self.mobject,
-                                        override_display_type=1, parent=connector_crv_parent,
-                                        inheritsTransform=False, use_locators=False)[0]
-
-
-        # ...Hide reverse IK system (optional)
-        if hide:
-            for node in (crv, self.mobject):
-                gen_utils.break_connections(node.visibility)
-                node.visibility.set(lock=0)
-                node.visibility.set(0, lock=1)
-
-            # ...Lock down PV placer's transforms
-            [pm.setAttr(self.mobject + "." + attr,
-                        lock=1, keyable=0) for attr in gen_utils.keyable_transform_attrs]
-
-
-
-        [pm.setAttr(self.mobject + "." + attr, lock=1, keyable=0) for attr in ("tx", "ty")]
-
-        pm.select(clear=1)
-
-
-
-        return mid_point_loc
-    '''
-
-
-
 
     #################################################################################################################---
     def placer_metadata(self):
@@ -476,60 +393,87 @@ class Placer:
         obj = self.mobject
 
         # ...Placer tag
-        placer_tag_attr_name = "PlacerTag"
-        pm.addAttr(obj, longName=placer_tag_attr_name, dataType="string", keyable=0)
-        pm.setAttr(obj + "." + placer_tag_attr_name, self.name, type="string")
-
+        self.metadata_PlacerTag()
         # ...Side
-        placer_side_attr_name = "Side"
-        pm.addAttr(obj, longName=placer_side_attr_name, dataType="string", keyable=0)
-        attr_input = self.side if self.side else "None"
-        pm.setAttr(obj + "." + placer_side_attr_name, attr_input, type="string")
-
+        self.metadata_Side()
         # ...Aim object
-        placer_aimObj_attr_name = "AimObj"
-        if isinstance(self.aim_obj, str) or not self.aim_obj:
-            pm.addAttr(obj, longName=placer_aimObj_attr_name, dataType="string", keyable=0)
-            if self.aim_obj:
-                pm.setAttr(obj + "." + placer_aimObj_attr_name, self.aim_obj, type="string")
-            else:
-                pm.setAttr(obj + "." + placer_aimObj_attr_name, "None", type="string")
-        elif type(self.aim_obj) in (tuple, list):
-            pm.addAttr(obj, longName=placer_aimObj_attr_name, attributeType="compound", keyable=0, numberOfChildren=3)
-            letters = ("x", "y", "z")
-            for i in range(3):
-                letter = letters[i]
-                pm.addAttr(obj, longName=letter, keyable=0, attributeType="double", parent=placer_aimObj_attr_name)
-
+        self.metadata_AimObj()
         # ...Up object
-        '''placer_upObj_attr_name = "UpObj"
-        if isinstance(self.up_obj, str) or not self.up_obj:
-            pm.addAttr(obj, longName=placer_upObj_attr_name, dataType="string", keyable=0)
-            if self.up_obj:
-                pm.setAttr(obj + "." + placer_upObj_attr_name, self.up_obj, type="string")
-            else:
-                pm.setAttr(obj + "." + placer_upObj_attr_name, "None", type="string")
-        elif type(self.up_obj) in (tuple, list):
-            pm.addAttr(obj, longName=placer_upObj_attr_name, attributeType="compound", keyable=0, numberOfChildren=3)
-            letters = ("x", "y", "z")
-            for i in range(3):
-                letter = letters[i]
-                pm.addAttr(obj, longName=letter, keyable=0, attributeType="double", parent=placer_upObj_attr_name)'''
-
-        # ...Has vector handles
-        placer_hasVectorHandles_attr_name = "HasVectorHandles"
-        pm.addAttr(obj, longName=placer_hasVectorHandles_attr_name, attributeType="bool", keyable=0,
-                   defaultValue=self.has_vector_handles)
-
+        self.metadata_UpObj()
         # ...IK distance
-        if self.ik_distance:
-            placer_ikDist_attr_name = "IkDistance"
-            pm.addAttr(obj, longName=placer_ikDist_attr_name, attributeType="float", keyable=0,
-                       defaultValue=self.ik_distance)
-
+        self.metadata_IkDistance()
         # ...Orienter data
         # ...Connect targets
         # ...
-
-
         pm.addAttr(self.mobject, longName="ReceivedConnectors", dataType="string", keyable=0)
+
+
+
+
+
+    #################################################################################################################---
+    def metadata_PlacerTag(self):
+
+        gen_utils.add_attr(self.mobject, long_name="PlacerTag", attribute_type="string", keyable=0,
+                           default_value=self.name)
+
+    #################################################################################################################---
+    def metadata_Side(self):
+
+        attr_input = self.side if self.side else "None"
+        gen_utils.add_attr(self.mobject, long_name="Side", attribute_type="string", keyable=0, default_value=attr_input)
+
+    #################################################################################################################---
+    def metadata_AimObj(self):
+
+        placer_aimObj_attr_name = "AimObj"
+        value, attr_type, child_count = None, None, None
+        if isinstance(self.aim_obj, str) or not self.aim_obj:
+            attr_type, child_count = "string", None
+            value = self.aim_obj if self.aim_obj else "None"
+        elif type(self.aim_obj) in (tuple, list):
+            attr_type, child_count = "compound", 3
+            value = None
+            gen_utils.add_attr(self.mobject, long_name=placer_aimObj_attr_name, attribute_type="compound", keyable=0,
+                               number_of_children=child_count)
+
+        gen_utils.add_attr(self.mobject, long_name=placer_aimObj_attr_name, attribute_type=attr_type, keyable=0,
+                           default_value=value, number_of_children=child_count)
+
+        if type(self.aim_obj) in (tuple, list):
+            letters = ("X", "Y", "Z")
+            for i in range(3):
+                letter = letters[i]
+                pm.addAttr(self.mobject, longName=placer_aimObj_attr_name + letter, keyable=0, attributeType="double",
+                           parent=placer_aimObj_attr_name)
+
+    #################################################################################################################---
+    def metadata_UpObj(self):
+
+        placer_upObj_attr_name = "UpObj"
+        value, attr_type, child_count = None, None, None
+        if isinstance(self.up_obj, str) or not self.up_obj:
+            attr_type, child_count = "string", None
+            value = self.up_obj if self.up_obj else "None"
+        elif type(self.up_obj) in (tuple, list):
+            attr_type, child_count = "compound", 3
+            value = None
+            gen_utils.add_attr(self.mobject, long_name=placer_upObj_attr_name, attribute_type="compound", keyable=0,
+                               number_of_children=child_count)
+
+        gen_utils.add_attr(self.mobject, long_name=placer_upObj_attr_name, attribute_type=attr_type, keyable=0,
+                           default_value=value, number_of_children=child_count)
+
+        if type(self.up_obj) in (tuple, list):
+            letters = ("X", "Y", "Z")
+            for i in range(3):
+                letter = letters[i]
+                pm.addAttr(self.mobject, longName=placer_upObj_attr_name + letter, keyable=0, attributeType="double",
+                           parent=placer_upObj_attr_name)
+
+    #################################################################################################################---
+    def metadata_IkDistance(self):
+
+        if self.ik_distance:
+            gen_utils.add_attr(self.mobject, long_name="IkDistance", attribute_type="float", keyable=0,
+                               default_value=self.ik_distance)

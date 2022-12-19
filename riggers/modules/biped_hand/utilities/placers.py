@@ -38,8 +38,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (0, 0, 0),
             size = 1.25,
-            aim_obj = (1, 0, 0),
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"coord": (1, 0, 0)},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)}
         ),
@@ -50,8 +50,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (2.5, 0, 2.21),
             size = 0.5,
-            aim_obj = "index_1",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "index_1"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("hand",)
@@ -63,8 +63,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (8.75, 0, 2.49),
             size = 0.5,
-            aim_obj = "index_2",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "index_2"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("index_metacarpal",)
@@ -76,8 +76,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (12.36, 0.02, 2.49),
             size = 0.5,
-            aim_obj = "index_3",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "index_3"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("index_1",)
@@ -89,8 +89,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (14.26, 0.02, 2.49),
             size = 0.5,
-            aim_obj = "index_end",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "index_end"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("index_2",)
@@ -102,7 +102,6 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (15.96, 0, 2.49),
             size = 0.5,
-            has_vector_handles = False,
             orienter_data ={"match_to" : "index_3"},
             connect_targets=("index_3",)
         ),
@@ -113,8 +112,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (2.5, 0, 0.49),
             size = 0.5,
-            aim_obj = "middle_1",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "middle_1"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("hand",)
@@ -126,8 +125,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (8.75, 0, 0.49),
             size = 0.5,
-            aim_obj = "middle_2",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "middle_2"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("middle_metacarpal",)
@@ -139,8 +138,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (12.76, 0.02, 0.49),
             size = 0.5,
-            aim_obj = "middle_3",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "middle_3"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("middle_1",)
@@ -152,8 +151,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (14.86, 0.02, 0.49),
             size = 0.5,
-            aim_obj = "middle_end",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "middle_end"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("middle_2",)
@@ -165,7 +164,6 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (16.56, 0, 0.49),
             size = 0.5,
-            has_vector_handles = False,
             orienter_data ={"match_to" : "middle_3"},
             connect_targets=("middle_3",)
         ),
@@ -176,8 +174,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (2.5, 0, -1.29),
             size = 0.5,
-            aim_obj = "ring_1",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "ring_1"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("hand",)
@@ -189,8 +187,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (8.36, 0, -1.51),
             size = 0.5,
-            aim_obj = "ring_2",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "ring_2"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("ring_metacarpal",)
@@ -202,8 +200,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (12.36, 0.02, -1.51),
             size = 0.5,
-            aim_obj = "ring_3",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "ring_3"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("ring_1",)
@@ -215,8 +213,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (14.26, 0.02, -1.51),
             size = 0.5,
-            aim_obj = "ring_end",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "ring_end"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("ring_2",)
@@ -228,7 +226,6 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (15.86, 0, -1.51),
             size = 0.5,
-            has_vector_handles = False,
             orienter_data ={"match_to" : "ring_3"},
             connect_targets=("ring_3",)
         ),
@@ -239,8 +236,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (2.5, 0, -3.04),
             size = 0.5,
-            aim_obj = "pinky_1",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "pinky_1"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("hand",)
@@ -252,8 +249,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (7.36, 0, -3.51),
             size = 0.5,
-            aim_obj = "pinky_2",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "pinky_2"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("pinky_metacarpal",)
@@ -265,8 +262,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (9.95, 0.02, -3.51),
             size = 0.5,
-            aim_obj = "pinky_3",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "pinky_3"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("pinky_1",)
@@ -278,8 +275,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (12.06, 0.02, -3.51),
             size = 0.5,
-            aim_obj = "pinky_end",
-            up_obj = (0, 1, 0),
+            vector_handle_data={"aim": {"obj": "pinky_end"},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("pinky_2",)
@@ -291,7 +288,6 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (13.86, 0, -3.51),
             size = 0.5,
-            has_vector_handles = False,
             orienter_data ={"match_to" : "pinky_3"},
             connect_targets=("pinky_3",)
         ),
@@ -302,8 +298,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (1.65, 0, 3.91),
             size = 0.5,
-            aim_obj = "thumb_2",
-            up_obj = (1, 0, 0),
+            vector_handle_data={"aim": {"obj": "thumb_2"},
+                                "up": {"coord": (1, 0, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("hand",)
@@ -315,8 +311,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (4.95, 0, 4.51),
             size = 0.5,
-            aim_obj = "thumb_3",
-            up_obj = (1, 0, 0),
+            vector_handle_data={"aim": {"obj": "thumb_3"},
+                                "up": {"coord": (1, 0, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("thumb_1",)
@@ -328,8 +324,8 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (8.25, 0, 4.51),
             size = 0.5,
-            aim_obj = "thumb_end",
-            up_obj = (1, 0, 0),
+            vector_handle_data={"aim": {"obj": "thumb_end"},
+                                "up": {"coord": (1, 0, 0)}},
             orienter_data ={"aim_vector" : (1, 0 ,0),
                             "up_vector" : (0, 1, 0)},
             connect_targets=("thumb_2",)
@@ -341,7 +337,6 @@ def create_placers(side=None, is_driven_side=None):
             side = side,
             position = (11.22, 0, 4.5),
             size = 0.5,
-            has_vector_handles = False,
             orienter_data = {"match_to" : "thumb_3"},
             connect_targets=("thumb_3",)
         ),
@@ -353,7 +348,6 @@ def create_placers(side=None, is_driven_side=None):
             position = (12.36, 10, 2.49),
             pv_distance = 10,
             size = 0.35,
-            has_vector_handles = False,
         ),
 
 
@@ -363,7 +357,6 @@ def create_placers(side=None, is_driven_side=None):
             position = (12.76, 10, 0.49),
             pv_distance = 10,
             size = 0.35,
-            has_vector_handles = False,
         ),
 
 
@@ -373,7 +366,6 @@ def create_placers(side=None, is_driven_side=None):
             position = (12.36, 10, -1.51),
             pv_distance = 10,
             size = 0.35,
-            has_vector_handles = False,
         ),
 
 
@@ -383,7 +375,6 @@ def create_placers(side=None, is_driven_side=None):
             position = (9.95, 10, -3.51),
             pv_distance = 10,
             size = 0.35,
-            has_vector_handles = False,
         ),
 
 
@@ -393,7 +384,6 @@ def create_placers(side=None, is_driven_side=None):
             position = (8.25, 0, 14.51),
             pv_distance = 10,
             size = 0.35,
-            has_vector_handles = False,
         )
 
     )
