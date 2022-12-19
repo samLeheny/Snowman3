@@ -59,8 +59,6 @@ class Placer:
         side = None,
         color = None,
         parent = None,
-        aim_obj = None,
-        up_obj = None,
         vector_handle_data = None,
         placer_data = None,
         orienter_data = None,
@@ -79,8 +77,6 @@ class Placer:
         self.aim_vector_handle = None
         self.vector_handle_grp = None
         self.vector_handle_data = vector_handle_data
-        self.aim_obj = aim_obj
-        self.up_obj = up_obj
         self.connector_curve = None
         self.placer_data = placer_data
         self.buffer_node = None
@@ -104,12 +100,6 @@ class Placer:
                 "up_vector": None,
                 "match_to": None
             }
-
-        if self.placer_data:
-            for key in ("aim_target",
-                        "up_target"):
-                if key not in self.placer_data.keys():
-                    self.placer_data[key] = None
 
 
 
@@ -363,23 +353,26 @@ class Placer:
     #################################################################################################################---
     def aim_orienter(self):
 
-        # Constrain placer's up vector and aim vector handles
-        for class_property, vector_handle in ((self.aim_obj, self.aim_vector_handle),
-                                              (self.up_obj, self.up_vector_handle)):
+        if self.vector_handle_data:
 
-            if type(class_property) in (list, tuple):
-                vector_handle.mobject.translate.set(class_property)
+            # Constrain placer's up vector and aim vector handles
+            for vector_string, vector_handle in (("aim", self.aim_vector_handle), ("up", self.up_vector_handle)):
 
-            elif type(class_property) == str:
-                target_obj = None
-                get_placer_string = "::{}{}_{}".format(self.side_tag, class_property, nom.placer)
-                if pm.ls(get_placer_string):
-                    target_obj = pm.ls(get_placer_string)[0]
-                else:
-                    print("Unable to find placer: '{}'".format(get_placer_string))
+                handle_data = self.vector_handle_data[vector_string]
 
-                offset = gen_utils.buffer_obj(vector_handle.mobject, suffix="MOD")
-                pm.pointConstraint(target_obj, offset)
+                if "obj" in handle_data.keys():
+                    target_obj = None
+                    get_placer_string = "::{}{}_{}".format(self.side_tag, handle_data["obj"], nom.placer)
+                    if pm.ls(get_placer_string):
+                        target_obj = pm.ls(get_placer_string)[0]
+                    else:
+                        print("Unable to find placer: '{}'".format(get_placer_string))
+
+                    offset = gen_utils.buffer_obj(vector_handle.mobject, suffix="MOD")
+                    pm.pointConstraint(target_obj, offset)
+
+                elif "coord" in handle_data.keys():
+                    vector_handle.mobject.translate.set(handle_data["coord"])
 
         self.orienter.aim_orienter()
 
@@ -396,10 +389,6 @@ class Placer:
         self.metadata_PlacerTag()
         # ...Side
         self.metadata_Side()
-        # ...Aim object
-        self.metadata_AimObj()
-        # ...Up object
-        self.metadata_UpObj()
         # ...IK distance
         self.metadata_IkDistance()
         # ...Orienter data
@@ -422,54 +411,6 @@ class Placer:
 
         attr_input = self.side if self.side else "None"
         gen_utils.add_attr(self.mobject, long_name="Side", attribute_type="string", keyable=0, default_value=attr_input)
-
-    #################################################################################################################---
-    def metadata_AimObj(self):
-
-        placer_aimObj_attr_name = "AimObj"
-        value, attr_type, child_count = None, None, None
-        if isinstance(self.aim_obj, str) or not self.aim_obj:
-            attr_type, child_count = "string", None
-            value = self.aim_obj if self.aim_obj else "None"
-        elif type(self.aim_obj) in (tuple, list):
-            attr_type, child_count = "compound", 3
-            value = None
-            gen_utils.add_attr(self.mobject, long_name=placer_aimObj_attr_name, attribute_type="compound", keyable=0,
-                               number_of_children=child_count)
-
-        gen_utils.add_attr(self.mobject, long_name=placer_aimObj_attr_name, attribute_type=attr_type, keyable=0,
-                           default_value=value, number_of_children=child_count)
-
-        if type(self.aim_obj) in (tuple, list):
-            letters = ("X", "Y", "Z")
-            for i in range(3):
-                letter = letters[i]
-                pm.addAttr(self.mobject, longName=placer_aimObj_attr_name + letter, keyable=0, attributeType="double",
-                           parent=placer_aimObj_attr_name)
-
-    #################################################################################################################---
-    def metadata_UpObj(self):
-
-        placer_upObj_attr_name = "UpObj"
-        value, attr_type, child_count = None, None, None
-        if isinstance(self.up_obj, str) or not self.up_obj:
-            attr_type, child_count = "string", None
-            value = self.up_obj if self.up_obj else "None"
-        elif type(self.up_obj) in (tuple, list):
-            attr_type, child_count = "compound", 3
-            value = None
-            gen_utils.add_attr(self.mobject, long_name=placer_upObj_attr_name, attribute_type="compound", keyable=0,
-                               number_of_children=child_count)
-
-        gen_utils.add_attr(self.mobject, long_name=placer_upObj_attr_name, attribute_type=attr_type, keyable=0,
-                           default_value=value, number_of_children=child_count)
-
-        if type(self.up_obj) in (tuple, list):
-            letters = ("X", "Y", "Z")
-            for i in range(3):
-                letter = letters[i]
-                pm.addAttr(self.mobject, longName=placer_upObj_attr_name + letter, keyable=0, attributeType="double",
-                           parent=placer_upObj_attr_name)
 
     #################################################################################################################---
     def metadata_IkDistance(self):

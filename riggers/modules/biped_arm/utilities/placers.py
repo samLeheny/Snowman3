@@ -65,8 +65,6 @@ def create_placers(side=None, is_driven_side=None):
             size = 1.25,
             vector_handle_data = {"aim": {"obj": "wrist_end"},
                                   "up": {"coord": (0, 1, 0)}},
-            aim_obj = "wrist_end",
-            up_obj = (0, 1, 0),
             orienter_data = {"aim_vector" : (1, 0 ,0),
                              "up_vector" : (0, 1, 0)},
             connect_targets=("lowerarm",)

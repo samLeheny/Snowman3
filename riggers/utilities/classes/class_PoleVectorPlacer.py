@@ -63,9 +63,6 @@ class PoleVectorPlacer(Placer):
         side = None,
         color = None,
         parent = None,
-        aim_obj = None,
-        up_obj = None,
-        has_vector_handles = True,
         placer_data = None,
         orienter_data = None,
         connect_targets = None,
@@ -89,15 +86,6 @@ class PoleVectorPlacer(Placer):
                 "match_to": None
             }
 
-        if placer_data:
-            for key in ("aim_target",
-                        "up_target"):
-                if key not in placer_data.keys():
-                    placer_data[key] = None
-            for key in ("has_vector_handles",):
-                if key not in placer_data.keys():
-                    placer_data[key] = True
-
         super().__init__(
             name,
             position=position,
@@ -106,9 +94,6 @@ class PoleVectorPlacer(Placer):
             side=side,
             color=color,
             parent=parent,
-            aim_obj=aim_obj,
-            up_obj=up_obj,
-            has_vector_handles=has_vector_handles,
             placer_data=placer_data,
             orienter_data=orienter_data,
             connect_targets=connect_targets,
