@@ -2625,22 +2625,27 @@ def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, c
                     enumName=enum_name,
                 )
 
+        attr = obj+f'.{long_name}'
         if default_value:
-            pm.addAttr(f'{obj}.{long_name}', e=1, defaultValue=default_value)
+            pm.addAttr(attr, e=1, defaultValue=default_value)
+            try:
+                pm.setAttr(attr, default_value)
+            except Exception:
+                pass
         if min_value:
-            pm.addAttr(f'{obj}.{long_name}', e=1, minValue=min_value)
+            pm.addAttr(attr, e=1, minValue=min_value)
         if max_value:
-            pm.addAttr(f'{obj}.{long_name}', e=1, maxValue=max_value)
+            pm.addAttr(attr, e=1, maxValue=max_value)
 
         if lock:
-            pm.setAttr(obj + "." + long_name, lock=True)
+            pm.setAttr(obj+f'.{long_name}', lock=True)
 
 
     if channel_box and not keyable:
-        pm.setAttr(obj + "." + long_name, channelBox=True)
+        pm.setAttr(obj+f'.{long_name}', channelBox=True)
 
 
-    return str(obj.name) + "." + long_name
+    return f'{str(obj.name)}.{long_name}'
 
 
 

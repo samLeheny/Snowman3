@@ -271,6 +271,7 @@ class Armature:
                 draw_connections=m_data["draw_connections"],
                 color=m_data["color"]
             )
+            new_module.placers_from_data(m_data["placers"])
 
             data[key] = new_module
 

@@ -63,9 +63,10 @@ class ArmatureDataIO(object):
     def get_modules_data(self, armature):
 
         self.armature_data["modules"] = {}
+        # ...Get all modules in armature
         modules = amtr_utils.get_modules_in_armature(armature)
-        for key in modules:
-            self.get_data_from_module(modules, key)
+        # ...Get data from each module
+        [self.get_data_from_module(modules[key], key) for key in modules]
 
 
 
@@ -95,9 +96,7 @@ class ArmatureDataIO(object):
 
 
     #################################################################################################################---
-    def get_data_from_module(self, modules_dict, module_key):
-
-        module = modules_dict[module_key]
+    def get_data_from_module(self, module, module_key):
 
         module_ctrl = pm.listConnections(module + "." + "ModuleRootCtrl", s=1, d=0)[0]
 
@@ -141,21 +140,30 @@ class ArmatureDataIO(object):
     #################################################################################################################---
     def get_placer_data(self, placer):
 
-        # ...Name
-        placer_key = pm.getAttr(placer + "." + "PlacerTag")
-        # ...Side
-        placer_side = pm.getAttr(placer + "." + "Side")
-        # ...Position
-        placer_position = [round(i, decimal_count) for i in mc.getAttr(placer + ".translate")[0]]
-        # ...Size
-        # ...Aim object
-        # ...Up object
-        # ...Orienter Data
-        # ...Connector targets
+        out_dict = {
+            # ...Name
+            "name" : pm.getAttr(placer + "." + "PlacerTag"),
+            # ...Side
+            "side" : pm.getAttr(placer + "." + "Side"),
+            # ...Position
+            "position" : [round(i, decimal_count) for i in mc.getAttr(placer + ".translate")[0]],
+            # ...Size
+            "size" : pm.getAttr(f'{placer}.Size'),
+            # ...Vector Handle Data
+            "vectorHandleData" : pm.getAttr(f'{placer}.VectorHandleData'),
+            # ...Orienter Data
+            "orienterData" : pm.getAttr(f'{placer}.OrienterData'),
+            # ...Connector targets
+            "connectorTargets" : pm.getAttr(f'{placer}.ConnectorData')
+        }
 
-        return {"name": placer_key,
-                "side": placer_side,
-                "position": placer_position}
+        for key, val in out_dict.items():
+            if val == "None":
+                out_dict[key] = None
+
+
+
+        return out_dict
 
 
 

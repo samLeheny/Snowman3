@@ -266,13 +266,8 @@ class Placer:
         par = parent if parent else self.mobject
 
         self.connector_curve = rig_utils.connector_curve(name = "{}{}".format(self.side_tag, self.name),
-                                                         line_width = 1.5,
-                                                         end_driver_1 = self.mobject,
-                                                         end_driver_2 = target.mobject,
-                                                         override_display_type = 2,
-                                                         parent = par,
-                                                         inheritsTransform = False,
-                                                         use_locators = False)[0]
+            line_width = 1.5, end_driver_1 = self.mobject, end_driver_2 = target.mobject, override_display_type = 2,
+            parent = par, inheritsTransform = False, use_locators = False)[0]
 
         source_attr_name = "SourcePlacer"
         pm.addAttr(self.connector_curve, longName=source_attr_name, dataType="string", keyable=0)
@@ -321,8 +316,8 @@ class Placer:
 
     #################################################################################################################---
     def create_orienter(self):
-
-
+        print("-"*100)
+        print(self.orienter_data)
         self.orienter = Orienter(name=self.name,
                                  side=self.side,
                                  size=self.size,
@@ -387,12 +382,17 @@ class Placer:
         self.metadata_PlacerTag()
         # ...Side
         self.metadata_Side()
+        # ...Size
+        self.metadata_Size()
         # ...IK distance
         self.metadata_IkDistance()
         # ...Vector handle data
         self.metadata_VectorHandleData()
         # ...Orienter data
+        self.metadata_OrienterData()
         # ...Connect targets
+        self.metadata_ConnectorTargets()
+
         pm.addAttr(self.mobject, longName="ReceivedConnectors", dataType="string", keyable=0)
 
 
@@ -412,6 +412,11 @@ class Placer:
         gen_utils.add_attr(self.mobject, long_name="Side", attribute_type="string", keyable=0, default_value=attr_input)
 
     #################################################################################################################---
+    def metadata_Size(self):
+        gen_utils.add_attr(self.mobject, long_name="Size", attribute_type="float", keyable=0,
+                           default_value=float(self.size))
+
+    #################################################################################################################---
     def metadata_IkDistance(self):
 
         if self.ik_distance:
@@ -427,3 +432,11 @@ class Placer:
     #################################################################################################################---
     def metadata_OrienterData(self):
 
+        gen_utils.add_attr(self.mobject, long_name="OrienterData", attribute_type="string", keyable=0,
+                           default_value=str(self.orienter_data))
+
+    #################################################################################################################---
+    def metadata_ConnectorTargets(self):
+
+        gen_utils.add_attr(self.mobject, long_name="ConnectorData", attribute_type="string", keyable=0,
+                           default_value=str(self.connect_targets))

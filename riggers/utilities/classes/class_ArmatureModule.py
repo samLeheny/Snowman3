@@ -8,6 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import ast
 import numpy as np
 import pymel.core as pm
 
@@ -741,6 +742,32 @@ class ArmatureModule:
     ####################################################################################################################
     def get_scene_armature(self):
 
-
         search = pm.ls("::*_ARMATURE", type="transform")
         self.armature_container = search[0] if search else None
+
+
+
+
+
+    #################################################################################################################---
+    def placers_from_data(self, data):
+
+        self.placer_data = []
+
+        # ...Certain inputs needs to be converted from string representations of python expressions
+        for p_dict in data:
+            for key in ("vectorHandleData", "orienterData", "connectorTargets"):
+                v = p_dict[key]
+                if isinstance(v, str):
+                    p_dict[key] = ast.literal_eval(v)
+
+            self.placer_data.append(
+                Placer(name = p_dict["name"],
+                       side = p_dict["side"],
+                       position = p_dict["position"],
+                       size = p_dict["size"],
+                       vector_handle_data = p_dict["vectorHandleData"],
+                       orienter_data = p_dict["orienterData"],
+                       connect_targets = p_dict["connectorTargets"]
+                       )
+            )
