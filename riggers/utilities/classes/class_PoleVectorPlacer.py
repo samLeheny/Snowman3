@@ -55,14 +55,15 @@ class PoleVectorPlacer(Placer):
 
     def __init__(
         self,
-        pv_distance,
         name,
+        pv_distance,
         position = None,
         size = None,
         shape_type = None,
         side = None,
         color = None,
         parent = None,
+        vector_handle_data = None,
         orienter_data = None,
         connect_targets = None,
     ):
@@ -93,6 +94,7 @@ class PoleVectorPlacer(Placer):
             side=side,
             color=color,
             parent=parent,
+            vector_handle_data=vector_handle_data,
             orienter_data=orienter_data,
             connect_targets=connect_targets,
         )
@@ -107,6 +109,8 @@ class PoleVectorPlacer(Placer):
     install_reverse_ik
     hide_reverse_ik
     mid_chain_locator
+    pv_placer_metadata
+    metadata_IkDistance
     --------------------------------------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
     """
@@ -171,6 +175,11 @@ class PoleVectorPlacer(Placer):
         [pm.setAttr(self.mobject + "." + attr, lock=1, keyable=0) for attr in ("tx", "ty")]
 
         pm.select(clear=1)
+
+
+        # ...Install PoleVectorPlacer-unique metadata
+        self.pv_placer_metadata()
+
         return self.mid_point_loc
 
 
@@ -213,3 +222,25 @@ class PoleVectorPlacer(Placer):
         # ...Aim midway locator at mid-limb placer
         pm.aimConstraint(pv_chain_mid, self.mid_point_loc, worldUpType="object", worldUpObject=pv_chain_end,
                          aimVector=[0, 0, 1], upVector=[1, 0, 0])
+
+
+
+
+
+    #################################################################################################################---
+    def pv_placer_metadata(self):
+
+        obj = self.mobject
+
+        # ...IK distance
+        self.metadata_IkDistance()
+
+
+
+
+
+    #################################################################################################################---
+    def metadata_IkDistance(self):
+
+        gen_utils.add_attr(self.mobject, long_name="IkDistance", attribute_type="float", keyable=0,
+                           default_value=self.pv_distance)

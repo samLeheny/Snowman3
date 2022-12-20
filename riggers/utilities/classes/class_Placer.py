@@ -61,7 +61,6 @@ class Placer:
         parent = None,
         vector_handle_data = None,
         orienter_data = None,
-        ik_distance = None,
         connect_targets = None,
     ):
         self.name = name
@@ -80,7 +79,6 @@ class Placer:
         self.buffer_node = None
         self.orienter_data = orienter_data
         self.orienter = None
-        self.ik_distance = ik_distance
         self.connect_targets = connect_targets if connect_targets else None
         self.mobject = None
 
@@ -316,8 +314,7 @@ class Placer:
 
     #################################################################################################################---
     def create_orienter(self):
-        print("-"*100)
-        print(self.orienter_data)
+
         self.orienter = Orienter(name=self.name,
                                  side=self.side,
                                  size=self.size,
@@ -384,8 +381,6 @@ class Placer:
         self.metadata_Side()
         # ...Size
         self.metadata_Size()
-        # ...IK distance
-        self.metadata_IkDistance()
         # ...Vector handle data
         self.metadata_VectorHandleData()
         # ...Orienter data
@@ -415,13 +410,6 @@ class Placer:
     def metadata_Size(self):
         gen_utils.add_attr(self.mobject, long_name="Size", attribute_type="float", keyable=0,
                            default_value=float(self.size))
-
-    #################################################################################################################---
-    def metadata_IkDistance(self):
-
-        if self.ik_distance:
-            gen_utils.add_attr(self.mobject, long_name="IkDistance", attribute_type="float", keyable=0,
-                               default_value=self.ik_distance)
 
     #################################################################################################################---
     def metadata_VectorHandleData(self):

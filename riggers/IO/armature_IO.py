@@ -154,8 +154,12 @@ class ArmatureDataIO(object):
             # ...Orienter Data
             "orienterData" : pm.getAttr(f'{placer}.OrienterData'),
             # ...Connector targets
-            "connectorTargets" : pm.getAttr(f'{placer}.ConnectorData')
+            "connectorTargets" : pm.getAttr(f'{placer}.ConnectorData'),
         }
+
+        # ...Pole vector distance
+        if pm.attributeQuery("IkDistance", node=placer, exists=1):
+            out_dict["ikDistance"] = pm.getAttr(f'{placer}.IkDistance')
 
         for key, val in out_dict.items():
             if val == "None":

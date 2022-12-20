@@ -30,8 +30,11 @@ importlib.reload(control_colors)
 ctrl_colors = control_colors.create_dict()
 
 import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
+import Snowman3.riggers.utilities.classes.class_PoleVectorPlacer as classPoleVectorPlacer
 importlib.reload(classPlacer)
+importlib.reload(classPoleVectorPlacer)
 Placer = classPlacer.Placer
+PoleVectorPlacer = classPoleVectorPlacer.PoleVectorPlacer
 
 import Snowman3.riggers.utilities.classes.class_SetupControl as classSetupControl
 importlib.reload(classSetupControl)
@@ -74,8 +77,8 @@ class ArmatureModule:
     ):
         self.name = gen_utils.get_clean_name(name)
         self.side = side
-        self.side_tag = "{}_".format(self.side) if self.side else ""
-        self.name_tag = "{}{}".format(self.side_tag, self.name)
+        self.side_tag = f'{self.side}_' if self.side else ''
+        self.name_tag = f'{self.side_tag}{self.name}'
         self.symmetry = symmetry
         self.is_driven_side = is_driven_side
         self.ordered_placer_keys = []
@@ -145,7 +148,7 @@ class ArmatureModule:
         """
 
         # ...
-        self.rig_root_grp = pm.group(name="{}{}_MODULE".format(self.side_tag, self.name), w=1, em=1)
+        self.rig_root_grp = pm.group(name=f'{self.side_tag}{self.name}_MODULE', w=1, em=1)
 
         self.rig_root_grp.setParent(self.armature_container)
 
@@ -175,30 +178,30 @@ class ArmatureModule:
 
         # ...Rig Module Type............................................................................................
         pm.addAttr(target_obj, longName="ModuleType", keyable=0, dataType="string")
-        pm.setAttr(target_obj + "." + "ModuleType", self.rig_module_type, type="string", lock=1)
+        pm.setAttr(f'{target_obj}.ModuleType', self.rig_module_type, type="string", lock=1)
 
 
         # ...Rig Module Name............................................................................................
         pm.addAttr(target_obj, longName="ModuleNameParticle", keyable=0, dataType="string")
-        pm.setAttr(target_obj + "." + "ModuleNameParticle", self.name, type="string", lock=1)
+        pm.setAttr(f'{target_obj}.ModuleNameParticle', self.name, type="string", lock=1)
 
 
         # ...Side.......................................................................................................
         pm.addAttr(target_obj, longName="Side", keyable=0, dataType="string")
         enter_value = self.side if self.side else None
         if enter_value:
-            pm.setAttr(target_obj + "." + "Side", enter_value, type="string", lock=1)
+            pm.setAttr(f'{target_obj}.Side', enter_value, type="string", lock=1)
 
 
         # ...Rig_Module_Tag.............................................................................................
         pm.addAttr(target_obj, longName="ModuleName", keyable=0, dataType="string")
-        pm.setAttr(target_obj + "." + "ModuleName", self.name_tag, type="string", lock=1)
+        pm.setAttr(f'{target_obj}.ModuleName', self.name_tag, type="string", lock=1)
 
 
         # ...Is Driven Side.............................................................................................
         pm.addAttr(target_obj, longName="IsDrivenSide", keyable=0, attributeType="bool")
         enter_value = self.is_driven_side if self.is_driven_side else False
-        pm.setAttr(target_obj + "." + "IsDrivenSide", enter_value, lock=1)
+        pm.setAttr(f'{target_obj}.IsDrivenSide', enter_value, lock=1)
 
 
 
@@ -230,7 +233,7 @@ class ArmatureModule:
 
             # ...Lock and hide rotate, scale, and visibility. Placers only need translation
             attrs_to_lock = gen_utils.rotate_attrs + gen_utils.scale_attrs + gen_utils.vis_attrs
-            [pm.setAttr(placer.mobject + "." + attr, lock=1, keyable=0) for attr in attrs_to_lock]
+            [pm.setAttr(f'{placer.mobject}.{attr}', lock=1, keyable=0) for attr in attrs_to_lock]
 
             # ...Lock lateral placer translation if this is a center body module and symmetry is on
             placer.mobject.tx.set(lock=1, keyable=0) if self.symmetry else None
@@ -238,8 +241,7 @@ class ArmatureModule:
             placer = self.placers[placer.name]
 
             # ...Add placer hook to module control
-            pm.connectAttr(placer.mobject.message,
-                           self.module_ctrl.mobject + "." + placers_attr_string + "." + placer.name)
+            pm.connectAttr(placer.mobject.message, f'{self.module_ctrl.mobject}.{placers_attr_string}.{placer.name}')
 
             # ...Hook placer's orienter to placer via message attribute
             '''pm.addAttr(placer.mobject, longName="OrienterVis", dataType="string", keyable=0)
@@ -261,8 +263,8 @@ class ArmatureModule:
         # ...Drive placer scale with module root control attributes
         for placer in self.placers.values():
             for attr in gen_utils.scale_attrs:
-                pm.setAttr(placer.mobject + "." + attr, lock=0)
-                pm.connectAttr(self.module_ctrl.mobject + "." + "PlacerScale", placer.mobject + "." + attr)
+                pm.setAttr(f'{placer.mobject}.{attr}', lock=0)
+                pm.connectAttr(f'{self.module_ctrl.mobject}.PlacerScale', placer.mobject + "." + attr)
                 pm.setAttr(placer.mobject + "." + attr, lock=1)
 
 
@@ -338,15 +340,15 @@ class ArmatureModule:
         pm.addAttr(self.module_ctrl.mobject, longName=placer_scale_attr_string, attributeType=float, minValue=0.001,
                    defaultValue=1, keyable=0)
 
-        pm.setAttr(self.module_ctrl.mobject + "." + placer_scale_attr_string, channelBox=1)
+        pm.setAttr(f'{self.module_ctrl.mobject}.{placer_scale_attr_string}', channelBox=1)
 
         # ...Module scale
         pm.addAttr(self.module_ctrl.mobject, longName="ModuleScale", attributeType=float, minValue=0.001,
                    defaultValue=1, keyable=0)
-        pm.setAttr(self.module_ctrl.mobject + ".ModuleScale", channelBox=1)
+        pm.setAttr(f'{self.module_ctrl.mobject}.ModuleScale', channelBox=1)
         for attr in gen_utils.scale_attrs:
-            pm.connectAttr(self.module_ctrl.mobject + ".ModuleScale", self.module_ctrl.mobject + "." + attr, f=1)
-            pm.setAttr(self.module_ctrl.mobject + "." + attr, lock=1, keyable=0)
+            pm.connectAttr(f'{self.module_ctrl.mobject}.ModuleScale', f'{self.module_ctrl.mobject}.{attr}', f=1)
+            pm.setAttr(f'{self.module_ctrl.mobject}.{attr}', lock=1, keyable=0)
 
         # ...Vis options
         attr_strings = ("PlacersVis", "VectorHandlesVis", "OrientersVis", "ControlsVis")
@@ -354,7 +356,7 @@ class ArmatureModule:
         for attr_string, default_val in zip(attr_strings, default_vals):
             pm.addAttr(self.module_ctrl.mobject, longName=attr_string, attributeType="bool", defaultValue=default_val,
                        keyable=0)
-            pm.setAttr(self.module_ctrl.mobject + '.' + attr_string, channelBox=1)
+            pm.setAttr(f'{self.module_ctrl.mobject}.{attr_string}', channelBox=1)
 
 
         if hide:
@@ -364,13 +366,13 @@ class ArmatureModule:
         # ...Hook module control to root group
         hook_string = "ModuleRootCtrl"
         pm.addAttr(self.rig_root_grp, longName=hook_string, dataType="string", keyable=0)
-        pm.connectAttr(self.module_ctrl.mobject.message, self.rig_root_grp + "." + hook_string)
+        pm.connectAttr(self.module_ctrl.mobject.message, f'{self.rig_root_grp}.{hook_string}')
 
         # ...Hook root group to parent Armature
         attr_prefix = "Module_"
-        attr_name = "{}{}{}".format(attr_prefix, self.side_tag, self.name)
+        attr_name = f'{attr_prefix}{self.side_tag}{self.name}'
         pm.addAttr(self.armature_container, longName=attr_name, keyable=0, dataType="string")
-        pm.connectAttr(self.rig_root_grp.message, self.armature_container + "." + attr_name)
+        pm.connectAttr(self.rig_root_grp.message, f'{self.armature_container}.{attr_name}')
 
 
         return self.module_ctrl
@@ -381,12 +383,12 @@ class ArmatureModule:
 
     ####################################################################################################################
     def aim_ctrl_at_placers(self):
-        '''
+        """
         (Experimental)
 
         Returns:
 
-        '''
+        """
 
 
         ### ctrl_position = (0, 0, 0)
@@ -426,13 +428,13 @@ class ArmatureModule:
     def flip_module(self):
 
         connection = None
-        connections = pm.listConnections(self.rig_root_grp + ".sz", source=1, plugs=1)
+        connections = pm.listConnections(f'{self.rig_root_grp}.sz', source=1, plugs=1)
         if connections:
             connection = connections[0]
-            gen_utils.break_connections(self.rig_subGrps["module"] + ".sz", incoming=True)
+            gen_utils.break_connections(f'{self.rig_subGrps["module"]}.sz', incoming=True)
 
-        pm.setAttr(self.rig_root_grp + ".sz", -1)
-        pm.setAttr(self.rig_root_grp + ".ry", 180)
+        pm.setAttr(f'{self.rig_root_grp}.sz', -1)
+        pm.setAttr(f'{self.rig_root_grp}.ry', 180)
         gen_utils.convert_offset(self.rig_root_grp)
 
         # ...Reconnect
@@ -461,16 +463,13 @@ class ArmatureModule:
     ####################################################################################################################
     def drive_module(self, hide_target=True):
         """
-            Drives position of a placer from one armature module with a placer from another armature module. Good for
-                making two modules act as if they're connected. e.g. Driving the end of an Arm armature module with the
-                start of a Hand armature module.
-            Args:
-                source_key: The key of the specified placer in this armature module that will be driven by the target
-                    node.
-                target_node: The node to drive the specified placer in THIS armature.
-                hide_target (bool): If true, hides target node.
-            Returns:
-                (bool): Success state.
+        Drives position of a placer from one armature module with a placer from another armature module. Good for making
+            two modules act as if they're connected. e.g. Driving the end of an Arm armature module with the start of a
+            Hand armature module.
+        Args:
+            hide_target (bool): If true, hides target node.
+        Returns:
+            (bool): Success state.
         """
 
         if not self.drive_target:
@@ -490,7 +489,7 @@ class ArmatureModule:
                     target_node = self.get_placer_from_tag(module_tag=target_key[0], placer_tag=target_key[1])
 
                     # ...Constrain target nodes to source nodes
-                    [pm.setAttr(target_node + "." + attr, lock=0) for attr in gen_utils.keyable_attrs]
+                    [pm.setAttr(f'{target_node}.{attr}', lock=0) for attr in gen_utils.keyable_attrs]
                     pm.parentConstraint(source_placer, target_node, mo=1)
 
                     # ...Hide and disconnect target_node
@@ -536,9 +535,9 @@ class ArmatureModule:
         for shape in obj.getShapes():
             shape.visibility.set(lock=0)
             shape.visibility.set(0, lock=1)
-            [pm.setAttr(obj + "." + attr, lock=1, keyable=0) for attr in ("tx", "ty", "tz",
-                                                                          "rx", "ry", "rz",
-                                                                          "sx", "sy", "sz")]
+            [pm.setAttr(f'{obj}.{attr}', lock=1, keyable=0) for attr in ("tx", "ty", "tz",
+                                                                         "rx", "ry", "rz",
+                                                                         "sx", "sy", "sz")]
 
 
 
@@ -563,9 +562,7 @@ class ArmatureModule:
                 target_module_key = placer_info[0]
                 target_module_ctrl = self.get_other_module(name=target_module_key, return_module_ctrl=True)
 
-                end_2_node = pm.listConnections(
-                    target_module_ctrl + "." + "PlacerNodes" + "." + placer_info[1],
-                    source=1)[0]
+                end_2_node = pm.listConnections(f'{target_module_ctrl}.PlacerNodes.{placer_info[1]}', source=1)[0]
 
 
                 parent_obj = parent if parent else self.rig_subGrps["connector_curves"]
@@ -576,8 +573,7 @@ class ArmatureModule:
 
                 # ...Connect curve to module attribute
                 pm.addAttr(connector, longName="Module", dataType="string", keyable=0)
-                pm.connectAttr(self.rig_root_grp + "." + "ExtraDrawnConnections",
-                               connector + "." + "Module")
+                pm.connectAttr(f'{self.rig_root_grp}.ExtraDrawnConnections', f'{connector}.Module')
 
 
 
@@ -619,7 +615,7 @@ class ArmatureModule:
             ctrl = prelim_ctrl.ctrl_obj
 
             if pm.attributeQuery("visCategory", node=ctrl, exists=1):
-                tag = pm.getAttr(ctrl + "." + "visCategory")
+                tag = pm.getAttr(f'{ctrl}.visCategory')
 
                 if not tag in discovered_category_tags:
                     discovered_category_tags.append(tag)
@@ -627,12 +623,12 @@ class ArmatureModule:
         # ...Create groups for these categories and put controls into them
         for tag in discovered_category_tags:
 
-            grp = pm.group(name="prelimCtrls_{}".format(tag), p=self.rig_subGrps["prelim_ctrls"], em=1)
+            grp = pm.group(name=f'prelimCtrls_{tag}', p=self.rig_subGrps["prelim_ctrls"], em=1)
             self.ctrl_vis_category_grps[tag] = grp
 
             for prelim_ctrl in self.prelim_ctrls.values():
                 ctrl = prelim_ctrl.ctrl_obj
-                if pm.getAttr(ctrl + "." + "visCategory") == tag:
+                if pm.getAttr(f'{ctrl}.visCategory') == tag:
                     ctrl.setParent(grp)
 
 
@@ -680,14 +676,14 @@ class ArmatureModule:
         attr_strings = ("PlacersVis", "VectorHandlesVis", "OrientersVis", "ControlsVis")
 
         # ...Drive the same attrs on module placers
-        pm.connectAttr(self.module_ctrl.mobject + "." + "PlacersVis", self.rig_subGrps["placers"].visibility)
-        pm.connectAttr(self.module_ctrl.mobject + "." + "ControlsVis", self.rig_subGrps["prelim_ctrls"].visibility)
+        pm.connectAttr(f'{self.module_ctrl.mobject}.PlacersVis', self.rig_subGrps["placers"].visibility)
+        pm.connectAttr(f'{self.module_ctrl.mobject}.ControlsVis', self.rig_subGrps["prelim_ctrls"].visibility)
 
         for placer in self.placers.values():
             for attr_out, attr_in in (("VectorHandlesVis", "VectorHandlesVis"), ("OrientersVis", "OrienterVis")):
                 if pm.attributeQuery(attr_in, node=placer.mobject, exists=1):
                     pm.connectAttr(self.module_ctrl.mobject + "." + attr_out, placer.mobject + "." + attr_in, f=1)
-                    pm.setAttr(placer.mobject + '.' + attr_in, channelBox=0)
+                    pm.setAttr(f'{placer.mobject}.{attr_in}', channelBox=0)
 
 
 
@@ -696,22 +692,16 @@ class ArmatureModule:
     ####################################################################################################################
     def populate_module(self):
 
-
         # ...Get scene armature
         self.get_scene_armature()
-
         # ...Structural groups
         self.create_module_grps()
-
         # ...Placers
         self.create_module_placers()
-
         # ...Connector curves
         self.create_connector_curves()
-
         # ...Orienters
         self.aim_module_orienters()
-
 
         # ...Run any required bespoke setup
         get_module_data.bespokeSetup(self.rig_module_type).build(self)
@@ -726,11 +716,10 @@ class ArmatureModule:
         return_node = None
 
         target_module = return_node = pm.listConnections(
-            self.armature_container + "." + "Module_" + name, source=1)[0]
+            f'{self.armature_container}.Module_{name}', source=1)[0]
 
         if return_module_ctrl:
-            target_module_root_ctrl = return_node = pm.listConnections(
-                target_module + "." + "ModuleRootCtrl", source=1)[0]
+            return_node = pm.listConnections(f'{target_module}.ModuleRootCtrl', source=1)[0]
 
 
         return return_node
@@ -761,13 +750,25 @@ class ArmatureModule:
                 if isinstance(v, str):
                     p_dict[key] = ast.literal_eval(v)
 
-            self.placer_data.append(
-                Placer(name = p_dict["name"],
-                       side = p_dict["side"],
-                       position = p_dict["position"],
-                       size = p_dict["size"],
-                       vector_handle_data = p_dict["vectorHandleData"],
-                       orienter_data = p_dict["orienterData"],
-                       connect_targets = p_dict["connectorTargets"]
-                       )
-            )
+            if "ikDistance" in p_dict:
+                self.placer_data.append(
+                    PoleVectorPlacer(name=p_dict["name"],
+                                     side=p_dict["side"],
+                                     position=p_dict["position"],
+                                     size=p_dict["size"],
+                                     vector_handle_data=p_dict["vectorHandleData"],
+                                     orienter_data=p_dict["orienterData"],
+                                     connect_targets=p_dict["connectorTargets"],
+                                     pv_distance=p_dict["ikDistance"])
+                )
+
+            else:
+                self.placer_data.append(
+                    Placer(name = p_dict["name"],
+                           side = p_dict["side"],
+                           position = p_dict["position"],
+                           size = p_dict["size"],
+                           vector_handle_data = p_dict["vectorHandleData"],
+                           orienter_data = p_dict["orienterData"],
+                           connect_targets = p_dict["connectorTargets"])
+                )
