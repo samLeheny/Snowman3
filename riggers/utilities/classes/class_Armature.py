@@ -257,7 +257,7 @@ class Armature:
             # ...Fill in any missing properties with None values
             for property in ("rig_module_type", "name", "side", "is_driven_side", "position",
                              "drive_target", "color", "draw_connections", "placers"):
-                if not property in m_data.keys():
+                if not property in m_data:
                     m_data[property] = None
 
 
@@ -314,7 +314,7 @@ class Armature:
 
         [module.populate_module() for module in self.modules.values()]
 
-        for key in self.modules.keys():
+        for key in self.modules:
             module = self.modules[key]
             if module.side in (nom.leftSideTag, nom.rightSideTag):
                 self.sided_modules[module.side][key] = module

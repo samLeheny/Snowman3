@@ -132,7 +132,7 @@ class Rig:
         if not self.armature_modules:
             self.get_armature_modules()
 
-        for key in self.armature_modules.keys():
+        for key in self.armature_modules:
             self.module_types[key] = arm_utils.get_module_type(self.armature_modules[key])
 
 
@@ -144,7 +144,7 @@ class Rig:
 
         rig_prefab_type = None
         if pm.attributeQuery("ArmatureName", node=self.armature, exists=1):
-            rig_prefab_type = pm.getAttr(self.armature+"."+"ArmatureName")
+            rig_prefab_type = pm.getAttr(f'{self.armature}.ArmatureName')
 
         self.attr_handoffs = get_armature_data.attr_handoffs(rig_prefab_type)
 
@@ -175,7 +175,7 @@ class Rig:
         self.create_root_groups()
         self.get_module_types()
 
-        #for key in armature_modules.keys():
+        #for key in armature_modules:
         for key in ("root", "spine", "neck", "L_clavicle", "R_clavicle"):
 
             armature_module = self.get_armature_module_mObj(key)

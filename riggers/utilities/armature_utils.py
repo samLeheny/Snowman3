@@ -172,7 +172,7 @@ def get_driver_placer(obj):
 
     constraint_driver = None
     if constraint_node:
-        constraint_driver = pm.listConnections(constraint_node+".target[0].targetTranslate", source=1)[0]
+        constraint_driver = pm.listConnections(f'{constraint_node}.target[0].targetTranslate', source=1)[0]
 
     if check_if_placer(constraint_driver):
 
@@ -222,7 +222,7 @@ def get_placers_in_module(module):
 ########################################################################################################################
 def get_ctrl_from_module(module):
 
-    ctrl = pm.listConnections(module+"."+"ModuleRootCtrl", s=1, d=0)[0]
+    ctrl = pm.listConnections(f'{module}.ModuleRootCtrl', s=1, d=0)[0]
 
     return ctrl
 

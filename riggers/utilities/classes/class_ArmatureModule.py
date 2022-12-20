@@ -475,7 +475,7 @@ class ArmatureModule:
         if not self.drive_target:
             return None
 
-        if type(self.drive_target) == dict:
+        if isinstance(self.drive_target, dict):
             for key in self.drive_target:
 
                 compare_keys = [pair[1] for pair in self.drive_target[key]]
@@ -499,10 +499,10 @@ class ArmatureModule:
                         # ...Hide any connectors relating to placer
                         if pm.attributeQuery("Connectors", node=target_node, exists=1):
 
-                            connectors = pm.listConnections(target_node+"."+"Connectors", d=1, s=0)
+                            connectors = pm.listConnections(f'{target_node}.Connectors', d=1, s=0)
                             for obj in connectors:
-                                dest_placer = pm.listConnections(obj+"."+"DestinationPlacer", s=1, d=0)[0]
-                                dest_placer_tag = pm.getAttr(dest_placer+"."+"PlacerTag")
+                                dest_placer = pm.listConnections(f'{obj}.DestinationPlacer', s=1, d=0)[0]
+                                dest_placer_tag = pm.getAttr(f'{dest_placer}.PlacerTag')
 
                                 if dest_placer_tag in compare_keys:
                                     if obj.getShape().visibility.get() == 1:
@@ -553,7 +553,7 @@ class ArmatureModule:
             pm.addAttr(self.rig_root_grp, longName="ExtraDrawnConnections", dataType="string", keyable=0)
 
 
-        for key in self.draw_connections.keys():
+        for key in self.draw_connections:
 
             for placer_info in self.draw_connections[key]:
 
@@ -645,7 +645,7 @@ class ArmatureModule:
 
 
         # ...Operate on each control in dictionary
-        for key in self.prelim_ctrls.keys():
+        for key in self.prelim_ctrls:
 
             prelim_ctrl = self.prelim_ctrls[key]
 

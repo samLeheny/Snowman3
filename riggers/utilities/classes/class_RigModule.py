@@ -165,8 +165,8 @@ class RigModule:
         armature_placers = arm_utils.get_placers_in_module(self.armature_module)
 
         for placer in armature_placers.values():
-            key = pm.getAttr(placer+"."+"PlacerTag")
-            self.orienters[key] = pm.listConnections(placer+"."+"OrienterNode", s=1, d=0)[0]
+            key = pm.getAttr(f"{placer}.PlacerTag")
+            self.orienters[key] = pm.listConnections(f"{placer}.OrienterNode", s=1, d=0)[0]
 
 
 

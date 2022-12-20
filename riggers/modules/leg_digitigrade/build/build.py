@@ -71,10 +71,10 @@ def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_paren
         child.setParent(rig_module.no_transform_grp)
 
     # ...Move Rig Scale attr over to new rig group
-    for plug in pm.listConnections(limb_rig.root_grp+"."+"RigScale", destination=1, plugs=1):
-        pm.connectAttr(rig_module_grp+"."+"RigScale", plug, force=1)
-    for plug in pm.listConnections(limb_rig.root_grp+"."+"RigScale", source=1, plugs=1):
-        pm.connectAttr(plug, rig_module_grp+"."+"RigScale", force=1)
+    for plug in pm.listConnections(f'{limb_rig.root_grp}.RigScale', destination=1, plugs=1):
+        pm.connectAttr(f'{rig_module_grp}.RigScale', plug, force=1)
+    for plug in pm.listConnections(f'{limb_rig.root_grp}.RigScale', source=1, plugs=1):
+        pm.connectAttr(plug, f'{rig_module_grp}.RigScale', force=1)
 
     pm.delete(limb_rig.root_grp)
 

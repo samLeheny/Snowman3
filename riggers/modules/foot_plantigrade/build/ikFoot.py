@@ -52,8 +52,7 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
 
     ik_jnts = {}
     ik_chain_buffer = None
-    for i in range(len(bind_jnt_keys)):
-        key = bind_jnt_keys[i]
+    for i, key in enumerate(bind_jnt_keys):
         par = ik_jnts[bind_jnt_keys[i-1]] if i > 0 else None
         ik_jnts[key] = rig_utils.joint(name="ik_" + key, joint_type=nom.nonBindJnt, side=side, radius=1.0, parent=par)
         if i == 0:
@@ -62,8 +61,7 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     ik_chain_buffer.setParent(ik_connector)
     gen_utils.zero_out(ik_chain_buffer)
 
-    for i in range(len(bind_jnt_keys)):
-        key = bind_jnt_keys[i]
+    for i, key in enumerate(bind_jnt_keys):
         if i == 0:
             pm.matchTransform(ik_chain_buffer, orienters[key])
         else:
@@ -85,10 +83,9 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     foot_roll_jnts = {}
     foot_roll_chain_buffer = None
     foot_roll_keys = ("heel", "ballPivot", "outer", "inner", "toeTip", "ball", "ankle")
-    for i in range(len(foot_roll_keys)):
-        key = foot_roll_keys[i]
+    for i, key in enumerate(foot_roll_keys):
         par = foot_roll_jnts[foot_roll_keys[i-1]] if i > 0 else None
-        foot_roll_jnts[key] = rig_utils.joint(name="footRoll_"+key, joint_type=nom.nonBindJnt, side=side, radius=1.5,
+        foot_roll_jnts[key] = rig_utils.joint(name=f'footRoll_{key}', joint_type=nom.nonBindJnt, side=side, radius=1.5,
                                               parent=par)
         if i == 0:
             foot_roll_chain_buffer = gen_utils.buffer_obj(foot_roll_jnts[key])
@@ -99,8 +96,8 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     # ... Get foot roll placer positions
     foot_roll_placer_keys = ("sole_heel", "sole_toe", "sole_outer", "sole_inner", "sole_toe_end", "ball", "foot")
 
-    for i in range(len(foot_roll_keys)):
-        pm.delete(pm.pointConstraint(orienters[foot_roll_placer_keys[i]], foot_roll_jnts[foot_roll_keys[i]]))
+    for placer_key, roll_key in zip(foot_roll_placer_keys, foot_roll_keys):
+        pm.delete(pm.pointConstraint(orienters[placer_key], foot_roll_jnts[roll_key]))
 
     ctrls["ik_toe"].setParent(foot_roll_jnts["toeTip"])
 

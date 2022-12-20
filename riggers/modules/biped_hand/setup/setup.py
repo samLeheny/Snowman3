@@ -36,11 +36,11 @@ def build(armature_module):
 
     # ...Finger reverse pole vectors
     for key in ["thumb", "index", "middle", "ring", "pinky"]:
-        pv_loc = armature_module.placers["ik_"+key].install_reverse_ik(
-            pv_chain_mid=armature_module.placers[key+"_2"].mobject,
-            limb_start=armature_module.placers[key+"_1"].mobject,
-            limb_end=armature_module.placers[key+"_end"].mobject,
-            connector_crv_parent=armature_module.placers[key+"_1"].mobject,
+        pv_loc = armature_module.placers[f'ik_{key}'].install_reverse_ik(
+            pv_chain_mid=armature_module.placers[f'{key}_2'].mobject,
+            limb_start=armature_module.placers[f'{key}_1'].mobject,
+            limb_end=armature_module.placers[f'{key}_end'].mobject,
+            connector_crv_parent=armature_module.placers[f'{key}_1'].mobject,
             module=armature_module,
             hide=True)
         pv_loc.setParent(armature_module.rig_subGrps["extra_systems"])
@@ -65,9 +65,9 @@ def build(armature_module):
 
         finger_ctrl.create()
 
-        pm.delete(pm.parentConstraint(armature_module.placers[key+"_1"].mobject, finger_ctrl.mobject))
+        pm.delete(pm.parentConstraint(armature_module.placers[f"{key}_1"].mobject, finger_ctrl.mobject))
 
-        finger_placer_grp = pm.group(name=key+"_placers", p=armature_module.rig_subGrps["placers"], em=1)
+        finger_placer_grp = pm.group(name=f"{key}_placers", p=armature_module.rig_subGrps["placers"], em=1)
 
         pm.delete(pm.parentConstraint(finger_ctrl.mobject, finger_placer_grp))
 

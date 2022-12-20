@@ -576,14 +576,13 @@ class LimbRig:
         # ...Outfit blend attribute with mult nodes to get to 0-to-1 space from a 0-to-10 attr input -------------------
         blend_plugs = gen_utils.create_attr_blend_nodes(attr="fkIk", node=self.ctrls["rig_socket"], reverse=True)
 
-        for i in range(len(self.fk_ctrls)):
-
-            constraint = pm.orientConstraint(self.fk_ctrls[i], self.ik_constraint_targets[i], self.blend_jnts[i])
+        for fk_ctrl, ik_target, blend_jnt in zip(self.fk_ctrls, self.ik_constraint_targets, self.blend_jnts):
+            constraint = pm.orientConstraint(fk_ctrl, ik_target, blend_jnt)
             weights = pm.orientConstraint(constraint, query=1, weightAliasList=1)
             pm.connectAttr(blend_plugs.rev.outputX, weights[0])
             pm.connectAttr(blend_plugs.multOutput, weights[1])
 
-            self.blend_jnts[i].jointOrient.set(0, 0, 0)
+            blend_jnt.jointOrient.set(0, 0, 0)
 
 
         for i in range(2):

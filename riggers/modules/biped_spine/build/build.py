@@ -101,7 +101,7 @@ def build(rig_module, rig_parent=None):
         pin = gen_utils.point_on_surface_matrix(ik_output_ribbon["nurbsPlane"].getShape() + ".worldSpace",
                                                 parameter_U=0.5, parameter_V=(1.0/6)*i, decompose=True)
 
-        attach = pm.group(name=str(jnt)+"_ATTACH", em=1, p=bind_jnts_grp)
+        attach = pm.group(name=f"{str(jnt)}_ATTACH", em=1, p=bind_jnts_grp)
         pin.outputTranslate.connect(attach.translate)
         pin.outputRotate.connect(attach.rotate)
 
@@ -167,12 +167,12 @@ def build(rig_module, rig_parent=None):
 
     div = node_utils.floatMath(floatA=len_1.arcLengthInV, floatB=len_2.arcLengthInV, operation=3)
 
-    remap = node_utils.remapValue(inputValue=ctrls["settings"]+"."+attr_names["spine_volume"], inputMax=10, outputMin=1,
+    remap = node_utils.remapValue(inputValue=f'{ctrls["settings"]}.{attr_names["spine_volume"]}', inputMax=10, outputMin=1,
                                   outputMax=div.outFloat)
 
     for i in (2, 3, 4, 5):
         for attr in ("sx", "sz"):
-            pm.connectAttr(remap.outValue, ctrls["spine_tweak_{}".format(i)].getParent()+"."+attr)
+            pm.connectAttr(remap.outValue, f'{ctrls[f"spine_tweak_{i}"].getParent()}.{attr}')
 
 
 

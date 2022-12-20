@@ -137,7 +137,7 @@ def save_skin_weights(mesh, path=None):
 	with open(path, "w") as fp:
 		cPickle.dump(data, fp)
 
-	om2.MGlobal.displayInfo("+ Saved skin weights for {} to {}".format(mesh, path))
+	om2.MGlobal.displayInfo(f'+ Saved skin weights for {mesh} to {path}')
 
 
 
@@ -169,7 +169,7 @@ def load_skin_weights(mesh, path=None, rebind=False):
 	## perform bind
 	if rebind:
 		pm.select(influence_objects, mesh, r=True)
-		mesh_skin = pm.skinCluster(tsb=True, mi=3, dr=4.0, n=mesh+"SkClus")
+		mesh_skin = pm.skinCluster(tsb=True, mi=3, dr=4.0, n=f'{mesh}SkClus')
 
 	for index, bind_input in zip(range(influence_count), bind_inputs):
 		if bind_input:
@@ -198,7 +198,7 @@ def load_skin_weights(mesh, path=None, rebind=False):
 	## when you hit play.
 	mesh_skin.recacheBindMatrices()
 
-	om2.MGlobal.displayInfo("+ Loaded skin weights for {} from {}".format(mesh, path))
+	om2.MGlobal.displayInfo(f'+ Loaded skin weights for {mesh} from {path}')
 
 
 ## ======================================================================
@@ -273,7 +273,7 @@ def copy_skin_layer(source, target):
 			# No skins yet-- make sure to use this command
 			source_influences = source_skin.influenceObjects()
 			pm.select(source_influences, target, r=True)
-			target_skin = pm.skinCluster(tsb=True, mi=3, dr=4.0, n=target+"SkClus")
+			target_skin = pm.skinCluster(tsb=True, mi=3, dr=4.0, n=f'{target}SkClus')
 
 		# Never don't neighbours
 		target_skin.weightDistribution.set(1) ## neigbours

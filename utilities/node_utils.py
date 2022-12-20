@@ -89,7 +89,7 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
     # ...floatA
     if floatA:
 
-        if type(floatA) in [int, float]:
+        if isinstance(floatA, (int, float)):
             node.floatA.set(floatA)
         else:
             pm.connectAttr(floatA, node.floatA)
@@ -97,7 +97,7 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
     # ...floatB
     if floatB:
 
-        if type(floatB) in [int, float]:
+        if isinstance(floatB, (int, float)):
             node.floatB.set(floatB)
         else:
             pm.connectAttr(floatB, node.floatB)
@@ -105,10 +105,10 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
 
 
     # ...Set floatMath node's operation attribute
-    if type(operation) == int:
+    if isinstance(operation, int):
         pass
-    elif type(operation) == str:
-        if operation in operation_strings.keys():
+    elif isinstance(operation, str):
+        if operation in operation_strings:
             operation = operation_strings[operation]
 
     node.operation.set(operation)
@@ -154,7 +154,7 @@ def floatConstant(name=None, inFloat=None, outFloat=None):
     # ...inFloat
     if inFloat:
 
-        if type(inFloat) in [int, float]:
+        if isinstance(inFloat, (int, float)):
             node.inFloat.set(inFloat)
         else:
             inFloat.connect(node.inFloat)
@@ -204,7 +204,7 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
     # ...input1
     if input1:
 
-        if type(input1) in [int, float]:
+        if isinstance(input1, (int, float)):
             node.input1.set(input1)
         else:
             pm.connectAttr(input1, node.input1)
@@ -212,7 +212,7 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
     # ...input2
     if input2:
 
-        if type(input2) in [int, float]:
+        if isinstance(input2, (int, float)):
             node.input2.set(input2)
         else:
             pm.connectAttr(input2, node.input2)
@@ -221,7 +221,7 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
 
     # ...Connect node's output attribute to its destination
     if output:
-        if not type(output) in (tuple, list):
+        if not isinstance(output, (tuple, list)):
             node.output.connect(output, force=1)
         else:
             for plug in output:
@@ -263,7 +263,7 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
     # ...input1
     if input1:
 
-        if type(input1) in [int, float]:
+        if isinstance(input1, (int, float)):
             node.input1.set(input1)
         else:
             pm.connectAttr(input1, node.input1)
@@ -271,7 +271,7 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
     # ...input2
     if input2:
 
-        if type(input2) in [int, float]:
+        if isinstance(input2, (int, float)):
             node.input2.set(input2)
         else:
             pm.connectAttr(input2, node.input2)
@@ -301,42 +301,42 @@ def remapValue(name=None, inputValue=0, inputMin=0, inputMax=1, outputMin=0, out
 
 
     if inputValue:
-        if type(inputValue) in (float, int):
+        if isinstance(inputValue, (float, int)):
             node.inputValue.set(inputValue)
         else:
             pm.connectAttr(inputValue, node.inputValue)
 
 
     if inputMin:
-        if type(inputMin) in (float, int):
+        if isinstance(inputMin, (float, int)):
             node.inputMin.set(inputMin)
         else:
             pm.connectAttr(inputMin, node.inputMin)
 
 
     if inputMax:
-        if type(inputMax) in (float, int):
+        if isinstance(inputMax, (float, int)):
             node.inputMax.set(inputMax)
         else:
             pm.connectAttr(inputMax, node.inputMax)
 
 
     if outputMin:
-        if type(outputMin) in (float, int):
+        if isinstance(outputMin, (float, int)):
             node.outputMin.set(outputMin)
         else:
             pm.connectAttr(outputMin, node.outputMin)
 
 
     if outputMax:
-        if type(outputMax) in (float, int):
+        if isinstance(outputMax, (float, int)):
             node.outputMax.set(outputMax)
         else:
             pm.connectAttr(outputMax, node.outputMax)
 
 
     if outValue:
-        if type(outValue) in (list, tuple):
+        if isinstance(outValue, (list, tuple)):
             for plug in outValue:
                 pm.connectAttr(node.outValue, plug)
 
@@ -360,7 +360,7 @@ def reverse(name=None, input=None, output=None, output_x=None, output_y=None, ou
 
 
     if input:
-        if type(input) in (float, int):
+        if isinstance(input, (float, int)):
             node.input.set(input)
         else:
             input.connect(node.input)
@@ -426,19 +426,19 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
 
 
     # ...Set parameters
-    if type(turnOnPercentage) == bool:
+    if isinstance(turnOnPercentage, bool):
         node.turnOnPercentage.set(turnOnPercentage)
     else:
         pm.connectAttr(turnOnPercentage, node.turnOnPercentage)
 
 
-    if type(parameterV) in [int, float]:
+    if isinstance(parameterV, (int, float)):
         node.parameterV.set(parameterV)
     else:
         pm.connectAttr(parameterV, node.parameterV)
 
 
-    if type(parameterU) in [int, float]:
+    if isinstance(parameterU, (int, float)):
         node.parameterU.set(parameterU)
     else:
         pm.connectAttr(parameterU, node.parameterU)
@@ -468,13 +468,13 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
 
     # ...Derive correct numerical value for operation arg if provided arg is a string
     if operation:
-        if type(operation) == str:
+        if isinstance(operation, str):
             operation_strings = {0: ["None", "none", "noOperation", "no_operation", "no operation", "0"],
                                  1: ["mult", "Mult", "multiply", "multiplication", "product", "times", "1"],
                                  2: ["div", "Div", "divide", "division", "divide by"],
                                  3: ["power", "exponent", "exp", "exponentiate", "exponentiation"]}
 
-            for key in operation_strings.keys():
+            for key in operation_strings:
                 if operation in operation_strings[key]:
                     operation = key
                 break
@@ -491,10 +491,10 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
     input1_array = ["input1X", "input1Y", "input1Z"]
 
     if input1:
-        if type(input1) in [list, tuple]:
-            input1 = tuple(input1) if type(input1) == list else None
+        if isinstance(input1, (list, tuple)):
+            input1 = tuple(input1) if isinstance(input1, list) else None
             for i in range(3):
-                if type(input1[i]) in [int, float]:
+                if isinstance(input1[i], (int, float)):
                     pm.setAttr(node + "." + input1_array[i], input1[i])
                 else:
                     pm.connectAttr(input1[i], node + "." + input1_array[i])
@@ -505,10 +505,10 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
     input2_array = ["input2X", "input2Y", "input2Z"]
 
     if input2:
-        if type(input2) in [list, tuple]:
-            input2 = tuple(input2) if type(input2) == list else None
+        if isinstance(input2 (list, tuple)):
+            input2 = tuple(input2) if isinstance(input2, list) else None
             for i in range(3):
-                if type(input2[i]) in [int, float]:
+                if isinstance(input2[i], (int, float)):
                     pm.setAttr(node + "." + input2_array[i], input2[i])
                 else:
                     pm.connectAttr(input2[i], node + "." + input2_array[i])
@@ -518,7 +518,7 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
 
     # ...operation
     if operation:
-        if type(operation) in [int, float]:
+        if isinstance(operation, (int, float)):
             pm.setAttr(node.operation, operation)
         else:
             pm.connectAttr(operation, node.operation)
@@ -528,8 +528,8 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
     output_array = ["outputX", "outputY", "outputZ"]
 
     if output:
-        if type(output) in [list, tuple]:
-            output = tuple(output) if type(output) == list else None
+        if isinstance(output, (list, tuple)):
+            output = tuple(output) if isinstance(output, list) else None
             for i in range(3):
                 pm.connectAttr(node + "." + output_array[i], output[i])
 
@@ -608,21 +608,21 @@ def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFal
 
 
 
-    if type(firstTerm) in [int, float]:
+    if isinstance(firstTerm, (int, float)):
         node.firstTerm.set(firstTerm)
     else:
         pm.connectAttr(firstTerm, node.firstTerm)
 
 
 
-    if type(secondTerm) in [int, float]:
+    if isinstance(secondTerm, (int, float)):
         node.secondTerm.set(secondTerm)
     else:
         pm.connectAttr(secondTerm, node.secondTerm)
 
 
 
-    for key in operations_dict.keys():
+    for key in operations_dict:
         if operation in operations_dict[key]:
             node.operation.set(key)
 
@@ -631,20 +631,20 @@ def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFal
     for i in range(3):
 
 
-        if type(colorIfTrue[i]) in [int, float]:
+        if isinstance(colorIfTrue[i], (int, float)):
             pm.setAttr(node + "." + color_if_true_attrs[i], colorIfTrue[i])
         else:
             pm.connectAttr(colorIfTrue[i], node + "." + color_if_true_attrs[i])
 
 
-        if type(colorIfFalse[i]) in [int, float]:
+        if isinstance(colorIfFalse[i], (int, float)):
             pm.setAttr(node + "." + color_if_false_attrs[i], colorIfFalse[i])
         else:
             pm.connectAttr(colorIfFalse[i], node + "." + color_if_false_attrs[i])
 
 
         if outColor[i]:
-            if type(outColor[i]) != list:
+            if not isinstance(outColor[i], list):
                 out_color_list = [outColor[i]]
                 for plug in out_color_list:
                     pm.connectAttr( node + "." + out_color_attrs[i], plug, force=force_outgoing_connections)
@@ -666,20 +666,17 @@ def fourByFourMatrix(input=None, output=None, name=None):
     else:
         node = pm.shadingNode("fourByFourMatrix", au=1)
 
-
     input_attrs = ["in00", "in01", "in02", "in03",
                    "in10", "in11", "in12", "in13",
                    "in20", "in21", "in22", "in23",
                    "in30", "in31", "in32", "in33"]
 
-
     if input:
-        for i in range(len(input)):
-            if type(input[i]) in [int, float]:
-                pm.setAttr(node + "." + input_attrs[i], input[i])
+        for inp, a in zip(input, input_attrs):
+            if isinstance(inp, (int, float)):
+                pm.setAttr(node + "." + a, inp)
             else:
-                pm.connectAttr(input[i], node + "." + input_attrs[i])
-
+                pm.connectAttr(inp, node + "." + a)
 
     if output:
         pm.connectAttr(node + ".output", output)
@@ -729,19 +726,18 @@ def multMatrix(name=None, matrixIn=None, matrixSum=None):
 
 
     if matrixIn:
-        if not type(matrixIn) in (list, tuple):
+        if not isinstance(matrixIn, (list, tuple)):
             matrixIn = (matrixIn,)
-
-        for i in range(len(matrixIn)):
-            pm.connectAttr(matrixIn[i], node.matrixIn[i])
+        for i, v in enumerate(matrixIn):
+            pm.connectAttr(v, node.matrixIn[i])
 
 
     if matrixSum:
-        if not type(matrixSum) in (list, tuple):
+        if not isinstance(matrixSum, (list, tuple)):
             matrixSum = (matrixSum,)
 
-        for i in range(len(matrixSum)):
-            pm.connectAttr(node.matrixSum, matrixSum[i])
+        for v in matrixSum:
+            pm.connectAttr(node.matrixSum, v)
 
 
 
@@ -767,43 +763,43 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
 
     # Outputs --------------------------------------------------
     if outputQuat:
-        if not type(outputQuat) in (list, tuple):
+        if not isinstance(outputQuat, (list, tuple)):
             outputQuat = (outputQuat,)
 
-        for i in range(len(outputQuat)):
-            pm.connectAttr(node.outputQuat, outputQuat[i], f=force)
+        for v in outputQuat:
+            pm.connectAttr(node.outputQuat, v, f=force)
 
 
     if outputTranslate:
-        if not type(outputTranslate) in (list, tuple):
+        if not isinstance(outputTranslate, (list, tuple)):
             outputTranslate = (outputTranslate,)
 
-        for i in range(len(outputTranslate)):
-            pm.connectAttr(node.outputTranslate, outputTranslate[i], f=force)
+        for v in outputTranslate:
+            pm.connectAttr(node.outputTranslate, v, f=force)
 
 
     if outputRotate:
-        if not type(outputRotate) in (list, tuple):
+        if not isinstance(outputRotate, (list, tuple)):
             outputRotate = (outputRotate,)
 
-        for i in range(len(outputRotate)):
-            pm.connectAttr(node.outputRotate, outputRotate[i], f=force)
+        for v in outputRotate:
+            pm.connectAttr(node.outputRotate, v, f=force)
 
 
     if outputScale:
-        if not type(outputScale) in (list, tuple):
+        if not isinstance(outputScale, (list, tuple)):
             outputScale = (outputScale,)
 
-        for i in range(len(outputScale)):
-            pm.connectAttr(node.outputScale, outputScale[i], f=force)
+        for v in outputScale:
+            pm.connectAttr(node.outputScale, v, f=force)
 
 
     if outputShear:
-        if not type(outputShear) in (list, tuple):
+        if not isinstance(outputShear, (list, tuple)):
             outputShear = (outputShear,)
 
-        for i in range(len(outputShear)):
-            pm.connectAttr(node.outputShear, outputShear[i], f=force)
+        for v in outputShear:
+            pm.connectAttr(node.outputShear, v, f=force)
 
 
 
@@ -827,7 +823,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
         sub_plugs = ("inputR", "inputG", "inputB")
         for i in range(3):
             if input[i]:
-                if type(input[i]) in (int, float):
+                if isinstance(input[i], (int, float)):
                     pm.setAttr(node + "." + sub_plugs[i], input[i])
                 else:
                     pm.connectAttr(input[i], node + "." + sub_plugs[i])
@@ -837,7 +833,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
         sub_plugs = ("minR", "minG", "minB")
         for i in range(3):
             if min[i]:
-                if type(min[i]) in (int, float):
+                if isinstance(min[i], (int, float)):
                     pm.setAttr(node + "." + sub_plugs[i], min[i])
                 else:
                     pm.connectAttr(min[i], node + "." + sub_plugs[i])
@@ -847,7 +843,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
         sub_plugs = ("maxR", "maxG", "maxB")
         for i in range(3):
             if max[i]:
-                if type(max[i]) in (int, float):
+                if isinstance(max[i], (int, float)):
                     pm.setAttr(node + "." + sub_plugs[i], max[i])
                 else:
                     pm.connectAttr(max[i], node + "." + sub_plugs[i])
@@ -881,60 +877,52 @@ def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, 
 
 
     if targetMatrix:
-        if not type(targetMatrix) in (list, tuple):
+        if not isinstance(targetMatrix, (list, tuple)):
             targetMatrix = (targetMatrix,)
-        for i in range(len(targetMatrix)):
-            pm.connectAttr(targetMatrix[i], node.target[i].targetMatrix)
+        [pm.connectAttr(tm, targ.targetMatrix) for tm, targ in zip(targetMatrix, node.target)]
 
 
     if useMatrix:
-        if not type(useMatrix) in (list, tuple):
+        if not isinstance(useMatrix, (list, tuple)):
             useMatrix = (useMatrix,)
-        for i in range(len(useMatrix)):
-            pm.connectAttr(useMatrix[i], node.target[i].useMatrix)
+        [pm.connectAttr(um, targ.useMatrix) for um, targ in zip(useMatrix, node.target)]
 
 
     if weight:
-        if not type(weight) in (list, tuple):
+        if not isinstance(weight, (list, tuple)):
             weight = (weight,)
-        for i in range(len(weight)):
-            pm.connectAttr(weight[i], node.target[i].weight)
+        [pm.connectAttr(w, targ.weight) for w, targ in zip(weight, node.target)]
 
 
     if useScale:
-        if not type(useScale) in (list, tuple):
+        if not isinstance(useScale, (list, tuple)):
             useScale = (useScale,)
-        for i in range(len(useScale)):
-            pm.connectAttr(useScale[i], node.target[i].useScale)
+        [pm.connectAttr(us, targ.useScale) for us, targ in zip(useScale, node.target)]
 
 
     if useTranslate:
-        if not type(useTranslate) in (list, tuple):
+        if not isinstance(useTranslate, (list, tuple)):
             useTranslate = (useTranslate,)
-        for i in range(len(useTranslate)):
-            pm.connectAttr(useTranslate[i], node.target[i].useTranslate)
+        [pm.connectAttr(ut, targ.useTranslate) for ut, targ in zip(useTranslate, node.target)]
 
 
     if useShear:
-        if not type(useShear) in (list, tuple):
+        if not isinstance(useShear, (list, tuple)):
             useShear = (useShear,)
-        for i in range(len(useShear)):
-            pm.connectAttr(useShear[i], node.target[i].useShear)
+        [pm.connectAttr(us, targ.useShear) for us, targ in zip(useShear, node.target)]
 
 
     if useRotate:
-        if not type(useRotate) in (list, tuple):
+        if not isinstance(useRotate, (list, tuple)):
             useRotate = (useRotate,)
-        for i in range(len(useRotate)):
-            pm.connectAttr(useRotate[i], node.target[i].useRotate)
+        [pm.connectAttr(ur, targ.useRotate) for ur, targ in zip(useRotate, node.target)]
 
 
 
     if outputMatrix:
-        if not type(outputMatrix) in (list, tuple):
+        if not isinstance(outputMatrix, (list, tuple)):
             outputMatrix = (outputMatrix,)
-        for i in range(len(outputMatrix)):
-            pm.connectAttr(node.outputMatrix, outputMatrix[i])
+        [pm.connectAttr(node.outputMatrix, v) for v in outputMatrix]
 
 
     return node

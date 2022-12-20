@@ -45,7 +45,7 @@ def execute(modules):
 
     # Redirect module Rig Scale attributes to root control -------------------------------------------------------------
     for module in modules.values():
-        if "groups" in module.keys():
+        if "groups" in module:
             if "rig" in module["groups"]:
 
                 rigGrp = module["groups"]["rig"]
@@ -66,7 +66,7 @@ def execute(modules):
     # Put extra nodes into place under root hierarchy ------------------------------------------------------------------
     def absorbIntoHierarchy (nodeType):
         for module in modules.values():
-            if nodeType in module.keys():
+            if nodeType in module:
                 for node in module[nodeType].values():
                     node.setParent(modules["root"]["groups"][nodeType])
 
@@ -133,7 +133,7 @@ def execute(modules):
     for obj in allTransforms:
         if obj in allRigNodes:
             if not pm.nodeType(obj) in ["joint", "ikHandle"]:
-                if not stringUtils.getCleanName(obj).startswith(nom.animCtrl+"_"):
+                if not stringUtils.getCleanName(obj).startswith(f'{nom.animCtrl}_'):
                     allNonCtrlTransforms.append(obj)
 
 
@@ -155,7 +155,7 @@ def execute(modules):
             loc.visibility.set(lock=0)
             loc.visibility.set(0)
             loc.visibility.set(lock=1)
-        except:
+        except Exception:
             pass
     # Hide all non-floating IK handles
     for handle in pm.ls(type="ikHandle"):
@@ -164,5 +164,5 @@ def execute(modules):
                 handle.visibility.set(lock=0)
                 handle.visibility.set(0)
                 handle.visibility.set(lock=1)
-            except:
+            except Exception:
                 pass'''

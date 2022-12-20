@@ -75,7 +75,7 @@ def build(armature_module):
         i += 1
 
 
-    spine_seg_count = len(armature_module.placers.keys())
+    spine_seg_count = len(armature_module.placers)
     for i in range(spine_seg_count+1):
 
         pin = gen_utils.point_on_surface_matrix(ribbon_sys["nurbsPlane"].getShape() + ".worldSpace",

@@ -64,7 +64,7 @@ class ArmatureDataIO(object):
 
         self.armature_data["modules"] = {}
         modules = amtr_utils.get_modules_in_armature(armature)
-        for key in modules.keys():
+        for key in modules:
             self.get_data_from_module(modules, key)
 
 
@@ -169,7 +169,7 @@ class ArmatureDataIO(object):
 
         # ...Check which placers (if any) drive constraints
         constraining_placers = {}
-        for key in placers.keys():
+        for key in placers:
             if amtr_utils.get_outgoing_constraints(placers[key]):
                 constraining_placers[key] = placers[key]
 
@@ -194,7 +194,7 @@ class ArmatureDataIO(object):
                     module_tag = str(pm.getAttr(driven_placer_module_tag + "." + "ModuleName"))
                     placer_tag = pm.getAttr(node + "." + "PlacerTag")
 
-                    if driver_key in driver_placers.keys():
+                    if driver_key in driver_placers:
                         driver_placers[str(driver_key)].append((module_tag, str(placer_tag)))
                     else:
                         driver_placers[str(driver_key)] = [(module_tag, str(placer_tag))]
@@ -218,17 +218,17 @@ class ArmatureDataIO(object):
         connector_data = {}
 
         # ...Get connectors in modules
-        connectors = pm.listConnections(module+"."+"ExtraDrawnConnections", d=1, s=0)
+        connectors = pm.listConnections(f"{module}.ExtraDrawnConnections", d=1, s=0)
 
 
         for connector in connectors:
             shape = connector.getShape()
 
             driver_placers = []
-            for loc in pm.listConnections(shape+"."+"controlPoints", s=1, d=0):
+            for loc in pm.listConnections(f"{shape}.controlPoints", s=1, d=0):
                 driver_placers.append(loc.getParent())
 
-            for key in module_placers.keys():
+            for key in module_placers:
                 module_placer = module_placers[key]
                 if module_placer in driver_placers:
 
@@ -240,7 +240,7 @@ class ArmatureDataIO(object):
                     remaining_placer_tag = pm.getAttr(remaining_placer + "." + "PlacerTag")
                     remaining_placer_module_tag = amtr_utils.get_module_from_placer(remaining_placer, return_tag=True)
 
-                    if this_module_placer_key in connector_data.keys():
+                    if this_module_placer_key in connector_data:
                         connector_data[str(this_module_placer_key)].append(str(remaining_placer_module_tag),
                                                                         str(remaining_placer_tag))
                     else:
@@ -261,9 +261,8 @@ class ArmatureDataIO(object):
 
         self.get_armature_data_from_scene() if not self.armature_data else None
         filepath = "{}/{}.json".format(self.dirpath, "test_armature_data")
-        fh = open(filepath, "w")
-        json.dump(self.armature_data, fh, False, indent=5)
-        fh.close()
+        with open(filepath, 'w') as fh:
+            json.dump(self.armature_data, fh, indent=5)
 
 
 
@@ -272,14 +271,15 @@ class ArmatureDataIO(object):
     #################################################################################################################---
     def load(self, filepath):
 
+        data = None
+
         # ...
         if not os.path.exists(filepath):
             print("ERROR: Provided file path not found on disk.")
             return False
 
         # ...Read data
-        fh = open(filepath, "r")
-        data = json.load(fh)
-        fh.close()
+        with open(filepath, 'r') as fh:
+            data = json.load(fh)
 
         return data

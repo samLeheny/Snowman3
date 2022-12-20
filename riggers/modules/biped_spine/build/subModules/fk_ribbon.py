@@ -47,7 +47,7 @@ def build(parent, ctrls, orienters, ribbon_parent):
 
     fk_ribbon = pm.duplicate(setup_ribbon, name="spineRibbon_FK_SURF")[0]
     for attr in gen_utils.all_transform_attrs:
-        pm.setAttr(fk_ribbon+"."+attr, lock=0)
+        pm.setAttr(f'{fk_ribbon}.{attr}', lock=0)
     fk_ribbon.setParent(world=1)
 
     pm.select(fk_ribbon)

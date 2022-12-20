@@ -75,7 +75,7 @@ class PoleVectorPlacer(Placer):
                         "aim_vector",
                         "up_vector",
                         "match_to"):
-                if key not in orienter_data.keys():
+                if key not in orienter_data:
                     orienter_data[key] = None
         else:
             orienter_data = {

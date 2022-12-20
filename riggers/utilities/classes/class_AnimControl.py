@@ -151,7 +151,7 @@ class AnimControl:
         self.get_prelim_ctrl() if not self.prelim_ctrl else None
 
         for attr in gen_utils.all_transform_attrs:
-            gen_utils.break_connections(self.prelim_ctrl+"."+attr)
+            gen_utils.break_connections(f'{self.prelim_ctrl}.{attr}')
 
         # ...Copy shape across
         gen_utils.copy_shapes(self.prelim_ctrl, self.ctrl_transform, parent_offset_matrix_mode=False,

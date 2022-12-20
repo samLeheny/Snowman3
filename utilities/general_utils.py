@@ -131,7 +131,7 @@ def get(node):
     }
 
     # ...Check argument integrity
-    if node not in node_functions.keys():
+    if node not in node_functions:
         print("Invalid argument: {}".format(node))
         return None
 
@@ -598,11 +598,11 @@ def set_color(obj, color=None, apply_to_transform=False):
         obj_to_color.overrideEnabled.set(True)
 
         # Choose whether to use index colour or RGB based on whether the col parameter is one value or three
-        if type(color) in (int, float):
+        if isinstance(color, (int, float)):
             obj_to_color.overrideRGBColors.set(False)
             obj_to_color.overrideColor.set(color)
 
-        elif type(color) == list and len(color) == 3:
+        elif isinstance(color, (tuple, list)) and len(color) == 3:
             obj_to_color.overrideRGBColors.set(True)
             obj_to_color.overrideColorRGB.set( tuple(color) )
 
@@ -674,8 +674,8 @@ def normalize_vector(vector):
     c_len = np.linalg.norm(c)
 
     normalized_c = []
-    for i in range(len(c)):
-        normalized_c.append(c[i] / abs(c_len))
+    for v in c:
+        normalized_c.append(v / abs(c_len))
 
     normalized_c = tuple(normalized_c)
 
@@ -865,17 +865,17 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
 
     up_axis, forward_axis, remaining_axis = None, None, None
 
-    for key in axes_dict.keys():
+    for key in axes_dict:
         if up_direction in axes_dict[key]:
             up_axis = key
             break
 
-    for key in axes_dict.keys():
+    for key in axes_dict:
         if forward_direction in axes_dict[key]:
             forward_axis = key
             break
 
-    for key in axes_dict.keys():
+    for key in axes_dict:
         if remaining_direction in axes_dict[key]:
             remaining_axis = key
             break
@@ -972,7 +972,7 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
 
 
     # Process scale factor in case only one value was passed
-    if type(scale) != list:
+    if not isinstance(scale, list):
         scale = (scale, scale, scale)
 
 
@@ -1011,11 +1011,11 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
     # Build a list of points at which to place the curve's CVs (incorporating scale and points_offset)
     points = []
 
-    for i in range(len(cvs)):
+    for cv in cvs:
 
         final_point_coords = []
         for n in range(3):
-            final_point_coords.append(cvs[i][n] * scale[n] + (points_offset[n] * x_offset_direction))
+            final_point_coords.append(cv[n] * scale[n] + (points_offset[n] * x_offset_direction))
 
         points.append(tuple(final_point_coords))
 
@@ -1153,7 +1153,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
 
     # Determine how many discrete curves are needed to complete this curve object
     shape_count = 1
-    if type(cvs[0][0]) == list:
+    if isinstance(cvs[0][0], list):
         shape_count = len(cvs)
     else:
         cvs = [cvs]
@@ -1171,19 +1171,19 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
         "periodic": ["periodic", "Periodic", "closed", "Closed", "close", "Close"]
     }
 
-    for i in range(len(form)):
+    for f in form:
 
         string_is_recognized = False
 
-        for key in form_strings.keys():
-            if form[i] in form_strings[key]:
-                form[i] = key
+        for key in form_strings:
+            if f in form_strings[key]:
+                f = key
                 string_is_recognized = True
                 break
 
         if not string_is_recognized:
             pm.error("Unable to create curve. form received invalid string argument:"
-                     "'{}'".format(form[i]))
+                     "'{}'".format(f))
 
     acceptable_form_inputs = []
     for string_list in form_strings.values():
@@ -1198,7 +1198,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
     degree = bulk_up_list(degree, new_length=shape_count)
 
     for entry in degree:
-        if type(entry) == int:
+        if isinstance(entry, int):
             if not entry in [1, 3]:
                 degree_is_valid = False
 
@@ -1295,8 +1295,7 @@ def rename_shapes(obj):
 
     # ...Compose dictionary of new shape names
     new_shape_names = []
-    for i in range(len(shapes)):
-        shape = shapes[i]
+    for i, v in enumerate(shapes):
         new_name = "{}Shape{}".format( get_clean_name(obj), str(i+1) )
         new_shape_names.append(new_name)
 
@@ -1356,7 +1355,7 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
 
 
     # ...Test that provided dictionary entry exists
-    if not prefab in curve_prefabs.keys():
+    if not prefab in curve_prefabs:
         pm.error("Cannot create prefab curve object. " \
                  "Provided prefab dictionary key '{}' is invalid".format(prefab))
 
@@ -1377,7 +1376,7 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
     }
 
     # ...Update curve object input dictionary with data from the shape dictionary
-    for key in prefab_dict.keys():
+    for key in prefab_dict:
         crv_obj_inputs[key] = prefab_dict[key]
 
 
@@ -1440,7 +1439,7 @@ def side_tag_from_string(side):
         nom.midSideTag : ["middle", "Middle", "MIDDLE", "mid", "Mid", "MID", "m", "M"]
     }
 
-    for key in side_strings_dict.keys():
+    for key in side_strings_dict:
         if side in side_strings_dict[key]:
             side_tag = key
             break
@@ -1473,7 +1472,7 @@ def break_connections(attr, incoming=True, outgoing=False):
             try:
                 pm.setAttr(attr, lock=0)
                 pm.disconnectAttr(connected_attr, attr)
-            except:
+            except Exception:
                 pass
 
     if outgoing:
@@ -1483,7 +1482,7 @@ def break_connections(attr, incoming=True, outgoing=False):
             try:
                 pm.setAttr(attr, lock=0)
                 pm.disconnectAttr(attr, connected_attr)
-            except:
+            except Exception:
                 pass
 
 
@@ -1503,10 +1502,10 @@ def match_position(obj, match_to, method="parent", preserve_scale=1, enforce_sca
     if method == "parent":
         try:
             parent = obj.getParent()
-        except:
+        except Exception:
             try:
                 parent = pm.ls(obj)[0].getParent()
-            except:
+            except Exception:
                 parent=None
         pm.parent(obj, match_to)
         zero_out(obj, jnt_orient=jnt_status)
@@ -1533,7 +1532,7 @@ def match_position(obj, match_to, method="parent", preserve_scale=1, enforce_sca
                 pm.setAttr("{}.s{}".format(obj, axes[i]), -1)
 
     if enforce_scale_of_one in [1, True]:
-        pm.setAttr(obj+".scale", 1, 1, 1)
+        pm.setAttr(f'{obj}.scale', 1, 1, 1)
 
     pm.select(clear=1)
 
@@ -1615,7 +1614,7 @@ def get_opposite_side_obj(obj):
     opp_obj_check_string = this_obj_clean_name.replace( side_tags[key], opp_side_tag )
 
     # Check for an obj of this expected name
-    opp_obj = pm.PyNode("::"+opp_obj_check_string) if pm.objExists("::"+opp_obj_check_string) else None
+    opp_obj = pm.PyNode(f'::{opp_obj_check_string}') if pm.objExists(f'::{opp_obj_check_string}') else None
 
 
     if not obj:
@@ -1634,7 +1633,7 @@ def position_between(obj, between, ratios=None, include_orientation=False):
 
     if not ratios:
         ratios = []
-        for i in range(len(between)):
+        for i in between:
             ratios.append(1.0/len(between))
 
 
@@ -1658,8 +1657,7 @@ def position_between(obj, between, ratios=None, include_orientation=False):
 
 
     # ...Apply weights
-    for i in range(len(ratios)):
-        pm.setAttr(weights[i], ratios[i])
+    [pm.setAttr(w, r) for w, r in zip(weights, ratios)]
 
 
     # ...Delete constraint. We're finished with it
@@ -1777,9 +1775,9 @@ def decompose_matrix(matrix):
     matrix_mode = None
 
 
-    if type(matrix) == str:
+    if isinstance(matrix, str):
         attr_mode = True
-    elif type(matrix) == list:
+    elif isinstance(matrix, list):
         array_mode = True
     else:
         matrix_mode = True
@@ -1899,12 +1897,11 @@ def convert_offset(obj, reverse=False):
     attr_list = ["tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz", "shearXY", "shearXZ", "shearYZ"]
     lock_list = []
 
-    for i in range(len(attr_list)):
-
-        attr = "{}.{}".format(obj, attr_list[i])
+    for i, a in enumerate(attr_list):
+        attr = f'{obj}.{a}'
         if pm.getAttr(attr, lock=1):
             lock_status[i] = 1
-            pm.setAttr("{}.{}".format(obj, attr_list[i]), lock=0, keyable=1)
+            pm.setAttr(attr, lock=0, keyable=1)
             lock_list.append(attr)
 
 
@@ -1946,10 +1943,9 @@ def convert_offset(obj, reverse=False):
         zero_out(obj)
 
         # ...Re-lock any transform values that were locked
-        for i in range(len(attr_list)):
-            if lock_status[i] == 1:
-                attr = "{}.{}".format(obj, attr_list[i])
-                pm.setAttr(attr, lock=1, keyable=0)
+        for locked, a in zip(lock_status, attr_list):
+            if locked:
+                pm.setAttr(f'{obj}.{a}', lock=1, keyable=0)
 
 
 
@@ -1962,7 +1958,7 @@ def convert_offset(obj, reverse=False):
         try:
             source = pm.listConnections(obj+'.offsetParentMatrix', source=1, plugs=1)[0]
             pm.disconnectAttr(source, obj+'.offsetParentMatrix')
-        except:
+        except Exception:
             pass
 
         zero_offsetParentMatrix(obj)
@@ -1980,7 +1976,7 @@ def convert_offset(obj, reverse=False):
 def get_skin_cluster(obj):
 
 
-    obj = obj[0] if type(obj) == list else obj
+    obj = obj[0] if isinstance(obj, (tuple, list)) else obj
 
     # ...If not arg provided, try getting obj from selection
     if not obj:
@@ -2170,7 +2166,7 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
     target_has_parent = True
     try:
         target_parent = pm.listRelatives(target_obj, parent=1)[0]
-    except:
+    except Exception:
         target_has_parent = False
 
 
@@ -2186,12 +2182,12 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
         if not target_has_parent:
             offset_parent_matrix_input = matrix_blend + '.outputMatrix'
             
-        for i in range(len(source_objs)):
+        for i, source in enumerate(source_objs):
             
             if i == 0:
-                pm.connectAttr(source_objs[i] + '.worldMatrix[0]', matrix_blend + '.inputMatrix')
+                pm.connectAttr(source + '.worldMatrix[0]', matrix_blend + '.inputMatrix')
             else:
-                pm.connectAttr(source_objs[i] + '.worldMatrix[0]',
+                pm.connectAttr(source + '.worldMatrix[0]',
                                matrix_blend + '.target[{}].targetMatrix'.format(str(i-1)))
                 pm.setAttr(matrix_blend+'.target[{}].weight'.format(str(i-1)), 1.0/len(source_objs))
                 
@@ -2211,29 +2207,28 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
     if maintain_offset:
 
         #offset_matrix_input, mult_matrix, world_matrix_input = None, None, None
-
-        for i in range(len(source_objs)):
+        for i, source in enumerate(source_objs):
             offset = pm.shadingNode('multMatrix', name='tempMultMatrix', au=1)
             pm.connectAttr(target_obj + '.worldMatrix[0]', offset + '.matrixIn[0]')
-            pm.connectAttr(source_objs[i] + '.worldInverseMatrix[0]', offset + '.matrixIn[1]')
+            pm.connectAttr(source + '.worldInverseMatrix[0]', offset + '.matrixIn[1]')
 
-            pm.addAttr(source_objs[i], longName='offsetMatrix_{}'.format(get_clean_name(target_obj)),
+            pm.addAttr(source, longName='offsetMatrix_{}'.format(get_clean_name(target_obj)),
                        attributeType='matrix', keyable=False)
             val = pm.getAttr(offset + '.matrixSum')
-            pm.setAttr(source_objs[i] + '.offsetMatrix_{}'.format(get_clean_name(target_obj)), val, type='matrix')
+            pm.setAttr(source + '.offsetMatrix_{}'.format(get_clean_name(target_obj)), val, type='matrix')
             pm.delete(offset)
             if i == 0 and multiple_sources == False:
-                offset_matrix_input = source_objs[i] + '.offsetMatrix_{}'.format(get_clean_name(target_obj))
+                offset_matrix_input = source + '.offsetMatrix_{}'.format(get_clean_name(target_obj))
 
 
         if multiple_sources:
             offset_matrix_blend = pm.shadingNode('blendMatrix', name='matrix_blend', au=1)
-            for i in range(len(source_objs)):
+            for i, source in enumerate(source_objs):
                 if i == 0:
-                    pm.connectAttr(source_objs[i] + '.offsetMatrix_{}'.format(get_clean_name(target_obj)),
+                    pm.connectAttr(source + '.offsetMatrix_{}'.format(get_clean_name(target_obj)),
                                    offset_matrix_blend + '.inputMatrix')
                 else:
-                    pm.connectAttr(source_objs[i] + '.offsetMatrix_{}'.format(get_clean_name(target_obj)),
+                    pm.connectAttr(source + '.offsetMatrix_{}'.format(get_clean_name(target_obj)),
                                    offset_matrix_blend + '.target[{}].targetMatrix'.format(str(i-1)))
             offset_matrix_input = offset_matrix_blend + '.outputMatrix'
 
@@ -2256,12 +2251,12 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
     for attr in ("tx", "ty", "tz", "rx", "ry", "rz"):
         try:
             pm.setAttr(target_obj + "." + attr, 0)
-        except:
+        except Exception:
             pass
     for attr in ("sx", "sy", "sz"):
         try:
             pm.setAttr(target_obj + "." + attr, 1)
-        except:
+        except Exception:
             pass
 
 
@@ -2301,7 +2296,7 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
               'weights' : None}
     try:
         output['multMatrix'] = mult_matrix
-    except:
+    except Exception:
         pass
     if multiple_sources:
         weights = []
@@ -2336,9 +2331,7 @@ def get_shape_center(obj):
 
     shapes = obj.getShapes()
 
-    for i in range(len(shapes)):
-        shape = shapes[i]
-
+    for i, shape in enumerate(shapes):
         obj_list = om2.MSelectionList()
         obj_list.add(shape.name())
         dag_path = obj_list.getDagPath(0)
@@ -2490,13 +2483,10 @@ def get_shape_info_from_obj(obj=None):
     cv_counts = [shape.numCVs() for shape in shapes]
     cv_positions = []
 
-    for i in range(len(shapes)):
-        shape_cvs = ([[cv.x, cv.y, cv.z] for cv in shapes[i].getCVs()])
-
+    for shp, deg in zip(shapes, degrees):
+        shape_cvs = ([[cv.x, cv.y, cv.z] for cv in shp.getCVs()])
         # ...If degree of 3, the last three CVs will be repeats. Remove them from final list
-        cv_positions.append(shape_cvs[0: -3] if degrees[i] == 3 else shape_cvs)
-
-
+        cv_positions.append(shape_cvs[0: -3] if deg == 3 else shape_cvs)
 
 
     return {"form": forms,
@@ -2636,11 +2626,11 @@ def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, c
                 )
 
         if default_value:
-            pm.addAttr(obj+"."+long_name, e=1, defaultValue=default_value)
+            pm.addAttr(f'{obj}.{long_name}', e=1, defaultValue=default_value)
         if min_value:
-            pm.addAttr(obj+"."+long_name, e=1, minValue=min_value)
+            pm.addAttr(f'{obj}.{long_name}', e=1, minValue=min_value)
         if max_value:
-            pm.addAttr(obj+"."+long_name, e=1, maxValue=max_value)
+            pm.addAttr(f'{obj}.{long_name}', e=1, maxValue=max_value)
 
         if lock:
             pm.setAttr(obj + "." + long_name, lock=True)
@@ -2702,7 +2692,7 @@ def get_attr_data(attr, node):
 
     try:
         attr_data["defaultValue"] = pm.attributeQuery(attr, node=node, listDefault=1)[0]
-    except:
+    except Exception:
         attr_data["defaultValue"] = None
 
 
@@ -2718,7 +2708,7 @@ def migrate_attr(old_node, new_node, attr, include_connections=True, remove_orig
 
     # ...If attribute conflicts with an attribute already on new node, remove it
     if pm.attributeQuery(attr, node=new_node, exists=1):
-        pm.deleteAttr(new_node+"."+attr)
+        pm.deleteAttr(f'{new_node}.{attr}')
 
     attr_data = get_attr_data(attr, old_node)
 
@@ -2744,7 +2734,7 @@ def migrate_attr(old_node, new_node, attr, include_connections=True, remove_orig
 
     # ...Migrate connections
     if include_connections:
-        migrate_connections(old_node+"."+attr, new_node+"."+attr)
+        migrate_connections(f'{old_node}.{attr}', f'{new_node}.{attr}')
 
     # ...Delete attribute in original location to complete apparent migration
     if remove_original:
@@ -2773,7 +2763,7 @@ def migrate_connections(old_attr, new_attr):
 #####################################################################################################################---
 def drive_attr(obj_1, obj_2, attr):
 
-    if not type(attr) in (list, tuple):
+    if not isinstance(attr, (list, tuple)):
         attr = (attr,)
 
     for a in attr:

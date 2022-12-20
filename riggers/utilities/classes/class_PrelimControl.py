@@ -124,7 +124,7 @@ class PrelimControl:
         if self.position:
 
             # ...Ensure position_data is type: tuple
-            self.position = (self.position,) if type(self.position) != tuple else self.position
+            self.position = (self.position,) if not isinstance(self.position, tuple) else self.position
 
             # ...Use keys in position_data to get corresponding placers
             position_placers = tuple([body_module.placers[key].mobject for key in self.position])
@@ -136,8 +136,7 @@ class PrelimControl:
                 if self.position_weights:
 
                     constraint_weights = pm.pointConstraint(position_constraint, q=1, weightAliasList=1)
-                    [pm.setAttr(constraint_weights[i], self.position_weights[i]) for i in
-                     range(len(constraint_weights))]
+                    [pm.setAttr(c, p) for c, p in zip(constraint_weights, self.position_weights)]
 
 
 
@@ -149,7 +148,7 @@ class PrelimControl:
 
         if self.orientation:
 
-            if "match_to" in self.orientation.keys():
+            if "match_to" in self.orientation:
 
                 if self.orientation["match_to"] == "module_ctrl":
                     pm.setAttr(self.ctrl_obj.rotate, 0, 0, 0)
@@ -159,7 +158,7 @@ class PrelimControl:
 
                     match_key = self.orientation["match_to"]
 
-                    if not type(match_key) in (list, tuple):
+                    if not isinstance(match_key, (list, tuple)):
                         match_key = (match_key,)
 
                     match_objs = []
@@ -179,7 +178,7 @@ class PrelimControl:
                     pm.orientConstraint(tuple(match_objs), self.ctrl_obj)
 
 
-            elif "aim_vector" in self.orientation.keys():
+            elif "aim_vector" in self.orientation:
 
                 aim_axis = self.orientation["aim_vector"][0]
                 aim_vector = self.orientation["aim_vector"][1]

@@ -100,7 +100,7 @@ def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_t
 
     # Determine joint type name chunk
     joint_type_suffix = None
-    for key in joint_type_name_chunks.keys():
+    for key in joint_type_name_chunks:
         if joint_type in joint_type_name_chunks[key]:
             joint_type_suffix = key
 
@@ -185,7 +185,7 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 
     ctrl_suffix = nom.animCtrl
 
-    for key in ctrl_type_dict.keys():
+    for key in ctrl_type_dict:
         if ctrl_type in ctrl_type_dict[key]:
             ctrl_suffix = key
             break
@@ -200,7 +200,7 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
                   nom.rightSideTag : [nom.rightSideTag, nom.rightSideTag2],
                   nom.midSideTag : [nom.midSideTag, nom.midSideTag2] }
     if side:
-        for key in side_dict.keys():
+        for key in side_dict:
             if side in side_dict[key]:
                 side_prefix = "{0}_".format(key)
                 break
@@ -229,22 +229,22 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 
     # Determine control colour
     if not color:
-        color = [ ctrl_info["color"] if "color" in ctrl_info.keys() else None ][0]
+        color = [ ctrl_info["color"] if "color" in ctrl_info else None ][0]
 
 
     # Determine scale factor
     if not scale:
-        scale = [ ctrl_info["scale"] if "scale" in ctrl_info.keys() else None ][0]
+        scale = [ ctrl_info["scale"] if "scale" in ctrl_info else None ][0]
 
 
 
     # Determine shape offset factor
-    shape_offset = [ ctrl_info["offset"] if "offset" in ctrl_info.keys() else [0, 0, 0] ][0]
+    shape_offset = [ ctrl_info["offset"] if "offset" in ctrl_info else [0, 0, 0] ][0]
 
 
     # Determine forward and up direction
-    forward_direction = [ ctrl_info["forward_direction"] if "forward_direction" in ctrl_info.keys() else [0, 0, 1] ][0]
-    up_direction = [ ctrl_info["up_direction"] if "up_direction" in ctrl_info.keys() else [0, 1, 0] ][0]
+    forward_direction = [ ctrl_info["forward_direction"] if "forward_direction" in ctrl_info else [0, 0, 1] ][0]
+    up_direction = [ ctrl_info["up_direction"] if "up_direction" in ctrl_info else [0, 1, 0] ][0]
 
 
 
@@ -448,8 +448,8 @@ def orienter(name=None, side=None, scale=1):
 
     # Color orienter
     shapes = orienter.getShapes()
-    for i in range(len(shapes)):
-        gen_utils.set_color(shapes[i], colors[i])
+    for s, c in zip(shapes, colors):
+        gen_utils.set_color(s, c)
 
 
 
@@ -757,8 +757,8 @@ def apply_ctrl_locks(ctrl):
             info = ( int(string_list[0]), int(string_list[1]), int(string_list[2]) )
 
             # ...Lock transform attribute in accordance with extracted lock info
-            for i in range(len(ctrl_transforms)):
-                ctrl_transforms[i].set(lock=info[i], keyable=info[i]^1)
+            for t, i in zip(ctrl_transforms, info):
+                t.set(lock=i, keyable=i^1)
 
             # ...Remove left over lock info attribute. We're finished with it
             pm.deleteAttr(ctrl, attribute=attr)
@@ -1092,11 +1092,11 @@ def space_switch(target, sources, source_names, name, attr_node, attr_name=None,
     locs.append(global_space_loc)
 
     local_locs = []
-    for i in range(len(sources)):
-        loc = pm.spaceLocator(name="{}{}_{}_SPACE".format(side_tag, name, source_names[i]))
+    for source_name, source in zip(source_names, sources):
+        loc = pm.spaceLocator(name="{}{}_{}_SPACE".format(side_tag, name, source_name))
         local_locs.append(loc)
         locs.append(loc)
-        loc.setParent(sources[i])
+        loc.setParent(source)
 
     for loc in locs:
         par = loc.getParent()

@@ -45,11 +45,11 @@ def findNodeInChildren(possible_name_tags=None, parent=None, node_prefix=None):
     possible_nodes = None
     try:
         possible_nodes = parent.getChildren()
-    except:
+    except Exception:
         pass
 
     if not possible_nodes:
-        return(None)
+        return None
 
 
     # Only include nodes under parent
@@ -66,7 +66,7 @@ def findNodeInChildren(possible_name_tags=None, parent=None, node_prefix=None):
     possible_nodes = new_possible_nodes
 
 
-    if len(possible_nodes) > 0:
+    if len(possible_nodes):
 
         if len(possible_nodes) == 1:
 
@@ -95,7 +95,7 @@ def root_ctrl():
         root_ctrl_string = "{0}_{1}".format(name_tag, nom.animCtrl)
         possible_root_ctrls = pm.ls('::' + root_ctrl_string, type="transform")
 
-        if len(possible_root_ctrls) > 0:
+        if len(possible_root_ctrls):
 
             if len(possible_root_ctrls) == 1:
 
@@ -143,7 +143,7 @@ def head_jnt(debug=None):
             headJntString = stringUtils.composeName(name=nameTag, node=jntType, config='node_name_num_side')
             possibleHeadJnts = pm.ls(headJntString)
 
-            if len(possibleHeadJnts) > 0:
+            if len(possibleHeadJnts):
 
                 if len(possibleHeadJnts) == 1:
 
@@ -176,7 +176,7 @@ def head_ctrl(debug=None):
         headCtrlString = stringUtils.composeName(name=nameTag, node=nom.animCtrl, config='node_name_num_side')
         possibleHeadCtrls = pm.ls(headCtrlString)
 
-        if len(possibleHeadCtrls) > 0:
+        if len(possibleHeadCtrls):
 
             if len(possibleHeadCtrls) == 1:
 
@@ -328,7 +328,7 @@ def modelGeoGrp(debug=None):
 
         possibleModelGrps = pm.ls('::' + nameTag)
 
-        if len(possibleModelGrps) > 0:
+        if len(possibleModelGrps):
 
             if len(possibleModelGrps) == 1:
 
@@ -359,7 +359,7 @@ def setup_root_ctrl():
         setup_root_ctrl_string = "{0}_{1}".format(name_tag, nom.nonAnimCtrl)
         possible_setup_root_ctrls = pm.ls("::" + setup_root_ctrl_string, type="transform")
 
-        if len(possible_setup_root_ctrls) > 0:
+        if len(possible_setup_root_ctrls):
 
             if len(possible_setup_root_ctrls) == 1:
 
@@ -402,7 +402,7 @@ def mainHeadMesh(debug=None):
             if testNode == geoGroup:
                 isUnderGeoGrp = True
                 break
-            if stringUtils.getCleanName(str(testNode)) in [nom.group+"_model", nom.group+"_geo"]:
+            if stringUtils.getCleanName(str(testNode)) in [f'{nom.group}_model', f'{nom.group}_geo']:
                 isUnderGeoGrp = True
                 break
             else:

@@ -69,7 +69,7 @@ class Placer:
         self.size = size if size else 1.0
         self.shape_type = shape_type if shape_type else default_placer_shape_type
         self.side = side if side else None
-        self.side_tag = "{}_".format(self.side) if self.side else ""
+        self.side_tag = f'{self.side}_' if self.side else ''
         self.color = color if color else ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
         self.parent = parent if parent else None
         self.up_vector_handle = None
@@ -89,7 +89,7 @@ class Placer:
                         "aim_vector",
                         "up_vector",
                         "match_to"):
-                if key not in self.orienter_data.keys():
+                if key not in self.orienter_data:
                     self.orienter_data[key] = None
         else:
             self.orienter_data = {
@@ -358,7 +358,7 @@ class Placer:
 
                 handle_data = self.vector_handle_data[vector_string]
 
-                if "obj" in handle_data.keys():
+                if "obj" in handle_data:
                     target_obj = None
                     get_placer_string = "::{}{}_{}".format(self.side_tag, handle_data["obj"], nom.placer)
                     if pm.ls(get_placer_string):
@@ -369,7 +369,7 @@ class Placer:
                     offset = gen_utils.buffer_obj(vector_handle.mobject, suffix="MOD")
                     pm.pointConstraint(target_obj, offset)
 
-                elif "coord" in handle_data.keys():
+                elif "coord" in handle_data:
                     vector_handle.mobject.translate.set(handle_data["coord"])
 
         self.orienter.aim_orienter()
@@ -389,9 +389,10 @@ class Placer:
         self.metadata_Side()
         # ...IK distance
         self.metadata_IkDistance()
+        # ...Vector handle data
+        self.metadata_VectorHandleData()
         # ...Orienter data
         # ...Connect targets
-        # ...
         pm.addAttr(self.mobject, longName="ReceivedConnectors", dataType="string", keyable=0)
 
 
@@ -416,3 +417,13 @@ class Placer:
         if self.ik_distance:
             gen_utils.add_attr(self.mobject, long_name="IkDistance", attribute_type="float", keyable=0,
                                default_value=self.ik_distance)
+
+    #################################################################################################################---
+    def metadata_VectorHandleData(self):
+
+        gen_utils.add_attr(self.mobject, long_name="VectorHandleData", attribute_type="string", keyable=0,
+                           default_value=str(self.vector_handle_data))
+
+    #################################################################################################################---
+    def metadata_OrienterData(self):
+
