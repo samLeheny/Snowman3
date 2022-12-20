@@ -30,9 +30,9 @@ rig = builder.build_prefab_armature(
 dirpath = r'C:\Users\User\Desktop'
 #dirpath = r'C:\Users\61451\Desktop'
 
-
 armature_data = ArmatureDataIO(dirpath)
 armature_data.save()
+
 
 #
 mc.file(new=True, f=True)
