@@ -207,12 +207,10 @@ class Placer:
 
 
     #################################################################################################################---
-    def set_position(self, position=None):
+    def set_position(self):
 
-        # ...If no position specified, fall back on placer's inbuilt position variable
-        placer_pos = position if position else self.position
         # ...Position placer
-        self.buffer_node.translate.set(placer_pos)
+        self.mobject.translate.set(self.position)
 
 
 
