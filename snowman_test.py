@@ -1,4 +1,4 @@
-### ...Full Body ##############################################################################
+### ...Full Body #########################################################################
 import importlib
 import pymel.core as pm
 import maya.cmds as mc
@@ -14,8 +14,7 @@ mc.file(new=True, f=True)
 #
 rig = builder.build_prefab_armature(
     prefab_tag = "biped",
-    symmetry_mode = "Left drives Right"
-)
+    symmetry_mode = "Left drives Right")
 #
 
 #rig = build_biped.execute()
@@ -27,8 +26,8 @@ rig = builder.build_prefab_armature(
 
 
 # ----------------------------------------------------------------------------------------
-dirpath = r'C:\Users\User\Desktop'
-#dirpath = r'C:\Users\61451\Desktop'
+#dirpath = r'C:\Users\User\Desktop'
+dirpath = r'C:\Users\61451\Desktop'
 
 armature_data = ArmatureDataIO(dirpath)
 armature_data.save()
@@ -38,8 +37,8 @@ armature_data.save()
 mc.file(new=True, f=True)
 #
 
-dirpath = r'C:/Users/User/Desktop'
-#dirpath = r'C:/Users/61451/Desktop'
+#dirpath = r'C:/Users/User/Desktop'
+dirpath = r'C:/Users/61451/Desktop'
 data = armature_data.load(dirpath + "/test_armature_data.json")
 
 rig = builder.build_armature_from_data(data)

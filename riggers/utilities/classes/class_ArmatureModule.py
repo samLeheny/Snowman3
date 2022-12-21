@@ -72,6 +72,8 @@ class ArmatureModule:
         color = None,
         rig_module_type = None,
         position = None,
+        rotation = None,
+        scale = None,
         drive_target = None,
         draw_connections = None
     ):
@@ -84,6 +86,8 @@ class ArmatureModule:
         self.ordered_placer_keys = []
         self.rig_module_type = rig_module_type if rig_module_type else "-"
         self.position = position if position else (0, 0, 0)
+        self.rotation = rotation if rotation else (0, 0, 0)
+        self.scale = scale if scale else 1
         self.drive_target = drive_target
         self.draw_connections = draw_connections
 
@@ -319,7 +323,7 @@ class ArmatureModule:
         if not scale: scale = [1.2, 1.2, 1.2]
 
         # ...
-        self.module_ctrl = self.setup_ctrls["module_root"]= SetupControl(
+        self.module_ctrl = self.setup_ctrls["module_root"] = SetupControl(
             name=name,
             shape=shape,
             locks=locks,
@@ -446,15 +450,14 @@ class ArmatureModule:
 
 
     ####################################################################################################################
-    def position_module(self, position=None):
-
-        new_position = position if position else self.position
+    def position_module(self):
 
         # ...Flip module if this is on the right
         self.flip_module() if self.side == nom.rightSideTag else None
-
-        # ...Move module into place
-        self.module_ctrl.mobject.translate.set(new_position)
+        # ...Position module
+        self.module_ctrl.mobject.translate.set(self.position)
+        self.module_ctrl.mobject.rotate.set(self.rotation)
+        pm.setAttr(f'{self.module_ctrl.mobject}.ModuleScale', self.scale)
 
 
 

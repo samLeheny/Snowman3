@@ -255,7 +255,7 @@ class Armature:
             m_data = data[key]
 
             # ...Fill in any missing properties with None values
-            for property in ("rig_module_type", "name", "side", "is_driven_side", "position",
+            for property in ("rig_module_type", "name", "side", "is_driven_side", "position", "rotation", "scale",
                              "drive_target", "color", "draw_connections", "placers"):
                 if not property in m_data:
                     m_data[property] = None
@@ -267,6 +267,8 @@ class Armature:
                 side=m_data["side"],
                 is_driven_side=m_data["is_driven_side"],
                 position=m_data["position"],
+                rotation=m_data["rotation"],
+                scale=m_data["scale"],
                 drive_target=m_data["drive_target"],
                 draw_connections=m_data["draw_connections"],
                 color=m_data["color"]

@@ -109,7 +109,9 @@ class ArmatureDataIO(object):
             "is_driven_side" : pm.getAttr(module + "." + "IsDrivenSide"),
             "drive_target" : self.get_driver_placers_in_module(module),
             "draw_connections" : self.get_drawn_connections(module),
-            "position" : [round(i, decimal_count) for i in mc.getAttr(module_ctrl + ".translate")[0]],
+            "position" : [round(i, decimal_count) for i in mc.getAttr(f'{module_ctrl}.translate')[0]],
+            "rotation" : [round(i, decimal_count) for i in mc.getAttr(f'{module_ctrl}.rotate')[0]],
+            "scale" : round(mc.getAttr(f'{module_ctrl}.ModuleScale'), decimal_count),
             "color" : gen_utils.get_color(module_ctrl)
         }
 
