@@ -126,10 +126,6 @@ class PoleVectorPlacer(Placer):
         # ...Variable initializations
         pv_chain_start, pv_chain_end = limb_start, limb_end
 
-        # ...Take note of placer's current parent ( placer will receive a new parent, which itself will end up back
-        #   here)
-        placer_orig_parent = self.mobject.getParent()
-
         # ...Get lengths of limb segments
         seg_1_dist = node_utils.distanceBetween(inMatrix1=pv_chain_start.worldMatrix,
                                                 inMatrix2=pv_chain_mid.worldMatrix)
@@ -138,9 +134,7 @@ class PoleVectorPlacer(Placer):
 
         # ...Create and position midway locator
         self.mid_chain_locator(seg_1_dist, seg_2_dist, pv_chain_start, pv_chain_end, pv_chain_mid)
-
-
-        # ...Position pole vector placer
+        # ...Position pole vector locator
         pv_end_loc = pm.spaceLocator(name="{}pvEnd_{}_{}".format(self.side_tag, self.name, nom.locator))
         pv_end_loc.setParent(self.mid_point_loc)
         gen_utils.zero_out(pv_end_loc)
@@ -154,6 +148,7 @@ class PoleVectorPlacer(Placer):
         mult = node_utils.multDoubleLinear(input1=div_2.outFloat, input2=self.pv_distance)
         mult.output.connect(pv_end_loc.tz)
 
+        # ...Match placer buffer, then zero out placer to avoid double transforms
         pm.matchTransform(self.buffer_node, pv_end_loc)
         gen_utils.convert_offset(self.buffer_node)
 
@@ -164,10 +159,14 @@ class PoleVectorPlacer(Placer):
 
         module.pv_placers[self.name] = self
 
+        [pm.setAttr(f'{self.mobject}.{a}', lock=0) for a in ("tx", "ty")]
+        [pm.setAttr(f'{self.mobject}.{a}', 0) for a in ("tx", "ty", "tz")]
+        [pm.setAttr(f'{self.mobject}.{a}', lock=1) for a in ("tx", "ty")]
+
         # ...Make connector curve linking ik placers to limb
         self.pv_curve = rig_utils.connector_curve(line_width=1, end_driver_1=pv_chain_mid, end_driver_2=self.mobject,
-                                        override_display_type=1, parent=connector_crv_parent,
-                                        inheritsTransform=False, use_locators=False)[0]
+                                                  override_display_type=1, parent=connector_crv_parent,
+                                                  inheritsTransform=False, use_locators=False)[0]
 
         # ...Hide reverse IK system (optional)
         self.hide_reverse_ik() if hide else None
@@ -239,8 +238,13 @@ class PoleVectorPlacer(Placer):
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def metadata_IkDistance(self):
+        """
+        Super-class 'Placer' already assigned basic placer meta-data, but this install additional meta-data unique to
+            pole vector placers.
+        """
 
+        # ...IK distance
         gen_utils.add_attr(self.mobject, long_name="IkDistance", attribute_type="float", keyable=0,
                            default_value=self.pv_distance)

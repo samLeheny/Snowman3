@@ -13,7 +13,9 @@ import maya.cmds as mc
 import json
 import os
 import Snowman3.riggers.utilities.armature_utils as amtr_utils
+import Snowman3.utilities.general_utils as gen_utils
 importlib.reload(amtr_utils)
+importlib.reload(gen_utils)
 ###########################
 ###########################
 
@@ -107,7 +109,8 @@ class ArmatureDataIO(object):
             "is_driven_side" : pm.getAttr(module + "." + "IsDrivenSide"),
             "drive_target" : self.get_driver_placers_in_module(module),
             "draw_connections" : self.get_drawn_connections(module),
-            "position" : [round(i, decimal_count) for i in mc.getAttr(module_ctrl + ".translate")[0]]
+            "position" : [round(i, decimal_count) for i in mc.getAttr(module_ctrl + ".translate")[0]],
+            "color" : gen_utils.get_color(module_ctrl)
         }
 
         # ...Populate module's placers data
