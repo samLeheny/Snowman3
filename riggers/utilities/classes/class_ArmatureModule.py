@@ -52,6 +52,7 @@ vis_switch_enum_strings = {
     "placers" : "PlacersVis",
     "controls" : "ControlsVis"
 }
+placers_attr_string = "PlacerNodes"
 ###########################
 ###########################
 
@@ -122,7 +123,7 @@ class ArmatureModule:
     create_module_placers
     aim_module_orienters
     create_connector_curves
-    create_module_root_ctrl
+    create_module_ctrl_mobject
     aim_ctrl_at_placers
     flip_module
     position_module
@@ -145,7 +146,7 @@ class ArmatureModule:
 
 
 
-    ####################################################################################################################
+    #################################################################################################################---
     def create_module_grps(self):
         """
 
@@ -173,22 +174,19 @@ class ArmatureModule:
 
 
 
-    ####################################################################################################################
+    #################################################################################################################---
     def assign_module_metadata(self):
 
 
         target_obj = self.rig_root_grp
 
-
         # ...Rig Module Type............................................................................................
         pm.addAttr(target_obj, longName="ModuleType", keyable=0, dataType="string")
         pm.setAttr(f'{target_obj}.ModuleType', self.rig_module_type, type="string", lock=1)
 
-
         # ...Rig Module Name............................................................................................
         pm.addAttr(target_obj, longName="ModuleNameParticle", keyable=0, dataType="string")
         pm.setAttr(f'{target_obj}.ModuleNameParticle', self.name, type="string", lock=1)
-
 
         # ...Side.......................................................................................................
         pm.addAttr(target_obj, longName="Side", keyable=0, dataType="string")
@@ -196,63 +194,24 @@ class ArmatureModule:
         if enter_value:
             pm.setAttr(f'{target_obj}.Side', enter_value, type="string", lock=1)
 
-
         # ...Rig_Module_Tag.............................................................................................
         pm.addAttr(target_obj, longName="ModuleName", keyable=0, dataType="string")
         pm.setAttr(f'{target_obj}.ModuleName', self.name_tag, type="string", lock=1)
-
 
         # ...Is Driven Side.............................................................................................
         pm.addAttr(target_obj, longName="IsDrivenSide", keyable=0, attributeType="bool")
         enter_value = self.is_driven_side if self.is_driven_side else False
         pm.setAttr(f'{target_obj}.IsDrivenSide', enter_value, lock=1)
+    
+    
+    
+    
+    
+    #################################################################################################################---
+    def create_module_ctrl_in_scene(self):
 
-
-
-
-
-    ####################################################################################################################
-    def create_module_placers(self):
-
-        placers_attr_string = "PlacerNodes"
-
-        self.module_ctrl = self.create_module_root_ctrl( name=self.name, side=self.side, parent=self.rig_root_grp)
-
-        # ...Add orienter hooks to module control
-        pm.addAttr(self.module_ctrl.mobject, longName=placers_attr_string, attributeType="compound", keyable=0,
-                   numberOfChildren=len(self.placer_data))
-        for placer in self.placer_data:
-            pm.addAttr(self.module_ctrl.mobject, longName=placer.name, keyable=0, dataType="string",
-                       parent=placers_attr_string)
-
-
-        for placer in self.placer_data:
-
-            self.placers[placer.name] = placer
-            self.ordered_placer_keys.append(placer.name)
-
-            placer.color = self.ctrl_color
-            placer.parent = self.rig_subGrps["placers"]
-            placer.create_placer_in_scene()
-
-            # ...Lock and hide rotate, scale, and visibility. Placers only need translation
-            attrs_to_lock = gen_utils.rotate_attrs + gen_utils.scale_attrs + gen_utils.vis_attrs
-            [pm.setAttr(f'{placer.mobject}.{attr}', lock=1, keyable=0) for attr in attrs_to_lock]
-
-            # ...Lock lateral placer translation if this is a center body module and symmetry is on
-            placer.mobject.tx.set(lock=1, keyable=0) if self.symmetry else None
-
-            placer = self.placers[placer.name]
-
-            # ...Add placer hook to module control
-            pm.connectAttr(placer.mobject.message, f'{self.module_ctrl.mobject}.{placers_attr_string}.{placer.name}')
-
-            # ...Hook placer's orienter to placer via message attribute
-            '''pm.addAttr(placer.mobject, longName="OrienterVis", dataType="string", keyable=0)
-            pm.connectAttr(placer.orienter.mobject.message, placer.mobject + "." + "OrienterVis")'''
-
-            pm.select(clear=1)
-
+        # ...Create module placement control
+        self.create_module_ctrl_mobject(name=self.name, side=self.side, parent=self.rig_root_grp)
 
         # ...Parent placers group to control
         mult_matrix = node_utils.multMatrix(matrixIn=(self.module_ctrl.mobject.worldMatrix,
@@ -264,13 +223,55 @@ class ArmatureModule:
                                    outputScale=self.rig_subGrps["placers"].scale)
 
 
-        # ...Drive placer scale with module root control attributes
-        for placer in self.placers.values():
-            for attr in gen_utils.scale_attrs:
-                pm.setAttr(f'{placer.mobject}.{attr}', lock=0)
-                pm.connectAttr(f'{self.module_ctrl.mobject}.PlacerScale', placer.mobject + "." + attr)
-                pm.setAttr(placer.mobject + "." + attr, lock=1)
 
+
+
+    #################################################################################################################---
+    def create_placer(self, placer):
+
+        self.placers[placer.name] = placer
+        self.ordered_placer_keys.append(placer.name)
+
+        placer.color = self.ctrl_color
+        placer.parent = self.rig_subGrps["placers"]
+        placer.create_placer_in_scene()
+
+        # ...Lock and hide rotate, scale, and visibility. Placers only need translation
+        attrs_to_lock = gen_utils.rotate_attrs + gen_utils.scale_attrs + gen_utils.vis_attrs
+        [pm.setAttr(f'{placer.mobject}.{attr}', lock=1, keyable=0) for attr in attrs_to_lock]
+
+        # ...Lock lateral placer translation if this is a center body module and symmetry is on
+        placer.mobject.tx.set(lock=1, keyable=0) if self.symmetry else None
+
+        # ...Add placer hook to module control
+        pm.connectAttr(placer.mobject.message, f'{self.module_ctrl.mobject}.{placers_attr_string}.{placer.name}')
+
+        pm.select(clear=1)
+
+        # ...Drive placer scale with module root control attributes
+        for attr in ("sx", "sy", "sz"):
+            pm.setAttr(f'{placer.mobject}.{attr}', lock=0)
+            pm.connectAttr(f'{self.module_ctrl.mobject}.PlacerScale', f'{placer.mobject}.{attr}')
+            pm.setAttr(f'{placer.mobject}.{attr}', lock=1)
+
+
+
+
+
+    #################################################################################################################---
+    def create_module_placers(self):
+
+        self.create_module_ctrl_in_scene()
+
+        # ...Add placer hooks to module control
+        pm.addAttr(self.module_ctrl.mobject, longName=placers_attr_string, attributeType="compound", keyable=0,
+                   numberOfChildren=len(self.placer_data))
+        for placer in self.placer_data:
+            pm.addAttr(self.module_ctrl.mobject, longName=placer.name, keyable=0, dataType="string",
+                       parent=placers_attr_string)
+
+        for placer in self.placer_data:
+            self.create_placer(placer)
 
         self.drive_vis_attrs_from_module_ctrl()
 
@@ -315,7 +316,7 @@ class ArmatureModule:
 
 
     ####################################################################################################################
-    def create_module_root_ctrl(self, name=None, shape="cube", locks=None, scale=None, side=None, parent=None,
+    def create_module_ctrl_mobject(self, name=None, shape="cube", locks=None, scale=None, side=None, parent=None,
                                 hide=False):
 
 
@@ -324,13 +325,13 @@ class ArmatureModule:
 
         # ...
         self.module_ctrl = self.setup_ctrls["module_root"] = SetupControl(
-            name=name,
-            shape=shape,
-            locks=locks,
-            scale=scale,
-            side=side,
-            parent=parent,
-            color=self.ctrl_color
+            name = name,
+            shape = shape,
+            locks = locks,
+            scale = scale,
+            side = side,
+            parent = parent,
+            color = self.ctrl_color
         )
         self.module_ctrl.create()
 
@@ -379,9 +380,6 @@ class ArmatureModule:
         pm.connectAttr(self.rig_root_grp.message, f'{self.armature_container}.{attr_name}')
 
 
-        return self.module_ctrl
-
-
 
 
 
@@ -428,7 +426,7 @@ class ArmatureModule:
 
 
 
-    ####################################################################################################################
+    #################################################################################################################---
     def flip_module(self):
 
         connection = None
@@ -449,7 +447,7 @@ class ArmatureModule:
 
 
 
-    ####################################################################################################################
+    #################################################################################################################---
     def position_module(self):
 
         # ...Flip module if this is on the right
@@ -478,42 +476,49 @@ class ArmatureModule:
         if not self.drive_target:
             return None
 
-        if isinstance(self.drive_target, dict):
-            for key in self.drive_target:
+        if not isinstance(self.drive_target, dict):
+            return None
 
-                compare_keys = [pair[1] for pair in self.drive_target[key]]
+        for key in self.drive_target:
 
-                # ...Get source nodes
-                source_placer = self.placers[key].mobject
+            compare_keys = [pair[1] for pair in self.drive_target[key]]
 
-                for target_key in self.drive_target[key]:
+            # ...Get source nodes
+            source_placer = self.placers[key].mobject
 
-                    # ...Get target placer from target key
-                    target_node = self.get_placer_from_tag(module_tag=target_key[0], placer_tag=target_key[1])
+            for target_key in self.drive_target[key]:
 
-                    # ...Constrain target nodes to source nodes
-                    [pm.setAttr(f'{target_node}.{attr}', lock=0) for attr in gen_utils.keyable_attrs]
-                    pm.parentConstraint(source_placer, target_node, mo=1)
+                # ...Get target placer from target key
+                target_node = self.get_placer_from_tag(module_tag=target_key[0], placer_tag=target_key[1])
 
-                    # ...Hide and disconnect target_node
-                    if hide_target:
-                        # ...Hide shape
-                        self.make_obj_benign(target_node)
-                        # ...Hide any connectors relating to placer
-                        if pm.attributeQuery("Connectors", node=target_node, exists=1):
+                # ...Constrain target nodes to source nodes
+                [pm.setAttr(f'{target_node}.{attr}', lock=0) for attr in gen_utils.keyable_attrs]
+                pm.parentConstraint(source_placer, target_node, mo=1)
 
-                            connectors = pm.listConnections(f'{target_node}.Connectors', d=1, s=0)
-                            for obj in connectors:
-                                dest_placer = pm.listConnections(f'{obj}.DestinationPlacer', s=1, d=0)[0]
-                                dest_placer_tag = pm.getAttr(f'{dest_placer}.PlacerTag')
+                # ...Hide and disconnect target_node
+                if not hide_target:
+                    continue
 
-                                if dest_placer_tag in compare_keys:
-                                    if obj.getShape().visibility.get() == 1:
-                                        obj.getShape().visibility.set(0, lock=1)
+                # ...Hide shape
+                self.make_obj_benign(target_node)
+                # ...Hide any connectors relating to placer
+                if not pm.attributeQuery("Connectors", node=target_node, exists=1):
+                    continue
+
+                connectors = pm.listConnections(f'{target_node}.Connectors', d=1, s=0)
+                for obj in connectors:
+                    dest_placer = pm.listConnections(f'{obj}.DestinationPlacer', s=1, d=0)[0]
+                    dest_placer_tag = pm.getAttr(f'{dest_placer}.PlacerTag')
+
+                    if dest_placer_tag not in compare_keys:
+                        continue
+
+                    if obj.getShape().visibility.get() == 1:
+                        obj.getShape().visibility.set(0, lock=1)
 
 
-                        # ...NOTE: If target_node is a placer, does something more need to be done with its orienter and
-                        #    vector handles?
+                # ...NOTE: If target_node is a placer, does something more need to be done with its orienter and
+                #    vector handles?
         return True
 
 
@@ -610,18 +615,18 @@ class ArmatureModule:
     ####################################################################################################################
     def create_ctrl_vis_grps(self):
 
-
         # ...Assemble a list of category tags present on controls for this module
         discovered_category_tags = []
 
         for prelim_ctrl in self.prelim_ctrls.values():
             ctrl = prelim_ctrl.ctrl_obj
 
-            if pm.attributeQuery("visCategory", node=ctrl, exists=1):
-                tag = pm.getAttr(f'{ctrl}.visCategory')
+            if not pm.attributeQuery("visCategory", node=ctrl, exists=1):
+                continue
 
-                if not tag in discovered_category_tags:
-                    discovered_category_tags.append(tag)
+            tag = pm.getAttr(f'{ctrl}.visCategory')
+            if tag not in discovered_category_tags:
+                discovered_category_tags.append(tag)
 
         # ...Create groups for these categories and put controls into them
         for tag in discovered_category_tags:
@@ -643,25 +648,19 @@ class ArmatureModule:
 
         parent = parent if parent else self.rig_subGrps["prelim_ctrls"]
 
-
         # ...Operate on each control in dictionary
         for key in self.prelim_ctrls:
 
             prelim_ctrl = self.prelim_ctrls[key]
-
             ctrl = prelim_ctrl.create_prelim_ctrl_obj()
-
             # ...Position ctrl
             prelim_ctrl.position_prelim_ctrl(body_module=self)
-
             # ...Orient ctrl
             prelim_ctrl.orient_prelim_ctrl()
-
 
             self.prelim_ctrls[key].ctrl_obj.setParent(parent)
             self.prelim_ctrls[key].ctrl_obj.rotate.set(0, 0, 0)
             self.prelim_ctrls[key].ctrl_obj.scale.set(1, 1, 1)
-
 
             pm.orientConstraint(self.module_ctrl.mobject, parent)
 
@@ -723,7 +722,6 @@ class ArmatureModule:
 
         if return_module_ctrl:
             return_node = pm.listConnections(f'{target_module}.ModuleRootCtrl', source=1)[0]
-
 
         return return_node
 
