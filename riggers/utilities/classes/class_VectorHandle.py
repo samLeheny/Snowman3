@@ -11,9 +11,8 @@ import importlib
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen_utils
-importlib.reload(gen_utils)
-
 import Snowman3.utilities.rig_utils as rig_utils
+importlib.reload(gen_utils)
 importlib.reload(rig_utils)
 
 import Snowman3.dictionaries.nameConventions as nameConventions
@@ -42,7 +41,7 @@ class VectorHandle:
     def __init__(
         self,
         name,
-        vector = "aim",
+        vector = None,
         position = None,
         size = None,
         side = None,
@@ -52,27 +51,43 @@ class VectorHandle:
     ):
         self.name = name
         self.handle_name = None
-        self.vector = vector
+        self.vector = vector if vector else "aim"
         self.position = position if position else (0, 0, 0)
         self.size = size if size else 0.25
-        self.side = side if side else None
-        self.side_tag = "{}_".format(self.side) if self.side else ""
+        self.side = side
+        self.side_tag = f'{self.side}_' if self.side else ""
         self.color = color if color else ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
-        self.parent = parent if parent else None
+        self.parent = parent
         self.connector_crv = None
         self.placer = placer
-
         self.mobject = None
 
-        self.create()
+        self.create_in_scene()
 
 
 
 
 
     ####################################################################################################################
-    def create(self):
+    def create_in_scene(self):
+        self.create_mobject()
+        # ...Parent mobject
+        self.mobject.setParent(self.parent) if self.parent else None
+        # ...Position handle
+        self.set_position()
+        # ...
+        self.create_connector_curve()
+        # ...
+        self.connect_to_placer_metadata()
+        # ...Drive vector handles visibility from placer attribute
+        self.drive_handle_visibility()
 
+
+
+
+
+    ####################################################################################################################
+    def create_mobject(self):
 
         vector_type, handle_shape = "AIM", "cube"
         if self.vector == "aim":
@@ -80,34 +95,25 @@ class VectorHandle:
         elif self.vector == "up":
             vector_type, handle_shape = "UP", "sphere"
 
-        self.handle_name = "{}_{}".format(self.name, vector_type)
+        self.handle_name = f'{self.name}_{vector_type}'
 
         # ...Create handle
         self.mobject = gen_utils.prefab_curve_construct(prefab=handle_shape, name=self.handle_name, side=self.side,
                                                         scale=self.size, color=self.color)
 
-        # ...
-        self.mobject.setParent(self.parent) if self.parent else None
 
 
-        # ...Position handle
-        self.set_position()
 
-        # ...
-        self.create_connector_curve()
 
-        # ...
-        self.connect_to_placer_metadata()
+    ####################################################################################################################
+    def drive_handle_visibility(self):
 
-        # ...Drive vector handles visibility from placer attribute
         if not pm.attributeQuery("VectorHandlesVis", node=self.placer.mobject, exists=1):
             pm.addAttr(self.placer.mobject, longName="VectorHandlesVis", attributeType="bool", defaultValue=0)
             pm.setAttr(self.placer.mobject + '.' + "VectorHandlesVis", channelBox=1)
+
         for obj in (self.mobject, self.connector_crv):
             pm.connectAttr(self.placer.mobject + "." + "VectorHandlesVis", obj.visibility)
-
-
-        return self.mobject
 
 
 
@@ -126,28 +132,10 @@ class VectorHandle:
 
 
     ####################################################################################################################
-    def dull_color(self, handle=None, gray_out=True, hide=False):
-
-        # ...If no specific handle provided, default to using THIS placer
-        if not handle:
-            handle = self.mobject
-
-        for shape in handle.getShapes():
-            shape.overrideEnabled.set(1)
-            shape.overrideDisplayType.set(1)
-            if hide:
-                shape.visibility.set(0)
-
-
-
-
-
-    ####################################################################################################################
     def set_position(self, convert_offset=False):
 
 
         dist_mult = 2
-
         init_placement_vector = (0, 0, 0)
 
         if self.vector == "aim":
@@ -155,9 +143,7 @@ class VectorHandle:
         elif self.vector == "up":
             init_placement_vector = (0, 1*dist_mult, 0)
 
-
         self.mobject.translate.set(init_placement_vector)
-
 
         # ...Keep transforms clean by moving translate values into offsetParentMatrix (optional)
         if convert_offset:

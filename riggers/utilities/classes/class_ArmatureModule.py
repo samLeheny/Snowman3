@@ -80,7 +80,7 @@ class ArmatureModule:
     ):
         self.name = gen_utils.get_clean_name(name)
         self.side = side
-        self.side_tag = f'{self.side}_' if self.side else ''
+        self.side_tag = f'{self.side}_' if self.side else ""
         self.name_tag = f'{self.side_tag}{self.name}'
         self.symmetry = symmetry
         self.is_driven_side = is_driven_side
@@ -144,11 +144,8 @@ class ArmatureModule:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def create_module_grps(self):
-        """
-
-        """
 
         # ...
         self.rig_root_grp = pm.group(name=f'{self.side_tag}{self.name}_MODULE', w=1, em=1)
@@ -172,9 +169,8 @@ class ArmatureModule:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def assign_module_metadata(self):
-
 
         target_obj = self.rig_root_grp
 
@@ -205,7 +201,7 @@ class ArmatureModule:
     
     
     
-    #################################################################################################################---
+    ####################################################################################################################
     def create_module_ctrl_in_scene(self):
 
         # ...Create module placement control
@@ -224,7 +220,7 @@ class ArmatureModule:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def create_placer(self, placer):
 
         self.placers[placer.name] = placer
@@ -256,7 +252,7 @@ class ArmatureModule:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def create_module_placers(self):
 
         self.create_module_ctrl_in_scene()
@@ -315,7 +311,7 @@ class ArmatureModule:
 
     ####################################################################################################################
     def create_module_ctrl_mobject(self, name=None, shape="cube", locks=None, scale=None, side=None, parent=None,
-                                hide=False):
+                                   hide=False):
 
 
         if not locks: locks = {"v": 1}
@@ -342,7 +338,6 @@ class ArmatureModule:
 
         pm.addAttr(self.module_ctrl.mobject, longName=placer_scale_attr_string, attributeType=float, minValue=0.001,
                    defaultValue=1, keyable=0)
-
         pm.setAttr(f'{self.module_ctrl.mobject}.{placer_scale_attr_string}', channelBox=1)
 
         # ...Module scale
@@ -383,15 +378,7 @@ class ArmatureModule:
 
     ####################################################################################################################
     def aim_ctrl_at_placers(self):
-        """
-        (Experimental)
 
-        Returns:
-
-        """
-
-
-        ### ctrl_position = (0, 0, 0)
         snapped_vector = [0, 1, 0]
 
         # ...Get positions of all placers in modules
@@ -424,7 +411,7 @@ class ArmatureModule:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def flip_module(self):
 
         connection = None
@@ -445,7 +432,7 @@ class ArmatureModule:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def position_module(self):
 
         # ...Flip module if this is on the right
@@ -703,7 +690,7 @@ class ArmatureModule:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def placers_from_data(self, data):
 
         self.placer_data = []

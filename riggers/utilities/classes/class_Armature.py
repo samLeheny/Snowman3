@@ -19,7 +19,9 @@ importlib.reload(class_ArmatureModule)
 ArmatureModule = class_ArmatureModule.ArmatureModule
 
 import Snowman3.utilities.general_utils as gen_utils
+import Snowman3.riggers.utilities.armature_utils as amtr_utils
 importlib.reload(gen_utils)
+importlib.reload(amtr_utils)
 ###########################
 ###########################
 
@@ -63,7 +65,6 @@ class Armature:
     create_root_obj
     create_root_groups
     setup_realtime_symmetry
-    connect_pair
     placer_symmetry
     setup_ctrl_symmetry
     drive_module_attrs
@@ -79,39 +80,20 @@ class Armature:
 
 
     ####################################################################################################################
-    def create_root_obj(self, size=None):
-        """
-        Creates the root node of the entire armature.
-        Args:
-            size (numeric): The size of the armature root's nurbs shape.
-        Returns:
-            (MObject): The created armature root object.
-        """
-
+    def create_root_obj(self):
 
         # ...Compose object name
-        obj_name = "{}_ARMATURE".format(self.name)
-        # ...If no size argument provided, derive scale from class attributes
-        scale = size if size else self.root_size
-
+        obj_name = f'{self.name}_ARMATURE'
         # ...Create root object
-        self.mobject = gen_utils.prefab_curve_construct(prefab="COG",
-                                                        name=obj_name,
-                                                        color=[0.6, 0.6, 0.6],
-                                                        up_direction=[0, 1, 0],
-                                                        forward_direction=[0, 0, 1],
-                                                        scale=scale)
+        self.mobject = gen_utils.prefab_curve_construct(prefab="COG", name=obj_name, color=[0.6, 0.6, 0.6],
+                                                        up_direction=[0, 1, 0], forward_direction=[0, 0, 1],
+                                                        scale=self.root_size)
         # ...Assign metadata in hidden attributes
         self.assign_armature_metadata()
-
         # ...Control root scale axes all at once with custom attribute
-        for attr in ("sx", "sy", "sz"):
-            pm.connectAttr(self.mobject + "." + "ArmatureScale", self.mobject + "." + attr)
-            pm.setAttr(self.mobject + "." + attr, lock=1, keyable=0)
-
+        self.armature_scale_attr()
         # ...Create important groups under root object
         self.create_root_groups()
-
 
         return self.mobject
 
@@ -120,11 +102,23 @@ class Armature:
 
 
     ####################################################################################################################
-    def create_root_groups(self):
-        """
-        Creates important groups under armature root object.
-        """
+    def armature_scale_attr(self):
 
+        attr_name = "ArmatureScale"
+
+        pm.addAttr(self.mobject, longName=attr_name, attributeType=float, minValue=0.001, defaultValue=1, keyable=0)
+        pm.setAttr(f'{self.mobject}.{attr_name}', channelBox=1)
+
+        for attr in ("sx", "sy", "sz"):
+            pm.connectAttr(f'{self.mobject}.{attr_name}', f'{self.mobject}.{attr}')
+            pm.setAttr(f'{self.mobject}.{attr}', lock=1, keyable=0)
+
+
+
+
+
+    ####################################################################################################################
+    def create_root_groups(self):
 
         # ...Armature modules group
         self.root_groups["modules"] = pm.group(name="modules", p=self.mobject, em=1)
@@ -135,16 +129,9 @@ class Armature:
 
     ####################################################################################################################
     def setup_realtime_symmetry(self, driver_side=None):
-        """
-        Have one side of the armature mirror the other in real time.
-        Args:
-            driver_side (string): The side of the armature that is unlocked and free for manipulation by the user.
-        """
-
 
         # ...If no driver side provided, get it from class attributes
-        if not driver_side:
-            driver_side = self.driver_side
+        if not driver_side: driver_side = self.driver_side
 
         # ...Determine the following side as opposite to the driver side
         following_side = nom.rightSideTag
@@ -170,31 +157,13 @@ class Armature:
 
 
     ####################################################################################################################
-    def connect_pair(self, obj, attrs=()):
-
-        # ...Determine driver and follower placers in placer pair
-        driver_obj = obj
-        receiver_obj = gen_utils.get_opposite_side_obj(driver_obj)
-
-        # ...Drive translation
-        for attr in attrs:
-            if not pm.attributeQuery(attr, node=driver_obj, exists=1):
-                continue
-            if not pm.getAttr(receiver_obj + "." + attr, lock=1):
-                pm.connectAttr(driver_obj + "." + attr, receiver_obj + "." + attr, f=1)
-
-
-
-
-
-    ####################################################################################################################
     def placer_symmetry(self, module):
 
         # ...For placers...
         if module.placers:
 
             for placer in module.placers.values():
-                self.connect_pair(placer.mobject, attrs=("tx", "ty", "tz"))
+                amtr_utils.connect_pair(placer.mobject, attrs=("tx", "ty", "tz"))
 
                 # ...Get placer's vector handles (if any)
                 handles = []
@@ -205,7 +174,7 @@ class Armature:
 
                 # ...Determine driver and follower handles in handle pairs
                 for handle in handles:
-                    self.connect_pair(handle, attrs=("tx", "ty", "tz"))
+                    amtr_utils.connect_pair(handle, attrs=("tx", "ty", "tz"))
 
 
 
@@ -217,8 +186,7 @@ class Armature:
         # ...For setup controls...
         if module.setup_ctrls:
             for setup_ctrl in module.setup_ctrls.values():
-                self.connect_pair(setup_ctrl.mobject, attrs=("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz",
-                                                             "ModuleScale"))
+                setup_ctrl.setup_symmetry()
 
 
 
@@ -260,7 +228,7 @@ class Armature:
             # ...Fill in any missing properties with None values
             for property in ("rig_module_type", "name", "side", "is_driven_side", "position", "rotation", "scale",
                              "drive_target", "color", "draw_connections", "placers"):
-                if not property in m_data:
+                if property not in m_data:
                     m_data[property] = None
 
 
@@ -290,24 +258,17 @@ class Armature:
     ####################################################################################################################
     def assign_armature_metadata(self):
 
-        target_obj = self.mobject
+        pm.addAttr(self.mobject, longName="ArmatureName", keyable=0, dataType="string")
+        pm.setAttr(f'{self.mobject}.ArmatureName', self.name, type="string", lock=1)
 
-        pm.addAttr(target_obj, longName="ArmatureName", keyable=0, dataType="string")
-        pm.setAttr(target_obj + "." + "ArmatureName", self.name, type="string", lock=1)
+        pm.addAttr(self.mobject, longName="SymmetryMode", keyable=0, dataType="string")
+        pm.setAttr(f'{self.mobject}.SymmetryMode', self.symmetry_mode, type="string", lock=1)
 
-        if not pm.attributeQuery("ArmatureScale", node=target_obj, exists=1):
-            pm.addAttr(target_obj, longName="ArmatureScale", attributeType=float, minValue=0.001, defaultValue=1,
-                       keyable=0)
-            pm.setAttr(target_obj + "." + "ArmatureScale", channelBox=1)
+        pm.addAttr(self.mobject, longName="DriverSide", keyable=0, dataType="string")
+        pm.setAttr(f'{self.mobject}.DriverSide', self.driver_side, type="string", lock=1)
 
-        pm.addAttr(target_obj, longName="SymmetryMode", keyable=0, dataType="string")
-        pm.setAttr(target_obj + "." + "SymmetryMode", self.symmetry_mode, type="string", lock=1)
-
-        pm.addAttr(target_obj, longName="DriverSide", keyable=0, dataType="string")
-        pm.setAttr(target_obj + "." + "DriverSide", self.driver_side, type="string", lock=1)
-
-        pm.addAttr(target_obj, longName="RootSize", keyable=0, attributeType="float")
-        pm.setAttr(target_obj + "." + "RootSize", self.root_size, lock=1)
+        pm.addAttr(self.mobject, longName="RootSize", keyable=0, attributeType="float")
+        pm.setAttr(f'{self.mobject}.RootSize', self.root_size, lock=1)
 
 
 

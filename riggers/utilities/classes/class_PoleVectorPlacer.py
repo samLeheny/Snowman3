@@ -71,21 +71,6 @@ class PoleVectorPlacer(Placer):
         self.pv_curve = None
         self.mid_point_loc = None
 
-        if orienter_data:
-            for key in ("world_up_type",
-                        "aim_vector",
-                        "up_vector",
-                        "match_to"):
-                if key not in orienter_data:
-                    orienter_data[key] = None
-        else:
-            orienter_data = {
-                "world_up_type": None,
-                "aim_vector": None,
-                "up_vector": None,
-                "match_to": None
-            }
-
         super().__init__(
             name,
             position=position,
@@ -119,7 +104,7 @@ class PoleVectorPlacer(Placer):
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def install_reverse_ik(self, pv_chain_mid=None, limb_start=None, limb_end=None,  connector_crv_parent=None,
                            module=None, hide=False):
 
@@ -187,7 +172,7 @@ class PoleVectorPlacer(Placer):
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def hide_reverse_ik(self):
 
         for node in (self.pv_curve, self.mobject):
@@ -196,22 +181,21 @@ class PoleVectorPlacer(Placer):
             node.visibility.set(0, lock=1)
 
             # ...Lock down PV placer's transforms
-        [pm.setAttr(self.mobject + "." + attr,
-                    lock=1, keyable=0) for attr in gen_utils.keyable_transform_attrs]
+        [pm.setAttr(self.mobject + "." + attr, lock=1, keyable=0) for attr in gen_utils.keyable_transform_attrs]
 
 
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def mid_chain_locator(self, seg_1_dist, seg_2_dist, pv_chain_start, pv_chain_end, pv_chain_mid):
 
-        sum = node_utils.floatMath(floatA=seg_1_dist + ".distance", floatB=seg_2_dist + ".distance",
+        sum = node_utils.floatMath(floatA=f'{seg_1_dist}.distance', floatB=f'{seg_2_dist}.distance',
                                    operation="add")
-        div_1 = node_utils.floatMath(operation="divide", floatA=seg_2_dist + ".distance", floatB=sum.outFloat)
-        div_2 = node_utils.floatMath(operation="divide", floatA=seg_1_dist + ".distance", floatB=sum.outFloat)
+        div_1 = node_utils.floatMath(operation="divide", floatA=f'{seg_2_dist}.distance', floatB=sum.outFloat)
+        div_2 = node_utils.floatMath(operation="divide", floatA=f'{seg_1_dist}.distance', floatB=sum.outFloat)
 
-        self.mid_point_loc = pm.spaceLocator(name='{}pvMidpoint_{}_{}'.format(self.side_tag, self.name, nom.locator))
+        self.mid_point_loc = pm.spaceLocator(name=f'{self.side_tag}pvMidpoint_{self.name}_{nom.locator}')
         self.mid_point_loc.getShape().visibility.set(0)
 
         # ...Keep midway locator between start and end of limb
@@ -228,10 +212,8 @@ class PoleVectorPlacer(Placer):
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def pv_placer_metadata(self):
-
-        obj = self.mobject
 
         # ...IK distance
         self.metadata_IkDistance()
@@ -242,10 +224,6 @@ class PoleVectorPlacer(Placer):
 
     ####################################################################################################################
     def metadata_IkDistance(self):
-        """
-        Super-class 'Placer' already assigned basic placer meta-data, but this install additional meta-data unique to
-            pole vector placers.
-        """
 
         # ...IK distance
         gen_utils.add_attr(self.mobject, long_name="IkDistance", attribute_type="float", keyable=0,

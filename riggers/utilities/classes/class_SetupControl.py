@@ -11,10 +11,11 @@ import importlib
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen_utils
-importlib.reload(gen_utils)
-
 import Snowman3.utilities.rig_utils as rig_utils
+import Snowman3.riggers.utilities.armature_utils as amtr_utils
+importlib.reload(gen_utils)
 importlib.reload(rig_utils)
+importlib.reload(amtr_utils)
 
 import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
@@ -47,22 +48,32 @@ class SetupControl:
     ):
         self.name = name
         self.shape = shape if shape else default_shape
-        self.locks = locks
+        self.locks = locks if locks else {"v": 1}
         self.scale = scale if scale else [5.0, 5.0, 4.58]
         self.side = side
         self.color = color if color else 1
-        self.parent = parent,
+        self.parent = parent
         self.mobject = None
 
+
+
+
+    """
+    --------- METHODS --------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    create
+    dull_color
+    make_benign
+    setup_symmetry
+    --------------------------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    """
 
 
 
 
     ####################################################################################################################
     def create(self):
-
-        if not self.locks: self.locks = {"v": 1}
-        if not self.scale: self.scale = [5.0, 5.0, 4.58]
 
         # ...Assemble data with which to build controls
         ctrl_data = {"name": self.name,
@@ -72,23 +83,20 @@ class SetupControl:
                      "scale": self.scale}
 
         # ...Create control
-        ctrl = self.mobject = rig_utils.control(ctrl_info=ctrl_data, ctrl_type="setup_ctrl", side=self.side,
-                                                parent=self.parent)
-
-        return ctrl
+        self.mobject = rig_utils.control(ctrl_info=ctrl_data, ctrl_type="setup_ctrl", side=self.side,
+                                         parent=self.parent)
 
 
 
 
 
     ####################################################################################################################
-    def dull_color(self, gray_out=True, hide=False):
+    def dull_color(self, hide=False):
 
         for shape in self.mobject.getShapes():
             shape.overrideEnabled.set(1)
             shape.overrideDisplayType.set(1)
-            if hide:
-                shape.visibility.set(0)
+            shape.visibility.set(0) if hide else None
 
 
 
@@ -107,3 +115,13 @@ class SetupControl:
 
         # ...Dull ctrl color
         self.dull_color()
+
+
+
+
+
+    ####################################################################################################################
+    def setup_symmetry(self):
+
+        amtr_utils.connect_pair(self.mobject, attrs=("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz",
+                                                     "ModuleScale"))

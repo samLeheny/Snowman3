@@ -7,7 +7,10 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
+import Snowman3.utilities.general_utils as gen_utils
+importlib.reload(gen_utils)
 ###########################
 ###########################
 
@@ -32,6 +35,7 @@ get_module_from_placer
 get_placers_in_module
 get_ctrl_from_module
 get_piece_keys_from_module
+connect_pair
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -253,6 +257,23 @@ def get_piece_keys_from_module(module):
     for attr_name in pm.listAttr(ctrl + "." + attr_string):
         if attr_name != attr_string:
             keys.append(attr_name)
-            #placers[attr_name] = pm.listConnections(ctrl + "." + attr_string + "." + attr_name, s=1, d=0)[0]'''
 
     return keys
+
+
+
+
+
+########################################################################################################################
+def connect_pair(obj, attrs=()):
+
+    # ...Determine driver and follower placers in placer pair
+    driver_obj = obj
+    receiver_obj = gen_utils.get_opposite_side_obj(driver_obj)
+
+    # ...Drive translation
+    for attr in attrs:
+        if not pm.attributeQuery(attr, node=driver_obj, exists=1):
+            continue
+        if not pm.getAttr(receiver_obj + "." + attr, lock=1):
+            pm.connectAttr(driver_obj + "." + attr, receiver_obj + "." + attr, f=1)
