@@ -178,6 +178,8 @@ class Armature:
 
         # ...Drive translation
         for attr in attrs:
+            if not pm.attributeQuery(attr, node=driver_obj, exists=1):
+                continue
             if not pm.getAttr(receiver_obj + "." + attr, lock=1):
                 pm.connectAttr(driver_obj + "." + attr, receiver_obj + "." + attr, f=1)
 
@@ -215,7 +217,8 @@ class Armature:
         # ...For setup controls...
         if module.setup_ctrls:
             for setup_ctrl in module.setup_ctrls.values():
-                self.connect_pair(setup_ctrl.mobject, attrs=("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz"))
+                self.connect_pair(setup_ctrl.mobject, attrs=("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz",
+                                                             "ModuleScale"))
 
 
 

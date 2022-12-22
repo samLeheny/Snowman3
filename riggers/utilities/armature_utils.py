@@ -188,8 +188,19 @@ def get_driver_placer(obj):
 ########################################################################################################################
 def get_module_from_placer(obj, return_tag=False):
 
-    module_ctrl = pm.listConnections(obj.message, d=1, s=0)[0]
-    module = pm.listConnections(module_ctrl.message, d=1, s=0)[0]
+    module_ctrl = None
+    connections = pm.listConnections(obj.message, d=1, s=0)
+    for c in connections:
+        if c.nodeType() == "transform":
+            module_ctrl = c
+            break
+
+    module = None
+    connections = pm.listConnections(module_ctrl.message, d=1, s=0)
+    for c in connections:
+        if c.nodeType() == "transform":
+            module = c
+            break
 
     if return_tag:
         return pm.getAttr(module + "." + "ModuleName")

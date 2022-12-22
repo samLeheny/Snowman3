@@ -345,7 +345,6 @@ def create_placers(side=None, is_driven_side=None):
         PoleVectorPlacer(
             name = "ik_index",
             side = side,
-            position = (12.36, 10, 2.49),
             pv_distance = 10,
             size = 0.35,
         ),
@@ -354,7 +353,6 @@ def create_placers(side=None, is_driven_side=None):
         PoleVectorPlacer(
             name = "ik_middle",
             side = side,
-            position = (12.76, 10, 0.49),
             pv_distance = 10,
             size = 0.35,
         ),
@@ -363,7 +361,6 @@ def create_placers(side=None, is_driven_side=None):
         PoleVectorPlacer(
             name = "ik_ring",
             side = side,
-            position = (12.36, 10, -1.51),
             pv_distance = 10,
             size = 0.35,
         ),
@@ -372,7 +369,6 @@ def create_placers(side=None, is_driven_side=None):
         PoleVectorPlacer(
             name = "ik_pinky",
             side = side,
-            position = (9.95, 10, -3.51),
             pv_distance = 10,
             size = 0.35,
         ),
@@ -381,7 +377,6 @@ def create_placers(side=None, is_driven_side=None):
         PoleVectorPlacer(
             name = "ik_thumb",
             side = side,
-            position = (8.25, 0, 14.51),
             pv_distance = 10,
             size = 0.35,
         )

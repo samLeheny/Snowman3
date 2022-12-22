@@ -2772,6 +2772,6 @@ def drive_attr(obj_1, obj_2, attr):
         attr = (attr,)
 
     for a in attr:
-        if not pm.listConnections(obj_2 + "." + a, source=1):
-            pm.connectAttr(obj_1 + "." + a, obj_2 + "." + a)
-            pm.setAttr(obj_2 + "." + a, lock=1, keyable=0, channelBox=1)
+        if not pm.listConnections(f'{obj_2}.{a}', source=1):
+            pm.connectAttr(f'{obj_1}.{a}', obj_2 + "." + a)
+            pm.setAttr(f'{obj_2}.{a}', lock=1, keyable=0, channelBox=1)

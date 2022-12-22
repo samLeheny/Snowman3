@@ -25,7 +25,7 @@ nom = nameConventions.create_dict()
 
 ###########################
 ######## Variables ########
-
+default_shape = "cube"
 ###########################
 ###########################
 
@@ -38,7 +38,7 @@ class SetupControl:
     def __init__(
         self,
         name = None,
-        shape = "cube",
+        shape = None,
         locks = None,
         scale = None,
         side = None,
@@ -46,7 +46,7 @@ class SetupControl:
         parent = None
     ):
         self.name = name
-        self.shape = shape
+        self.shape = shape if shape else default_shape
         self.locks = locks
         self.scale = scale if scale else [5.0, 5.0, 4.58]
         self.side = side
@@ -61,10 +61,8 @@ class SetupControl:
     ####################################################################################################################
     def create(self):
 
-
         if not self.locks: self.locks = {"v": 1}
         if not self.scale: self.scale = [5.0, 5.0, 4.58]
-
 
         # ...Assemble data with which to build controls
         ctrl_data = {"name": self.name,
@@ -76,7 +74,6 @@ class SetupControl:
         # ...Create control
         ctrl = self.mobject = rig_utils.control(ctrl_info=ctrl_data, ctrl_type="setup_ctrl", side=self.side,
                                                 parent=self.parent)
-
 
         return ctrl
 

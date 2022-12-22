@@ -84,7 +84,6 @@ def create_placers(side=None, is_driven_side=None):
         PoleVectorPlacer(
             name = "ik_elbow",
             side = side,
-            position = (26.94, 0, -42.58),
             pv_distance = 40,
             size = 1.25,
         )

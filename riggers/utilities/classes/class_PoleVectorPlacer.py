@@ -163,6 +163,8 @@ class PoleVectorPlacer(Placer):
         [pm.setAttr(f'{self.mobject}.{a}', 0) for a in ("tx", "ty", "tz")]
         [pm.setAttr(f'{self.mobject}.{a}', lock=1) for a in ("tx", "ty")]
 
+        self.mobject.tz.set(self.position[2])
+
         # ...Make connector curve linking ik placers to limb
         self.pv_curve = rig_utils.connector_curve(line_width=1, end_driver_1=pv_chain_mid, end_driver_2=self.mobject,
                                                   override_display_type=1, parent=connector_crv_parent,
