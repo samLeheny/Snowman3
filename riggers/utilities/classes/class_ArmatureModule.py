@@ -36,9 +36,9 @@ importlib.reload(classPoleVectorPlacer)
 Placer = classPlacer.Placer
 PoleVectorPlacer = classPoleVectorPlacer.PoleVectorPlacer
 
-import Snowman3.riggers.utilities.classes.class_SetupControl as classSetupControl
-importlib.reload(classSetupControl)
-SetupControl = classSetupControl.SetupControl
+import Snowman3.riggers.utilities.classes.class_ArmatureModuleHandle as class_ArmatureModuleHandle
+importlib.reload(class_ArmatureModuleHandle)
+ArmatureModuleHandle = class_ArmatureModuleHandle.ArmatureModuleHandle
 
 import Snowman3.riggers.utilities.directories.get_module_data as get_module_data
 importlib.reload(get_module_data)
@@ -318,7 +318,7 @@ class ArmatureModule:
         if not scale: scale = [1.2, 1.2, 1.2]
 
         # ...
-        self.module_ctrl = self.setup_ctrls["module_root"] = SetupControl(
+        self.module_ctrl = self.setup_ctrls["module_root"] = ArmatureModuleHandle(
             name = name,
             shape = shape,
             locks = locks,

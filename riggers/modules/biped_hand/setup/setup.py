@@ -13,9 +13,9 @@ import pymel.core as pm
 import Snowman3.riggers.modules.biped_hand.utilities.prelimCtrls as prelimCtrls
 importlib.reload(prelimCtrls)
 
-import Snowman3.riggers.utilities.classes.class_SetupControl as classSetupControl
-importlib.reload(classSetupControl)
-SetupControl = classSetupControl.SetupControl
+import Snowman3.riggers.utilities.classes.class_ArmatureModuleHandle as class_ArmatureModuleHandle
+importlib.reload(class_ArmatureModuleHandle)
+ArmatureModuleHandle = class_ArmatureModuleHandle.ArmatureModuleHandle
 ###########################
 ###########################
 
@@ -54,7 +54,7 @@ def build(armature_module):
     # ...Add a control for each finger ---------------------------------------------------------------------------------
     for key in ["thumb", "index", "middle", "ring", "pinky"]:
 
-        finger_ctrl = armature_module.setup_ctrls[key] = SetupControl(
+        finger_ctrl = armature_module.setup_ctrls[key] = ArmatureModuleHandle(
             name=key,
             locks={"v": 1},
             scale=[0.5, 0.5, 0.5],

@@ -1,4 +1,4 @@
-# Title: class_SetupControl.py
+# Title: class_ArmatureModuleHandle.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -35,7 +35,7 @@ default_shape = "cube"
 
 
 ########################################################################################################################
-class SetupControl:
+class ArmatureModuleHandle:
     def __init__(
         self,
         name = None,
