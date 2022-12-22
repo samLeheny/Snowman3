@@ -54,7 +54,7 @@ def build(armature_module):
     # ...Add a control for each finger ---------------------------------------------------------------------------------
     for key in ["thumb", "index", "middle", "ring", "pinky"]:
 
-        finger_ctrl = armature_module.setup_ctrls[key] = ArmatureModuleHandle(
+        finger_ctrl = armature_module.module_handles[key] = ArmatureModuleHandle(
             name=key,
             locks={"v": 1},
             scale=[0.5, 0.5, 0.5],

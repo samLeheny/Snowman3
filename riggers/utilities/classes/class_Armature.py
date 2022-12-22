@@ -69,7 +69,7 @@ class Armature:
     create_root_groups
     setup_armature_realtime_symmetry
     placer_symmetry
-    setup_ctrl_symmetry
+    module_handle_symmetry
     drive_module_attrs
     build_armature_from_data
     assign_armature_metadata
@@ -140,15 +140,15 @@ class Armature:
         # ...Make symmetry connections in each pair of sided modules in the rig
         for module in self.sided_modules[driver_side].values():
             self.placer_symmetry(module)
-            self.setup_ctrl_symmetry(module)
+            self.module_handle_symmetry(module)
 
         # ...Visual indication of following side
         for module in self.sided_modules[following_side].values():
             if module.placers:
                 for placer in module.placers.values():
                     placer.make_benign(hide=False)
-            if module.setup_ctrls:
-                for setup_ctrl in module.setup_ctrls.values():
+            if module.module_handles:
+                for setup_ctrl in module.module_handles.values():
                     setup_ctrl.make_benign(hide=True)
 
 
@@ -180,11 +180,11 @@ class Armature:
 
 
     ####################################################################################################################
-    def setup_ctrl_symmetry(self, module):
+    def module_handle_symmetry(self, module):
 
         # ...For setup controls...
-        if module.setup_ctrls:
-            for setup_ctrl in module.setup_ctrls.values():
+        if module.module_handles:
+            for setup_ctrl in module.module_handles.values():
                 setup_ctrl.setup_symmetry()
 
 

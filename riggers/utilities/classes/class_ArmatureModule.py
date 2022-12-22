@@ -100,7 +100,7 @@ class ArmatureModule:
             self.rig_module_type, side=side, is_driven_side=is_driven_side)
         self.pv_placers = {}
         self.orienters = {}
-        self.setup_ctrls = {}
+        self.module_handles = {}
         self.objs_to_lock = []
         self.rig_root_grp = None
         self.rig_subGrps = None
@@ -131,7 +131,7 @@ class ArmatureModule:
     make_obj_benign
     draw_module_connections
     connect_modules
-    drive_setup_ctrls_vis
+    drive_module_handles_vis
     create_prelim_ctrls
     drive_vis_attrs_from_module_ctrl
     populate_module
@@ -318,7 +318,7 @@ class ArmatureModule:
         if not scale: scale = [1.2, 1.2, 1.2]
 
         # ...
-        self.module_ctrl = self.setup_ctrls["module_root"] = ArmatureModuleHandle(
+        self.module_ctrl = self.module_handles["module_root"] = ArmatureModuleHandle(
             name = name,
             shape = shape,
             locks = locks,
@@ -586,9 +586,9 @@ class ArmatureModule:
 
 
     ####################################################################################################################
-    def drive_setup_ctrls_vis(self, drive_plug):
+    def drive_module_handles_vis(self, drive_plug):
 
-        for ctrl in self.setup_ctrls.values():
+        for ctrl in self.module_handles.values():
             ctrl.visibility.set(lock=0)
             pm.connectAttr(drive_plug, ctrl.visibility)
             ctrl.visibility.set(lock=1, keyable=0, channelBox=0)
