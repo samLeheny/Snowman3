@@ -52,8 +52,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "index_metacarpal"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "fk limbs"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -67,8 +66,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "index_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -82,8 +80,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "index_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -97,8 +94,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "index_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -112,8 +108,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "middle_metacarpal"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "fk limbs"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -127,8 +122,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "middle_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -142,8 +136,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "middle_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -157,8 +150,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "middle_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -172,8 +164,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "ring_metacarpal"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "fk limbs"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -187,8 +178,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "ring_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -202,8 +192,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "ring_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -217,8 +206,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "ring_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -231,8 +219,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "pinky_metacarpal"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "fk limbs"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -246,8 +233,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "pinky_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -261,8 +247,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "pinky_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -276,8 +261,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "pinky_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -291,8 +275,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "thumb_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -306,8 +289,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "thumb_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -321,8 +303,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "thumb_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -336,8 +317,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "hand"},
             locks={"v": 1, "t": [1, 1, 0], "r": [0, 1, 0], "s": [1, 1, 0]},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -353,8 +333,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "pinky_metacarpal"},
             locks={"v": 1, "t": [1, 1, 1], "s": [1, 1, 1]},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
     }

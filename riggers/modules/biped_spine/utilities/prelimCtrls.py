@@ -52,8 +52,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "spine"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -66,8 +65,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "spine"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -81,8 +79,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "spine"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -96,7 +93,6 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            vis_category = "spine",
             up_direction = [0, -1, 0]
         ),
 
@@ -112,7 +108,6 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            vis_category = "spine",
             up_direction = [0, -1, 0]
         ),
 
@@ -128,7 +123,6 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            vis_category = "spine",
             up_direction = [0, -1, 0]
         ),
 
@@ -143,8 +137,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "spine",
+            is_driven_side = is_driven_side
         ),
 
 
@@ -159,8 +152,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers",
+            is_driven_side=is_driven_side
         ),
 
 
@@ -175,8 +167,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers",
+            is_driven_side=is_driven_side
         ),
 
 
@@ -191,8 +182,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers",
+            is_driven_side=is_driven_side
         ),
 
 
@@ -207,8 +197,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers",
+            is_driven_side=is_driven_side
         ),
 
 
@@ -223,8 +212,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers",
+            is_driven_side=is_driven_side
         ),
 
 
@@ -239,8 +227,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers",
+            is_driven_side=is_driven_side
         ),
 
 
@@ -255,8 +242,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                            "up_vector": ("z", (0, 0, 1))},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "tweakers",
+            is_driven_side = is_driven_side
         ),
 
 
@@ -269,8 +255,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             color =ctrl_colors["settings"],
             locks = {"v": 1, "t": [1, 1, 1], "r": [1, 1, 1], "s": [1, 1, 1]},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "tweakers"
+            is_driven_side = is_driven_side
         )
 
     }

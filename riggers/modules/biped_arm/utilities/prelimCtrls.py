@@ -53,8 +53,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "upperarm"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "fk limbs"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -70,8 +69,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "lowerarm"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -87,8 +85,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "lowerarm_end"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="fk limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -102,8 +99,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "lowerarm_end"},
             locks={"v":1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="ik_limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -116,8 +112,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "module_ctrl"},
             locks={"r":[1, 1, 1], "s":[1, 1, 1], "v":1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="ik_limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -131,8 +126,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "module_ctrl"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="ik_limbs"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -148,8 +142,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "module_ctrl"},
             locks={"r": [1, 1, 1], "s": [1, 1, 1], "v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -163,8 +156,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": ("lowerarm",)},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -178,8 +170,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": ("upperarm",)},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -193,8 +184,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": ("upperarm",)},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -208,8 +198,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": ("lowerarm",)},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -223,8 +212,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": ("lowerarm",)},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="tweakers"
+            is_driven_side=is_driven_side
         ),
 
     }

@@ -25,7 +25,7 @@ nom = nameConventions.create_dict()
 
 ###########################
 ######## Variables ########
-vis_category_attr = "visCategory"
+
 ###########################
 ###########################
 
@@ -50,8 +50,7 @@ class PrelimControl:
         up_direction = None,
         side = None,
         is_driven_side = None,
-        body_module = None,
-        vis_category = None
+        body_module = None
     ):
         self.name = name
         self.shape = shape
@@ -68,7 +67,6 @@ class PrelimControl:
         self.side_tag = "{}_".format(self.side) if self.side else ""
         self.is_driven_side = is_driven_side
         self.body_module = body_module
-        self.vis_category = vis_category
 
         self.ctrl_obj = None
         self.shape_data = None
@@ -107,10 +105,6 @@ class PrelimControl:
         # ...Create control object
         self.ctrl_obj = rig_utils.control(ctrl_info=self.shape_data, ctrl_type="non_anim_ctrl", side=self.side)
 
-        # ...Assign vis category to control via hidden attribute
-        pm.addAttr(self.ctrl_obj, longName=vis_category_attr, keyable=0, dataType="string")
-        pm.setAttr(self.ctrl_obj + "." + vis_category_attr, self.vis_category, type="string")
-
         return self.ctrl_obj
 
 
@@ -146,50 +140,50 @@ class PrelimControl:
     def orient_prelim_ctrl(self):
 
 
-        if self.orientation:
+        if not self.orientation:
+            return
 
-            if "match_to" in self.orientation:
+        if "match_to" in self.orientation:
 
-                if self.orientation["match_to"] == "module_ctrl":
-                    pm.setAttr(self.ctrl_obj.rotate, 0, 0, 0)
-                    pm.setAttr(self.ctrl_obj.scale, 1, 1, 1)
+            if self.orientation["match_to"] == "module_ctrl":
+                pm.setAttr(self.ctrl_obj.rotate, 0, 0, 0)
+                pm.setAttr(self.ctrl_obj.scale, 1, 1, 1)
 
-                else:
+            else:
 
-                    match_key = self.orientation["match_to"]
+                match_key = self.orientation["match_to"]
 
-                    if not isinstance(match_key, (list, tuple)):
-                        match_key = (match_key,)
+                if not isinstance(match_key, (list, tuple)):
+                    match_key = (match_key,)
 
-                    match_objs = []
-                    for key in match_key:
+                match_objs = []
+                for key in match_key:
 
-                        ori_string = "::{0}{1}_{2}".format(self.side_tag, key, nom.orienter)
+                    ori_string = "::{0}{1}_{2}".format(self.side_tag, key, nom.orienter)
 
-                        if not pm.objExists(ori_string):
-                            print("Could not find orienter '{}' in scene".format(ori_string))
+                    if pm.objExists(ori_string):
+                        ori = pm.ls("::{0}{1}_{2}".format(self.side_tag, key, nom.orienter))
+                    else:
+                        print("Could not find orienter '{}' in scene".format(ori_string))
 
-                        else:
-                            ori = pm.ls("::{0}{1}_{2}".format(self.side_tag, key, nom.orienter))
+                    if ori:
+                        match_objs.append(ori[0])
 
-                        if ori:
-                            match_objs.append(ori[0])
-
-                    pm.orientConstraint(tuple(match_objs), self.ctrl_obj)
+                pm.orientConstraint(tuple(match_objs), self.ctrl_obj)
 
 
-            elif "aim_vector" in self.orientation:
+        elif "aim_vector" in self.orientation:
 
-                aim_axis = self.orientation["aim_vector"][0]
-                aim_vector = self.orientation["aim_vector"][1]
+            aim_axis = self.orientation["aim_vector"][0]
+            aim_vector = self.orientation["aim_vector"][1]
 
-                up_axis = self.orientation["up_vector"][0]
-                up_vector = self.orientation["up_vector"][1]
+            up_axis = self.orientation["up_vector"][0]
+            up_vector = self.orientation["up_vector"][1]
 
-                self.ctrl_obj.setParent(world=1)
+            self.ctrl_obj.setParent(world=1)
 
-                rot_values = gen_utils.vectors_to_euler(aim_axis=aim_axis, aim_vector=aim_vector,
-                                                        up_axis=up_axis, up_vector=up_vector,
-                                                        rotation_order=self.ctrl_obj.rotateOrder.get())
+            rot_values = gen_utils.vectors_to_euler(aim_axis=aim_axis, aim_vector=aim_vector,
+                                                    up_axis=up_axis, up_vector=up_vector,
+                                                    rotation_order=self.ctrl_obj.rotateOrder.get())
 
-                self.ctrl_obj.rotate.set(tuple(rot_values))
+            self.ctrl_obj.rotate.set(tuple(rot_values))

@@ -101,7 +101,6 @@ class ArmatureModule:
         self.pv_placers = {}
         self.orienters = {}
         self.setup_ctrls = {}
-        self.ctrl_vis_category_grps = {}
         self.objs_to_lock = []
         self.rig_root_grp = None
         self.rig_subGrps = None
@@ -133,7 +132,6 @@ class ArmatureModule:
     draw_module_connections
     connect_modules
     drive_setup_ctrls_vis
-    create_ctrl_vis_grps
     create_prelim_ctrls
     drive_vis_attrs_from_module_ctrl
     populate_module
@@ -613,37 +611,6 @@ class ArmatureModule:
 
 
     ####################################################################################################################
-    def create_ctrl_vis_grps(self):
-
-        # ...Assemble a list of category tags present on controls for this module
-        discovered_category_tags = []
-
-        for prelim_ctrl in self.prelim_ctrls.values():
-            ctrl = prelim_ctrl.ctrl_obj
-
-            if not pm.attributeQuery("visCategory", node=ctrl, exists=1):
-                continue
-
-            tag = pm.getAttr(f'{ctrl}.visCategory')
-            if tag not in discovered_category_tags:
-                discovered_category_tags.append(tag)
-
-        # ...Create groups for these categories and put controls into them
-        for tag in discovered_category_tags:
-
-            grp = pm.group(name=f'prelimCtrls_{tag}', p=self.rig_subGrps["prelim_ctrls"], em=1)
-            self.ctrl_vis_category_grps[tag] = grp
-
-            for prelim_ctrl in self.prelim_ctrls.values():
-                ctrl = prelim_ctrl.ctrl_obj
-                if pm.getAttr(f'{ctrl}.visCategory') == tag:
-                    ctrl.setParent(grp)
-
-
-
-
-
-    ####################################################################################################################
     def create_prelim_ctrls(self, parent=None):
 
         parent = parent if parent else self.rig_subGrps["prelim_ctrls"]
@@ -663,9 +630,6 @@ class ArmatureModule:
             self.prelim_ctrls[key].ctrl_obj.scale.set(1, 1, 1)
 
             pm.orientConstraint(self.module_ctrl.mobject, parent)
-
-        # ...Sort controls into groups based on visibility category
-        self.create_ctrl_vis_grps()
 
 
 

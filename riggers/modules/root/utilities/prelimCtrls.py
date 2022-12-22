@@ -52,8 +52,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             position=("root",),
             locks = {"s": [1, 1, 1], "v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "root"
+            is_driven_side = is_driven_side
         ),
 
 
@@ -67,8 +66,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             position=("root",),
             locks={"s": [1, 1, 1], "v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="root"
+            is_driven_side=is_driven_side
         ),
 
 
@@ -82,8 +80,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
                          "up_vector": ("z", (0, 0, 1))},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            vis_category="root"
+            is_driven_side=is_driven_side
         ),
 
     }

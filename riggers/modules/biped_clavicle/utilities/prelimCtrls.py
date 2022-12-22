@@ -51,8 +51,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "module_ctrl"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            vis_category = "fk limbs"
+            is_driven_side = is_driven_side
         ),
 
     }
