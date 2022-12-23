@@ -351,11 +351,11 @@ class Placer:
                 continue
 
             target_obj = None
-            get_placer_string = "::{}{}_{}".format(self.side_tag, handle_data["obj"], nom.placer)
+            get_placer_string = f'::{self.side_tag}{handle_data["obj"]}_{nom.placer}'
             if pm.ls(get_placer_string):
                 target_obj = pm.ls(get_placer_string)[0]
             else:
-                print("Unable to find placer: '{}'".format(get_placer_string))
+                print(f'Unable to find placer: "{get_placer_string}"')
 
             offset = gen_utils.buffer_obj(vector_handle.mobject, suffix="MOD")
             pm.pointConstraint(target_obj, offset)

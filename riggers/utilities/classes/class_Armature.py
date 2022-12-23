@@ -56,7 +56,7 @@ class Armature:
         self.root_groups = {}
         self.symmetry_mode = symmetry_mode
         self.driver_side = gen_utils.symmetry_info(self.symmetry_mode)[1]
-        self.root_handle = None
+        self.root_handle = ArmatureRootHandle(name=self.name, root_size=self.root_size)
 
 
 
@@ -86,7 +86,6 @@ class Armature:
     def create_root_handle_in_scene(self):
 
         # ...Create root object
-        self.root_handle = ArmatureRootHandle(name=self.name, root_size=self.root_size)
         self.root_handle.create_mobject()
         # ...Assign metadata in hidden attributes
         self.assign_armature_metadata()
@@ -242,7 +241,8 @@ class Armature:
                 scale = m_data["scale"],
                 drive_target = m_data["drive_target"],
                 draw_connections = m_data["draw_connections"],
-                color = m_data["color"]
+                color = m_data["color"],
+                modules_parent = self.root_groups["modules"]
             )
             new_module.placers_from_data(m_data["placers"])
 
@@ -279,7 +279,9 @@ class Armature:
 
         self.create_root_handle_in_scene()
 
-        [module.populate_module() for module in self.modules.values()]
+        for module in self.modules.values():
+            module.modules_parent = self.root_groups["modules"]
+            module.populate_module()
 
         for key in self.modules:
             module = self.modules[key]

@@ -15,6 +15,7 @@ import maya.OpenMaya as om
 import maya.api.OpenMaya as om2
 import math as math
 import numpy as np
+import time
 
 import Snowman3.dictionaries.nurbsCurvePrefabs as nurbsCurvePrefabs
 importlib.reload(nurbsCurvePrefabs)
@@ -67,6 +68,7 @@ vectors_to_euler
 format_axis_arg
 rearrange_point_list_vectors
 nurbs_curve
+get_colour_from_sided_list
 curve_obj
 rename_shapes
 prefab_curve_obj
@@ -953,59 +955,23 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
         Returns:
             (mTransform object) The newly created curve object.
         """
-    
 
     up_direction = up_direction if up_direction else (0, 1, 0)
     forward_direction = forward_direction if forward_direction else (0, 0, 1)
     points_offset = points_offset if points_offset else (0, 0, 0)
     side_tag = side_tag_from_string(side) if side else None
 
-
     # Rearrange CV coordinates to match provided axes
     if up_direction == forward_direction:
         pm.error("up_direction and forward_direction parameters cannot have the same argument.")
     cvs = rearrange_point_list_vectors(cvs, up_direction=up_direction, forward_direction=forward_direction)
 
-
     # Flip CV x coordinates if curve is right-sided
     x_offset_direction = 1
-
 
     # Process scale factor in case only one value was passed
     if not isinstance(scale, list):
         scale = (scale, scale, scale)
-
-
-    # Function to build 1-degree curves, or open 3-degree curves
-    def linear_curve(name=None, cvs=None, degree=3, form="open"):
-
-        # If shape is closed, add one additional point to the list that matches the first point in the list,
-        # to complete the loop
-        if form == "periodic":
-            cvs.append(cvs[0])
-
-        # Produce nurbs curve
-        curve = pm.curve(name=name, degree=degree, point=cvs)
-
-
-        return curve
-
-
-    # Function to build closed 3-degree curves
-    def curve_from_circle(name=None, cvs=None):
-
-        cv_count = len(cvs)
-
-        # Start by making a nurbs circle of specified CV count
-        curve = pm.circle(name=name, sections=cv_count, degree=3)[0]
-
-        # Move CVs into provided positions( plus any provided scale offset and point offset )
-        for i in range(0, len(cvs)):
-            pm.move( pm.NurbsCurveCV(curve, i), cvs[i], absolute=1 )
-
-
-        return curve
-
 
 
     # Build a list of points at which to place the curve's CVs (incorporating scale and points_offset)
@@ -1019,55 +985,44 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
 
         points.append(tuple(final_point_coords))
 
-
-
     # Build curve
     crv = None
 
-    if form == "periodic":
-        
-        if degree == 1:
-            crv = linear_curve(name=name, cvs=points, degree=degree, form=form)
-            
-        elif degree == 3:
-            crv = curve_from_circle(name=name, cvs=points)
-
-    elif form in ["open"]:
-        
-        crv = linear_curve(name=name, cvs=points, degree=degree, form=form)
-        
-    else:
-        return None
-
+    crv = pm.curve(name=name, degree=degree, point=points)
+    if degree == 3 and form == "periodic":
+        pm.closeCurve(crv, replaceOriginal=1, preserveShape=0)
 
     # Delete construction history
     if crv:
         pm.delete(crv, constructionHistory=True)
 
-
     # Color curve
     # If color info is a list, treat the two entries as left color and right color
     # Refer to side argument to determine which color is correct
-    color = color
     if color:
-        if isinstance(color, list):
-            if len(color) == 2:
-                if side_tag:
-
-                    sided_colors = {
-                        nom.leftSideTag : color[0],
-                        nom.rightSideTag : color[1],
-                    }
-
-                    color = sided_colors[side_tag]
+        if isinstance(color, list) and len(color) == 2:
+            sided_color = get_colour_from_sided_list(color, side_tag)
+            color = sided_color
 
         set_color(crv, color)
 
 
-
     pm.select(clear=1)
-
     return crv
+
+
+
+
+
+########################################################################################################################
+def get_colour_from_sided_list(sided_list, side):
+
+    sided_colors = {nom.leftSideTag: sided_list[0],
+                    nom.rightSideTag: sided_list[1]}
+
+    color = sided_colors[side]
+
+    return color
 
 
 
@@ -1104,7 +1059,6 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
         Returns:
             (mTransform) The created curve object.
     """
-
 
     if not up_direction:
         up_direction = [0, 1, 0]
@@ -1191,7 +1145,6 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
             acceptable_form_inputs.append(string)
 
 
-
     # ...Check degree input integrity
     degree_is_valid = True
 
@@ -1231,7 +1184,6 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
             pm.error("Unable to create curve. 'scale' parameter received invalid argument: {}".format(entry))
 
 
-
     ##### BUILD SHAPES #####
     crvs = []
     for i in range(shape_count):
@@ -1243,19 +1195,18 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
         # ...For each curve in curve object, build curve using the home-brewed 'curve' function
 
         curve = nurbs_curve( color = color,
-                          form = shape_form,
-                          cvs = shape_cvs,
-                          degree = shape_degree,
-                          scale = shape_scale,
-                          points_offset = points_offset,
-                          up_direction = up_direction,
-                          forward_direction = forward_direction,
-                          side = side)
+                             form = shape_form,
+                             cvs = shape_cvs,
+                             degree = shape_degree,
+                             scale = shape_scale,
+                             points_offset = points_offset,
+                             up_direction = up_direction,
+                             forward_direction = forward_direction,
+                             side = side)
 
 
         if curve:
             crvs.append(curve)
-
 
     # ...Parent shapes together under a single transform node
     crv_obj = crvs[0]
@@ -1264,14 +1215,12 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
         pm.parent(crvs[i].getShape(), crv_obj, relative=1, shape=1)
         pm.delete(crvs[i])
 
-
     # ...Name curve and shapes
     pm.rename(crv_obj, name)
     rename_shapes(crv_obj)
 
 
     pm.select(clear=1)
-
     return crv_obj
 
 

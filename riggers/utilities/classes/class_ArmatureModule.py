@@ -76,7 +76,8 @@ class ArmatureModule:
         rotation = None,
         scale = None,
         drive_target = None,
-        draw_connections = None
+        draw_connections = None,
+        modules_parent = None
     ):
         self.name = gen_utils.get_clean_name(name)
         self.side = side
@@ -91,6 +92,7 @@ class ArmatureModule:
         self.scale = scale if scale else 1
         self.drive_target = drive_target
         self.draw_connections = draw_connections
+        self.modules_parent = modules_parent
 
         self.ctrls = {}
         self.placers = {}
@@ -150,7 +152,7 @@ class ArmatureModule:
         # ...
         self.rig_root_grp = pm.group(name=f'{self.side_tag}{self.name}_MODULE', w=1, em=1)
 
-        self.rig_root_grp.setParent(self.armature_container)
+        self.rig_root_grp.setParent(self.modules_parent)
 
         self.assign_module_metadata()
 
