@@ -154,8 +154,8 @@ class AnimControl:
             gen_utils.break_connections(f'{self.prelim_ctrl}.{attr}')
 
         # ...Copy shape across
-        gen_utils.copy_shapes(self.prelim_ctrl, self.ctrl_transform, parent_offset_matrix_mode=False,
-                              delete_existing_shapes=delete_existing_shapes, keep_original=keep_original)
+        gen_utils.copy_shapes(self.prelim_ctrl, self.ctrl_transform, delete_existing_shapes=delete_existing_shapes,
+                              keep_original=keep_original)
 
 
 

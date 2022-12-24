@@ -49,9 +49,9 @@ vis_attrs = ["visibility"]
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 ############# ------------------------------    TABLE OF CONTENTS    ----------------------------------- ###############
-#####################################################################################################################---
+########################################################################################################################
 '''
 get
 buffer_obj
@@ -101,14 +101,14 @@ migrate_attr
 migrate_connections
 drive_attr
 '''
-#####################################################################################################################---
-#####################################################################################################################---
-#####################################################################################################################---
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
 
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get(node):
     """
         An entry point function to fire one of various functions to find and get specific nodes in the scene.
@@ -147,7 +147,7 @@ def get(node):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def buffer_obj(child, suffix=None, name=None, parent=None):
     """
         Creates a new transform object above provided object and moves provided object's dirty transforms into the new
@@ -287,7 +287,7 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orient=True, unlock=False):
     """
         Reduce provided object's local transform attributes to 0 (1, for scale attributes).
@@ -404,7 +404,7 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def distance_between(obj_1=None, obj_2=None, position_1=None, position_2=None):
     """
         Returns the world space distance between two objects or between two world space positions. Can also mix and
@@ -472,7 +472,7 @@ def distance_between(obj_1=None, obj_2=None, position_1=None, position_2=None):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def vector_between(obj_1=None, obj_2=None, vector_1=None, vector_2=None):
     """
         Calculates a vector from one object to another. Can provide either two objects to use their vectors, or can
@@ -531,7 +531,7 @@ def vector_between(obj_1=None, obj_2=None, vector_1=None, vector_2=None):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def flip_obj(obj=None, axis="x"):
     """
         Flips an object across the desired axis.
@@ -555,7 +555,7 @@ def flip_obj(obj=None, axis="x"):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get_color(obj):
 
     color = None
@@ -590,7 +590,7 @@ def get_color(obj):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def set_color(obj, color=None, apply_to_transform=False):
 
 
@@ -638,7 +638,7 @@ def set_color(obj, color=None, apply_to_transform=False):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def cross_product(a, b, normalize=False):
     """
         Gets cross product of input vectors a and b.
@@ -661,7 +661,7 @@ def cross_product(a, b, normalize=False):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def normalize_vector(vector):
     """
         Normalizes a vector (reduces its magnitude/length to 1.0, without disturbing its direction (if negative, will
@@ -688,7 +688,7 @@ def normalize_vector(vector):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def orthogonal_vectors(vector_1, vector_2):
     """
         Given any two vectors, returns three orthogonal vector (all perpendicular) based on the cross product between
@@ -712,7 +712,7 @@ def orthogonal_vectors(vector_1, vector_2):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def vectors_to_euler(aim_vector, up_vector, aim_axis, up_axis, rotation_order):
 
 
@@ -788,7 +788,7 @@ def vectors_to_euler(aim_vector, up_vector, aim_axis, up_axis, rotation_order):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def format_axis_arg(axis):
 
     output = False
@@ -810,7 +810,7 @@ def format_axis_arg(axis):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_direction=None):
     """
         Goes through a list of point coordinates and rearranges each point's coordinates such that the resulting shape
@@ -930,9 +930,9 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
 
 
 
-#####################################################################################################################---
-def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, points_offset=None,
-                up_direction=None, forward_direction=None, side=None):
+########################################################################################################################
+def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, points_offset=None, up_direction=None,
+                forward_direction=None, side=None):
     """
         Creates a nurbs curve from information in provided arguments.
         Args:
@@ -970,20 +970,15 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
     x_offset_direction = 1
 
     # Process scale factor in case only one value was passed
-    if not isinstance(scale, list):
-        scale = (scale, scale, scale)
+    scale = scale if isinstance(scale, list) else (scale, scale, scale)
 
 
     # Build a list of points at which to place the curve's CVs (incorporating scale and points_offset)
-    points = []
-
-    for cv in cvs:
-
-        final_point_coords = []
-        for n in range(3):
-            final_point_coords.append(cv[n] * scale[n] + (points_offset[n] * x_offset_direction))
-
-        points.append(tuple(final_point_coords))
+    points = [[v[i] * scale[i] for i in range(3)] for v in cvs]
+    # This appears to be a rare case of vanilla Python being faster than Numpy
+    # points = np.array(cvs).astype(float)
+    # for i in range(3):
+    #    points[:,i] *= float(scale[i])
 
     # Build curve
     crv = None
@@ -996,9 +991,8 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
     if crv:
         pm.delete(crv, constructionHistory=True)
 
-    # Color curve
-    # If color info is a list, treat the two entries as left color and right color
-    # Refer to side argument to determine which color is correct
+    # Color curve. If color info is a list, treat the two entries as left color and right color. Refer to side argument
+    # to determine which color is correct
     if color:
         if isinstance(color, list) and len(color) == 2:
             sided_color = get_colour_from_sided_list(color, side_tag)
@@ -1028,7 +1022,7 @@ def get_colour_from_sided_list(sided_list, side):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degree=1, shape_offset=None,
                     up_direction=None, forward_direction=None, side=None):
     """
@@ -1227,7 +1221,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def rename_shapes(obj):
 
 
@@ -1241,18 +1235,15 @@ def rename_shapes(obj):
         return None
 
 
-
     # ...Compose dictionary of new shape names
     new_shape_names = []
     for i, v in enumerate(shapes):
         new_name = "{}Shape{}".format( get_clean_name(obj), str(i+1) )
         new_shape_names.append(new_name)
 
-
     # ...Give all shapes temporary names to avoid conflicts while we rename
     for shape in shapes:
         shape.rename("TEMP_SHAPE_NAME_{}".format( str(shapes.index(shape)) ))
-
 
     # ...Give shapes their final names
     for shape in shapes:
@@ -1265,7 +1256,7 @@ def rename_shapes(obj):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None, forward_direction=None, scale=None,
                            shape_offset=None, side=None):
     """
@@ -1304,7 +1295,7 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
 
 
     # ...Test that provided dictionary entry exists
-    if not prefab in curve_prefabs:
+    if prefab not in curve_prefabs:
         pm.error("Cannot create prefab curve object. " \
                  "Provided prefab dictionary key '{}' is invalid".format(prefab))
 
@@ -1363,7 +1354,7 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def side_tag_from_string(side):
     """
     Takes in string describing directions left, right, or middle and returns a correctly formatted side tag that can be
@@ -1403,7 +1394,7 @@ def side_tag_from_string(side):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def break_connections(attr, incoming=True, outgoing=False):
     """
 
@@ -1438,7 +1429,7 @@ def break_connections(attr, incoming=True, outgoing=False):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def match_position(obj, match_to, method="parent", preserve_scale=1, enforce_scale_of_one=0):
 
     pm.select(clear=1)
@@ -1489,7 +1480,7 @@ def match_position(obj, match_to, method="parent", preserve_scale=1, enforce_sca
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get_clean_name(node_name, keep_namespace=False):
     """
         Derives a new string from an object's name by stripping out namespaces, colons, and vertical bars.
@@ -1534,7 +1525,7 @@ def get_clean_name(node_name, keep_namespace=False):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get_opposite_side_obj(obj):
 
     # Get side of this object
@@ -1576,7 +1567,7 @@ def get_opposite_side_obj(obj):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def position_between(obj, between, ratios=None, include_orientation=False):
 
 
@@ -1616,9 +1607,8 @@ def position_between(obj, between, ratios=None, include_orientation=False):
 
 
 
-#####################################################################################################################---
-def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existing_shapes=False,
-                parent_offset_matrix_mode=True):
+########################################################################################################################
+def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existing_shapes=False):
     """
         Transfers shape node(s) from one transform object to another, and deletes the original.
         
@@ -1627,7 +1617,6 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
             destination_obj (transform node): Transform object who you want to receive shapes.
             keep_original (bool): If on, original transform object (and shapes) will not be deleted.
             delete_existing_shapes (bool): If on, any shapes already under destination_obj will be deleted first.
-            parent_offset_matrix_mode (bool): Should be on for objects whose offsetParentMatrices are not zeroed.
                 Otherwise, shit gets weird, yo.
     """
 
@@ -1636,11 +1625,8 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
         destination_obj_shapes = destination_obj.getShapes()
         pm.delete(destination_obj_shapes) if destination_obj_shapes else None
 
-
     # Get name of destination object for use in renaming shapes later
     destination_obj_name = get_clean_name(str(destination_obj))
-
-
 
 
     # ...If keeping original object, work from a duplicate, so the duplicate is what gets deleted at the end of
@@ -1653,10 +1639,10 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
     [pm.setAttr(source_obj + "." + attr, lock=0, channelBox=1) for attr in all_transform_attrs]
     [break_connections(source_obj + "." + attr) for attr in all_transform_attrs + ["offsetParentMatrix"]]
 
+    source_obj.inheritsTransform.set(lock=0)
+    source_obj.inheritsTransform.set(1)
     source_obj.setParent(destination_obj)
-
-    pm.select(source_obj, replace=1)
-    pm.makeIdentity(apply=1, translate=1, rotate=1, scale=1)
+    pm.makeIdentity(source_obj, apply=1)
 
 
     for source_shape in source_obj.getShapes():
@@ -1682,7 +1668,7 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def compose_matrix(transforms):
     """
 
@@ -1710,7 +1696,7 @@ def compose_matrix(transforms):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def decompose_matrix(matrix):
     """
 
@@ -1780,7 +1766,7 @@ def decompose_matrix(matrix):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def zero_offsetParentMatrix(obj, force=0, zero_transforms=0):
     """
 
@@ -1828,7 +1814,7 @@ def zero_offsetParentMatrix(obj, force=0, zero_transforms=0):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def convert_offset(obj, reverse=False):
     """
         Moves any non-zero values from the transform values and moves them into the Offset Parent Matrix, retaining the
@@ -1921,7 +1907,7 @@ def convert_offset(obj, reverse=False):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get_skin_cluster(obj):
 
 
@@ -1952,7 +1938,7 @@ def get_skin_cluster(obj):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def create_attr_blend_nodes(attr, node, reverse=True):
 
 
@@ -1994,7 +1980,7 @@ def create_attr_blend_nodes(attr, node, reverse=True):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get_attr_blend_nodes(attr, node, mult=None, reverse=None, output=1):
 
     # Get all output nodes from attribute
@@ -2033,7 +2019,7 @@ def get_attr_blend_nodes(attr, node, mult=None, reverse=None, output=1):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def point_on_surface_matrix(input_surface, parameter_U=None, parameter_V=None, turn_on_percentage=True,
                             decompose=False, switch_U_V=False):
 
@@ -2095,7 +2081,7 @@ def point_on_surface_matrix(input_surface, parameter_U=None, parameter_V=None, t
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=None, scale=None, shear=None,
                      decompose=False):
 
@@ -2262,7 +2248,7 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def flip(obj, axis="x"):
 
     obj.ry.set(180)
@@ -2272,7 +2258,7 @@ def flip(obj, axis="x"):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get_shape_center(obj):
 
 
@@ -2314,7 +2300,7 @@ def get_shape_center(obj):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def reset_transform_to_shape_center(obj):
     
     current_coord = pm.xform(obj, q=1, worldSpace=1, rotatePivot=1)
@@ -2345,7 +2331,7 @@ def reset_transform_to_shape_center(obj):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def scale_obj_shape(obj, scale=(1, 1, 1)):
 
 
@@ -2380,7 +2366,7 @@ def scale_obj_shape(obj, scale=(1, 1, 1)):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def interpolate(interp_point, point_1, point_2):
 
     x1, y1 = point_1
@@ -2396,7 +2382,7 @@ def interpolate(interp_point, point_1, point_2):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get_shape_info_from_obj(obj=None):
 
 
@@ -2446,7 +2432,7 @@ def get_shape_info_from_obj(obj=None):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def matrix_to_list(matrix):
 
     return (
@@ -2460,7 +2446,7 @@ def matrix_to_list(matrix):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def list_to_matrix(list_matrix):
 
     m_matrix = om.MMatrix()
@@ -2472,7 +2458,7 @@ def list_to_matrix(list_matrix):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def get_obj_matrix(obj):
 
     m_xform = pm.xform(obj, worldSpace=True, m=1, q=1)
@@ -2482,7 +2468,7 @@ def get_obj_matrix(obj):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def symmetry_info(symmetry_mode):
     """
     Given symmetry info, logically derives other side/symmetry-related information
@@ -2512,7 +2498,7 @@ def symmetry_info(symmetry_mode):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, channel_box=False, enum_name=None,
              default_value=0, min_value=None, max_value=None, lock=False, parent="", number_of_children=0):
 
@@ -2656,7 +2642,7 @@ def get_attr_data(attr, node):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def migrate_attr(old_node, new_node, attr, include_connections=True, remove_original=True):
 
 
@@ -2698,7 +2684,7 @@ def migrate_attr(old_node, new_node, attr, include_connections=True, remove_orig
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def migrate_connections(old_attr, new_attr):
 
     plugs = pm.listConnections(old_attr, source=1, destination=0, plugs=1)
@@ -2714,7 +2700,7 @@ def migrate_connections(old_attr, new_attr):
 
 
 
-#####################################################################################################################---
+########################################################################################################################
 def drive_attr(obj_1, obj_2, attr):
 
     if not isinstance(attr, (list, tuple)):

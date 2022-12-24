@@ -16,13 +16,12 @@ rig = builder.build_prefab_armature(
     prefab_tag = "biped",
     symmetry_mode = "Left drives Right")
 #
-
 #rig = build_biped.execute()
 #rig.build_armature()
 
-'''builder.build_rig_in_scene(
+builder.build_rig_in_scene(
     armature=pm.ls("::biped_ARMATURE", type="transform")[0],
-    asset_name="test")'''
+    asset_name="test")
 
 
 # ----------------------------------------------------------------------------------------

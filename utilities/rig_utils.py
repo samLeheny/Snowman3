@@ -694,23 +694,8 @@ def get_skinClust_input_geo(skin_cluster, return_input_groupparts=False):
     input_geo = None
 
 
-    skin_clust_input_node = pm.listConnections(skin_cluster.input, source=1)
-    skinClust_groupParts = skin_clust_input_node[0] if skin_clust_input_node else None
-
-
-    groupparts_input_node = pm.listConnections(skinClust_groupParts.inputGeometry, source=1)
-    tweak = groupparts_input_node[0] if groupparts_input_node else None
-
-
-    tweak_input_node = pm.listConnections(tweak.input, source=1)
-    tweak_groupParts = tweak_input_node[0] if tweak_input_node else None
-    if return_input_groupparts:
-        return (tweak_groupParts)
-
-
-    tweak_groupParts_input_node = pm.listConnections(tweak_groupParts.inputGeometry, source=1)
-    input_geo = tweak_groupParts_input_node[0] if tweak_groupParts_input_node else None
-
+    skin_clust_input_node = pm.listConnections(skin_cluster.input, s=1, d=0, shapes=1)
+    input_geo = skin_clust_input_node[0] if skin_clust_input_node else None
 
     return input_geo
 
@@ -721,11 +706,7 @@ def get_skinClust_input_geo(skin_cluster, return_input_groupparts=False):
 ########################################################################################################################
 def mesh_to_skinClust_input(mesh, skin_cluster):
 
-    input_groupparts_node = None
-    input_groupparts_node = get_skinClust_input_geo(skin_cluster, return_input_groupparts=True)
-
-    if input_groupparts_node:
-        mesh.worldSpace[0].connect(input_groupparts_node.inputGeometry, force=True)
+    mesh.worldSpace[0].connect(skin_cluster.input[0].inputGeometry, force=True)
 
 
 

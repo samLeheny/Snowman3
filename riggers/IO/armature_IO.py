@@ -202,7 +202,7 @@ class ArmatureDataIO(object):
                             connections = pm.listConnections(constraint_node + "." + attr + letter, d=1, s=0)
                             if connections:
                                 for node in connections:
-                                    connected_nodes.append(node) if not node in connected_nodes else None
+                                    connected_nodes.append(node) if node not in connected_nodes else None
 
             for node in connected_nodes:
                 if amtr_utils.check_if_placer(node):

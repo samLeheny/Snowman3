@@ -241,8 +241,7 @@ class Armature:
                 scale = m_data["scale"],
                 drive_target = m_data["drive_target"],
                 draw_connections = m_data["draw_connections"],
-                color = m_data["color"],
-                modules_parent = self.root_groups["modules"]
+                color = m_data["color"]
             )
             new_module.placers_from_data(m_data["placers"])
 

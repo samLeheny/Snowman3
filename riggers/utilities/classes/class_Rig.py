@@ -139,8 +139,10 @@ class Rig:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def perform_module_attr_handoffs(self):
+
+        attr_exceptions = ("lock_info_visibility", "lock_info_translate", "lock_info_rotate", "lock_info_scale")
 
         rig_prefab_type = None
         if pm.attributeQuery("ArmatureName", node=self.armature, exists=1):
@@ -148,7 +150,7 @@ class Rig:
 
         self.attr_handoffs = get_armature_data.attr_handoffs(rig_prefab_type)
 
-        for key, data in self.attr_handoffs.iteritems():
+        for key, data in self.attr_handoffs.items():
             for handoff in data:
                 if key in ("root", "spine", "neck", "L_clavicle", "R_clavicle"):
                     module = self.modules[key]
@@ -158,6 +160,7 @@ class Rig:
                     new_ctrl = self.modules[new_ctrl_data[0]].ctrls[new_ctrl_data[1]]
 
                     attrs = pm.listAttr(old_ctrl, userDefined=1)
+                    [attrs.remove(a) for a in attr_exceptions]
                     for attr in attrs:
                         gen_utils.migrate_attr(old_ctrl, new_ctrl, attr)
 
@@ -168,7 +171,7 @@ class Rig:
 
 
 
-    #################################################################################################################---
+    ####################################################################################################################
     def populate_rig(self):
 
         # ...Get information from armature
@@ -192,7 +195,7 @@ class Rig:
         [module.populate_rig_module(rig_parent=self.rig_grp) for module in self.modules.values()]
 
         # ...Populate sided modules dictionary
-        for key, module in self.modules.iteritems():
+        for key, module in self.modules.items():
             if module.side in (nom.leftSideTag, nom.rightSideTag):
                 self.sided_modules[module.side][key] = module
 

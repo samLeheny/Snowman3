@@ -95,7 +95,7 @@ class RigModule:
         self.setup_module_ctrl = None
         self.settings_ctrl = None
         self.mConstruct = None
-        self.sockets
+        self.socket = {}
 
 
 
@@ -175,7 +175,7 @@ class RigModule:
     ####################################################################################################################
     def get_setup_module_ctrl(self):
 
-        search_string = "::{}{}_{}".format(self.side_tag, self.name, nom.animCtrl)
+        search_string = f'::{self.side_tag}{self.name}_{nom.animCtrl}'
 
         if pm.ls(search_string):
             self.setup_module_ctrl = pm.ls(search_string)[0]
@@ -191,11 +191,11 @@ class RigModule:
     ####################################################################################################################
     def populate_rig_module(self, rig_parent=None):
 
-        m = importlib.import_module(dir_string["module_build"].format(self.rig_module_type))
-        reload(m)
+        build_script = importlib.import_module(dir_string["module_build"].format(self.rig_module_type))
+        importlib.reload(build_script)
 
         exception_types = ["root"]
-        if not self.module_tag in exception_types:
+        if self.module_tag not in exception_types:
 
             # ...Create biped_spine rig group
             self.create_rig_module_grp(parent=rig_parent)
@@ -209,10 +209,9 @@ class RigModule:
             for key in ctrl_data:
 
                 self.ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
-
                 ctrl_data[key].finalize_anim_ctrl()
 
 
-        self.mConstruct = m.build(rig_module=self, rig_parent=rig_parent)
+        self.mConstruct = build_script.build(rig_module=self, rig_parent=rig_parent)
 
         return self.mConstruct
