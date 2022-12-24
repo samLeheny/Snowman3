@@ -30,6 +30,7 @@ nom = nameConventions.create_dict()
 '''
 joint
 control
+embed_transform_lock_data
 connector_curve
 orienter
 joint_rot_to_orient
@@ -202,7 +203,7 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
     if side:
         for key in side_dict:
             if side in side_dict[key]:
-                side_prefix = "{0}_".format(key)
+                side_prefix = f'{key}_'
                 break
 
 
@@ -212,19 +213,17 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
         num_particle = str(num_particle)
     if num_particle:
         if num_particle != "":
-            num_chunk = "_" + num_particle
+            num_chunk = f'_{num_particle}'
 
 
     # Determine control name
     name_chunk = name if name else ctrl_info["name"]
-    #name_chunk += num_chunk
-    ctrl_name = "{0}{1}{2}".format(side_prefix, name_chunk, ctrl_suffix)
+    ctrl_name = f'{side_prefix}{name_chunk}{ctrl_suffix}'
 
 
     # Check to see if a control with this name already exists
-    if pm.objExists('::'+ctrl_name):
-        pm.error("A control with name '{}' already exists".format(ctrl_name))
-
+    if pm.objExists(f'::{ctrl_name}'):
+        pm.error(f'A control with name "{ctrl_name}" already exists')
 
 
     # Determine control colour
@@ -237,7 +236,6 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
         scale = [ ctrl_info["scale"] if "scale" in ctrl_info else None ][0]
 
 
-
     # Determine shape offset factor
     shape_offset = [ ctrl_info["offset"] if "offset" in ctrl_info else [0, 0, 0] ][0]
 
@@ -245,7 +243,6 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
     # Determine forward and up direction
     forward_direction = [ ctrl_info["forward_direction"] if "forward_direction" in ctrl_info else [0, 0, 1] ][0]
     up_direction = [ ctrl_info["up_direction"] if "up_direction" in ctrl_info else [0, 1, 0] ][0]
-
 
 
     # Create the control's curve shape based on control info
@@ -260,33 +257,44 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
         side=side
     )
 
-
     # Embed lock information into hidden attributes on control
-    if 'locks' in ctrl_info:
-
-        locks = ctrl_info['locks']
-
-        # ...Fill in missing entries with zeroed lists
-        for key in ('t', 'r', 's', 'v'):
-            if key not in locks:
-                locks[key] = [0, 0, 0] if key in ('t', 'r', 's') else 0
-
-        pm.addAttr(ctrl, longName="LockAttrData", keyable=0, attributeType="compound", numberOfChildren=4)
-        for key in ('t', 'r', 's', 'v'):
-            pm.addAttr(ctrl, longName=f'LockAttrData{key.upper()}', keyable=0, dataType="string", parent="LockAttrData")
-        for key in ('t', 'r', 's', 'v'):
-            pm.setAttr(f'{ctrl}.LockAttrData{key.upper()}', str(locks[key]), type="string")
-
+    embed_transform_lock_data(ctrl, ctrl_info)
 
     # Parent control
-    if parent:
-        ctrl.setParent(parent)
-
+    ctrl.setParent(parent) if parent else None
 
 
     pm.select(clear=1)
     return ctrl
 
+
+
+
+
+########################################################################################################################
+def embed_transform_lock_data(ctrl, ctrl_info):
+
+    # ...Confirm lock data was provided. If not, skip embedding procedure
+    if 'locks' not in ctrl_info:
+        return False
+
+    locks = ctrl_info['locks']
+
+    # ...Fill in missing entries with zeroed lists
+    for key in ('t', 'r', 's', 'v'):
+        if key not in locks:
+            locks[key] = [0, 0, 0] if key in ('t', 'r', 's') else 0
+
+    # ...Add compound attr to ctrl
+    pm.addAttr(ctrl, longName="LockAttrData", keyable=0, attributeType="compound", numberOfChildren=4)
+    for key in ('t', 'r', 's', 'v'):
+        pm.addAttr(ctrl, longName=f'LockAttrData{key.upper()}', keyable=0, dataType="string", parent="LockAttrData")
+
+    # ...Embed lock data values in new attrs
+    for key in ('t', 'r', 's', 'v'):
+        pm.setAttr(f'{ctrl}.LockAttrData{key.upper()}', str(locks[key]), type="string")
+
+    return True
 
 
 
@@ -435,8 +443,8 @@ def orienter(name=None, side=None, scale=1):
               13, 13, 13,
               6, 6, 6]
     forms = ["periodic", "open", "open",
-                     "periodic", "open", "open",
-                     "periodic", "open", "open"]
+             "periodic", "open", "open",
+             "periodic", "open", "open"]
     degrees = [3, 1, 1,
                3, 1, 1,
                3, 1, 1]
@@ -717,36 +725,40 @@ def mesh_to_skinClust_input(mesh, skin_cluster):
 ########################################################################################################################
 def apply_ctrl_locks(ctrl):
     """
-        Checks for lock information in hidden attributes of provided control, then lock control's transforms in
-        accordance with that info
-        Args:
-            ctrl (mObj): The control whose transform attrs are to be locked.
+    Checks for lock data in hidden attributes of provided ctrl, then locks ctrl's transforms in accordance with that
+        data (translate, rotate, scale, and visibility.)
+    Args:
+        ctrl (mObj): The control whose transform attrs are to be locked.
     """
 
     attr_string = "LockAttrData"
 
-    if pm.attributeQuery(attr_string, node=ctrl, exists=1):
+    # ...Confirm lock data attrs are present on this ctrl
+    if not pm.attributeQuery(attr_string, node=ctrl, exists=1):
+        return False
 
-        # ...Attributes to look for, and the transforms each corresponds to
-        pairs = ((f'{attr_string}T', (ctrl.tx, ctrl.ty, ctrl.tz)),
-                 (f'{attr_string}R', (ctrl.rx, ctrl.ry, ctrl.rz)),
-                 (f'{attr_string}S', (ctrl.sx, ctrl.sy, ctrl.sz)))
+    # ...Dictionary pairing each child attr and the transform attrs it corresponds to
+    pairs = ((f'{attr_string}T', (ctrl.tx, ctrl.ty, ctrl.tz)),
+             (f'{attr_string}R', (ctrl.rx, ctrl.ry, ctrl.rz)),
+             (f'{attr_string}S', (ctrl.sx, ctrl.sy, ctrl.sz)))
 
 
-        for attr, ctrl_transforms in pairs:
-    
-            # ...Extract data from lock info attribute (get its string and convert to tuple of integers)
-            val = pm.getAttr(f'{ctrl}.{attr}')
-            string_list = ( val.split("[")[1].split("]")[0] )
-            string_list = string_list.split(", ")
-            info = ( int(string_list[0]), int(string_list[1]), int(string_list[2]) )
+    for attr, transform_attrs in pairs:
 
-            # ...Lock transform attribute in accordance with extracted lock info
-            for t, i in zip(ctrl_transforms, info):
-                t.set(lock=i, keyable=i^1)
+        # ...Extract data from lock info attribute (get its string and convert to tuple of integers)
+        string_val = pm.getAttr(f'{ctrl}.{attr}')
+        string_list = ( string_val.split("[")[1].split("]")[0] )
+        string_list = string_list.split(", ")
+        numeric_data = (int(string_list[0]), int(string_list[1]), int(string_list[2]))
 
-        # ...Remove left over lock info attribute. We're finished with it
-        pm.deleteAttr(ctrl, attribute=attr_string)
+        # ...Lock transform attrs in accordance with extracted lock info
+        for a, lock_val in zip(transform_attrs, numeric_data):
+            a.set(lock=lock_val, keyable=lock_val ^ 1)
+
+    # ...Delete lock data attribute. It has done its job. Now... it may rest.
+    pm.deleteAttr(ctrl, attribute=attr_string)
+
+    return True
 
 
 
