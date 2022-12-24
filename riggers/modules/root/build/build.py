@@ -31,7 +31,6 @@ def build(rig_module, rig_parent=None):
         ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
         ctrl_data[key].finalize_anim_ctrl()
 
-
     ctrls["root"].setParent(rig_parent) if rig_parent else None
     ctrls["subRoot"].setParent(ctrls["root"])
     ctrls["cog"].setParent(ctrls["subRoot"])

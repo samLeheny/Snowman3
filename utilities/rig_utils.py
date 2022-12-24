@@ -266,14 +266,16 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 
         locks = ctrl_info['locks']
 
-        string_pairs = [['t', 'lock_info_translate'], ['r', 'lock_info_rotate'], ['s', 'lock_info_scale'],
-                       ['v', 'lock_info_visibility']]
+        # ...Fill in missing entries with zeroed lists
+        for key in ('t', 'r', 's', 'v'):
+            if key not in locks:
+                locks[key] = [0, 0, 0] if key in ('t', 'r', 's') else 0
 
-        for pair in string_pairs:
-            [search_key, attr_name] = [pair[0], pair[1]]
-            if search_key in locks:
-                pm.addAttr(ctrl, longName=attr_name, keyable=0, dataType='string')
-                pm.setAttr('{}.{}'.format(ctrl, attr_name), str(locks[search_key]), type='string')
+        pm.addAttr(ctrl, longName="LockAttrData", keyable=0, attributeType="compound", numberOfChildren=4)
+        for key in ('t', 'r', 's', 'v'):
+            pm.addAttr(ctrl, longName=f'LockAttrData{key.upper()}', keyable=0, dataType="string", parent="LockAttrData")
+        for key in ('t', 'r', 's', 'v'):
+            pm.setAttr(f'{ctrl}.LockAttrData{key.upper()}', str(locks[key]), type="string")
 
 
     # Parent control
@@ -721,18 +723,20 @@ def apply_ctrl_locks(ctrl):
             ctrl (mObj): The control whose transform attrs are to be locked.
     """
 
-    # ...Attributes to look for, and the transforms each corresponds to
-    pairs = (("lock_info_translate", (ctrl.tx, ctrl.ty, ctrl.tz)),
-             ("lock_info_rotate", (ctrl.rx, ctrl.ry, ctrl.rz)),
-             ("lock_info_scale", (ctrl.sx, ctrl.sy, ctrl.sz)))
+    attr_string = "LockAttrData"
+
+    if pm.attributeQuery(attr_string, node=ctrl, exists=1):
+
+        # ...Attributes to look for, and the transforms each corresponds to
+        pairs = ((f'{attr_string}T', (ctrl.tx, ctrl.ty, ctrl.tz)),
+                 (f'{attr_string}R', (ctrl.rx, ctrl.ry, ctrl.rz)),
+                 (f'{attr_string}S', (ctrl.sx, ctrl.sy, ctrl.sz)))
 
 
-    for attr, ctrl_transforms in pairs:
-
-        if pm.attributeQuery(attr, node=ctrl, exists=1):
-
+        for attr, ctrl_transforms in pairs:
+    
             # ...Extract data from lock info attribute (get its string and convert to tuple of integers)
-            val = pm.getAttr(ctrl + "." + attr)
+            val = pm.getAttr(f'{ctrl}.{attr}')
             string_list = ( val.split("[")[1].split("]")[0] )
             string_list = string_list.split(", ")
             info = ( int(string_list[0]), int(string_list[1]), int(string_list[2]) )
@@ -741,8 +745,8 @@ def apply_ctrl_locks(ctrl):
             for t, i in zip(ctrl_transforms, info):
                 t.set(lock=i, keyable=i^1)
 
-            # ...Remove left over lock info attribute. We're finished with it
-            pm.deleteAttr(ctrl, attribute=attr)
+        # ...Remove left over lock info attribute. We're finished with it
+        pm.deleteAttr(ctrl, attribute=attr_string)
 
 
 

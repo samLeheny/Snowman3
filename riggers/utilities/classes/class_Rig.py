@@ -142,7 +142,7 @@ class Rig:
     ####################################################################################################################
     def perform_module_attr_handoffs(self):
 
-        attr_exceptions = ("lock_info_visibility", "lock_info_translate", "lock_info_rotate", "lock_info_scale")
+        attr_exceptions = ("LockAttrData", "LockAttrDataT", "LockAttrDataR", "LockAttrDataS", "LockAttrDataV")
 
         rig_prefab_type = None
         if pm.attributeQuery("ArmatureName", node=self.armature, exists=1):
@@ -160,7 +160,7 @@ class Rig:
                     new_ctrl = self.modules[new_ctrl_data[0]].ctrls[new_ctrl_data[1]]
 
                     attrs = pm.listAttr(old_ctrl, userDefined=1)
-                    [attrs.remove(a) for a in attr_exceptions]
+                    [attrs.remove(a) if a in attrs else None for a in attr_exceptions]
                     for attr in attrs:
                         gen_utils.migrate_attr(old_ctrl, new_ctrl, attr)
 

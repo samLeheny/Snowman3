@@ -99,10 +99,8 @@ def build_rig_in_scene(armature=None, asset_name=None):
     pm.namespace(add=nom.finalRigNamespace)
     pm.namespace(set=nom.finalRigNamespace)
 
-
     rig = Rig(name=asset_name, armature=armature)
     rig.populate_rig()
-
 
     # ...Put a bow on this puppy!
     rigWrapup.execute(modules=rig.modules)

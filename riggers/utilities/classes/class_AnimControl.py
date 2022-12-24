@@ -168,14 +168,14 @@ class AnimControl:
         self.get_prelim_ctrl() if not self.prelim_ctrl else None
 
         # ...Transfer lock information from prelim control to final control
-        for attr in ("lock_info_translate", "lock_info_rotate", "lock_info_scale", "lock_info_visibility"):
+        attr = "LockAttrData"
+        if pm.attributeQuery(attr, node=self.prelim_ctrl, exists=1):
+            pm.addAttr(self.ctrl_transform, longName=attr, keyable=0, attributeType="compound", numberOfChildren=4)
+            for key in ('T', 'R', 'S', 'V'):
+                pm.addAttr(self.ctrl_transform, longName=f'{attr}{key}', dataType="string", parent=attr)
 
-            if pm.attributeQuery(attr, node=self.prelim_ctrl, exists=1):
-
-                pm.addAttr(self.ctrl_transform, longName=attr, keyable=0, dataType="string")
-
-                pm.setAttr('{}.{}'.format(self.ctrl_transform, attr),
-                           pm.getAttr('{}.{}'.format(self.prelim_ctrl, attr)), type="string")
+        for attr in (f'{attr}T', f'{attr}R', f'{attr}S', f'{attr}V'):
+            pm.setAttr(f'{self.ctrl_transform}.{attr}', pm.getAttr(f'{self.prelim_ctrl}.{attr}'), type="string")
 
 
 
