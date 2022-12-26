@@ -38,7 +38,7 @@ LimbRig = class_LimbRig.LimbRig
 def build(rig_module, rig_parent=None):
 
 
-    '''
+
     # ...Create limb rig -----------------------------------------------------------------------------------------------
     limb_rig = LimbRig(limb_name = rig_module.name,
                        side = rig_module.side,
@@ -52,7 +52,7 @@ def build(rig_module, rig_parent=None):
                                            rig_module.orienters["ik_elbow"]))
 
     # ...Move contents of limb rig into biped_arm rig module's groups
-    for child in limb_rig.transform_grp.getChildren():
+    '''for child in limb_rig.transform_grp.getChildren():
         child.setParent(rig_module.transform_grp)
 
     for child in limb_rig.no_transform_grp.getChildren():

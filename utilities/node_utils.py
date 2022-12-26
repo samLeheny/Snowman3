@@ -505,8 +505,8 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
     input2_array = ["input2X", "input2Y", "input2Z"]
 
     if input2:
-        if isinstance(input2 (list, tuple)):
-            input2 = tuple(input2) if isinstance(input2, list) else None
+        if isinstance(input2, (list, tuple)):
+            input2 = tuple(input2) if not isinstance(list, tuple) else input2
             for i in range(3):
                 if isinstance(input2[i], (int, float)):
                     pm.setAttr(node + "." + input2_array[i], input2[i])

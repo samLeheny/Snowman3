@@ -152,7 +152,7 @@ class Rig:
 
         for key, data in self.attr_handoffs.items():
             for handoff in data:
-                if key in ("root", "spine", "neck", "L_clavicle", "R_clavicle"):
+                if key in ("root", "spine", "neck", "L_clavicle", "R_clavicle", "L_arm", "R_arm"):
                     module = self.modules[key]
 
                     old_ctrl_key, new_ctrl_data, delete_old_ctrl = handoff
@@ -179,7 +179,7 @@ class Rig:
         self.get_module_types()
 
         #for key in armature_modules:
-        for key in ("root", "spine", "neck", "L_clavicle", "R_clavicle"):
+        for key in ("root", "spine", "neck", "L_clavicle", "R_clavicle", "L_arm", "R_arm"):
 
             armature_module = self.get_armature_module_mObj(key)
 

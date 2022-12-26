@@ -934,27 +934,27 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
 def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, points_offset=None, up_direction=None,
                 forward_direction=None, side=None):
     """
-        Creates a nurbs curve from information in provided arguments.
-        Args:
-            name (string): Curve name.
-            color (numeric/ [float, float, float]): Override color of curve. If an integer is provided, will use as
-                override color index. If list of three numbers (integers or floats) is provided, will use as RGB color.
-            form (string): Determines whether curve shape should be a closed loop. Acceptable
-                inputs: 'open', 'periodic'
-            cvs (list): List of coordinates for curve CVs.
-            degree (int): Curve smoothing degree. Acceptable degrees: 1, 3.
-            scale (numeric): Factor by which to scale shape CV placement vectors. Defines scale of resulting curve
-                shape.
-            points_offset ([float, float, float]): The vector by which to offset the entire curve shape.
-            up_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's
-                local positive y direction.
-            forward_direction ([float, float, float]): The unit vector indicating the world direction of the curve
-                shape's local positive z direction.
-            side (string): In the event multiple colours are provided, the side argument will be used to determine which
-                colour to use.
-        Returns:
-            (mTransform object) The newly created curve object.
-        """
+    Creates a nurbs curve from information in provided arguments.
+    Args:
+        name (string): Curve name.
+        color (numeric/ [float, float, float]): Override color of curve. If an integer is provided, will use as
+            override color index. If list of three numbers (integers or floats) is provided, will use as RGB color.
+        form (string): Determines whether curve shape should be a closed loop. Acceptable
+            inputs: 'open', 'periodic'
+        cvs (list): List of coordinates for curve CVs.
+        degree (int): Curve smoothing degree. Acceptable degrees: 1, 3.
+        scale (numeric): Factor by which to scale shape CV placement vectors. Defines scale of resulting curve
+            shape.
+        points_offset ([float, float, float]): The vector by which to offset the entire curve shape.
+        up_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's local
+        positive y direction.
+        forward_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's
+            local positive z direction.
+        side (string): In the event multiple colours are provided, the side argument will be used to determine which
+            colour to use.
+    Returns:
+        (mTransform object) The newly created curve object.
+    """
 
     up_direction = up_direction if up_direction else (0, 1, 0)
     forward_direction = forward_direction if forward_direction else (0, 0, 1)
@@ -974,7 +974,7 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
 
 
     # Build a list of points at which to place the curve's CVs (incorporating scale and points_offset)
-    points = [[v[i] * scale[i] for i in range(3)] for v in cvs]
+    points = [[(v[i] * scale[i]) + points_offset[i] for i in range(3)] for v in cvs]
     # This appears to be a rare case of vanilla Python being faster than Numpy
     # points = np.array(cvs).astype(float)
     # for i in range(3):
