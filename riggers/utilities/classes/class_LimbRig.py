@@ -31,6 +31,50 @@ nom = nameConventions.create_dict()
 default_socket_name = 'limbSocket'
 default_pv_name = 'poleVector'
 ctrl_colors = {"FK": 13, "IK": 6, "other": 17, "sub": (15, 4)}
+prefab_inputs = {
+        'plantigrade': {
+            'default_seg_names' : ['upperlimb', 'lowerlimb', 'extrem'],
+            'default_jnt_positions' : ((0, 0, 0), (1, 0, -0.5), (2, 0, 0), (2.5, 0, 0)),
+            'dynamic_length_values' : (1, 1, 0, 0),
+            'double_jnt_values' : (0, 0, 0, 0),
+            'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
+            'tarsus_index': None
+        },
+        'plantigrade_doubleKnee': {
+            'default_seg_names': ['upperlimb', 'joint', 'lowerlimb', 'extrem'],
+            'default_jnt_positions': ((0, 0, 0), (0.9, 0, -0.5), (1.1, 0, -0.5), (2, 0, 0), (2.5, 0, 0)),
+            'dynamic_length_values': (1, 0, 1, 0, 0),
+            'double_jnt_values' : (0, 1, 0, 0, 0),
+            'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
+            'tarsus_index': None
+        },
+        'digitigrade': {
+            'default_seg_names': ['upperlimb', 'lowerlimb', 'tarsus', 'extrem'],
+            'default_jnt_positions': ((0, 0, 0), (0.75, 0, -0.5), (1.5, 0, 0.25), (2, 0, 0), (2.5, 0, 0)),
+            'dynamic_length_values': (1, 1, 1, 0, 0),
+            'double_jnt_values' : (0, 0, 0, 0, 0),
+            'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
+            'tarsus_index': 2
+        },
+        'digitigrade_doubleKnees': {
+            'default_seg_names': ['upperlimb', 'frontKnee', 'lowerlimb', 'backKnee', 'tarsus', 'extrem'],
+            'default_jnt_positions': ((0, 0, 0), (0.65, 0, -0.5), (0.85, 0, -0.5), (1.4, 0, 0.25), (1.6, 0, 0.25),
+                                      (2, 0, 0), (2.5, 0, 0)),
+            'dynamic_length_values': (1, 0, 1, 0, 1, 0, 0),
+            'double_jnt_values' : (0, 1, 0, 1, 0, 0),
+            'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
+            'tarsus_index': 4
+        },
+        'digitigrade_doubleFrontKnee': {
+            'default_seg_names': ['upperlimb', 'frontKnee', 'lowerlimb', 'tarsus', 'extrem'],
+            'default_jnt_positions': ((0, 0, 0), (0.65, 0, -0.5), (0.85, 0, -0.5), (1.5, 0, 0.25), (2, 0, 0),
+                                      (2.5, 0, 0)),
+            'dynamic_length_values': (1, 0, 1, 1, 0, 0),
+            'double_jnt_values' : (0, 1, 0, 0, 0, 0),
+            'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
+            'tarsus_index': 3
+        },
+    }
 ###########################
 ###########################
 
@@ -44,6 +88,7 @@ class LimbRig:
     def __init__(
         self,
         limb_name,
+        prefab,
         side = None,
         segment_names = None,
         jnt_positions = None,
@@ -51,22 +96,32 @@ class LimbRig:
         pv_name = None
     ):
         self.limb_name = limb_name
+        self.prefab = prefab
         self.side = side
         self.side_tag = f'{self.side}_' if self.side else ""
-        self.segments = None
+        self.segments = []
         self.segment_count = None
         self.segment_names = segment_names
         self.jnt_positions = jnt_positions
         self.limb_ik_start_jnt_index = None
         self.limb_ik_end_jnt_index = None
         self.limb_ik_mid_jnt_index = None
-        self.jnt_position_holders = None
+        self.jnt_position_holders = []
         self.pv_position_holder = None
         self.grps = {}
         self.ctrls = {}
         self.ctrl_colors = ctrl_colors
         self.socket_name = socket_name if socket_name else default_socket_name
         self.pv_name = pv_name if pv_name else default_pv_name
+        self.blend_jnt_chain_buffer = None
+        self.fk_chain_buffer = None
+        self.ik_jnt_chain_buffer = None
+        self.ik_end_marker = None
+        self.ik_handles, self.ik_solvers, self.ik_effectors = {}, {}, {}
+        self.ik_display_crv = None
+        self.ik_extrem_dist = None
+
+        self.build_prefab(self.prefab)
 
 
 
@@ -74,50 +129,42 @@ class LimbRig:
 
     ####################################################################################################################
     def build_prefab(self, prefab_key):
-        prefab_methods = {
-            "plantigrade": self.build_prefab_plantigrade,
-            #"plantigrade_doubleKnee": self.build_prefab_plantigrade_doubleKnee,
-            #"digitigrade": self.build_prefab_digitigrade,
-            #"digitigrade_doubleKnees": self.build_prefab_digitigrade_doubleKnees,
-            #"digitigrade_doubleFrontKnee": self.build_prefab_digitigrade_doubleFrontKnee,
-        }
 
-        prefab_methods[prefab_key]()
+        inputs = prefab_inputs[prefab_key]
 
-
-
-
-
-    ####################################################################################################################
-    def build_prefab_plantigrade(self):
-
-        default_seg_names = ('upperlimb', 'lowerlimb', 'extrem')
-        default_jnt_positions = ((0, 0, 0), (1, 0, -0.5), (2, 0, 0), (2.5, 0, 0))
+        default_seg_names = inputs['default_seg_names']
+        default_jnt_positions = inputs['default_jnt_positions']
+        dynamic_length_values = inputs['dynamic_length_values']
 
         if not self.segment_names: self.segment_names = default_seg_names
+        self.segment_names.append(f'{self.segment_names[-1]}End')
         if not self.jnt_positions: self.jnt_positions = default_jnt_positions
 
-        for i, name in enumerate(default_seg_names):
+        for i, name in enumerate(self.segment_names):
+            end_world_position = default_jnt_positions[i + 1] if i < len(default_seg_names) else None
             new_segment = LimbSegment(segment_name = name,
                                       side = self.side,
+                                      index = i,
                                       start_world_position = default_jnt_positions[i],
-                                      end_world_position = default_jnt_positions[i + 1])
+                                      end_world_position = end_world_position,
+                                      dynamic_length = dynamic_length_values[i],
+                                      double_jnt_status = inputs['double_jnt_values'][i])
             self.segments.append(new_segment)
 
         self.segment_count = len(self.segments)
-        self.limb_ik_start_jnt_index = 0
-        self.limb_ik_end_jnt_index = -2
-        self.limb_ik_mid_jnt_index = 1
+        self.limb_ik_start_jnt_index = inputs['ik_indices']['start']
+        self.limb_ik_end_jnt_index = inputs['ik_indices']['end']
+        self.limb_ik_mid_jnt_index = inputs['ik_indices']['mid']
 
         self.create_position_holders()
         self.create_rig_grps()
         self.create_rig_socket_ctrl()
         self.create_length_mult_nodes()
-        ### self.collect_all_segment_nodes(main_seg_indices=(0, 1))
         self.blend_rig()
-        self.fk_rig(('s', 's', 's'))
-        self.ik_rig(dyn_length_jnts=(0, 1), ik_jnt_indices=(0, 2), extrem_jnt_indices=(2, 3))
-        self.setup_kinematic_blend(dyn_len_jnt_indices=(0, 1))
+        self.fk_rig()
+        self.ik_rig(tarsus_index=inputs['tarsus_index'], limb_ik_start_index=inputs['ik_indices']['start'],
+                    limb_ik_end_index=inputs['ik_indices']['end'])
+        self.setup_kinematic_blend()
 
 
 
@@ -165,7 +212,7 @@ class LimbRig:
         pm.delete(pm.aimConstraint(self.jnt_position_holders[self.limb_ik_mid_jnt_index], loc, worldUpType='object',
                   worldUpObject=self.jnt_position_holders[0], aimVector=(0, 0, -1), upVector=(-1, 0, 0)))
         gen_utils.buffer_obj(loc)
-        loc.tx.set(sum([seg.segment_lengths for seg in self.segments.values()]) * -1)
+        loc.tz.set(sum([seg.segment_length for seg in self.segments]) * -1)
         ### loc.tz.set(sum(self.segment_lengths)*-1)
 
 
@@ -244,7 +291,10 @@ class LimbRig:
     ####################################################################################################################
     def create_length_mult_nodes(self):
 
-        [seg.create_length_mult_node(self.ctrls['socket']) if seg.dynamic_length else None for seg in self.segments]
+        for i, seg in enumerate(self.segments):
+            if i == len(self.segments)-1:
+                continue
+            seg.create_length_mult_node(self.ctrls['socket']) if not seg.double_jnt else None
 
 
 
@@ -315,41 +365,42 @@ class LimbRig:
         pm.select(clear=1)
 
         # ...Create joints ---------------------------------------------------------------------------------------------
-
-        for i in range(self.segment_count + 1):
-            jnt = rig_utils.joint(name=f'{self.jnt_names[i]}_blend', side=self.side, joint_type=nom.nonBindJnt,
-                                  radius=0.1)
-            self.blend_jnts.append(jnt)
-            jnt.setParent(self.blend_jnts[i-1]) if i > 0 else None
+        for i, seg in enumerate(self.segments):
+            blend_jnt = seg.blend_jnt = rig_utils.joint(name=f'{seg.segment_name}_blend', side=self.side,
+                                                        joint_type=nom.nonBindJnt, radius=0.1)
+            if i > 0:
+                blend_jnt.setParent(self.segments[i - 1].blend_jnt)
 
 
         # ...Wrap top of chain in a buffer group -----------------------------------------------------------------------
-        self.blend_jnt_chain_buffer = gen_utils.buffer_obj(self.blend_jnts[0])
+        self.blend_jnt_chain_buffer = gen_utils.buffer_obj(self.segments[0].blend_jnt)
         if self.side == nom.rightSideTag:
             gen_utils.flip(self.blend_jnt_chain_buffer)
 
 
         # Position Jnts ------------------------------------------------------------------------------------------------
-        for i in range(1, self.segment_count + 1):
-            self.blend_jnts[i].tx.set(self.segment_lengths[i-1])
+        for i, seg in enumerate(self.segments):
+            if i == 0: continue
+            seg.blend_jnt.tx.set(self.segments[i - 1].segment_length)
 
 
         # Orient Jnts --------------------------------------------------------------------------------------------------
-        nodes_to_orient = self.blend_jnts[:]
+        nodes_to_orient = [seg.blend_jnt for seg in self.segments]
         nodes_to_orient[0] = self.blend_jnt_chain_buffer
         nodes_to_orient.remove(nodes_to_orient[-1])
         for i, node in enumerate(nodes_to_orient):
-            pm.delete(pm.aimConstraint(self.position_holders[i+1], node, worldUpType="scene", aimVector=(1, 0, 0),
+            pm.delete(pm.aimConstraint(self.jnt_position_holders[i+1], node, worldUpType="scene", aimVector=(1, 0, 0),
                                        upVector=(0, 1, 0), worldUpVector=(0, 1, 0)))
 
-        self.blend_jnts[-1].rotate.set(0, 0, 0)
-        self.blend_jnts[-1].scale.set(1, 1, 1)
+        self.segments[-1].blend_jnt.rotate.set(0, 0 ,0)
+        self.segments[-1].blend_jnt.scale.set(1, 1, 1)
 
 
         # ...Clean joint rotations -------------------------------------------------------------------------------------
-        for i in range(1, self.segment_count + 1):
-            self.blend_jnts[i].jointOrient.set(self.blend_jnts[i].rotate.get() + self.blend_jnts[i].jointOrient.get())
-            self.blend_jnts[i].rotate.set(0, 0, 0)
+        for i, seg in enumerate(self.segments):
+            if i == 0: continue
+            seg.blend_jnt.jointOrient.set(seg.blend_jnt.rotate.get() + seg.blend_jnt.jointOrient.get())
+            seg.blend_jnt.rotate.set(0, 0, 0)
 
 
         self.blend_jnt_chain_buffer.setParent(self.ctrls['socket'])
@@ -369,6 +420,542 @@ class LimbRig:
 
 
 
+    ####################################################################################################################
+    def fk_rig(self):
+
+        i = 0
+        jnt_parent = None
+        for n, seg in enumerate(self.segments):
+            if n == self.segment_count-1:
+                continue
+
+            fk_ctrl = None
+
+            if not seg.double_jnt:
+                # ...Single-jointed FK ctrl
+                # ...Create and parent control
+                parent = self.segments[n-1].fk_jnt_cap
+                fk_ctrl = seg.fk_ctrl = rig_utils.control(ctrl_info={
+                    'shape': 'cube',
+                    'scale': [seg.segment_length / 2 * 0.93,
+                              seg.segment_length / 2 * (0.93 * 0.25),
+                              seg.segment_length / 2 * (0.93 * 0.25)],
+                    'offset': [seg.segment_length / 2, 0, 0]},
+                    name=f'{seg.segment_name}_FK',
+                    ctrl_type=nom.animCtrl,
+                    side=self.side,
+                    parent=parent,
+                    color=self.ctrl_colors['FK']
+                )
+                jnt_parent = fk_ctrl
+
+            if  seg.double_jnt:
+                jnt_parent = self.segments[n-1].fk_jnt_cap
+            jnt = seg.fk_jnt = rig_utils.joint(name=f'{seg.segment_name}_fk', side=self.side, joint_type=nom.nonBindJnt,
+                                               radius=0.08, color=2, parent=jnt_parent)
+            cap_jnt = seg.fk_jnt_cap = rig_utils.joint(name=f'{seg.segment_name}_fkCap', side=self.side,
+                                                       joint_type=nom.nonBindJnt, radius=0.04, color=2, parent=jnt)
+            cap_jnt.tx.set(seg.segment_length)
+
+            # ...Position control
+            seg_start_node = jnt if seg.double_jnt else fk_ctrl
+            orig_parent = seg_start_node.getParent()
+            seg_start_node.setParent(seg.blend_jnt)
+            gen_utils.zero_out(seg_start_node)
+            seg_start_node.setParent(orig_parent) if orig_parent else seg_start_node.setParent(world=1)
+            gen_utils.convert_offset(seg_start_node) if not seg.double_jnt else None
+
+
+            if self.segments[n-1].double_jnt:
+                node_utils.multiplyDivide(input1=fk_ctrl.rotate, input2=(0.5, 0.5, 0.5),
+                                          output=self.segments[n-1].fk_jnt.rotate)
+                node_utils.multiplyDivide(input1=fk_ctrl.rotate, input2=(-0.5, -0.5, -0.5),
+                                          output=self.segments[n-1].fk_jnt_cap.rotate)
+
+
+        # ...Wrap top of ctrl chain in buffer group --------------------------------------------------------------------
+        gen_utils.convert_offset(self.segments[i].fk_ctrl, reverse=True)
+        self.fk_chain_buffer = gen_utils.buffer_obj(self.segments[0].fk_ctrl, parent=self.ctrls['socket'])
+        self.fk_chain_buffer.setParent(self.ctrls['socket'])
+
+        # ...Connect FK segment lengths to settings attributes ---------------------------------------------------------
+        for i, seg in enumerate(self.segments):
+            if i == len(self.segments)-1:
+                continue
+            if seg.length_mult_node:
+                pm.listConnections(seg.length_mult_node.input2, s=1, d=0, plugs=1)[0].connect(seg.fk_jnt.sx)
+
+        # --------------------------------------------------------------------------------------------------------------
+        pm.select(clear=1)
+
+
+
+
+
+    ####################################################################################################################
+    def ik_rig(self, limb_ik_start_index, limb_ik_end_index, tarsus_index=None):
+
+        self.create_ik_jnt_chain()
+        self.create_ik_ctrls(tarsus_index=tarsus_index)
+        self.install_limb_ik_solver(limb_ik_start_index, limb_ik_end_index)
+        self.install_extrem_ik_solver()
+        if tarsus_index:
+            self.install_tarsus_ik_solver(tarsus_index=tarsus_index)
+
+        stretchy_indices = []
+        compensate_seg_indices = []
+        positive_limb_ik_end_index = self.segments.index(self.segments[limb_ik_end_index])
+        ik_indices = range(limb_ik_start_index, positive_limb_ik_end_index)
+        for i, seg in enumerate(self.segments):
+            if i in ik_indices:
+                if seg.double_jnt:
+                    compensate_seg_indices.append(i)
+                else:
+                    stretchy_indices.append(i)
+
+        self.stretchy_ik(subject_indices=stretchy_indices, compensate_seg_indices=compensate_seg_indices,
+                         ik_end_index=positive_limb_ik_end_index)
+
+
+
+
+
+    ####################################################################################################################
+    def create_ik_jnt_chain(self):
+
+        # ...Create joints ---------------------------------------------------------------------------------------------
+        for seg in self.segments:
+            jnt = seg.ik_jnt = rig_utils.joint(name=f'{seg.segment_name}_ik', side=self.side, joint_type=nom.nonBindJnt,
+                                               radius=0.08, color=2)
+
+            constraint_target = seg.ik_constraint_target = pm.shadingNode('transform',
+                                                                          name=f'{seg.segment_name}_ik_target', au=1)
+            constraint_target.setParent(jnt)
+            gen_utils.zero_out(constraint_target)
+
+            pm.select(clear=1)
+
+
+        # ...Parent joints into a chain --------------------------------------------------------------------------------
+        for i, seg in enumerate(self.segments):
+            if i == 0:
+                continue
+            seg.ik_jnt.setParent(self.segments[i-1].ik_jnt)
+
+        # ...Wrap top of chain in a buffer group -----------------------------------------------------------------------
+        self.ik_jnt_chain_buffer = gen_utils.buffer_obj(self.segments[0].ik_jnt, parent=self.ctrls['socket'])
+
+        # ...Position and orient joints --------------------------------------------------------------------------------
+        match_nodes = [seg.ik_jnt for seg in self.segments]
+        match_nodes[0] = self.ik_jnt_chain_buffer
+        for i, node in enumerate(match_nodes):
+            pm.delete(pm.parentConstraint(self.segments[i].blend_jnt, node))
+            node.scale.set(1, 1, 1)
+
+        # Orient Jnts --------------------------------------------------------------------------------------------------
+        for i, node in enumerate(match_nodes):
+            if i == self.segment_count - 1:
+                continue
+            pm.delete(pm.aimConstraint(self.jnt_position_holders[i + 1], node, worldUpType='object',
+                                       aimVector=(1, 0, 0), upVector=(0, 0, -1), worldUpObject=self.pv_position_holder))
+        self.segments[-1].ik_jnt.rotate.set(0, 0, 0)
+        self.segments[-1].ik_jnt.scale.set(1, 1, 1)
+
+        # ...Clean joint rotations -------------------------------------------------------------------------------------
+        for seg in self.segments:
+            seg.ik_jnt.jointOrient.set(seg.ik_jnt.rotate.get() + seg.ik_jnt.jointOrient.get())
+            seg.ik_jnt.rotate.set(0, 0, 0)
+
+        # ...Connect IK joint lengths to settings attributes -----------------------------------------------------------
+        for i, seg in enumerate(self.segments):
+            if seg.length_mult_node:
+                seg.length_mult_node.output.connect(self.segments[i+1].ik_jnt.tx)
+
+        # --------------------------------------------------------------------------------------------------------------
+        pm.select(clear=1)
+
+
+
+
+
+    ####################################################################################################################
+    def create_ik_ctrls(self, tarsus_index=None):
+
+        # ...Create controls -------------------------------------------------------------------------------------------
+        self.ctrls['ik_extrem'] = rig_utils.control(ctrl_info = {'shape': 'circle',
+                                                                 'scale': [0.25, 0.25, 0.25],
+                                                                 'up_direction': [1, 0, 0]},
+                                                    name = f'{self.segments[-1].segment_name}_IK',
+                                                    ctrl_type = nom.animCtrl,
+                                                    side = self.side,
+                                                    color = self.ctrl_colors['IK'])
+        extrem_buffer = gen_utils.buffer_obj(self.ctrls['ik_extrem'], parent=self.grps['transform'])
+
+
+        self.ctrls['ik_pv'] = rig_utils.control(ctrl_info = {'shape': 'sphere',
+                                                             'scale': [0.1, 0.1, 0.1]},
+                                                name = f'{self.pv_name}_IK',
+                                                ctrl_type = nom.animCtrl,
+                                                side = self.side,
+                                                color = self.ctrl_colors["IK"])
+        pv_buffer = gen_utils.buffer_obj(self.ctrls['ik_pv'], parent=self.grps['transform'])
+
+
+        tarsus_buffer = None
+        if tarsus_index:
+            self.ctrls['ik_tarsus'] = rig_utils.control(ctrl_info={
+                'shape': 'sphere',
+                'scale': [self.segments[-2].segment_length/4,
+                          self.segments[-2].segment_length/4,
+                          self.segments[-2].segment_length/4]},
+                name=f'{self.segments[-2].segment_name}_IK',
+                ctrl_type=nom.animCtrl,
+                side=self.side,
+                color=self.ctrl_colors['IK'])
+            tarsus_buffer = gen_utils.buffer_obj(self.ctrls['ik_tarsus'], parent=self.ctrls['ik_extrem'])
+
+
+        # ...Position controls -----------------------------------------------------------------------------------------
+        extrem_buffer.setParent(self.segments[-2].ik_jnt)
+        gen_utils.zero_out(extrem_buffer)
+        extrem_buffer.setParent(self.grps['transform'])
+
+        gen_utils.zero_out(pv_buffer)
+        pm.delete(pm.parentConstraint(self.segments[0].blend_jnt, self.segments[-2].blend_jnt, pv_buffer))
+        extrem_dist = gen_utils.distance_between(position_1=self.segments[0].start_world_position,
+                                                 position_2=self.segments[-2].start_world_position)
+        pv_buffer.tz.set(pv_buffer.tz.get() + (-extrem_dist) * 0.8)
+
+        if tarsus_index:
+            tarsus_buffer.setParent(self.segments[-2].blend_jnt)
+            gen_utils.zero_out(tarsus_buffer)
+            tarsus_buffer.setParent(self.ctrls['ik_extrem'])
+
+        # ...Drive IK extrem scale via socket ctrl's Limb Scale attr
+        [pm.connectAttr(f'{self.ctrls["socket"]}.LimbScale',
+                        f'{self.ctrls["ik_extrem"]}.{a}') for a in ('sx', 'sy', 'sz')]
+
+
+
+
+
+
+    ####################################################################################################################
+    def install_limb_ik_solver(self, start_jnt_index, end_effector_index):
+
+        ik_handle, ik_eff = pm.ikHandle(name=f'{self.side_tag}{self.limb_name}_{nom.ikHandle}',
+                                        startJoint=self.segments[start_jnt_index].ik_jnt,
+                                        endEffector=self.segments[end_effector_index].ik_jnt, solver="ikRPsolver")
+        ik_eff.rename(f'{self.side_tag}ik_{self.limb_name}_{nom.effector}')
+
+        self.ik_end_marker = pm.spaceLocator(name=f'{self.side_tag}{self.limb_name}_ikEndMarker_{nom.locator}')
+        self.ik_end_marker.getShape().localScale.set(0.2, 0.2, 0.2)
+        self.ik_end_marker.setParent(self.segments[end_effector_index].ik_jnt)
+        gen_utils.zero_out(self.ik_end_marker)
+        if 'ik_tarsus' in self.ctrls:
+            self.ik_end_marker.setParent(self.ctrls['ik_tarsus'])
+        else:
+            self.ik_end_marker.setParent(self.ctrls['ik_extrem'])
+        self.ik_end_marker.rotate.set(0, 0, 0)
+        ik_handle.setParent(self.ik_end_marker)
+        gen_utils.zero_out(ik_handle)
+
+        self.ik_handles["limb"], self.ik_effectors["limb"] = ik_handle, ik_eff
+
+        self.ik_solvers["limb"] = pm.listConnections(f'{ik_handle}.ikSolver', source=True)[0]
+
+        pm.poleVectorConstraint(self.ctrls["ik_pv"], self.ik_handles["limb"])
+
+
+        # ...Display curve ---------------------------------------------------------------------------------------------
+        self.ik_display_crv = rig_utils.connector_curve(name=f'{self.side_tag}ik_{self.segment_names[-2]}',
+                                                        end_driver_1=self.segments[1].ik_jnt,
+                                                        end_driver_2=self.ctrls["ik_pv"],
+                                                        override_display_type=1, line_width=-1.0,
+                                                        parent=self.grps['transform'])[0]
+
+        if self.side == nom.rightSideTag:
+            [pm.setAttr(f'{self.ik_display_crv}.{a}', lock=0) for a in gen_utils.all_transform_attrs]
+            gen_utils.flip(self.ik_display_crv)
+            [pm.setAttr(f'{self.ik_display_crv}.{a}', lock=1) for a in gen_utils.all_transform_attrs]
+
+
+        # --------------------------------------------------------------------------------------------------------------
+        pm.select(clear=1)
+
+
+
+
+
+    ####################################################################################################################
+    def install_extrem_ik_solver(self):
+
+        # ...Create solver
+        [self.ik_handles["extrem"], self.ik_effectors["extrem"]] = pm.ikHandle(
+            name=f'{self.side_tag}{self.segments[-2].segment_name}_{nom.ikHandle}',
+            startJoint=self.segments[-2].ik_jnt,
+            endEffector=self.segments[-1].ik_jnt, solver="ikSCsolver")
+
+        # ...Rename effector
+        self.ik_effectors["extrem"].rename(
+            f'{self.side_tag}ik_{self.segments[-2].segment_name}_{nom.effector}')
+
+        self.ik_handles["extrem"].setParent(self.ctrls["ik_extrem"])
+
+
+
+
+
+    ####################################################################################################################
+    def install_tarsus_ik_solver(self, tarsus_index):
+
+        # ...Create solver
+        [self.ik_handles["tarsus"], self.ik_effectors["tarsus"]] = pm.ikHandle(
+            name=f'{self.side_tag}{self.segments[tarsus_index].segment_name}_{nom.ikHandle}',
+            startJoint=self.segments[tarsus_index].ik_jnt,
+            endEffector=self.segments[tarsus_index+1].ik_jnt, solver="ikSCsolver")
+
+        # ...Rename effector
+        self.ik_effectors["extrem"].rename(
+            f'{self.side_tag}ik_{self.segments[tarsus_index].segment_name}_{nom.effector}')
+
+        self.ik_handles["tarsus"].setParent(self.ctrls["ik_extrem"])
+
+
+
+
+
+    ####################################################################################################################
+    def stretchy_ik(self, ik_end_index, squash=True, soft_ik=True, subject_indices=(0, 1), compensate_seg_indices=None):
+
+        pm.addAttr(self.ctrls['socket'], longName='stretchy_ik', attributeType='float', minValue=0, maxValue=10,
+                   defaultValue=10, keyable=1)
+        pm.addAttr(self.ctrls['socket'], longName='squash_ik', attributeType='float', minValue=0, maxValue=10,
+                   defaultValue=0, keyable=1)
+
+        total_limb_len_sum = self.get_length_sum(ik_end_index)
+
+
+        ik_extrem_dist = self.ik_extrem_dist = node_utils.distanceBetween(
+            inMatrix1=self.ctrls['socket'].worldMatrix,
+            inMatrix2=self.ik_end_marker.worldMatrix)
+
+        scaled_extrem_dist = node_utils.floatMath(floatA=ik_extrem_dist.distance,
+                                                  floatB=f'{self.grps["root"]}.RigScale', operation=3)
+
+        if not compensate_seg_indices:
+            extrem_dist_output = scaled_extrem_dist.outFloat
+            len_total_output = total_limb_len_sum.output
+        else:
+            len_compensate = sum(
+                [gen_utils.distance_between(obj_1=self.segments[i].ik_jnt,
+                                            obj_2=self.segments[i+1].ik_jnt) for i in compensate_seg_indices])
+            extrem_dist_output = node_utils.floatMath(floatA=scaled_extrem_dist.outFloat, floatB=len_compensate,
+                                                      operation=1).outFloat
+            len_total_output = node_utils.floatMath(floatA=total_limb_len_sum.output, floatB=len_compensate,
+                                                    operation=1).outFloat
+
+
+        limb_straigtness_div = node_utils.floatMath(floatA=extrem_dist_output,
+                                                    floatB=len_total_output, operation=3)
+
+        straight_condition = node_utils.condition(colorIfTrue=(limb_straigtness_div.outFloat, 0, 0),
+                                                  colorIfFalse=(1, 1, 1), operation=2,
+                                                  firstTerm=scaled_extrem_dist.outFloat,
+                                                  secondTerm=total_limb_len_sum.output)
+
+        [straight_condition.outColor.outColorR.connect(self.segments[i].ik_jnt.sx) for i in subject_indices]
+
+        # ...Make stretch optional -------------------------------------------------------------------------------------
+        stretch_option_remap = node_utils.remapValue(inputValue=f'{self.ctrls["socket"]}.stretchy_ik',
+                                                     outputMin=1, inputMax=10,
+                                                     outputMax=straight_condition.outColor.outColorR,)
+        [stretch_option_remap.outValue.connect(self.segments[i].ik_jnt.sx, force=1) for i in subject_indices]
+
+
+        # ...Squash option ---------------------------------------------------------------------------------------------
+        if squash:
+            squash_remap = node_utils.remapValue(inputValue=f'{self.ctrls["socket"]}.squash_ik',
+                                                 inputMax=10, outputMin=1, outputMax=limb_straigtness_div.outFloat,
+                                                 outValue=straight_condition.colorIfFalse.colorIfFalseR)
+
+
+        # ...Include Soft IK effect ------------------------------------------------------------------------------------
+        if soft_ik:
+            pm.addAttr(self.ctrls['socket'], longName='soft_ik', niceName='Soft IK', attributeType=float,
+                       minValue=0, maxValue=10, defaultValue=0, keyable=1)
+
+            num_space_div = node_utils.floatMath(floatA=100, floatB=total_limb_len_sum.output, operation=3)
+
+            ratio_mult = node_utils.multDoubleLinear(input1=num_space_div.outFloat, input2=ik_extrem_dist.distance)
+
+            anim_crv = self.soft_ik_curve(input=ratio_mult.output)
+
+            soft_ik_weight_remap = node_utils.remapValue(inputValue=f'{self.ctrls["socket"]}.soft_ik',
+                                                         outputMax=anim_crv.output, inputMax=10, outputMin=1)
+
+            soft_ik_weight_mult = node_utils.multDoubleLinear(input1=stretch_option_remap.outValue,
+                                                              input2=soft_ik_weight_remap.outValue)
+            [soft_ik_weight_mult.output.connect(self.segments[i].ik_jnt.sx, force=1) for i in subject_indices]
+
+
+
+
+
+
+    ####################################################################################################################
+    def get_length_sum(self, ik_end_index):
+
+        # ...Combine initial two lengths in first sum
+        first_sum = node_utils.addDoubleLinear(input1=self.segments[0].segment_length,
+                                               input2=self.segments[1].segment_length)
+        prev_sum, final_sum = first_sum, first_sum
+
+        # ...Add each sum as input to the next until all lengths have been added together
+        for i in range(2, ik_end_index):
+            new_sum = node_utils.addDoubleLinear(input1=prev_sum.output,
+                                                 input2=self.segments[i].segment_length)
+            prev_sum, final_sum = new_sum, new_sum
+
+        return final_sum
+
+
+
+
+
+    ####################################################################################################################
+    def soft_ik_curve(self, input=None, output=None):
+
+        # ...Create anim curve node
+        anim_curve = pm.shadingNode('animCurveUU', name=f'{self.side_tag}_anim_crv_softIk_{self.limb_name}', au=1)
+        # ...Shape its curve
+        if input:
+            pm.connectAttr(input, anim_curve + '.input')
+        pm.setKeyframe(anim_curve, float=10, value=1)
+        pm.setKeyframe(anim_curve, float=77.5, value=0.91)
+        pm.setKeyframe(anim_curve, float=100, value=1)
+
+        pm.keyTangent(anim_curve, index=(0, 0), lock=False, edit=True)
+        pm.keyTangent(anim_curve, index=(0, 0), weightedTangents=True, edit=True)
+        pm.keyTangent(anim_curve, index=(0, 0), outAngle=0, edit=True)
+        pm.keyTangent(anim_curve, index=(0, 0), outWeight=544.42547, edit=True)
+
+        pm.keyTangent(anim_curve, index=(1, 1), lock=False, edit=True)
+        pm.keyTangent(anim_curve, index=(1, 1), weightedTangents=True, edit=True)
+        pm.keyTangent(anim_curve, index=(1, 1), inAngle=0, edit=True)
+        pm.keyTangent(anim_curve, index=(1, 1), inWeight=396.596271, edit=True)
+        pm.keyTangent(anim_curve, index=(1, 1), outAngle=0, edit=True)
+        pm.keyTangent(anim_curve, index=(1, 1), outWeight=300, edit=True)
+
+        pm.keyTangent(anim_curve, index=(2, 2), lock=False, edit=True)
+        pm.keyTangent(anim_curve, index=(2, 2), weightedTangents=True, edit=True)
+        pm.keyTangent(anim_curve, index=(2, 2), inAngle=0.023, edit=True)
+        pm.keyTangent(anim_curve, index=(2, 2), inWeight=40.000005, edit=True)
+
+        if output:
+            pm.connectAttr(anim_curve + '.output', output)
+
+
+        return anim_curve
+
+
+
+
+
+
+    ####################################################################################################################
+    def setup_kinematic_blend(self):
+        """
+        Setup limb blending between FK and IK rigs.
+        """
+
+        pm.addAttr(self.ctrls['socket'], longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0,
+                   maxValue=10, defaultValue=10, keyable=1)
+
+        # ...Outfit blend attribute with mult nodes to get to 0-to-1 space from a 0-to-10 attr input
+        blend_driver_plugs = gen_utils.create_attr_blend_nodes(attr='fkIk', node=self.ctrls['socket'], reverse=True)
+
+
+        for i, seg in enumerate(self.segments):
+            if i == len(self.segments)-1:
+                continue
+            constraint = pm.orientConstraint(seg.fk_jnt, seg.ik_jnt, seg.blend_jnt)
+
+            weights = pm.orientConstraint(constraint, query=1, weightAliasList=1)
+            pm.connectAttr(blend_driver_plugs.rev.outputX, weights[0])
+            pm.connectAttr(blend_driver_plugs.multOutput, weights[1])
+
+            seg.blend_jnt.jointOrient.set(0, 0, 0)
+
+
+        # ...Blend joint scale
+        self.kinematic_blend_jnt_lengths(blend_driver_plugs)
+
+
+        # ...FK/IK controls visibility
+        for seg in self.segments:
+            if seg.fk_ctrl:
+                blend_driver_plugs.rev.outputX.connect(seg.fk_ctrl.visibility)
+
+        for key in ['ik_extrem', 'ik_pv', 'ik_tarsus']:
+            if key in self.ctrls:
+                blend_driver_plugs.mult.output.connect(self.ctrls[key].visibility)
+        blend_driver_plugs.mult.output.connect(self.ik_display_crv.getShape().visibility)
+
+
+
+
+
+    ####################################################################################################################
+    def kinematic_blend_jnt_lengths(self, blend_driver_plugs):
+
+        # ...Joint scale
+        self.kinematic_blend_jnt_scale(blend_driver_plugs)
+        # ...Joint cap translation
+        self.kinematic_blend_jnt_cap_translate(blend_driver_plugs)
+
+
+
+
+
+    ####################################################################################################################
+    def kinematic_blend_jnt_scale(self, blend_driver_plugs):
+
+        for i, seg in enumerate(self.segments):
+            if seg.dynamic_length:
+                # ...Create blend node
+                blend = pm.shadingNode("blendTwoAttr", au=1)
+                # ...Blend inputs
+                self.segments[i].fk_jnt.sx.connect(blend.input[0])
+                self.segments[i].ik_jnt.sx.connect(blend.input[1])
+                # ...Drive blend
+                pm.connectAttr(blend_driver_plugs.multOutput, blend.attributesBlender)
+                # ...Output blend
+                blend.output.connect(self.segments[i].blend_jnt.sx)
+
+
+
+
+
+    ####################################################################################################################
+    def kinematic_blend_jnt_cap_translate(self, blend_driver_plugs):
+
+        for i, seg in enumerate(self.segments):
+            if seg.dynamic_length:
+                # ...Create blend node
+                blend = pm.shadingNode("blendTwoAttr", au=1)
+                # ...Blend inputs
+                self.segments[i].fk_jnt.getChildren()[0].tx.connect(blend.input[0])
+                self.segments[i+1].ik_jnt.tx.connect(blend.input[1])
+                # ...Drive blend
+                pm.connectAttr(blend_driver_plugs.multOutput, blend.attributesBlender)
+                # ...Output blend
+                blend.output.connect(self.segments[i+1].blend_jnt.tx)
+
+
+
+
+
 
 
 
@@ -383,7 +970,8 @@ class LimbSegment:
         start_world_position,
         end_world_position,
         side = None,
-        dynamic_length = None
+        dynamic_length = None,
+        double_jnt_status = None
     ):
         self.segment_name = segment_name
         self.index = index
@@ -392,6 +980,9 @@ class LimbSegment:
         self.start_world_position = start_world_position
         self.end_world_position = end_world_position
         self.dynamic_length = dynamic_length if dynamic_length else False
+        self.double_jnt = double_jnt_status
+        self.fk_ctrl = None
+        self.fk_jnt_cap = None
 
         self.segment_length = self.record_length()
         self.length_mult_node = None
@@ -404,12 +995,14 @@ class LimbSegment:
 
     ####################################################################################################################
     def record_length(self):
-
+        if not self.end_world_position:
+            return 0
         return gen_utils.distance_between(position_1=self.start_world_position, position_2=self.end_world_position)
 
     ####################################################################################################################
     def create_length_mult_node(self, ctrl):
 
-        length_attr_name = f'{self.segment_name[self.index]}Len'
+        length_attr_name = f'{self.segment_name}Len'
         pm.addAttr(ctrl, longName=length_attr_name, attributeType="float", minValue=0.001, defaultValue=1, keyable=1)
-        return node_utils.multDoubleLinear(input1=self.segment_length, input2=f'{ctrl}.{length_attr_name}')
+        self.length_mult_node = node_utils.multDoubleLinear(input1=self.segment_length,
+                                                            input2=f'{ctrl}.{length_attr_name}')
