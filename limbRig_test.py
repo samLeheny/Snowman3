@@ -7,17 +7,18 @@ LimbRig = class_LimbRig.LimbRig
 
 mc.file(new=True, f=True)
 
+'''
 limb_rig = LimbRig(limb_name = "testLeg",
                     side = "L",
                     prefab = "plantigrade",
-                    segment_names = ["thigh", "calf", "ankle"])
+                    segment_names = ["thigh", "calf", "ankle"])'''
                     
 limb_rig = LimbRig(limb_name = "testLeg",
                     side = "L",
                     prefab = "plantigrade_doubleKnee",
                     segment_names = ["thigh", "knee", "calf", "ankle"])
 
-limb_rig = LimbRig(limb_name = "testLeg",
+'''limb_rig = LimbRig(limb_name = "testLeg",
                     side = "L",
                     prefab = "digitigrade",
                     segment_names = ["thigh", "calf", "tarsus", "ankle"])
@@ -30,4 +31,4 @@ limb_rig = LimbRig(limb_name = "testLeg",
 limb_rig = LimbRig(limb_name = "testLeg",
                     side = "L",
                     prefab = "digitigrade_doubleFrontKnee",
-                    segment_names = ["thigh", "frontKnee", "calf", "tarsus", "ankle"])
+                    segment_names = ["thigh", "frontKnee", "calf", "tarsus", "ankle"])'''

@@ -129,6 +129,13 @@ class LimbRig:
 
     ####################################################################################################################
     def build_prefab(self, prefab_key):
+        """
+        Builds the limb in scene based on prefab information provided
+            (eg. plantigrade/digitigrade, single-kneed/double-kneed, etc.)
+        Args:
+            prefab_key (str): The key that corresponds to the pre-assembled dictionary of prefab inputs.
+                [Should those dictionaries be stored here in the function??]
+        """
 
         inputs = prefab_inputs[prefab_key]
 
@@ -165,6 +172,7 @@ class LimbRig:
         self.ik_rig(tarsus_index=inputs['tarsus_index'], limb_ik_start_index=inputs['ik_indices']['start'],
                     limb_ik_end_index=inputs['ik_indices']['end'])
         self.setup_kinematic_blend()
+        self.delete_position_holders()
 
 
 
@@ -172,6 +180,10 @@ class LimbRig:
 
     ####################################################################################################################
     def create_position_holders(self):
+        """
+        Accesses LimbRig instance's segment positions and places locators in those positions so subsequent methods can
+            access said positions via those locator objects. Locators can be junked towards end of module script.
+        """
 
         locs_grp = pm.group(name=f'{self.side_tag}position_holders_TEMP', world=1, em=1)
 
@@ -202,6 +214,19 @@ class LimbRig:
 
 
     ####################################################################################################################
+    def delete_position_holders(self):
+        """
+        Remove temporary joint position holders from scene.
+        """
+
+        [pm.delete(loc) for loc in self.jnt_position_holders]
+        pm.delete(self.pv_position_holder)
+
+
+
+
+
+    ####################################################################################################################
     def create_pv_position_holder(self, parent):
 
         loc = self.pv_position_holder = pm.spaceLocator(name=f'{self.side_tag}position_holder_PV_{nom.locator}')
@@ -213,7 +238,6 @@ class LimbRig:
                   worldUpObject=self.jnt_position_holders[0], aimVector=(0, 0, -1), upVector=(-1, 0, 0)))
         gen_utils.buffer_obj(loc)
         loc.tz.set(sum([seg.segment_length for seg in self.segments]) * -1)
-        ### loc.tz.set(sum(self.segment_lengths)*-1)
 
 
 
@@ -307,26 +331,29 @@ class LimbRig:
         self.create_blend_jnts()
 
         # ...Rollers
-        '''lowerlimb_roller = self.install_rollers(start_node = self.blend_jnts[1],
-                                                end_node = self.blend_jnts[2],
-                                                seg_name = self.seg_names[1],
-                                                start_rot_match = self.blend_jnts[0],
-                                                end_rot_match = self.blend_jnts[2],
-                                                ctrl_mid_influ = True,
-                                                populate_ctrls = (1, 1, 1),
-                                                ctrl_color = self.ctrl_colors["other"],
-                                                side = self.side,
-                                                parent = self.no_transform_grp)
-
-        upperlimb_roller = self.install_rollers(start_node = self.blend_jnts[0],
-                                                end_node = self.blend_jnts[1],
-                                                seg_name = self.seg_names[0],
-                                                start_rot_match = self.ctrls["rig_socket"],
-                                                end_rot_match = lowerlimb_roller["start_ctrl"],
-                                                populate_ctrls = (1, 1, 0),
-                                                ctrl_color = self.ctrl_colors["other"],
-                                                side = self.side,
-                                                parent = self.no_transform_grp)
+        lowerlimb_roller = self.install_rollers(
+            start_node = self.blend_jnts[1],
+            end_node = self.blend_jnts[2],
+            seg_name = self.seg_names[1],
+            start_rot_match = self.blend_jnts[0],
+            end_rot_match = self.blend_jnts[2],
+            ctrl_mid_influ = True,
+            populate_ctrls = (1, 1, 1),
+            ctrl_color = self.ctrl_colors["other"],
+            side = self.side,
+            parent = self.no_transform_grp
+        )
+        '''upperlimb_roller = self.install_rollers(
+            start_node = self.blend_jnts[0],
+            end_node = self.blend_jnts[1],
+            seg_name = self.seg_names[0],
+            start_rot_match = self.ctrls["rig_socket"],
+            end_rot_match = lowerlimb_roller["start_ctrl"],
+            populate_ctrls = (1, 1, 0),
+            ctrl_color = self.ctrl_colors["other"],
+            side = self.side,
+            parent = self.no_transform_grp
+            )
 
         self.bend_ctrls = (upperlimb_roller["start_ctrl"], upperlimb_roller["mid_ctrl"], lowerlimb_roller["start_ctrl"],
                            lowerlimb_roller["mid_ctrl"], lowerlimb_roller["end_ctrl"])
@@ -354,6 +381,35 @@ class LimbRig:
         for ctrl in (upperlimb_roller["start_ctrl"], upperlimb_roller["mid_ctrl"],
                      lowerlimb_roller["mid_ctrl"], lowerlimb_roller["end_ctrl"]):
             pm.connectAttr(self.ctrls["rig_socket"] + "." + bend_ctrl_vis_attr_string, ctrl.visibility)'''
+
+
+
+
+
+    ####################################################################################################################
+    def install_rollers(self, start_node, end_node, seg_name, start_rot_match, end_rot_match, jnt_radius=0.3,
+                        ctrl_mid_influ=False, populate_ctrls=(1, 1, 1), roll_axis=(1, 0, 0), up_axis=(0, 1, 0),
+                        ctrl_color=0, side=None, parent=None):
+
+        rollers = rig_utils.limb_rollers(
+            start_node = start_node,
+            end_node = end_node,
+            roller_name = seg_name,
+            start_rot_match = start_rot_match,
+            end_rot_match = end_rot_match,
+            jnt_radius = jnt_radius,
+            populate_ctrls = populate_ctrls,
+            ctrl_mid_influ = ctrl_mid_influ,
+            roll_axis = roll_axis,
+            up_axis = up_axis,
+            ctrl_color = ctrl_color,
+            side = side,
+            parent = parent
+        )
+
+
+        # --------------------------------------------------------------------------------------------------------------
+        return rollers
 
 
 
