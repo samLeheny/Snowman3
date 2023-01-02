@@ -31,6 +31,7 @@ nom = nameConventions.create_dict()
 default_socket_name = 'limbSocket'
 default_pv_name = 'poleVector'
 ctrl_colors = {"FK": 13, "IK": 6, "other": 17, "sub": (15, 4)}
+roll_jnt_resolution = 5
 prefab_inputs = {
         'plantigrade': {
             'default_seg_names' : ['upperlimb', 'lowerlimb', 'extrem'],
@@ -38,6 +39,7 @@ prefab_inputs = {
             'dynamic_length_values' : (1, 1, 0, 0),
             'double_jnt_values' : (0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
+            'roller_segment_indices' : ((0, 1), (1, 2)),
             'tarsus_index': None
         },
         'plantigrade_doubleKnee': {
@@ -46,6 +48,7 @@ prefab_inputs = {
             'dynamic_length_values': (1, 0, 1, 0, 0),
             'double_jnt_values' : (0, 1, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
+            'roller_segment_indices' : ((0, 1), (2, 3)),
             'tarsus_index': None
         },
         'digitigrade': {
@@ -54,6 +57,7 @@ prefab_inputs = {
             'dynamic_length_values': (1, 1, 1, 0, 0),
             'double_jnt_values' : (0, 0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
+            'roller_segment_indices' : ((0, 1), (1, 2)),
             'tarsus_index': 2
         },
         'digitigrade_doubleKnees': {
@@ -63,6 +67,7 @@ prefab_inputs = {
             'dynamic_length_values': (1, 0, 1, 0, 1, 0, 0),
             'double_jnt_values' : (0, 1, 0, 1, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
+            'roller_segment_indices' : ((0, 1), (2, 3)),
             'tarsus_index': 4
         },
         'digitigrade_doubleFrontKnee': {
@@ -72,6 +77,7 @@ prefab_inputs = {
             'dynamic_length_values': (1, 0, 1, 1, 0, 0),
             'double_jnt_values' : (0, 1, 0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
+            'roller_segment_indices' : ((0, 1), (2, 3)),
             'tarsus_index': 3
         },
     }
@@ -95,6 +101,7 @@ class LimbRig:
         socket_name = None,
         pv_name = None
     ):
+        self.roll_jnt_resolution = roll_jnt_resolution
         self.limb_name = limb_name
         self.prefab = prefab
         self.side = side
@@ -120,6 +127,10 @@ class LimbRig:
         self.ik_handles, self.ik_solvers, self.ik_effectors = {}, {}, {}
         self.ik_display_crv = None
         self.ik_extrem_dist = None
+        self.bend_ctrls = None
+        self.bend_jnts = None
+        self.roll_socket_target = None
+        self.tweak_ctrls = []
 
         self.build_prefab(self.prefab)
 
@@ -167,12 +178,13 @@ class LimbRig:
         self.create_rig_grps()
         self.create_rig_socket_ctrl()
         self.create_length_mult_nodes()
-        self.blend_rig()
+        self.blend_rig(index_pairs=inputs['roller_segment_indices'])
         self.fk_rig()
         self.ik_rig(tarsus_index=inputs['tarsus_index'], limb_ik_start_index=inputs['ik_indices']['start'],
                     limb_ik_end_index=inputs['ik_indices']['end'])
         self.setup_kinematic_blend()
         self.delete_position_holders()
+        self.install_ribbon_systems()
 
 
 
@@ -325,62 +337,66 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def blend_rig(self):
+    def blend_rig(self, index_pairs):
 
         # ...Blend skeleton
         self.create_blend_jnts()
 
+
         # ...Rollers
         lowerlimb_roller = self.install_rollers(
-            start_node = self.blend_jnts[1],
-            end_node = self.blend_jnts[2],
-            seg_name = self.seg_names[1],
-            start_rot_match = self.blend_jnts[0],
-            end_rot_match = self.blend_jnts[2],
+            start_node = self.segments[index_pairs[1][0]].blend_jnt,
+            end_node = self.segments[index_pairs[1][1]].blend_jnt,
+            seg_name = self.segments[index_pairs[1][0]].segment_name,
+            start_rot_match = self.segments[index_pairs[1][0]].blend_jnt,
+            end_rot_match = self.segments[index_pairs[1][1]].blend_jnt,
             ctrl_mid_influ = True,
             populate_ctrls = (1, 1, 1),
-            ctrl_color = self.ctrl_colors["other"],
+            ctrl_color = self.ctrl_colors['other'],
             side = self.side,
-            parent = self.no_transform_grp
+            parent = self.grps['noTransform']
         )
-        '''upperlimb_roller = self.install_rollers(
-            start_node = self.blend_jnts[0],
-            end_node = self.blend_jnts[1],
-            seg_name = self.seg_names[0],
-            start_rot_match = self.ctrls["rig_socket"],
-            end_rot_match = lowerlimb_roller["start_ctrl"],
+        for ctrl_tag in ('start_ctrl', 'mid_ctrl', 'end_ctrl'):
+            self.segments[index_pairs[1][0]].bend_ctrls.append(lowerlimb_roller[ctrl_tag])
+        for jnt_tag in ('start_jnt', 'mid_jnt', 'end_jnt'):
+            self.segments[index_pairs[1][0]].nemd_jnts.append(lowerlimb_roller[jnt_tag])
+        upperlimb_roller = self.install_rollers(
+            start_node = self.segments[index_pairs[0][0]].blend_jnt,
+            end_node = self.segments[index_pairs[0][1]].blend_jnt,
+            seg_name = self.segments[index_pairs[0][0]].segment_name,
+            start_rot_match = self.ctrls['socket'],
+            end_rot_match = lowerlimb_roller['start_ctrl'],
             populate_ctrls = (1, 1, 0),
-            ctrl_color = self.ctrl_colors["other"],
+            ctrl_color = self.ctrl_colors['other'],
             side = self.side,
-            parent = self.no_transform_grp
+            parent = self.grps['noTransform']
             )
-
-        self.bend_ctrls = (upperlimb_roller["start_ctrl"], upperlimb_roller["mid_ctrl"], lowerlimb_roller["start_ctrl"],
-                           lowerlimb_roller["mid_ctrl"], lowerlimb_roller["end_ctrl"])
-        self.bend_jnts = (upperlimb_roller["start_jnt"], upperlimb_roller["mid_jnt"], upperlimb_roller["end_jnt"],
-                          lowerlimb_roller["start_jnt"], lowerlimb_roller["mid_jnt"], lowerlimb_roller["end_jnt"])
+        for ctrl_tag in ('start_ctrl', 'mid_ctrl'):
+            self.segments[index_pairs[0][0]].bend_ctrls.append(upperlimb_roller[ctrl_tag])
+        for jnt_tag in ('start_jnt', 'mid_jnt', 'end_jnt'):
+            self.segments[index_pairs[0][0]].nemd_jnts.append(upperlimb_roller[jnt_tag])
 
         self.roll_socket_target = upperlimb_roller["roll_socket_target"]
 
 
 
-        self.ctrls["upperlimb_bend_start"] = self.bend_ctrls[0]
-        self.ctrls["upperlimb_bend_mid"] = self.bend_ctrls[1]
-        self.ctrls["mid_limb_pin"] = self.bend_ctrls[2]
-        self.ctrls["lowerlimb_bend_mid"] = self.bend_ctrls[3]
-        self.ctrls["lowerlimb_bend_end"] = self.bend_ctrls[4]
+        self.ctrls['upperlimb_bend_start'] = self.bend_ctrls[0]
+        self.ctrls['upperlimb_bend_mid'] = self.bend_ctrls[1]
+        self.ctrls['mid_limb_pin'] = self.bend_ctrls[2]
+        self.ctrls['lowerlimb_bend_mid'] = self.bend_ctrls[3]
+        self.ctrls['lowerlimb_bend_end'] = self.bend_ctrls[4]
 
 
         # ...Bend ctrls vis
-        bend_ctrl_vis_attr_string = "BendCtrls"
-        if not pm.attributeQuery(bend_ctrl_vis_attr_string, node=self.ctrls["rig_socket"], exists=1):
-            pm.addAttr(self.ctrls["rig_socket"], longName=bend_ctrl_vis_attr_string, attributeType="enum", keyable=0,
-                       enumName="Off:On")
-            pm.setAttr(self.ctrls["rig_socket"] + '.' + bend_ctrl_vis_attr_string, channelBox=1)
+        bend_ctrl_vis_attr_string = 'BendCtrls'
+        if not pm.attributeQuery(bend_ctrl_vis_attr_string, node=self.ctrls['socket'], exists=1):
+            pm.addAttr(self.ctrls['socket'], longName=bend_ctrl_vis_attr_string, attributeType='enum', keyable=0,
+                       enumName='Off:On')
+            pm.setAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', channelBox=1)
 
-        for ctrl in (upperlimb_roller["start_ctrl"], upperlimb_roller["mid_ctrl"],
-                     lowerlimb_roller["mid_ctrl"], lowerlimb_roller["end_ctrl"]):
-            pm.connectAttr(self.ctrls["rig_socket"] + "." + bend_ctrl_vis_attr_string, ctrl.visibility)'''
+        for ctrl in (upperlimb_roller['start_ctrl'], upperlimb_roller['mid_ctrl'],
+                     lowerlimb_roller['mid_ctrl'], lowerlimb_roller['end_ctrl']):
+            pm.connectAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', ctrl.visibility)
 
 
 
@@ -831,9 +847,9 @@ class LimbRig:
 
         # ...Squash option ---------------------------------------------------------------------------------------------
         if squash:
-            squash_remap = node_utils.remapValue(inputValue=f'{self.ctrls["socket"]}.squash_ik',
-                                                 inputMax=10, outputMin=1, outputMax=limb_straigtness_div.outFloat,
-                                                 outValue=straight_condition.colorIfFalse.colorIfFalseR)
+            node_utils.remapValue(inputValue=f'{self.ctrls["socket"]}.squash_ik', inputMax=10, outputMin=1,
+                                  outputMax=limb_straigtness_div.outFloat,
+                                  outValue=straight_condition.colorIfFalse.colorIfFalseR)
 
 
         # ...Include Soft IK effect ------------------------------------------------------------------------------------
@@ -1012,6 +1028,80 @@ class LimbRig:
 
 
 
+    ####################################################################################################################
+    def install_ribbon_systems(self):
+
+        ctrl_size = 0.7
+
+        ribbon_up_vector = (0, 0, -1)
+        if self.side == nom.rightSideTag:
+            ribbon_up_vector = (0, 0, 1)
+
+        # ...Create ribbons
+        upper_limb_ribbon = rig_utils.ribbon_plane(name=self.segments[0].segment_name,
+                                                   start_obj=self.segments[0].bend_jnt,
+                                                   end_obj=self.bend_jnts[2], up_obj=self.ctrls["ik_pv"],
+                                                   density=self.roll_jnt_resolution, side=self.side,
+                                                   up_vector=ribbon_up_vector)
+        upper_limb_ribbon["nurbsStrip"].setParent(self.grps['noTransform'])
+        upper_limb_ribbon["nurbsStrip"].scale.set(1, 1, 1)
+
+        lower_limb_ribbon = rig_utils.ribbon_plane(name=self.segments[1].segment_name,
+                                                   start_obj=self.segments[3].bend_jnt,
+                                                   end_obj=self.bend_jnts[5], up_obj=self.ctrls["ik_pv"],
+                                                   density=self.roll_jnt_resolution, side=self.side,
+                                                   up_vector=ribbon_up_vector)
+        lower_limb_ribbon["nurbsStrip"].setParent(self.grps['noTransform'])
+        lower_limb_ribbon["nurbsStrip"].scale.set(1, 1, 1)
+
+
+        # ...Skin ribbons
+        pm.select(self.bend_jnts[0], self.bend_jnts[1], self.bend_jnts[2], replace=1)
+        pm.select(upper_limb_ribbon["nurbsStrip"], add=1)
+        pm.skinCluster(maximumInfluences=1, toSelectedBones=1)
+
+        pm.select(self.bend_jnts[3], self.bend_jnts[4], self.bend_jnts[5], replace=1)
+        pm.select(lower_limb_ribbon["nurbsStrip"], add=1)
+        pm.skinCluster(maximumInfluences=1, toSelectedBones=1)
+
+
+        # ...Tweak ctrls
+        tweak_color = 1
+        if self.side == nom.leftSideTag:
+            tweak_color = self.ctrl_colors["sub"][0]
+        elif self.side == nom.rightSideTag:
+            tweak_color = self.ctrl_colors["sub"][1]
+
+        upperlimb_tweak_ctrls = rig_utils.ribbon_tweak_ctrls(ribbon = upper_limb_ribbon["nurbsStrip"],
+                                                             ctrl_name = self.segments[0].segment_name,
+                                                             length_ends = (self.ctrls["rig_socket"],
+                                                                            self.ctrls["mid_limb_pin"]),
+                                                             length_attr = self.segments[0].length_mult_node.output,
+                                                             attr_ctrl = self.ctrls["rig_socket"],
+                                                             side = self.side,
+                                                             ctrl_color = tweak_color,
+                                                             ctrl_resolution = 5,
+                                                             parent = self.grps['noTransform'],
+                                                             ctrl_size=ctrl_size)
+        self.tweak_ctrls.append(upperlimb_tweak_ctrls)
+
+        lowerlimb_tweak_ctrls = rig_utils.ribbon_tweak_ctrls(ribbon = lower_limb_ribbon["nurbsStrip"],
+                                                             ctrl_name = self.segments[1].segment_name,
+                                                             length_ends = (self.ctrls["mid_limb_pin"],
+                                                                            self.segments[2].blend_jnt),
+                                                             length_attr = self.segments[1].length_mult_node.output,
+                                                             attr_ctrl = self.ctrls["rig_socket"],
+                                                             side = self.side,
+                                                             ctrl_color = tweak_color,
+                                                             ctrl_resolution = 5,
+                                                             parent = self.grps['noTransform'],
+                                                             ctrl_size=ctrl_size)
+        self.tweak_ctrls.append(lowerlimb_tweak_ctrls)
+
+
+
+
+
 
 
 
@@ -1039,6 +1129,7 @@ class LimbSegment:
         self.double_jnt = double_jnt_status
         self.fk_ctrl = None
         self.fk_jnt_cap = None
+        self.bend_jnts = []
 
         self.segment_length = self.record_length()
         self.length_mult_node = None
