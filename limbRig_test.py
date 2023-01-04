@@ -13,10 +13,10 @@ limb_rig = LimbRig(limb_name = "testLeg",
                     prefab = "plantigrade",
                     segment_names = ["thigh", "calf", "ankle"])'''
                     
-limb_rig = LimbRig(limb_name = "testLeg",
+'''limb_rig = LimbRig(limb_name = "testLeg",
                     side = "L",
                     prefab = "plantigrade_doubleKnee",
-                    segment_names = ["thigh", "knee", "calf", "ankle"])
+                    segment_names = ["thigh", "knee", "calf", "ankle"])'''
 
 '''limb_rig = LimbRig(limb_name = "testLeg",
                     side = "L",
@@ -26,9 +26,9 @@ limb_rig = LimbRig(limb_name = "testLeg",
 limb_rig = LimbRig(limb_name = "testLeg",
                     side = "L",
                     prefab = "digitigrade_doubleKnees",
-                    segment_names = ["thigh", "frontKnee", "calf", "backKnee", "tarsus", "ankle"])
+                    segment_names = ["thigh", "frontKnee", "calf", "backKnee", "tarsus", "ankle"])'''
 
 limb_rig = LimbRig(limb_name = "testLeg",
                     side = "L",
                     prefab = "digitigrade_doubleFrontKnee",
-                    segment_names = ["thigh", "frontKnee", "calf", "tarsus", "ankle"])'''
+                    segment_names = ["thigh", "frontKnee", "calf", "tarsus", "ankle"])

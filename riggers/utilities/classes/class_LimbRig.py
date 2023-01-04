@@ -183,8 +183,8 @@ class LimbRig:
         self.ik_rig(tarsus_index=inputs['tarsus_index'], limb_ik_start_index=inputs['ik_indices']['start'],
                     limb_ik_end_index=inputs['ik_indices']['end'])
         self.setup_kinematic_blend()
-        self.delete_position_holders()
-        self.install_ribbon_systems()
+        ### self.delete_position_holders()
+        ### self.install_ribbon_systems()
 
 
 
@@ -233,6 +233,107 @@ class LimbRig:
 
         [pm.delete(loc) for loc in self.jnt_position_holders]
         pm.delete(self.pv_position_holder)
+
+
+
+
+
+    ####################################################################################################################
+    def create_pin_ctrl(self, name, target_jnt_index, limb_span_jnt_indices):
+        """
+        Creates a control that move's the position of a limb's joint. Positions the control at that joint and orients
+            it to face the forward normal of that joint's immediate limb segments (points out and away from the limb.)
+        Args:
+            name (str): The string to use in control's name.
+            target_jnt_index (int/ (int, int)): The index(s) of the joint for this control to be placed at. If two
+                indices provided will place control at the midpoint between them.
+            limb_span_jnt_indices ((int, int)): Two indices. Once for the joint at each end of the limb span whose
+                center joint this control is for. eg: if this control is for a and elbow, provide indices for shoulder
+                and wrist joints.
+        Return:
+            (mObj): The created control.
+        """
+
+
+        """
+        ############################################################################################################################################################################
+        TO DO:
+        - Need Knees could be pointing forward or backward. Script needs to detect this somehow and in the case of
+            backward facing knees multiply the forward aim constraint vector by -1
+        - Instead of positioning ctrl offset half way between span start and end, base the ratio on segment lengths.
+        ############################################################################################################################################################################
+        """
+
+
+        # ...If there are two target joints, create a temporary locator at the midpoint between to act as the target.
+        if isinstance(target_jnt_index, (tuple, list)):
+            multi_jnt_target = True
+            position_target = pm.spaceLocator(name=f'TEMP_pinCtrl_pos_target_{name}')
+            pm.delete(pm.pointConstraint(self.segments[target_jnt_index[0]].blend_jnt, position_target))
+            pos_offset_node_parent = self.segments[target_jnt_index[0]].blend_jnt
+        else:
+            multi_jnt_target = False
+            position_target = self.segments[target_jnt_index].blend_jnt
+            pos_offset_node_parent = self.segments[target_jnt_index].blend_jnt
+
+
+        # ...Create control
+        ctrl = rig_utils.control(ctrl_info={"shape": "circle",
+                                            "scale": [0.2, 0.2, 0.2],
+                                            "up_direction": [0, 1, 0],
+                                            "forward_direction": [0, 0, 1]},
+                                 name=f'{name}Pin',
+                                 ctrl_type=nom.animCtrl,
+                                 side=self.side,
+                                 color=self.ctrl_colors['other'])
+
+
+        # ...Create offset transform
+        pos_offset_node = pm.shadingNode('transform', name=f'{self.side_tag}{name}_CTRL_OFFSET', au = 1)
+        # ...Put offset node in final position (at target node) and parent it there, within the blend joint chain
+        pos_offset_node.setParent(pos_offset_node_parent)
+        gen_utils.zero_out(pos_offset_node)
+        # ...If two target joint were provided, position node between them
+        if multi_jnt_target:
+            target_segment_length = self.segments[target_jnt_index[0]].segment_length
+            pos_offset_node.tx.set(target_segment_length / 2)
+
+
+        # ...Put control in orientation offset node
+        offset_node = gen_utils.buffer_obj(ctrl)
+        # ...Put offset node under position offset node
+        offset_node.setParent(pos_offset_node)
+        gen_utils.zero_out(offset_node)
+        # ...Orient offset to point in the direction of the overall limb span's forward-facing normal ("away from" the
+        # ...limb)
+        pm.delete(pm.pointConstraint(self.segments[limb_span_jnt_indices[0]].blend_jnt,
+                                     self.segments[limb_span_jnt_indices[1]].blend_jnt, offset_node))
+        pm.delete(pm.aimConstraint(position_target, offset_node, aimVector=(0, 0, 1), upVector=(0, -1, 0),
+                                   worldUpType='object',
+                                   worldUpObject=self.segments[limb_span_jnt_indices[1]].blend_jnt))
+        offset_node.translate.set(0, 0, 0)
+
+
+        # ...Delete temp locator if it was made
+        if multi_jnt_target:
+            pm.delete(position_target)
+
+
+        return ctrl
+
+
+
+
+
+    ####################################################################################################################
+    def create_limb_pin_ctrls(self):
+
+        self.ctrls['knee_pin'] = self.create_pin_ctrl(name='knee',
+                                                      target_jnt_index=(1, 2),
+                                                      limb_span_jnt_indices=(0, 3))
+        self.ctrls['heel_pin'] = self.create_pin_ctrl(name='heel',
+                                                      target_jnt_index=3,
+                                                      limb_span_jnt_indices=(2, 4))
 
 
 
@@ -339,12 +440,18 @@ class LimbRig:
     ####################################################################################################################
     def blend_rig(self, index_pairs):
 
+
+        pm.addAttr(self.ctrls['socket'], longName='Volume', attributeType='float', minValue=0, maxValue=10,
+                   defaultValue=0, keyable=1)
+
         # ...Blend skeleton
         self.create_blend_jnts()
+        # ...Limb pin controls
+        self.create_limb_pin_ctrls()
 
 
         # ...Rollers
-        lowerlimb_roller = self.install_rollers(
+        '''lowerlimb_roller = self.install_rollers(
             start_node = self.segments[index_pairs[1][0]].blend_jnt,
             end_node = self.segments[index_pairs[1][1]].blend_jnt,
             seg_name = self.segments[index_pairs[1][0]].segment_name,
@@ -359,7 +466,12 @@ class LimbRig:
         for ctrl_tag in ('start_ctrl', 'mid_ctrl', 'end_ctrl'):
             self.segments[index_pairs[1][0]].bend_ctrls.append(lowerlimb_roller[ctrl_tag])
         for jnt_tag in ('start_jnt', 'mid_jnt', 'end_jnt'):
-            self.segments[index_pairs[1][0]].nemd_jnts.append(lowerlimb_roller[jnt_tag])
+            self.segments[index_pairs[1][0]].bend_jnts.append(lowerlimb_roller[jnt_tag])
+
+        self.ctrls['mid_limb_pin'] = lowerlimb_roller['start_ctrl']
+        self.ctrls['lowerlimb_bend_mid'] = lowerlimb_roller['mid_ctrl']
+        self.ctrls['lowerlimb_bend_end'] = lowerlimb_roller['end_ctrl']
+
         upperlimb_roller = self.install_rollers(
             start_node = self.segments[index_pairs[0][0]].blend_jnt,
             end_node = self.segments[index_pairs[0][1]].blend_jnt,
@@ -374,17 +486,12 @@ class LimbRig:
         for ctrl_tag in ('start_ctrl', 'mid_ctrl'):
             self.segments[index_pairs[0][0]].bend_ctrls.append(upperlimb_roller[ctrl_tag])
         for jnt_tag in ('start_jnt', 'mid_jnt', 'end_jnt'):
-            self.segments[index_pairs[0][0]].nemd_jnts.append(upperlimb_roller[jnt_tag])
+            self.segments[index_pairs[0][0]].bend_jnts.append(upperlimb_roller[jnt_tag])
 
         self.roll_socket_target = upperlimb_roller["roll_socket_target"]
 
-
-
-        self.ctrls['upperlimb_bend_start'] = self.bend_ctrls[0]
-        self.ctrls['upperlimb_bend_mid'] = self.bend_ctrls[1]
-        self.ctrls['mid_limb_pin'] = self.bend_ctrls[2]
-        self.ctrls['lowerlimb_bend_mid'] = self.bend_ctrls[3]
-        self.ctrls['lowerlimb_bend_end'] = self.bend_ctrls[4]
+        self.ctrls['upperlimb_bend_start'] = upperlimb_roller['start_ctrl']
+        self.ctrls['upperlimb_bend_mid'] = upperlimb_roller['mid_ctrl']
 
 
         # ...Bend ctrls vis
@@ -396,7 +503,24 @@ class LimbRig:
 
         for ctrl in (upperlimb_roller['start_ctrl'], upperlimb_roller['mid_ctrl'],
                      lowerlimb_roller['mid_ctrl'], lowerlimb_roller['end_ctrl']):
-            pm.connectAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', ctrl.visibility)
+            pm.connectAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', ctrl.visibility)'''
+
+
+        '''self.install_ribbon(
+            start_node=upperlimb_roller['start_jnt'],
+            end_node=upperlimb_roller['end_jnt'],
+            bend_jnts=(upperlimb_roller['start_jnt'], upperlimb_roller['mid_jnt'], upperlimb_roller['end_jnt']),
+            length_ends=(self.ctrls['socket'], self.ctrls['mid_limb_pin']),
+            segment=self.segments[index_pairs[0][0]]
+        )
+
+        self.install_ribbon(
+            start_node=lowerlimb_roller['start_jnt'],
+            end_node=lowerlimb_roller['end_jnt'],
+            bend_jnts=(lowerlimb_roller['start_jnt'], lowerlimb_roller['mid_jnt'], lowerlimb_roller['end_jnt']),
+            length_ends=(self.ctrls['mid_limb_pin'], self.segments[index_pairs[1][1]].blend_jnt),
+            segment=self.segments[index_pairs[1][0]]
+        )'''
 
 
 
@@ -1029,55 +1153,42 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def install_ribbon_systems(self):
+    def install_ribbon(self, start_node, end_node, bend_jnts, segment, length_ends):
 
         ctrl_size = 0.7
+        tweak_color = 1
 
         ribbon_up_vector = (0, 0, -1)
         if self.side == nom.rightSideTag:
             ribbon_up_vector = (0, 0, 1)
 
         # ...Create ribbons
-        upper_limb_ribbon = rig_utils.ribbon_plane(name=self.segments[0].segment_name,
-                                                   start_obj=self.segments[0].bend_jnt,
-                                                   end_obj=self.bend_jnts[2], up_obj=self.ctrls["ik_pv"],
-                                                   density=self.roll_jnt_resolution, side=self.side,
-                                                   up_vector=ribbon_up_vector)
-        upper_limb_ribbon["nurbsStrip"].setParent(self.grps['noTransform'])
-        upper_limb_ribbon["nurbsStrip"].scale.set(1, 1, 1)
-
-        lower_limb_ribbon = rig_utils.ribbon_plane(name=self.segments[1].segment_name,
-                                                   start_obj=self.segments[3].bend_jnt,
-                                                   end_obj=self.bend_jnts[5], up_obj=self.ctrls["ik_pv"],
-                                                   density=self.roll_jnt_resolution, side=self.side,
-                                                   up_vector=ribbon_up_vector)
-        lower_limb_ribbon["nurbsStrip"].setParent(self.grps['noTransform'])
-        lower_limb_ribbon["nurbsStrip"].scale.set(1, 1, 1)
-
+        segment_ribbon = rig_utils.ribbon_plane(name=self.segments[0].segment_name,
+                                                start_obj=start_node,
+                                                end_obj=end_node,
+                                                up_obj=self.pv_position_holder,
+                                                density=self.roll_jnt_resolution,
+                                                side=self.side,
+                                                up_vector=ribbon_up_vector)
+        segment_ribbon["nurbsStrip"].setParent(self.grps['noTransform'])
+        segment_ribbon["nurbsStrip"].scale.set(1, 1, 1)
 
         # ...Skin ribbons
-        pm.select(self.bend_jnts[0], self.bend_jnts[1], self.bend_jnts[2], replace=1)
-        pm.select(upper_limb_ribbon["nurbsStrip"], add=1)
+        pm.select(bend_jnts[0], bend_jnts[1], bend_jnts[2], replace=1)
+        pm.select(segment_ribbon["nurbsStrip"], add=1)
         pm.skinCluster(maximumInfluences=1, toSelectedBones=1)
-
-        pm.select(self.bend_jnts[3], self.bend_jnts[4], self.bend_jnts[5], replace=1)
-        pm.select(lower_limb_ribbon["nurbsStrip"], add=1)
-        pm.skinCluster(maximumInfluences=1, toSelectedBones=1)
-
 
         # ...Tweak ctrls
-        tweak_color = 1
         if self.side == nom.leftSideTag:
             tweak_color = self.ctrl_colors["sub"][0]
         elif self.side == nom.rightSideTag:
             tweak_color = self.ctrl_colors["sub"][1]
 
-        upperlimb_tweak_ctrls = rig_utils.ribbon_tweak_ctrls(ribbon = upper_limb_ribbon["nurbsStrip"],
-                                                             ctrl_name = self.segments[0].segment_name,
-                                                             length_ends = (self.ctrls["rig_socket"],
-                                                                            self.ctrls["mid_limb_pin"]),
-                                                             length_attr = self.segments[0].length_mult_node.output,
-                                                             attr_ctrl = self.ctrls["rig_socket"],
+        upperlimb_tweak_ctrls = rig_utils.ribbon_tweak_ctrls(ribbon = segment_ribbon["nurbsStrip"],
+                                                             ctrl_name = segment.segment_name,
+                                                             length_ends = length_ends,
+                                                             length_attr = segment.length_mult_node.output,
+                                                             attr_ctrl = self.ctrls['socket'],
                                                              side = self.side,
                                                              ctrl_color = tweak_color,
                                                              ctrl_resolution = 5,
@@ -1085,18 +1196,6 @@ class LimbRig:
                                                              ctrl_size=ctrl_size)
         self.tweak_ctrls.append(upperlimb_tweak_ctrls)
 
-        lowerlimb_tweak_ctrls = rig_utils.ribbon_tweak_ctrls(ribbon = lower_limb_ribbon["nurbsStrip"],
-                                                             ctrl_name = self.segments[1].segment_name,
-                                                             length_ends = (self.ctrls["mid_limb_pin"],
-                                                                            self.segments[2].blend_jnt),
-                                                             length_attr = self.segments[1].length_mult_node.output,
-                                                             attr_ctrl = self.ctrls["rig_socket"],
-                                                             side = self.side,
-                                                             ctrl_color = tweak_color,
-                                                             ctrl_resolution = 5,
-                                                             parent = self.grps['noTransform'],
-                                                             ctrl_size=ctrl_size)
-        self.tweak_ctrls.append(lowerlimb_tweak_ctrls)
 
 
 
@@ -1130,6 +1229,7 @@ class LimbSegment:
         self.fk_ctrl = None
         self.fk_jnt_cap = None
         self.bend_jnts = []
+        self.bend_ctrls = []
 
         self.segment_length = self.record_length()
         self.length_mult_node = None
