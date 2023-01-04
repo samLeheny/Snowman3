@@ -8,6 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import math
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen_utils
@@ -131,6 +132,7 @@ class LimbRig:
         self.bend_jnts = None
         self.roll_socket_target = None
         self.tweak_ctrls = []
+        self.pv_vector = None
 
         self.build_prefab(self.prefab)
 
@@ -175,6 +177,7 @@ class LimbRig:
         self.limb_ik_mid_jnt_index = inputs['ik_indices']['mid']
 
         self.create_position_holders()
+        self.get_pv_vector()
         self.create_rig_grps()
         self.create_rig_socket_ctrl()
         self.create_length_mult_nodes()
@@ -183,8 +186,8 @@ class LimbRig:
         self.ik_rig(tarsus_index=inputs['tarsus_index'], limb_ik_start_index=inputs['ik_indices']['start'],
                     limb_ik_end_index=inputs['ik_indices']['end'])
         self.setup_kinematic_blend()
-        ### self.delete_position_holders()
         ### self.install_ribbon_systems()
+        self.delete_position_holders()
 
 
 
@@ -213,7 +216,7 @@ class LimbRig:
         # ...Orient locs
         for i in range(0, len(self.jnt_position_holders)):
             pm.delete(pm.aimConstraint(self.jnt_position_holders[i], self.jnt_position_holders[i-1],
-                                       worldUpType='object', aimVector=(1, 0, 0), upVector=(0, 0, -1),
+                                       worldUpType='object', aimVector=(1, 0, 0), upVector=(0, 0, 1),
                                        worldUpObject=self.pv_position_holder))
         pm.delete(pm.orientConstraint(self.jnt_position_holders[-2], self.jnt_position_holders[-1]))
 
@@ -247,76 +250,55 @@ class LimbRig:
             name (str): The string to use in control's name.
             target_jnt_index (int/ (int, int)): The index(s) of the joint for this control to be placed at. If two
                 indices provided will place control at the midpoint between them.
-            limb_span_jnt_indices ((int, int)): Two indices. Once for the joint at each end of the limb span whose
-                center joint this control is for. eg: if this control is for a and elbow, provide indices for shoulder
-                and wrist joints.
+            limb_span_jnt_indices ((int, int)): Two indices. One for the joint at the start end of the limb span whose
+                center joint this control is for, and one for the other end (IN THAT ORDER!).
+                eg: if this control is for a and elbow, provide indices for shoulder and wrist joints.
         Return:
             (mObj): The created control.
         """
 
-
-        """
-        ############################################################################################################################################################################
-        TO DO:
-        - Need Knees could be pointing forward or backward. Script needs to detect this somehow and in the case of
-            backward facing knees multiply the forward aim constraint vector by -1
-        - Instead of positioning ctrl offset half way between span start and end, base the ratio on segment lengths.
-        ############################################################################################################################################################################
-        """
+        # ...Determine if a SINGLE jnt or a PAIR of jnts are referenced by the provided target index(s)
+        multi_jnt_target = True if isinstance(target_jnt_index, (tuple, list)) else False
 
 
-        # ...If there are two target joints, create a temporary locator at the midpoint between to act as the target.
-        if isinstance(target_jnt_index, (tuple, list)):
-            multi_jnt_target = True
-            position_target = pm.spaceLocator(name=f'TEMP_pinCtrl_pos_target_{name}')
-            pm.delete(pm.pointConstraint(self.segments[target_jnt_index[0]].blend_jnt, position_target))
-            pos_offset_node_parent = self.segments[target_jnt_index[0]].blend_jnt
-        else:
-            multi_jnt_target = False
-            position_target = self.segments[target_jnt_index].blend_jnt
-            pos_offset_node_parent = self.segments[target_jnt_index].blend_jnt
+        # ...Get limb segments immediately before and after target_node, so we average their world orientations to
+        # ...determine control's orientation
+        limb_span_seg_1 = self.segments[limb_span_jnt_indices[0]]
+        limb_span_seg_2 = self.segments[limb_span_jnt_indices[1] - 1]
 
 
         # ...Create control
-        ctrl = rig_utils.control(ctrl_info={"shape": "circle",
-                                            "scale": [0.2, 0.2, 0.2],
-                                            "up_direction": [0, 1, 0],
-                                            "forward_direction": [0, 0, 1]},
-                                 name=f'{name}Pin',
-                                 ctrl_type=nom.animCtrl,
-                                 side=self.side,
-                                 color=self.ctrl_colors['other'])
+        ctrl = rig_utils.control(
+            ctrl_info={"shape": "circle",
+                       "scale": [0.2, 0.2, 0.2],
+                       "up_direction": [1, 0, 0],
+                       "forward_direction": [0, 0, 1]},
+            name=f'{name}Pin', ctrl_type=nom.animCtrl, side=self.side, color=self.ctrl_colors['other'])
+
+
+        # ...Determine which blend joint to parent control under
+        if multi_jnt_target:
+            pos_offset_node_parent = self.segments[target_jnt_index[0]].blend_jnt
+        else:
+            pos_offset_node_parent = self.segments[target_jnt_index].blend_jnt
 
 
         # ...Create offset transform
         pos_offset_node = pm.shadingNode('transform', name=f'{self.side_tag}{name}_CTRL_OFFSET', au = 1)
-        # ...Put offset node in final position (at target node) and parent it there, within the blend joint chain
+        # ...Put offset node in final position and parent it within the blend joint chain
         pos_offset_node.setParent(pos_offset_node_parent)
         gen_utils.zero_out(pos_offset_node)
-        # ...If two target joint were provided, position node between them
+        # ...If two target joints were provided, position node between them
         if multi_jnt_target:
             target_segment_length = self.segments[target_jnt_index[0]].segment_length
             pos_offset_node.tx.set(target_segment_length / 2)
 
 
-        # ...Put control in orientation offset node
-        offset_node = gen_utils.buffer_obj(ctrl)
-        # ...Put offset node under position offset node
-        offset_node.setParent(pos_offset_node)
-        gen_utils.zero_out(offset_node)
-        # ...Orient offset to point in the direction of the overall limb span's forward-facing normal ("away from" the
-        # ...limb)
-        pm.delete(pm.pointConstraint(self.segments[limb_span_jnt_indices[0]].blend_jnt,
-                                     self.segments[limb_span_jnt_indices[1]].blend_jnt, offset_node))
-        pm.delete(pm.aimConstraint(position_target, offset_node, aimVector=(0, 0, 1), upVector=(0, -1, 0),
-                                   worldUpType='object',
-                                   worldUpObject=self.segments[limb_span_jnt_indices[1]].blend_jnt))
-        offset_node.translate.set(0, 0, 0)
-
-
-        # ...Delete temp locator if it was made
-        if multi_jnt_target:
-            pm.delete(position_target)
+        # ...Put control under orientation buffer node
+        buffer_node = gen_utils.buffer_obj(ctrl, parent=pos_offset_node)
+        gen_utils.zero_out(buffer_node)
+        # ...Orient buffer node by averaging world orientations of the two segments in immediate limb span
+        pm.delete(pm.orientConstraint(limb_span_seg_1.blend_jnt, limb_span_seg_2.blend_jnt, buffer_node))
 
 
         return ctrl
@@ -586,7 +568,7 @@ class LimbRig:
         nodes_to_orient.remove(nodes_to_orient[-1])
         for i, node in enumerate(nodes_to_orient):
             pm.delete(pm.aimConstraint(self.jnt_position_holders[i+1], node, worldUpType="scene", aimVector=(1, 0, 0),
-                                       upVector=(0, 1, 0), worldUpVector=(0, 1, 0)))
+                                       upVector=(0, -1, 0), worldUpVector=(0, 1, 0)))
 
         self.segments[-1].blend_jnt.rotate.set(0, 0 ,0)
         self.segments[-1].blend_jnt.scale.set(1, 1, 1)
@@ -753,7 +735,7 @@ class LimbRig:
             if i == self.segment_count - 1:
                 continue
             pm.delete(pm.aimConstraint(self.jnt_position_holders[i + 1], node, worldUpType='object',
-                                       aimVector=(1, 0, 0), upVector=(0, 0, -1), worldUpObject=self.pv_position_holder))
+                                       aimVector=(1, 0, 0), upVector=(0, 0, 1), worldUpObject=self.pv_position_holder))
         self.segments[-1].ik_jnt.rotate.set(0, 0, 0)
         self.segments[-1].ik_jnt.scale.set(1, 1, 1)
 
@@ -769,6 +751,16 @@ class LimbRig:
 
         # --------------------------------------------------------------------------------------------------------------
         pm.select(clear=1)
+
+
+
+
+
+    ####################################################################################################################
+    def get_pv_vector(self):
+        # ...Pole vector vector ----------------------------------------------------------------------------------------
+        self.pv_vector = gen_utils.vector_between(obj_1=self.jnt_position_holders[1],
+                                                  obj_2=self.pv_position_holder)
 
 
 
@@ -866,7 +858,7 @@ class LimbRig:
         # ...Display curve ---------------------------------------------------------------------------------------------
         self.ik_display_crv = rig_utils.connector_curve(name=f'{self.side_tag}ik_{self.segment_names[-2]}',
                                                         end_driver_1=self.segments[1].ik_jnt,
-                                                        end_driver_2=self.ctrls["ik_pv"],
+                                                        end_driver_2=self.ctrls['ik_pv'],
                                                         override_display_type=1, line_width=-1.0,
                                                         parent=self.grps['transform'])[0]
 

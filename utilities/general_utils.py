@@ -475,22 +475,21 @@ def distance_between(obj_1=None, obj_2=None, position_1=None, position_2=None):
 ########################################################################################################################
 def vector_between(obj_1=None, obj_2=None, vector_1=None, vector_2=None):
     """
-        Calculates a vector from one object to another. Can provide either two objects to use their vectors, or can
-            provide two specific vectors.
-        Args:
-            obj_1 (mTransformObj):
-            obj_2 (mTransformObj):
-            vector_1 (tuple(float, float, float)):
-            vector_2 (tuple(float, float, float)):
-        Returns:
-            (float, float, float) The calculated vector.
+    Calculates a vector from one object to another. Can provide either two objects to use their vectors, or can provide
+        two specific vectors.
+    Args:
+        obj_1 (mTransformObj):
+        obj_2 (mTransformObj):
+        vector_1 (tuple(float, float, float)):
+        vector_2 (tuple(float, float, float)):
+    Returns:
+        (float, float, float) The calculated vector.
     """
 
 
     # Initialize final position variables
     pos_1 = None
     pos_2 = None
-
 
     # Determine which combination of objects and positions to use based on which arguments were provided.
     #   Order of priority:
@@ -2710,3 +2709,17 @@ def drive_attr(obj_1, obj_2, attr):
         if not pm.listConnections(f'{obj_2}.{a}', source=1):
             pm.connectAttr(f'{obj_1}.{a}', obj_2 + "." + a)
             pm.setAttr(f'{obj_2}.{a}', lock=1, keyable=0, channelBox=1)
+
+
+
+
+
+########################################################################################################################
+def get_angle_convergence_between_two_vectors(vector_1, vector_2):
+
+    v1, v2 = vector_1, vector_2
+    vector_product = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+    squared_vector_product = (v1[0] ** 2 + v1[1] ** 2 + v1[2] ** 2) * (v2[0] ** 2 + v2[1] ** 2 + v2[2] ** 2)
+    cos_angle = vector_product / math.sqrt(squared_vector_product)
+
+    return cos_angle
