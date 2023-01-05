@@ -306,7 +306,8 @@ class LimbRig:
         buffer_node = gen_utils.buffer_obj(ctrl, parent=pos_offset_node)
         gen_utils.zero_out(buffer_node)
         # ...Orient buffer node by averaging world orientations of the two segments in immediate limb span
-        pm.orientConstraint(limb_span_seg_1.blend_jnt, limb_span_seg_2.blend_jnt, buffer_node)
+        constraint = pm.orientConstraint(limb_span_seg_1.blend_jnt, limb_span_seg_2.blend_jnt, buffer_node)
+        constraint.interpType.set(2)
 
 
         return ctrl
@@ -438,52 +439,11 @@ class LimbRig:
         self.create_blend_jnts()
         # ...Limb pin controls
         self.create_limb_pin_ctrls(pin_ctrls_data)
-
-
         # ...Rollers
-        '''lowerlimb_roller = self.install_rollers(
-            start_node = self.segments[index_pairs[1][0]].blend_jnt,
-            end_node = self.segments[index_pairs[1][1]].blend_jnt,
-            seg_name = self.segments[index_pairs[1][0]].segment_name,
-            start_rot_match = self.segments[index_pairs[1][0]].blend_jnt,
-            end_rot_match = self.segments[index_pairs[1][1]].blend_jnt,
-            ctrl_mid_influ = True,
-            populate_ctrls = (1, 1, 1),
-            ctrl_color = self.ctrl_colors['other'],
-            side = self.side,
-            parent = self.grps['noTransform']
-        )
-        for ctrl_tag in ('start_ctrl', 'mid_ctrl', 'end_ctrl'):
-            self.segments[index_pairs[1][0]].bend_ctrls.append(lowerlimb_roller[ctrl_tag])
-        for jnt_tag in ('start_jnt', 'mid_jnt', 'end_jnt'):
-            self.segments[index_pairs[1][0]].bend_jnts.append(lowerlimb_roller[jnt_tag])
-
-        self.ctrls['mid_limb_pin'] = lowerlimb_roller['start_ctrl']
-        self.ctrls['lowerlimb_bend_mid'] = lowerlimb_roller['mid_ctrl']
-        self.ctrls['lowerlimb_bend_end'] = lowerlimb_roller['end_ctrl']
-
-        upperlimb_roller = self.install_rollers(
-            start_node = self.segments[index_pairs[0][0]].blend_jnt,
-            end_node = self.segments[index_pairs[0][1]].blend_jnt,
-            seg_name = self.segments[index_pairs[0][0]].segment_name,
-            start_rot_match = self.ctrls['socket'],
-            end_rot_match = lowerlimb_roller['start_ctrl'],
-            populate_ctrls = (1, 1, 0),
-            ctrl_color = self.ctrl_colors['other'],
-            side = self.side,
-            parent = self.grps['noTransform']
-            )
-        for ctrl_tag in ('start_ctrl', 'mid_ctrl'):
-            self.segments[index_pairs[0][0]].bend_ctrls.append(upperlimb_roller[ctrl_tag])
-        for jnt_tag in ('start_jnt', 'mid_jnt', 'end_jnt'):
-            self.segments[index_pairs[0][0]].bend_jnts.append(upperlimb_roller[jnt_tag])
-
-        self.roll_socket_target = upperlimb_roller["roll_socket_target"]
-
-        self.ctrls['upperlimb_bend_start'] = upperlimb_roller['start_ctrl']
-        self.ctrls['upperlimb_bend_mid'] = upperlimb_roller['mid_ctrl']
+        self.install_rollers(index_pairs=index_pairs)
 
 
+        '''
         # ...Bend ctrls vis
         bend_ctrl_vis_attr_string = 'BendCtrls'
         if not pm.attributeQuery(bend_ctrl_vis_attr_string, node=self.ctrls['socket'], exists=1):
@@ -517,25 +477,49 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def install_rollers(self, start_node, end_node, seg_name, start_rot_match, end_rot_match, jnt_radius=0.3,
-                        ctrl_mid_influ=False, populate_ctrls=(1, 1, 1), roll_axis=(1, 0, 0), up_axis=(0, 1, 0),
-                        ctrl_color=0, side=None, parent=None):
+    def install_rollers(self, index_pairs):
+
+        upperlimb_roller = self.install_roller(
+            seg_name=self.segments[index_pairs[0][0]].segment_name,
+            start_node=self.ctrls['socket'],
+            end_node=self.ctrls['knee_pin'],
+            ctrl_color=self.ctrl_colors['other'],
+            parent=self.grps['noTransform'],
+            segment_index=index_pairs[0][0]
+        )
+        lowerlimb_roller = self.install_roller(
+            seg_name = self.segments[index_pairs[1][0]].segment_name,
+            start_node = self.ctrls['knee_pin'],
+            end_node = self.segments[index_pairs[1][1]].blend_jnt,
+            ctrl_color = self.ctrl_colors['other'],
+            parent = self.grps['noTransform'],
+            segment_index = index_pairs[1][0]
+        )
+
+
+
+
+
+
+
+    ####################################################################################################################
+    def install_roller(self, start_node, end_node, seg_name, jnt_radius=0.05, up_axis=(0, -1, 0), ctrl_color=0,
+                       parent=None, segment_index=None):
 
         rollers = rig_utils.limb_rollers(
             start_node = start_node,
             end_node = end_node,
             roller_name = seg_name,
-            start_rot_match = start_rot_match,
-            end_rot_match = end_rot_match,
             jnt_radius = jnt_radius,
-            populate_ctrls = populate_ctrls,
-            ctrl_mid_influ = ctrl_mid_influ,
-            roll_axis = roll_axis,
             up_axis = up_axis,
             ctrl_color = ctrl_color,
-            side = side,
+            side = self.side,
             parent = parent
         )
+        for ctrl in rollers['ctrls']:
+            self.segments[segment_index].bend_ctrls.append(ctrl)
+        for jnt in rollers['jnts']:
+            self.segments[segment_index].bend_jnts.append(jnt)
 
 
         # --------------------------------------------------------------------------------------------------------------
@@ -1080,6 +1064,7 @@ class LimbRig:
             weights = pm.orientConstraint(constraint, query=1, weightAliasList=1)
             pm.connectAttr(blend_driver_plugs.rev.outputX, weights[0])
             pm.connectAttr(blend_driver_plugs.multOutput, weights[1])
+            constraint.interpType.set(2, lock=1)
 
             seg.blend_jnt.jointOrient.set(0, 0, 0)
 

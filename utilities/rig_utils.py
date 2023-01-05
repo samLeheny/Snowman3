@@ -765,51 +765,30 @@ def apply_ctrl_locks(ctrl):
 
 
 ########################################################################################################################
-def limb_rollers(start_node,
-                 end_node,
-                 roller_name,
-                 start_rot_match,
-                 end_rot_match,
-                 jnt_radius = 0.3,
-                 populate_ctrls = (1, 1, 1),
-                 ctrl_mid_influ=False,
-                 roll_axis = (1, 0, 0),
-                 up_axis = (0, 0, 1),
-                 ctrl_color = 15,
-                 side = None,
-                 parent = None):
+def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, jnt_radius = 0.3, up_axis = (0, 0, 1),
+                 ctrl_color = 15):
     """
 
     """
 
-    side_tag = "{}_".format(side) if side else ""
+    side_tag = f'{side}_' if side else ''
 
     # ...Stretch rig group
-    stretch_rig_grp = pm.group(name="{}stretch_rig_{}".format(side_tag, "neck"), p=parent,
-                               em=1)
-    mult_matrix = node_utils.multMatrix(matrixIn=(start_node.worldMatrix, stretch_rig_grp.parentInverseMatrix))
-    node_utils.decomposeMatrix(inputMatrix=mult_matrix.matrixSum,
-                               outputTranslate=stretch_rig_grp.translate,
-                               outputRotate=stretch_rig_grp.rotate,
-                               outputScale=stretch_rig_grp.scale)
+    stretch_rig_grp = pm.group(name=f'{side_tag}stretch_rig_{roller_name}', p=parent, em=1)
+    pm.pointConstraint(start_node, stretch_rig_grp)
+    pm.aimConstraint(end_node, stretch_rig_grp, aimVector=(1, 0, 0), upVector=up_axis, worldUpType='objectrotation',
+                     worldUpObject=start_node, worldUpVector=(0, 1, 0))
+
 
     # ...Bend controls visibility attribute ------------------------------------------------------------------------
     # ...Start, Mid, and End controls
-    def bend_control(tag, match_node, rot_match_node, anim_ctrl=1):
+    def bend_control(tag, match_node, rot_match_node):
 
         ctrl = control(ctrl_info={"shape": "circle",
-                                  "scale": [1.25, 1.25, 1.25],
+                                  "scale": [0.15, 0.15, 0.15],
                                   "up_direction": [0, 0, 1],
                                   "forward_direction": [1, 0, 0]},
-                       name="{}_bend_{}".format(roller_name, tag),
-                       ctrl_type=nom.animCtrl,
-                       side=side,
-                       color=ctrl_color)
-
-        if not anim_ctrl:
-            ctrl.rename(gen_utils.get_clean_name(str(ctrl)).replace(nom.animCtrl, "TRANSFORM"))
-            shapes = ctrl.getShapes()
-            [pm.delete(shape) for shape in shapes]
+                       name=f'{roller_name}_bend_{tag}', ctrl_type=nom.animCtrl, side=side, color=ctrl_color)
 
         jnt = joint(name="{}bend_{}".format(roller_name, tag), side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)
         jnt.setParent(ctrl)
@@ -820,60 +799,52 @@ def limb_rollers(start_node,
         gen_utils.zero_out(buffer)
 
         pm.delete(pm.pointConstraint(match_node, buffer))
-        pm.delete(pm.orientConstraint(rot_match_node, buffer))
         buffer.scale.set(1, 1, 1)
 
         return jnt, ctrl, mod, buffer
 
 
     start_jnt, start_ctrl, start_mod, start_buffer = bend_control(
-        tag="start", match_node=start_node, rot_match_node=start_node, anim_ctrl=populate_ctrls[0])
+        tag="start", match_node=start_node, rot_match_node=start_node)
 
     mid_jnt, mid_ctrl, mid_mod, mid_buffer = bend_control(
-        tag="mid", match_node=(start_node, end_node), rot_match_node=start_node, anim_ctrl=populate_ctrls[1])
+        tag="mid", match_node=(start_node, end_node), rot_match_node=start_node)
 
     end_jnt, end_ctrl, end_mod, end_buffer = bend_control(
-        tag="end", match_node=end_node, rot_match_node=start_node, anim_ctrl=populate_ctrls[2])
+        tag="end", match_node=end_node, rot_match_node=start_node)
 
     # ...Roll locators
-    start_roll_loc = pm.spaceLocator(name="{}{}_roll_start_{}".format(side_tag, roller_name, nom.locator))
+    start_roll_loc = pm.spaceLocator(name=f'{side_tag}{roller_name}_roll_start_{nom.locator}')
     start_roll_loc.setParent(stretch_rig_grp)
     gen_utils.zero_out(start_roll_loc)
 
-    roll_socket_target = pm.spaceLocator(name="{}{}_rollStart_target_{}".format(side_tag, "neck", nom.locator))
-    roll_socket_target.setParent(start_rot_match)
+    roll_socket_target = pm.spaceLocator(name=f'{side_tag}{roller_name}_rollStart_target_{nom.locator}')
+    roll_socket_target.setParent(start_node)
     gen_utils.zero_out(roll_socket_target)
     pm.delete(pm.orientConstraint(start_roll_loc, roll_socket_target))
     gen_utils.matrix_constraint(objs=[roll_socket_target, start_roll_loc], decompose=True,
-                                maintain_offset=True, translate=False, rotate=True, scale=False, shear=False)
+                                maintain_offset=True, translate=True, rotate=True, scale=False, shear=False)
 
-    end_roll_loc = pm.spaceLocator(name="{}{}_roll_end_{}".format(side_tag, roller_name, nom.locator))
+    end_roll_loc = pm.spaceLocator(name=f'{side_tag}{roller_name}_roll_end_{nom.locator}')
     end_roll_loc.setParent(stretch_rig_grp)
     gen_utils.zero_out(end_roll_loc)
     pm.delete(pm.pointConstraint(end_ctrl, end_roll_loc))
-
-    gen_utils.matrix_constraint(objs=[end_rot_match, end_roll_loc], decompose=True, maintain_offset=True,
+    gen_utils.matrix_constraint(objs=[end_node, end_roll_loc], decompose=True, maintain_offset=True,
                                 translate=True, rotate=True, scale=False, shear=False)
 
     # ...Position ctr grps based on locators
     # ...Start
     start_roll_loc.translate.connect(start_buffer.translate)
 
-    rotate_attr_tag = ("X", "x")
-    if roll_axis in ((1, 0, 0), (-1, 0, 0)):
-        rotate_attr_tag = ("X", "x")
-    elif roll_axis in ((0, 1, 0), (0, -1, 0)):
-        rotate_attr_tag = ("Y", "y")
-    elif roll_axis in ((0, 0, 1), (0, 0, -1)):
-        rotate_attr_tag = ("Z", "z")
+    rotate_attr_tag = ('X', 'x')
 
     decomp = node_utils.decomposeMatrix(inputMatrix=start_roll_loc.matrix)
     start_rot_convert = pm.shadingNode("quatToEuler", au=1)
-    pm.connectAttr(decomp + ".outputQuat.outputQuat" + rotate_attr_tag[0],
-                   start_rot_convert + ".inputQuat.inputQuat" + rotate_attr_tag[0])
+    pm.connectAttr(f'{decomp}.outputQuat.outputQuat{rotate_attr_tag[0]}',
+                   f'{start_rot_convert}.inputQuat.inputQuat{rotate_attr_tag[0]}')
     decomp.outputQuat.outputQuatW.connect(start_rot_convert.inputQuat.inputQuatW)
-    pm.connectAttr(start_rot_convert + ".outputRotate.outputRotate" + rotate_attr_tag[0],
-                   start_mod + ".r" + rotate_attr_tag[1])
+    pm.connectAttr(f'{start_rot_convert}.outputRotate.outputRotate{rotate_attr_tag[0]}',
+                   f'{start_mod}.r{rotate_attr_tag[1]}')
 
     # ...End
     end_roll_loc.translate.connect(end_buffer.translate)
@@ -883,33 +854,21 @@ def limb_rollers(start_node,
     pm.connectAttr(decomp + ".outputQuat.outputQuat" + rotate_attr_tag[0],
                    end_rot_convert + ".inputQuat.inputQuat" + rotate_attr_tag[0])
     pm.connectAttr(decomp.outputQuat.outputQuatW, end_rot_convert.inputQuat.inputQuatW)
-    pm.connectAttr(end_rot_convert + ".outputRotate.outputRotate" + rotate_attr_tag[0],
-                   end_mod + ".r" + rotate_attr_tag[1])
+    pm.connectAttr(f'{end_rot_convert}.outputRotate.outputRotate{rotate_attr_tag[0]}',
+                   f'{end_mod}.r{rotate_attr_tag[1]}')
 
     # ...Mid
-    avg = pm.shadingNode("plusMinusAverage", au=1)
-    mid_start_end_influ_obj = start_roll_loc
-    if ctrl_mid_influ:
-        mid_start_end_influ_obj = start_ctrl
-    mid_start_end_influ_obj.translate.connect(avg.input3D[0])
-    end_roll_loc.translate.connect(avg.input3D[1])
-    avg.operation.set(3)
-    avg.output3D.connect(mid_buffer.translate)
+    node_utils.multDoubleLinear(input1=end_roll_loc.tx, input2=0.5, output=mid_buffer.tx)
 
     blend = pm.shadingNode("blendWeighted", au=1)
-    pm.connectAttr(start_rot_convert + ".outputRotate.outputRotate" + rotate_attr_tag[0], blend.input[0])
-    pm.connectAttr(end_rot_convert + ".outputRotate.outputRotate" + rotate_attr_tag[0], blend.input[1])
-
-    node_utils.multDoubleLinear(input1=blend.output, input2=0.5, output=mid_mod + ".r" + rotate_attr_tag[1])
-
-    # ...Aim mid joint
-    pm.aimConstraint(end_jnt, mid_jnt, worldUpType="objectrotation", worldUpObject=end_jnt, aimVector=roll_axis,
-                     upVector=up_axis, worldUpVector=up_axis, skip=rotate_attr_tag[1])
+    pm.connectAttr(f'{start_rot_convert}.outputRotate.outputRotate{rotate_attr_tag[0]}', blend.input[0])
+    pm.connectAttr(f'{end_rot_convert}.outputRotate.outputRotate{rotate_attr_tag[0]}', blend.input[1])
+    node_utils.multDoubleLinear(input1=blend.output, input2=0.5, output=f'{mid_mod}.r{rotate_attr_tag[1]}')
 
 
     # --------------------------------------------------------------------------------------------------------------
-    return {"start_ctrl": start_ctrl, "mid_ctrl": mid_ctrl, "end_ctrl": end_ctrl,
-            "start_jnt": start_jnt, "mid_jnt": mid_jnt, "end_jnt": end_jnt,
+    return {"ctrls": (start_ctrl, mid_ctrl, end_ctrl),
+            "jnts": (start_jnt, mid_jnt, end_jnt),
             "roll_socket_target": roll_socket_target}
 
 
