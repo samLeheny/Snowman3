@@ -41,7 +41,8 @@ prefab_inputs = {
             'double_jnt_values' : (0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
             'roller_segment_indices' : ((0, 1), (1, 2)),
-            'tarsus_index': None
+            'tarsus_index': None,
+            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': 1, 'limb_span_jnt_indices': (0, 2)},)
         },
         'plantigrade_doubleKnee': {
             'default_seg_names': ['upperlimb', 'joint', 'lowerlimb', 'extrem'],
@@ -50,7 +51,8 @@ prefab_inputs = {
             'double_jnt_values' : (0, 1, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
             'roller_segment_indices' : ((0, 1), (2, 3)),
-            'tarsus_index': None
+            'tarsus_index': None,
+            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},)
         },
         'digitigrade': {
             'default_seg_names': ['upperlimb', 'lowerlimb', 'tarsus', 'extrem'],
@@ -59,17 +61,21 @@ prefab_inputs = {
             'double_jnt_values' : (0, 0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
             'roller_segment_indices' : ((0, 1), (1, 2)),
-            'tarsus_index': 2
+            'tarsus_index': 2,
+            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': 1, 'limb_span_jnt_indices': (0, 2)},
+                          {'name': 'heel', 'target_jnt_index': 2, 'limb_span_jnt_indices': (1, 3)})
         },
         'digitigrade_doubleKnees': {
             'default_seg_names': ['upperlimb', 'frontKnee', 'lowerlimb', 'backKnee', 'tarsus', 'extrem'],
             'default_jnt_positions': ((0, 0, 0), (0.65, 0, -0.5), (0.85, 0, -0.5), (1.4, 0, 0.25), (1.6, 0, 0.25),
                                       (2, 0, 0), (2.5, 0, 0)),
             'dynamic_length_values': (1, 0, 1, 0, 1, 0, 0),
-            'double_jnt_values' : (0, 1, 0, 1, 0, 0),
+            'double_jnt_values' : (0, 1, 0, 1, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
             'roller_segment_indices' : ((0, 1), (2, 3)),
-            'tarsus_index': 4
+            'tarsus_index': 4,
+            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},
+                          {'name': 'heel', 'target_jnt_index': (3, 4), 'limb_span_jnt_indices': (2, 5)})
         },
         'digitigrade_doubleFrontKnee': {
             'default_seg_names': ['upperlimb', 'frontKnee', 'lowerlimb', 'tarsus', 'extrem'],
@@ -79,7 +85,9 @@ prefab_inputs = {
             'double_jnt_values' : (0, 1, 0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
             'roller_segment_indices' : ((0, 1), (2, 3)),
-            'tarsus_index': 3
+            'tarsus_index': 3,
+            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},
+                          {'name': 'heel', 'target_jnt_index': 3, 'limb_span_jnt_indices': (2, 4)})
         },
     }
 ###########################
@@ -181,7 +189,7 @@ class LimbRig:
         self.create_rig_grps()
         self.create_rig_socket_ctrl()
         self.create_length_mult_nodes()
-        self.blend_rig(index_pairs=inputs['roller_segment_indices'])
+        self.blend_rig(index_pairs=inputs['roller_segment_indices'], pin_ctrls_data=inputs['pin_ctrls'])
         self.fk_rig()
         self.ik_rig(tarsus_index=inputs['tarsus_index'], limb_ik_start_index=inputs['ik_indices']['start'],
                     limb_ik_end_index=inputs['ik_indices']['end'])
@@ -298,7 +306,7 @@ class LimbRig:
         buffer_node = gen_utils.buffer_obj(ctrl, parent=pos_offset_node)
         gen_utils.zero_out(buffer_node)
         # ...Orient buffer node by averaging world orientations of the two segments in immediate limb span
-        pm.delete(pm.orientConstraint(limb_span_seg_1.blend_jnt, limb_span_seg_2.blend_jnt, buffer_node))
+        pm.orientConstraint(limb_span_seg_1.blend_jnt, limb_span_seg_2.blend_jnt, buffer_node)
 
 
         return ctrl
@@ -308,14 +316,14 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def create_limb_pin_ctrls(self):
+    def create_limb_pin_ctrls(self, pin_ctrls_data):
 
-        self.ctrls['knee_pin'] = self.create_pin_ctrl(name='knee',
-                                                      target_jnt_index=(1, 2),
-                                                      limb_span_jnt_indices=(0, 3))
-        self.ctrls['heel_pin'] = self.create_pin_ctrl(name='heel',
-                                                      target_jnt_index=3,
-                                                      limb_span_jnt_indices=(2, 4))
+        for data_dict in pin_ctrls_data:
+            self.ctrls[f'{data_dict["name"]}_pin'] = self.create_pin_ctrl(
+                name = data_dict['name'],
+                target_jnt_index = data_dict['target_jnt_index'],
+                limb_span_jnt_indices = data_dict['limb_span_jnt_indices']
+            )
 
 
 
@@ -420,7 +428,7 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def blend_rig(self, index_pairs):
+    def blend_rig(self, index_pairs, pin_ctrls_data):
 
 
         pm.addAttr(self.ctrls['socket'], longName='Volume', attributeType='float', minValue=0, maxValue=10,
@@ -429,7 +437,7 @@ class LimbRig:
         # ...Blend skeleton
         self.create_blend_jnts()
         # ...Limb pin controls
-        self.create_limb_pin_ctrls()
+        self.create_limb_pin_ctrls(pin_ctrls_data)
 
 
         # ...Rollers
