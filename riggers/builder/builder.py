@@ -42,7 +42,7 @@ importlib.reload(get_armature_data)
 
 # ...Symmetry and side variables
 symmetry_info = gen_utils.symmetry_info("Left drives Right")
-symmetry_mode = symmetry_info[0]
+default_symmetry_mode = symmetry_info[0]
 
 
 
@@ -51,11 +51,14 @@ symmetry_mode = symmetry_info[0]
 ########################################################################################################################
 def build_armature_in_scene(armature):
 
+    # ...Create and move into armature namespace
     pm.namespace(add=nom.setupRigNamespace)
     pm.namespace(set=nom.setupRigNamespace)
 
+    # ...Build armature
     armature.populate_armature()
 
+    # ...Return to default scene namespace
     pm.namespace(set=":")
     pm.select(clear=1)
     return armature
@@ -93,7 +96,7 @@ def build_armature_from_data(data):
 
 
 ########################################################################################################################
-def build_rig_in_scene(armature=None, asset_name=None):
+def build_rig_in_scene(asset_name=None, armature=None):
 
     # ...Create namespace for final rig and set it as current namespace
     pm.namespace(add=nom.finalRigNamespace)

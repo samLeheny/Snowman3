@@ -222,8 +222,8 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 
 
     # Check to see if a control with this name already exists
-    if pm.objExists(f'::{ctrl_name}'):
-        pm.error(f'A control with name "{ctrl_name}" already exists')
+    ### if pm.objExists(ctrl_name):
+    ###     pm.error(f'A control with name "{ctrl_name}" already exists')
 
 
     # Determine control colour
@@ -766,7 +766,7 @@ def apply_ctrl_locks(ctrl):
 
 ########################################################################################################################
 def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, jnt_radius = 0.3, up_axis = (0, 0, 1),
-                 ctrl_color = 15):
+                 ctrl_color = 15, roll_axis=(1, 0, 0)):
     """
 
     """
@@ -776,26 +776,26 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
     # ...Stretch rig group
     stretch_rig_grp = pm.group(name=f'{side_tag}stretch_rig_{roller_name}', p=parent, em=1)
     pm.pointConstraint(start_node, stretch_rig_grp)
-    pm.aimConstraint(end_node, stretch_rig_grp, aimVector=(1, 0, 0), upVector=up_axis, worldUpType='objectrotation',
-                     worldUpObject=start_node, worldUpVector=(0, 1, 0))
+    pm.aimConstraint(end_node, stretch_rig_grp, aimVector=roll_axis, upVector=up_axis, worldUpType='objectrotation',
+                     worldUpObject=start_node, worldUpVector=(-up_axis[0], -up_axis[1], -up_axis[2]))
 
 
     # ...Bend controls visibility attribute ------------------------------------------------------------------------
     # ...Start, Mid, and End controls
     def bend_control(tag, match_node, rot_match_node):
 
-        ctrl = control(ctrl_info={"shape": "circle",
-                                  "scale": [0.15, 0.15, 0.15],
-                                  "up_direction": [0, 0, 1],
-                                  "forward_direction": [1, 0, 0]},
+        ctrl = control(ctrl_info={'shape': 'circle',
+                                  'scale': [0.15, 0.15, 0.15],
+                                  'up_direction': list(up_axis),
+                                  'forward_direction': list(roll_axis)},
                        name=f'{roller_name}_bend_{tag}', ctrl_type=nom.animCtrl, side=side, color=ctrl_color)
 
-        jnt = joint(name="{}bend_{}".format(roller_name, tag), side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)
+        jnt = joint(name=f'{roller_name}bend_{tag}', side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)
         jnt.setParent(ctrl)
 
-        mod = gen_utils.buffer_obj(ctrl, suffix="MOD")
+        mod = gen_utils.buffer_obj(ctrl, suffix='MOD')
 
-        buffer = gen_utils.buffer_obj(mod, suffix="BUFFER", parent=stretch_rig_grp)
+        buffer = gen_utils.buffer_obj(mod, suffix='BUFFER', parent=stretch_rig_grp)
         gen_utils.zero_out(buffer)
 
         pm.delete(pm.pointConstraint(match_node, buffer))

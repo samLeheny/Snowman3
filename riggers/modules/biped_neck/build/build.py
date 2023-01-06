@@ -108,18 +108,14 @@ def build(rig_module, rig_parent=None):
 
 
     # ...Rollers
-    neck_roller = rig_utils.limb_rollers(start_node=stretch_socket,
-                                         end_node=stretch_out_socket,
-                                         roller_name="neck",
-                                         start_rot_match=ctrls["neck"],
-                                         end_rot_match=ctrls["head"],
-                                         ctrl_mid_influ=True,
-                                         populate_ctrls=(0, 1, 0),
-                                         roll_axis=(0, 1, 0),
-                                         up_axis=(0, 0, 1),
-                                         ctrl_color=15,
-                                         parent=rig_module.no_transform_grp,
-                                         side=rig_module.side)
+    neck_roller = rig_utils.limb_rollers(start_node = stretch_socket, #ctrls["neck"],
+                                         end_node = stretch_out_socket, #ctrls["head"],
+                                         roller_name = 'neck',
+                                         roll_axis = (0, 1, 0),
+                                         up_axis = (0, 0, 1),
+                                         ctrl_color = 15,
+                                         parent = rig_module.no_transform_grp,
+                                         side = rig_module.side)
 
     # ...Ribbon
     ribbon_up_vector = (0, 0, -1)
@@ -135,7 +131,7 @@ def build(rig_module, rig_parent=None):
 
 
     # ...Skin ribbons
-    pm.select(neck_roller["start_jnt"], neck_roller["mid_jnt"], neck_roller["end_jnt"], replace=1)
+    pm.select(neck_roller['jnts'][0], neck_roller['jnts'][1], neck_roller['jnts'][2], replace=1)
     pm.select(neck_ribbon["nurbsStrip"], add=1)
     pm.skinCluster(maximumInfluences=1, toSelectedBones=1)
 

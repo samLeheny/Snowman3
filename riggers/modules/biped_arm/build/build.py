@@ -42,14 +42,14 @@ def build(rig_module, rig_parent=None):
     # ...Create limb rig -----------------------------------------------------------------------------------------------
     limb_rig = LimbRig(limb_name = rig_module.name,
                        side = rig_module.side,
-                       segment_names=("upperarm", "lowerarm", "hand", "handEnd"),
-                       socket_name = "shoulder",
-                       midlimb_name = "elbow",
-                       final_pose_nodes = (rig_module.orienters["upperarm"],
-                                           rig_module.orienters["lowerarm"],
-                                           rig_module.orienters["lowerarm_end"],
-                                           rig_module.orienters["wrist_end"],
-                                           rig_module.orienters["ik_elbow"]))
+                       prefab = 'plantigrade',
+                       segment_names = ['upperarm', 'lowerarm', 'hand'],
+                       socket_name = 'shoulder',
+                       pv_name = 'elbow',
+                       jnt_positions = [pm.xform(rig_module.orienters[n], q=1, ws=1, rp=1) for n in
+                                        ('upperarm', 'lowerarm', 'lowerarm_end', 'wrist_end')],
+                       pv_position = pm.xform(rig_module.orienters['ik_elbow'], q=1, ws=1, rp=1)
+                       )
 
     # ...Move contents of limb rig into biped_arm rig module's groups
     '''for child in limb_rig.transform_grp.getChildren():

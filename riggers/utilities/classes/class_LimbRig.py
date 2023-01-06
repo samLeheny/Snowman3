@@ -40,7 +40,6 @@ prefab_inputs = {
             'dynamic_length_values' : (1, 1, 0, 0),
             'double_jnt_values' : (0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
-            'roller_segment_indices' : ((0, 1), (1, 2)),
             'tarsus_index': None,
             'pin_ctrls': ({'name': 'knee', 'target_jnt_index': 1, 'limb_span_jnt_indices': (0, 2)},)
         },
@@ -50,7 +49,6 @@ prefab_inputs = {
             'dynamic_length_values': (1, 0, 1, 0, 0),
             'double_jnt_values' : (0, 1, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
-            'roller_segment_indices' : ((0, 1), (2, 3)),
             'tarsus_index': None,
             'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},)
         },
@@ -60,7 +58,6 @@ prefab_inputs = {
             'dynamic_length_values': (1, 1, 1, 0, 0),
             'double_jnt_values' : (0, 0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
-            'roller_segment_indices' : ((0, 1), (1, 2)),
             'tarsus_index': 2,
             'pin_ctrls': ({'name': 'knee', 'target_jnt_index': 1, 'limb_span_jnt_indices': (0, 2)},
                           {'name': 'heel', 'target_jnt_index': 2, 'limb_span_jnt_indices': (1, 3)})
@@ -72,7 +69,6 @@ prefab_inputs = {
             'dynamic_length_values': (1, 0, 1, 0, 1, 0, 0),
             'double_jnt_values' : (0, 1, 0, 1, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
-            'roller_segment_indices' : ((0, 1), (2, 3)),
             'tarsus_index': 4,
             'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},
                           {'name': 'heel', 'target_jnt_index': (3, 4), 'limb_span_jnt_indices': (2, 5)})
@@ -84,7 +80,6 @@ prefab_inputs = {
             'dynamic_length_values': (1, 0, 1, 1, 0, 0),
             'double_jnt_values' : (0, 1, 0, 0, 0, 0),
             'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
-            'roller_segment_indices' : ((0, 1), (2, 3)),
             'tarsus_index': 3,
             'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},
                           {'name': 'heel', 'target_jnt_index': 3, 'limb_span_jnt_indices': (2, 4)})
@@ -107,6 +102,7 @@ class LimbRig:
         side = None,
         segment_names = None,
         jnt_positions = None,
+        pv_position = None,
         socket_name = None,
         pv_name = None
     ):
@@ -119,6 +115,8 @@ class LimbRig:
         self.segment_count = None
         self.segment_names = segment_names
         self.jnt_positions = jnt_positions
+        self.starter_jnt_positions = None
+        self.pv_position = pv_position if not self.side == "R" else [-pv_position[0], pv_position[1], pv_position[2]]
         self.limb_ik_start_jnt_index = None
         self.limb_ik_end_jnt_index = None
         self.limb_ik_mid_jnt_index = None
@@ -143,7 +141,11 @@ class LimbRig:
         self.pv_vector = None
         self.pin_ctrls = []
 
+        pm.namespace(add=f'LimbRig_{self.limb_name}')
+        pm.namespace(set=f'LimbRig_{self.limb_name}')
         self.build_prefab(self.prefab)
+        pm.namespace(set=":")
+        pm.select(clear=1)
 
 
 
@@ -168,13 +170,14 @@ class LimbRig:
         if not self.segment_names: self.segment_names = default_seg_names
         self.segment_names.append(f'{self.segment_names[-1]}End')
         if not self.jnt_positions: self.jnt_positions = default_jnt_positions
+        self.starter_jnt_positions = self.jnt_positions
 
         for i, name in enumerate(self.segment_names):
-            end_world_position = default_jnt_positions[i + 1] if i < len(default_seg_names) else None
+            end_world_position = self.jnt_positions[i + 1] if i < len(default_seg_names) else None
             new_segment = LimbSegment(segment_name = name,
                                       side = self.side,
                                       index = i,
-                                      start_world_position = default_jnt_positions[i],
+                                      start_world_position = self.jnt_positions[i],
                                       end_world_position = end_world_position,
                                       dynamic_length = dynamic_length_values[i],
                                       double_jnt_status = inputs['double_jnt_values'][i])
@@ -190,12 +193,11 @@ class LimbRig:
         self.create_rig_grps()
         self.create_rig_socket_ctrl()
         self.create_length_mult_nodes()
-        self.blend_rig(index_pairs=inputs['roller_segment_indices'], pin_ctrls_data=inputs['pin_ctrls'])
+        self.blend_rig(pin_ctrls_data=inputs['pin_ctrls'])
         self.fk_rig()
         self.ik_rig(tarsus_index=inputs['tarsus_index'], limb_ik_start_index=inputs['ik_indices']['start'],
                     limb_ik_end_index=inputs['ik_indices']['end'])
         self.setup_kinematic_blend()
-        ### self.install_ribbon_systems()
         self.delete_position_holders()
 
 
@@ -211,11 +213,15 @@ class LimbRig:
 
         locs_grp = pm.group(name=f'{self.side_tag}position_holders_TEMP', world=1, em=1)
 
+        # ...Mirror transforms if this is a right-sided limb
+        if self.side == nom.rightSideTag:
+            gen_utils.flip(locs_grp)
+
         # ...Create and position locs
         for i, pos in enumerate(self.jnt_positions):
             loc = pm.spaceLocator(name=f'{self.side_tag}position_holder_{str(i)}_{nom.locator}')
-            loc.setParent(locs_grp)
             loc.translate.set(pos)
+            loc.setParent(locs_grp)
             loc.getShape().localScale.set(0.15, 0.15, 0.15)
             self.jnt_position_holders.append(loc)
 
@@ -223,15 +229,12 @@ class LimbRig:
         self.create_pv_position_holder(locs_grp)
 
         # ...Orient locs
+        mult = 1 if self.side == 'L' else -1
         for i in range(0, len(self.jnt_position_holders)):
             pm.delete(pm.aimConstraint(self.jnt_position_holders[i], self.jnt_position_holders[i-1],
-                                       worldUpType='object', aimVector=(1, 0, 0), upVector=(0, 0, 1),
+                                       worldUpType='object', aimVector=(1, 0, 0), upVector=(0, 0, 1*mult),
                                        worldUpObject=self.pv_position_holder))
         pm.delete(pm.orientConstraint(self.jnt_position_holders[-2], self.jnt_position_holders[-1]))
-
-        # ...Mirror transforms if this is a right-sided limb
-        if self.side == nom.rightSideTag:
-            gen_utils.flip(locs_grp)
 
 
 
@@ -341,12 +344,15 @@ class LimbRig:
         loc = self.pv_position_holder = pm.spaceLocator(name=f'{self.side_tag}position_holder_PV_{nom.locator}')
         loc.getShape().localScale.set(0.15, 0.15, 0.15)
         loc.setParent(parent)
-        pm.delete(pm.pointConstraint(self.jnt_position_holders[self.limb_ik_start_jnt_index],
-                                     self.jnt_position_holders[self.limb_ik_end_jnt_index], loc))
-        pm.delete(pm.aimConstraint(self.jnt_position_holders[self.limb_ik_mid_jnt_index], loc, worldUpType='object',
-                  worldUpObject=self.jnt_position_holders[0], aimVector=(0, 0, -1), upVector=(-1, 0, 0)))
-        gen_utils.buffer_obj(loc)
-        loc.tz.set(sum([seg.segment_length for seg in self.segments]) * -1)
+        if self.pv_position:
+            loc.translate.set(self.pv_position)
+        else:
+            pm.delete(pm.pointConstraint(self.jnt_position_holders[self.limb_ik_start_jnt_index],
+                                         self.jnt_position_holders[self.limb_ik_end_jnt_index], loc))
+            pm.delete(pm.aimConstraint(self.jnt_position_holders[self.limb_ik_mid_jnt_index], loc, worldUpType='object',
+                      worldUpObject=self.jnt_position_holders[0], aimVector=(0, 0, -1), upVector=(-1, 0, 0)))
+            gen_utils.buffer_obj(loc)
+            loc.tz.set(sum([seg.segment_length for seg in self.segments]) * -1)
 
 
 
@@ -389,7 +395,8 @@ class LimbRig:
         # ...Position ctrl in scene and hierarchy
         ctrl.translate.set(self.jnt_positions[0])
         ctrl.setParent(self.grps['transform'])
-        gen_utils.convert_offset(ctrl)
+        [pm.setAttr(ctrl+'.'+a, 0) for a in ('rx', 'ry', 'rz')]
+        [pm.setAttr(ctrl+'.'+a, 1) for a in ('sx', 'sy', 'sz')]
         gen_utils.buffer_obj(ctrl)
 
         # ...Rig Scale attribute
@@ -434,14 +441,14 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def blend_rig(self, index_pairs, pin_ctrls_data):
+    def blend_rig(self, pin_ctrls_data):
 
         # ...Blend skeleton
         self.create_blend_jnts()
         # ...Limb pin controls
         self.create_limb_pin_ctrls(pin_ctrls_data)
         # ...Rollers
-        self.install_rollers(index_pairs=index_pairs)
+        self.install_rollers()
         # ...Ribbons
         self.install_ribbons()
 
@@ -489,7 +496,7 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def install_rollers(self, index_pairs, jnt_radius=0.05, up_axis=(0, -1, 0), ctrl_color=0):
+    def install_rollers(self, jnt_radius=0.05, up_axis=(0, -1, 0)):
 
 
         # ...Create bend ctrl vis switch
@@ -570,10 +577,13 @@ class LimbRig:
             gen_utils.flip(self.blend_jnt_chain_buffer)
 
 
-        # Position Jnts ------------------------------------------------------------------------------------------------
+        # Position jnts locally ----------------------------------------------------------------------------------------
         for i, seg in enumerate(self.segments):
             if i == 0: continue
             seg.blend_jnt.tx.set(self.segments[i - 1].segment_length)
+
+        self.blend_jnt_chain_buffer.setParent(self.ctrls['socket'])
+        gen_utils.zero_out(self.blend_jnt_chain_buffer)
 
 
         # Orient Jnts --------------------------------------------------------------------------------------------------
@@ -581,8 +591,9 @@ class LimbRig:
         nodes_to_orient[0] = self.blend_jnt_chain_buffer
         nodes_to_orient.remove(nodes_to_orient[-1])
         for i, node in enumerate(nodes_to_orient):
-            pm.delete(pm.aimConstraint(self.jnt_position_holders[i+1], node, worldUpType="scene", aimVector=(1, 0, 0),
-                                       upVector=(0, -1, 0), worldUpVector=(0, 1, 0)))
+            pm.delete(pm.aimConstraint(self.jnt_position_holders[i + 1], node, worldUpType="object",
+                                       aimVector=(1, 0, 0), upVector=(0, 0, -1),
+                                       worldUpObject=self.pv_position_holder))
 
         self.segments[-1].blend_jnt.rotate.set(0, 0 ,0)
         self.segments[-1].blend_jnt.scale.set(1, 1, 1)
@@ -593,9 +604,6 @@ class LimbRig:
             if i == 0: continue
             seg.blend_jnt.jointOrient.set(seg.blend_jnt.rotate.get() + seg.blend_jnt.jointOrient.get())
             seg.blend_jnt.rotate.set(0, 0, 0)
-
-
-        self.blend_jnt_chain_buffer.setParent(self.ctrls['socket'])
 
 
         rot = self.blend_jnt_chain_buffer.rotate.get()
@@ -641,7 +649,7 @@ class LimbRig:
                 )
                 jnt_parent = fk_ctrl
 
-            if  seg.double_jnt:
+            if seg.double_jnt:
                 jnt_parent = self.segments[n-1].fk_jnt_cap
             jnt = seg.fk_jnt = rig_utils.joint(name=f'{seg.segment_name}_fk', side=self.side, joint_type=nom.nonBindJnt,
                                                radius=0.08, color=2, parent=jnt_parent)
@@ -749,7 +757,8 @@ class LimbRig:
             if i == self.segment_count - 1:
                 continue
             pm.delete(pm.aimConstraint(self.jnt_position_holders[i + 1], node, worldUpType='object',
-                                       aimVector=(1, 0, 0), upVector=(0, 0, 1), worldUpObject=self.pv_position_holder))
+                                       aimVector=(1, 0, 0), upVector=(0, 0, -1),
+                                       worldUpObject=self.pv_position_holder))
         self.segments[-1].ik_jnt.rotate.set(0, 0, 0)
         self.segments[-1].ik_jnt.scale.set(1, 1, 1)
 
@@ -822,11 +831,12 @@ class LimbRig:
         gen_utils.zero_out(extrem_buffer)
         extrem_buffer.setParent(self.grps['transform'])
 
-        gen_utils.zero_out(pv_buffer)
+        pm.delete(pm.parentConstraint(self.pv_position_holder, pv_buffer))
+        '''gen_utils.zero_out(pv_buffer)
         pm.delete(pm.parentConstraint(self.segments[0].blend_jnt, self.segments[-2].blend_jnt, pv_buffer))
         extrem_dist = gen_utils.distance_between(position_1=self.segments[0].start_world_position,
                                                  position_2=self.segments[-2].start_world_position)
-        pv_buffer.tz.set(pv_buffer.tz.get() + (-extrem_dist) * 0.8)
+        pv_buffer.tz.set(pv_buffer.tz.get() + (-extrem_dist) * 0.8)'''
 
         if tarsus_index:
             tarsus_buffer.setParent(self.segments[-2].blend_jnt)
