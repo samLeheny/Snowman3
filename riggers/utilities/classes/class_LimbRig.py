@@ -141,6 +141,7 @@ class LimbRig:
         self.roll_socket_target = None
         self.tweak_ctrls = []
         self.pv_vector = None
+        self.pin_ctrls = []
 
         self.build_prefab(self.prefab)
 
@@ -310,6 +311,10 @@ class LimbRig:
         constraint.interpType.set(2)
 
 
+        # ...Add ctrl to LimbRig's pin_ctrls class variable
+        self.pin_ctrls.append(ctrl)
+
+
         return ctrl
 
 
@@ -431,10 +436,6 @@ class LimbRig:
     ####################################################################################################################
     def blend_rig(self, index_pairs, pin_ctrls_data):
 
-
-        pm.addAttr(self.ctrls['socket'], longName='Volume', attributeType='float', minValue=0, maxValue=10,
-                   defaultValue=0, keyable=1)
-
         # ...Blend skeleton
         self.create_blend_jnts()
         # ...Limb pin controls
@@ -442,6 +443,8 @@ class LimbRig:
         # ...Rollers
         self.install_rollers(index_pairs=index_pairs)
 
+        pm.addAttr(self.ctrls['socket'], longName='Volume', attributeType='float', minValue=0, maxValue=10,
+                   defaultValue=0, keyable=1)
 
         '''
         # ...Bend ctrls vis
@@ -479,22 +482,46 @@ class LimbRig:
     ####################################################################################################################
     def install_rollers(self, index_pairs):
 
-        upperlimb_roller = self.install_roller(
-            seg_name=self.segments[index_pairs[0][0]].segment_name,
-            start_node=self.ctrls['socket'],
-            end_node=self.ctrls['knee_pin'],
-            ctrl_color=self.ctrl_colors['other'],
-            parent=self.grps['noTransform'],
-            segment_index=index_pairs[0][0]
+        for i in range(len(self.segments)-2):
+
+            segment = self.segments[i]
+
+            if segment.double_jnt:
+                continue
+
+            if i == 0:
+                start_node = self.ctrls['socket']
+                end_node = self.ctrls['knee_pin']
+            else:
+                start_node = self.ctrls['knee_pin']
+                end_node = self.segments[i+1].blend_jnt
+
+            self.install_roller(
+                start_node = start_node,
+                end_node = end_node,
+                segment_index = i,
+                ctrl_color = self.ctrl_colors['other'],
+                parent = self.grps['noTransform'],
+                seg_name = self.segments[i].segment_name
+            )
+
+
+        '''upperlimb_roller = self.install_roller(
+            start_node = self.ctrls['socket'],
+            end_node = self.ctrls['knee_pin'],
+            segment_index = index_pairs[0][0],
+            ctrl_color = ctrl_color,
+            parent = roller_system_parent,
+            seg_name = seg_name,
         )
         lowerlimb_roller = self.install_roller(
-            seg_name = self.segments[index_pairs[1][0]].segment_name,
             start_node = self.ctrls['knee_pin'],
             end_node = self.segments[index_pairs[1][1]].blend_jnt,
-            ctrl_color = self.ctrl_colors['other'],
-            parent = self.grps['noTransform'],
-            segment_index = index_pairs[1][0]
-        )
+            segment_index = index_pairs[1][0],
+            ctrl_color = ctrl_color,
+            parent = roller_system_parent,
+            seg_name = seg_name,
+        )'''
 
 
 
