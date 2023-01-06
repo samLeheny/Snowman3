@@ -480,7 +480,10 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def install_rollers(self, index_pairs):
+    def install_rollers(self, index_pairs, jnt_radius=0.05, up_axis=(0, -1, 0), ctrl_color=0):
+
+        pin_ctrl_count = len(self.pin_ctrls)
+        current_pin_ctrl_index = 0
 
         for i in range(len(self.segments)-2):
 
@@ -490,67 +493,41 @@ class LimbRig:
                 continue
 
             if i == 0:
+                # ...If first roller system in limb, stick start of roller system to limb socket ctrl. Else, stick it
+                # to the current pin control in sequence.
                 start_node = self.ctrls['socket']
-                end_node = self.ctrls['knee_pin']
+                end_node = self.pin_ctrls[current_pin_ctrl_index]
             else:
-                start_node = self.ctrls['knee_pin']
-                end_node = self.segments[i+1].blend_jnt
+                # ...Target next pin control in sequence unless this is the last roller system in limb, then target
+                # ...next blend jnt instead.
+                start_node = self.pin_ctrls[current_pin_ctrl_index]
+                if i == len(self.segments)-3:
+                    end_node = self.segments[i+1].blend_jnt
+                else:
+                    end_node = self.pin_ctrls[current_pin_ctrl_index+1]
+                current_pin_ctrl_index += 1
 
-            self.install_roller(
-                start_node = start_node,
-                end_node = end_node,
-                segment_index = i,
-                ctrl_color = self.ctrl_colors['other'],
-                parent = self.grps['noTransform'],
-                seg_name = self.segments[i].segment_name
+
+            # ...Create roller system
+            rollers = rig_utils.limb_rollers(
+                start_node=start_node,
+                end_node=end_node,
+                roller_name=self.segments[i].segment_name,
+                jnt_radius=jnt_radius,
+                up_axis=up_axis,
+                ctrl_color=self.ctrl_colors['other'],
+                side=self.side,
+                parent=self.grps['noTransform'],
             )
 
-
-        '''upperlimb_roller = self.install_roller(
-            start_node = self.ctrls['socket'],
-            end_node = self.ctrls['knee_pin'],
-            segment_index = index_pairs[0][0],
-            ctrl_color = ctrl_color,
-            parent = roller_system_parent,
-            seg_name = seg_name,
-        )
-        lowerlimb_roller = self.install_roller(
-            start_node = self.ctrls['knee_pin'],
-            end_node = self.segments[index_pairs[1][1]].blend_jnt,
-            segment_index = index_pairs[1][0],
-            ctrl_color = ctrl_color,
-            parent = roller_system_parent,
-            seg_name = seg_name,
-        )'''
+            # ...Add resulting new controls and joints to corresponding Segment class variables
+            for ctrl in rollers['ctrls']:
+                self.segments[i].bend_ctrls.append(ctrl)
+            for jnt in rollers['jnts']:
+                self.segments[i].bend_jnts.append(jnt)
 
 
-
-
-
-
-
-    ####################################################################################################################
-    def install_roller(self, start_node, end_node, seg_name, jnt_radius=0.05, up_axis=(0, -1, 0), ctrl_color=0,
-                       parent=None, segment_index=None):
-
-        rollers = rig_utils.limb_rollers(
-            start_node = start_node,
-            end_node = end_node,
-            roller_name = seg_name,
-            jnt_radius = jnt_radius,
-            up_axis = up_axis,
-            ctrl_color = ctrl_color,
-            side = self.side,
-            parent = parent
-        )
-        for ctrl in rollers['ctrls']:
-            self.segments[segment_index].bend_ctrls.append(ctrl)
-        for jnt in rollers['jnts']:
-            self.segments[segment_index].bend_jnts.append(jnt)
-
-
-        # --------------------------------------------------------------------------------------------------------------
-        return rollers
+            return rollers
 
 
 
