@@ -442,38 +442,47 @@ class LimbRig:
         self.create_limb_pin_ctrls(pin_ctrls_data)
         # ...Rollers
         self.install_rollers(index_pairs=index_pairs)
+        # ...Ribbons
+        self.install_ribbons()
+
+
+
+
+
+    ####################################################################################################################
+    def install_ribbons(self):
 
         pm.addAttr(self.ctrls['socket'], longName='Volume', attributeType='float', minValue=0, maxValue=10,
                    defaultValue=0, keyable=1)
 
-        '''
-        # ...Bend ctrls vis
-        bend_ctrl_vis_attr_string = 'BendCtrls'
-        if not pm.attributeQuery(bend_ctrl_vis_attr_string, node=self.ctrls['socket'], exists=1):
-            pm.addAttr(self.ctrls['socket'], longName=bend_ctrl_vis_attr_string, attributeType='enum', keyable=0,
-                       enumName='Off:On')
-            pm.setAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', channelBox=1)
+        current_pin_ctrl_index = 0
 
-        for ctrl in (upperlimb_roller['start_ctrl'], upperlimb_roller['mid_ctrl'],
-                     lowerlimb_roller['mid_ctrl'], lowerlimb_roller['end_ctrl']):
-            pm.connectAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', ctrl.visibility)'''
+        for i in range(len(self.segments)-2):
+
+            segment = self.segments[i]
+
+            if segment.double_jnt:
+                continue
+
+            if i == 0:
+                length_end_1 = self.ctrls['socket']
+                length_end_2 = self.pin_ctrls[current_pin_ctrl_index]
+            else:
+                length_end_1 = self.pin_ctrls[current_pin_ctrl_index]
+                if i == len(self.segments)-3:
+                    length_end_2 = end_node = self.segments[i+1].blend_jnt
+                else:
+                    length_end_2 = self.pin_ctrls[current_pin_ctrl_index+1]
+                current_pin_ctrl_index += 1
 
 
-        '''self.install_ribbon(
-            start_node=upperlimb_roller['start_jnt'],
-            end_node=upperlimb_roller['end_jnt'],
-            bend_jnts=(upperlimb_roller['start_jnt'], upperlimb_roller['mid_jnt'], upperlimb_roller['end_jnt']),
-            length_ends=(self.ctrls['socket'], self.ctrls['mid_limb_pin']),
-            segment=self.segments[index_pairs[0][0]]
-        )
-
-        self.install_ribbon(
-            start_node=lowerlimb_roller['start_jnt'],
-            end_node=lowerlimb_roller['end_jnt'],
-            bend_jnts=(lowerlimb_roller['start_jnt'], lowerlimb_roller['mid_jnt'], lowerlimb_roller['end_jnt']),
-            length_ends=(self.ctrls['mid_limb_pin'], self.segments[index_pairs[1][1]].blend_jnt),
-            segment=self.segments[index_pairs[1][0]]
-        )'''
+            self.install_ribbon(
+                start_node = segment.bend_jnts[0],
+                end_node = segment.bend_jnts[-1],
+                bend_jnts = segment.bend_jnts,
+                length_ends = (length_end_1, length_end_2),
+                segment = segment
+            )
 
 
 
@@ -482,7 +491,14 @@ class LimbRig:
     ####################################################################################################################
     def install_rollers(self, index_pairs, jnt_radius=0.05, up_axis=(0, -1, 0), ctrl_color=0):
 
-        pin_ctrl_count = len(self.pin_ctrls)
+
+        # ...Create bend ctrl vis switch
+        bend_ctrl_vis_attr_string = 'BendCtrls'
+        pm.addAttr(self.ctrls['socket'], longName=bend_ctrl_vis_attr_string, attributeType='bool', keyable=0,
+                   defaultValue=0)
+        pm.setAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', channelBox=1)
+
+
         current_pin_ctrl_index = 0
 
         for i in range(len(self.segments)-2):
@@ -510,14 +526,14 @@ class LimbRig:
 
             # ...Create roller system
             rollers = rig_utils.limb_rollers(
-                start_node=start_node,
-                end_node=end_node,
-                roller_name=self.segments[i].segment_name,
-                jnt_radius=jnt_radius,
-                up_axis=up_axis,
-                ctrl_color=self.ctrl_colors['other'],
-                side=self.side,
-                parent=self.grps['noTransform'],
+                start_node = start_node,
+                end_node = end_node,
+                roller_name = self.segments[i].segment_name,
+                jnt_radius = jnt_radius,
+                up_axis = up_axis,
+                ctrl_color = self.ctrl_colors['other'],
+                side = self.side,
+                parent = self.grps['noTransform'],
             )
 
             # ...Add resulting new controls and joints to corresponding Segment class variables
@@ -527,7 +543,9 @@ class LimbRig:
                 self.segments[i].bend_jnts.append(jnt)
 
 
-            return rollers
+            # ...Plug bend ctrls visibility switch attr into ctrls
+            for ctrl in rollers['ctrls']:
+                pm.connectAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', ctrl.visibility)
 
 
 
@@ -1144,7 +1162,7 @@ class LimbRig:
     ####################################################################################################################
     def install_ribbon(self, start_node, end_node, bend_jnts, segment, length_ends):
 
-        ctrl_size = 0.7
+        ctrl_size = 0.15
         tweak_color = 1
 
         ribbon_up_vector = (0, 0, -1)

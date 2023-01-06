@@ -877,7 +877,7 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
 
 ########################################################################################################################
 def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, side=None, ctrl_color=14,
-                       ctrl_resolution=5, parent=None, ctrl_size=1):
+                       ctrl_resolution=5, parent=None, ctrl_size=1, jnt_size=0.1):
 
     side_tag = "{}_".format(side) if side else ""
 
@@ -908,8 +908,7 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
     # ...Bend controls visibility attribute ------------------------------------------------------------------------
     tweak_ctrl_vis_attr_string = "TweakCtrls"
     if not pm.attributeQuery(tweak_ctrl_vis_attr_string, node=attr_ctrl, exists=1):
-        pm.addAttr(attr_ctrl, longName=tweak_ctrl_vis_attr_string, attributeType="enum", keyable=0,
-                   enumName="Off:On")
+        pm.addAttr(attr_ctrl, longName=tweak_ctrl_vis_attr_string, attributeType="bool", keyable=0, defaultValue=0)
         pm.setAttr(attr_ctrl + '.' + tweak_ctrl_vis_attr_string, channelBox=1)
 
 
@@ -932,8 +931,8 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
         mod = gen_utils.buffer_obj(ctrl, suffix="MOD")
         attach = gen_utils.buffer_obj(mod, suffix="ATTACH")
 
-        joint(name="{}_tweak_{}".format(ctrl_name, str(i+1)), side=side, joint_type=nom.bindJnt,
-                        parent=ctrl, radius=0.25)
+        joint(name="{}_tweak_{}".format(ctrl_name, str(i+1)), side=side, joint_type=nom.bindJnt, parent=ctrl,
+              radius=jnt_size)
 
         gen_utils.zero_out(attach)
         attach.setParent(tweak_ctrls_grp)
