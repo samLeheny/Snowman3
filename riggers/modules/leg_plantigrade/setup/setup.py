@@ -30,11 +30,13 @@ def build(armature_module):
 
     # ...Reverse pole vector elbow
     pv_loc = armature_module.placers["ik_knee"].install_reverse_ik(
-        pv_chain_mid=armature_module.placers["calf"].mobject,
-        limb_start=armature_module.placers["thigh"].mobject,
-        limb_end=armature_module.placers["calf_end"].mobject,
-        connector_crv_parent=armature_module.placers["thigh"].mobject,
-        module=armature_module)
+        pv_chain_mid = armature_module.placers["calf"].mobject,
+        limb_start = armature_module.placers["thigh"].mobject,
+        limb_end = armature_module.placers["calf_end"].mobject,
+        connector_crv_parent = armature_module.placers["thigh"].mobject,
+        module = armature_module,
+        aim_vector = (0, 0, 1), up_vector = (0, -1, 0)
+    )
     pv_loc.setParent(armature_module.rig_subGrps["extra_systems"])
 
 

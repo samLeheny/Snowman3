@@ -129,6 +129,7 @@ class LimbRig:
         self.pv_name = pv_name if pv_name else default_pv_name
         self.blend_jnt_chain_buffer = None
         self.fk_chain_buffer = None
+        self.fk_ctrls = []
         self.ik_jnt_chain_buffer = None
         self.ik_end_marker = None
         self.ik_handles, self.ik_solvers, self.ik_effectors = {}, {}, {}
@@ -148,6 +149,42 @@ class LimbRig:
         pm.select(clear=1)
 
 
+
+    """
+    --------- METHODS --------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    build_prefab
+    create_position_holders
+    delete_position_holders
+    create_pin_ctrl
+    create_limb_pin_ctrls
+    create_pv_position_holder
+    create_rig_grps
+    create_rig_socket_ctrl
+    create_length_mult_nodes
+    blend_rig
+    install_ribbons
+    install_rollers
+    create_blend_jnts
+    fk_rig
+    ik_rig
+    create_ik_jnt_chain
+    get_pv_vector
+    create_ik_ctrls
+    install_limb_ik_solver
+    install_extrem_ik_solver
+    install_tarsus_ik_solver
+    stretchy_ik
+    get_length_sum
+    soft_ik_curve
+    setup_kinematic_blend
+    kinematic_blend_jnt_lengths
+    kinematic_blend_jnt_scale
+    kinematic_blend_jnt_cap_translate
+    install_ribbon
+    --------------------------------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    """
 
 
 
@@ -211,7 +248,7 @@ class LimbRig:
             access said positions via those locator objects. Locators can be junked towards end of module script.
         """
 
-        locs_grp = pm.group(name=f'{self.side_tag}position_holders_TEMP', world=1, em=1)
+        locs_grp = self.grps["position_holders"] = pm.group(name=f'{self.side_tag}position_holders_TEMP', world=1, em=1)
 
         # ...Mirror transforms if this is a right-sided limb
         if self.side == nom.rightSideTag:
@@ -246,8 +283,7 @@ class LimbRig:
         Remove temporary joint position holders from scene.
         """
 
-        [pm.delete(loc) for loc in self.jnt_position_holders]
-        pm.delete(self.pv_position_holder)
+        pm.delete(self.grps['position_holders'])
 
 
 
@@ -648,6 +684,7 @@ class LimbRig:
                     color=self.ctrl_colors['FK']
                 )
                 jnt_parent = fk_ctrl
+                self.fk_ctrls.append(fk_ctrl)
 
             if seg.double_jnt:
                 jnt_parent = self.segments[n-1].fk_jnt_cap
@@ -832,6 +869,8 @@ class LimbRig:
         extrem_buffer.setParent(self.grps['transform'])
 
         pm.delete(pm.parentConstraint(self.pv_position_holder, pv_buffer))
+        pv_buffer.rotate.set(0, 0, 0)
+        pv_buffer.scale.set(1, 1, 1)
         '''gen_utils.zero_out(pv_buffer)
         pm.delete(pm.parentConstraint(self.segments[0].blend_jnt, self.segments[-2].blend_jnt, pv_buffer))
         extrem_dist = gen_utils.distance_between(position_1=self.segments[0].start_world_position,

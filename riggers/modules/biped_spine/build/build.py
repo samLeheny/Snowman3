@@ -36,6 +36,9 @@ importlib.reload(build_ik_rotate_ribbon)
 
 import Snowman3.riggers.modules.biped_spine.build.subModules.ik_output_ribbon as build_ik_output_ribbon
 importlib.reload(build_ik_output_ribbon)
+
+import Snowman3.riggers.modules.biped_spine.utilities.animCtrls as animCtrls
+importlib.reload(animCtrls)
 ###########################
 ###########################
 
@@ -56,8 +59,11 @@ attr_names = {"spine_volume": "SpineVolume",
 ########################################################################################################################
 def build(rig_module, rig_parent=None):
 
-
+    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
     ctrls = rig_module.ctrls
+    for key in ctrl_data:
+        ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
+        ctrl_data[key].finalize_anim_ctrl()
 
 
     ctrls["settings"].setParent(rig_module.transform_grp)

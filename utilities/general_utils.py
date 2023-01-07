@@ -983,7 +983,7 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
     crv = None
 
     crv = pm.curve(name=name, degree=degree, point=points)
-    if degree == 3 and form == "periodic":
+    if form == "periodic":
         pm.closeCurve(crv, replaceOriginal=1, preserveShape=0)
 
     # Delete construction history

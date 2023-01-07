@@ -106,7 +106,7 @@ class PoleVectorPlacer(Placer):
 
     ####################################################################################################################
     def install_reverse_ik(self, pv_chain_mid=None, limb_start=None, limb_end=None,  connector_crv_parent=None,
-                           module=None, hide=False):
+                           module=None, hide=False, aim_vector=(0, 0, -1), up_vector=(1, 0, 0)):
 
         # ...Variable initializations
         pv_chain_start, pv_chain_end = limb_start, limb_end
@@ -118,11 +118,22 @@ class PoleVectorPlacer(Placer):
                                                 inMatrix2=pv_chain_end.worldMatrix)
 
         # ...Create and position midway locator
-        self.mid_chain_locator(seg_1_dist, seg_2_dist, pv_chain_start, pv_chain_end, pv_chain_mid)
+        self.mid_chain_locator(seg_1_dist, seg_2_dist, pv_chain_start, pv_chain_end, pv_chain_mid, aim_vector,
+                               up_vector)
         # ...Position pole vector locator
         pv_end_loc = pm.spaceLocator(name="{}pvEnd_{}_{}".format(self.side_tag, self.name, nom.locator))
         pv_end_loc.setParent(self.mid_point_loc)
         gen_utils.zero_out(pv_end_loc)
+
+
+
+        forward_vector_mult = 1 if aim_vector in ((1, 0, 0), (0, 1, 0), (0, 0, 1)) else -1
+
+        pv_aim_plug = pv_end_loc.tx
+        if aim_vector in ((0, 1, 0), (0, -1, 0)):
+            pv_aim_plug = pv_end_loc.ty
+        elif aim_vector in ((0, 0, 1), (0, 0, -1)):
+            pv_aim_plug = pv_end_loc.tz
 
         # ...Make pole vector offset relative to limb length
         add = node_utils.addDoubleLinear(input1=seg_1_dist.distance, input2=seg_2_dist.distance)
@@ -131,7 +142,8 @@ class PoleVectorPlacer(Placer):
         div_2 = node_utils.floatMath(floatA=div_1.outFloat, floatB=decomp.outputScale.outputScaleX,
                                      operation="divide")
         mult = node_utils.multDoubleLinear(input1=div_2.outFloat, input2=self.pv_distance)
-        mult.output.connect(pv_end_loc.tz)
+        mult2 = node_utils.multDoubleLinear(input1=mult.output, input2=forward_vector_mult, output=pv_aim_plug)
+
 
         # ...Match placer buffer, then zero out placer to avoid double transforms
         pm.matchTransform(self.buffer_node, pv_end_loc)
@@ -188,7 +200,8 @@ class PoleVectorPlacer(Placer):
 
 
     ####################################################################################################################
-    def mid_chain_locator(self, seg_1_dist, seg_2_dist, pv_chain_start, pv_chain_end, pv_chain_mid):
+    def mid_chain_locator(self, seg_1_dist, seg_2_dist, pv_chain_start, pv_chain_end, pv_chain_mid, aim_vector,
+                          up_vector):
 
         sum = node_utils.floatMath(floatA=f'{seg_1_dist}.distance', floatB=f'{seg_2_dist}.distance',
                                    operation="add")
@@ -206,7 +219,7 @@ class PoleVectorPlacer(Placer):
 
         # ...Aim midway locator at mid-limb placer
         pm.aimConstraint(pv_chain_mid, self.mid_point_loc, worldUpType="object", worldUpObject=pv_chain_end,
-                         aimVector=[0, 0, 1], upVector=[1, 0, 0])
+                         aimVector=aim_vector, upVector=up_vector)
 
 
 

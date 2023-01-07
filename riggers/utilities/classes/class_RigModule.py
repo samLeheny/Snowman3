@@ -144,29 +144,13 @@ class RigModule:
 
 
     ####################################################################################################################
-    def get_armature_placers(self):
-
-        for key in self.piece_keys:
-
-            self.placers[key] = Placer(name=key,
-                                       side=self.side,
-                                       get=True)
-
-
-        return self.placers
-
-
-
-
-
-    ####################################################################################################################
     def get_armature_orienters(self):
 
         armature_placers = arm_utils.get_placers_in_module(self.armature_module)
 
         for placer in armature_placers.values():
-            key = pm.getAttr(f"{placer}.PlacerTag")
-            self.orienters[key] = pm.listConnections(f"{placer}.OrienterNode", s=1, d=0)[0]
+            key = pm.getAttr(f'{placer}.PlacerTag')
+            self.orienters[key] = pm.listConnections(f'{placer}.OrienterNode', s=1, d=0)[0]
 
 
 
@@ -203,13 +187,6 @@ class RigModule:
             self.get_armature_orienters()
 
             self.get_setup_module_ctrl()
-
-            ctrl_data = get_module_data.anim_ctrls(self.rig_module_type, side=self.side,
-                                                   module_ctrl=self.setup_module_ctrl)
-            for key in ctrl_data:
-
-                self.ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
-                ctrl_data[key].finalize_anim_ctrl()
 
 
         self.mConstruct = build_script.build(rig_module=self, rig_parent=rig_parent)

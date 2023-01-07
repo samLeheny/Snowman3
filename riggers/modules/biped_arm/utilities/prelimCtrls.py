@@ -146,74 +146,74 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
         ),
 
 
-        "elbow_pin": PrelimControl(
-            name="elbow_pin",
-            shape="circle",
-            size=[5, 5, 5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("lowerarm",),
-            orientation={"match_to": ("lowerarm",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
+        #"elbow_pin": PrelimControl(
+        #    name="elbow_pin",
+        #    shape="circle",
+        #    size=[5, 5, 5],
+        #    up_direction=[1, 0, 0],
+        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
+        #    position=("lowerarm",),
+        #    orientation={"match_to": ("lowerarm",)},
+        #    locks={"v": 1},
+        #    side=side,
+        #    is_driven_side=is_driven_side
+        #),
 
 
-        "upperarm_bend_start": PrelimControl(
-            name="upperarm_bend_start",
-            shape="circle",
-            size=[5, 5, 5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("upperarm",),
-            orientation={"match_to": ("upperarm",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
+        #"upperarm_bend_start": PrelimControl(
+        #    name="upperarm_bend_start",
+        #    shape="circle",
+        #    size=[5, 5, 5],
+        #    up_direction=[1, 0, 0],
+        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
+        #    position=("upperarm",),
+        #    orientation={"match_to": ("upperarm",)},
+        #    locks={"v": 1},
+        #    side=side,
+        #    is_driven_side=is_driven_side
+        #),
 
 
-        "upperarm_bend_mid": PrelimControl(
-            name="upperarm_bend_mid",
-            shape="circle",
-            size=[5, 5, 5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("upperarm", "lowerarm"),
-            orientation={"match_to": ("upperarm",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
+        #"upperarm_bend_mid": PrelimControl(
+        #    name="upperarm_bend_mid",
+        #    shape="circle",
+        #    size=[5, 5, 5],
+        #    up_direction=[1, 0, 0],
+        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
+        #    position=("upperarm", "lowerarm"),
+        #    orientation={"match_to": ("upperarm",)},
+        #    locks={"v": 1},
+        #    side=side,
+        #    is_driven_side=is_driven_side
+        #),
 
 
-        "lowerarm_bend_mid": PrelimControl(
-            name="lowerarm_bend_mid",
-            shape="circle",
-            size=[5, 5, 5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("lowerarm", "lowerarm_end"),
-            orientation={"match_to": ("lowerarm",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
+        #"lowerarm_bend_mid": PrelimControl(
+        #    name="lowerarm_bend_mid",
+        #    shape="circle",
+        #    size=[5, 5, 5],
+        #    up_direction=[1, 0, 0],
+        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
+        #    position=("lowerarm", "lowerarm_end"),
+        #    orientation={"match_to": ("lowerarm",)},
+        #    locks={"v": 1},
+        #    side=side,
+        #    is_driven_side=is_driven_side
+        #),
 
 
-        "lowerarm_bend_end": PrelimControl(
-            name="lowerarm_bend_end",
-            shape="circle",
-            size=[5, 5, 5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("lowerarm_end",),
-            orientation={"match_to": ("lowerarm",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
+        #"lowerarm_bend_end": PrelimControl(
+        #    name="lowerarm_bend_end",
+        #    shape="circle",
+        #    size=[5, 5, 5],
+        #    up_direction=[1, 0, 0],
+        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
+        #    position=("lowerarm_end",),
+        #    orientation={"match_to": ("lowerarm",)},
+        #    locks={"v": 1},
+        #    side=side,
+        #    is_driven_side=is_driven_side
+        #),
 
     }
 

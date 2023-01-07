@@ -29,6 +29,9 @@ nom = nameConventions.create_dict()
 import Snowman3.riggers.dictionaries.control_colors as control_colors
 importlib.reload(control_colors)
 ctrl_colors = control_colors.create_dict()
+
+import Snowman3.riggers.modules.biped_neck.utilities.animCtrls as animCtrls
+importlib.reload(animCtrls)
 ###########################
 ###########################
 
@@ -48,9 +51,14 @@ tweak_ctrl_color = ctrl_colors[nom.midSideTag3]
 #def build(rig_module, rig_parent=None, rig_space_connector=None):
 def build(rig_module, rig_parent=None):
 
+    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
+    ctrls = rig_module.ctrls
+    for key in ctrl_data:
+        ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
+        ctrl_data[key].finalize_anim_ctrl()
+
 
     temp_nodes_to_delete = []
-    ctrls = rig_module.ctrls
 
 
     ctrls["settings"].setParent(rig_module.transform_grp)
