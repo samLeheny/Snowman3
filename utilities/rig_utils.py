@@ -766,7 +766,7 @@ def apply_ctrl_locks(ctrl):
 
 ########################################################################################################################
 def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, jnt_radius = 0.3, up_axis = (0, 0, 1),
-                 ctrl_color = 15, roll_axis=(1, 0, 0)):
+                 ctrl_color = 15, roll_axis=(1, 0, 0), ctrl_size=0.15):
     """
 
     """
@@ -785,9 +785,9 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
     def bend_control(tag, match_node, rot_match_node):
 
         ctrl = control(ctrl_info={'shape': 'circle',
-                                  'scale': [0.15, 0.15, 0.15],
-                                  'up_direction': list(up_axis),
-                                  'forward_direction': list(roll_axis)},
+                                  'scale': [ctrl_size, ctrl_size, ctrl_size],
+                                  'up_direction': list(roll_axis),
+                                  'forward_direction': list(up_axis)},
                        name=f'{roller_name}_bend_{tag}', ctrl_type=nom.animCtrl, side=side, color=ctrl_color)
 
         jnt = joint(name=f'{roller_name}bend_{tag}', side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)

@@ -179,15 +179,16 @@ class Rig:
         self.get_module_types()
 
         #for key in armature_modules:
-        for key in ("root", "spine", "neck", "L_clavicle", "R_clavicle", "L_arm", "R_arm"):
+        for key in ('root', 'spine', 'neck', 'L_clavicle', 'R_clavicle', 'L_arm', 'R_arm', 'L_hand', 'R_hand', 'L_leg',
+                    'R_leg', 'L_foot', 'R_foot'):
 
             armature_module = self.get_armature_module_mObj(key)
 
             self.modules[key] = RigModule(
-                name=pm.getAttr(armature_module + "." + "ModuleNameParticle"),
+                name=pm.getAttr(f'{armature_module}.ModuleNameParticle'),
                 rig_module_type=self.module_types[key],
                 armature_module=armature_module,
-                side=pm.getAttr(armature_module + "." + "Side"),
+                side=pm.getAttr(f'{armature_module}.Side'),
                 piece_keys=arm_utils.get_piece_keys_from_module(armature_module)
             )
 

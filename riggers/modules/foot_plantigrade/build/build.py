@@ -49,11 +49,16 @@ importlib.reload(ikFoot)
 def build(rig_module, rig_parent=None):
 
 
-    '''
+    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
+    ctrls = rig_module.ctrls
+    for key in ctrl_data:
+        ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
+        ctrl_data[key].finalize_anim_ctrl()
+
     [ctrls[key].setParent(rig_module.transform_grp) for key in ctrl_data]
 
     # ...Ensure a kinematic blend attribute is present on given control
-    if not pm.attributeQuery("fkIk", node=settings_ctrl, exists=1):
+    '''if not pm.attributeQuery("fkIk", node=settings_ctrl, exists=1):
         pm.addAttr(settings_ctrl, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0, maxValue=10,
                    defaultValue=10, keyable=1)
 

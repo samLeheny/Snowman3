@@ -89,36 +89,36 @@ def create_anim_ctrls(side=None, module_ctrl=None):
         ),
 
 
-        "thigh_bend_start": AnimControl(
-            ctrl_name_tag="thigh_bend_start",
-            prelim_ctrl_name="thigh_bend_start",
-            side=side,
-            module_ctrl = module_ctrl
-        ),
+        #"thigh_bend_start": AnimControl(
+        #    ctrl_name_tag="thigh_bend_start",
+        #    prelim_ctrl_name="thigh_bend_start",
+        #    side=side,
+        #    module_ctrl = module_ctrl
+        #),
 
 
-        "thigh_bend_mid": AnimControl(
-            ctrl_name_tag="thigh_bend_mid",
-            prelim_ctrl_name="thigh_bend_mid",
-            side=side,
-            module_ctrl=module_ctrl
-        ),
+        #"thigh_bend_mid": AnimControl(
+        #    ctrl_name_tag="thigh_bend_mid",
+        #    prelim_ctrl_name="thigh_bend_mid",
+        #    side=side,
+        #    module_ctrl=module_ctrl
+        #),
 
 
-        "calf_bend_mid": AnimControl(
-            ctrl_name_tag="calf_bend_mid",
-            prelim_ctrl_name="calf_bend_mid",
-            side=side,
-            module_ctrl = module_ctrl
-        ),
+        #"calf_bend_mid": AnimControl(
+        #    ctrl_name_tag="calf_bend_mid",
+        #    prelim_ctrl_name="calf_bend_mid",
+        #    side=side,
+        #    module_ctrl = module_ctrl
+        #),
 
 
-        "calf_bend_end": AnimControl(
-            ctrl_name_tag="calf_bend_end",
-            prelim_ctrl_name="calf_bend_end",
-            side=side,
-            module_ctrl = module_ctrl
-        ),
+        #"calf_bend_end": AnimControl(
+        #    ctrl_name_tag="calf_bend_end",
+        #    prelim_ctrl_name="calf_bend_end",
+        #    side=side,
+        #    module_ctrl = module_ctrl
+        #),
 
 
         "hip_pin": AnimControl(

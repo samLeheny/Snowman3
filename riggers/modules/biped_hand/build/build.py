@@ -26,13 +26,15 @@ nom = nameConventions.create_dict()
 import Snowman3.riggers.modules.biped_hand.utilities.animCtrls as animCtrls
 importlib.reload(animCtrls)
 
+import Snowman3.riggers.modules.biped_hand.build.subScripts.quickPose_fingers as quickPose_fingers
+importlib.reload(quickPose_fingers)
 ###########################
 ###########################
 
 
 ###########################
 ######## Variables ########
-
+finger_keys = ['index', 'middle', 'ring', 'pinky']
 ###########################
 ###########################
 
@@ -44,20 +46,24 @@ importlib.reload(animCtrls)
 #def build(rig_module=None, rig_parent=None, rig_space_connector=None):
 def build(rig_module, rig_parent=None):
 
+    # ...Controls ------------------------------------------------------------------------------------------------------
+    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
+    ctrls = rig_module.ctrls
+    for key in ctrl_data:
+        ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
+        ctrl_data[key].finalize_anim_ctrl()
+
+    ###ctrls["handBend"].setParent(rig_module.transform_grp)
+
+    [ctrls[key].setParent(rig_module.transform_grp) for key in ctrl_data]
+
+    gen_utils.convert_offset(ctrls["handBend"])
 
     '''
     # Stick biped_hand to end of biped_arm rig -------------------------------------------------------------------------
     gen_utils.matrix_constraint(objs=[rig_space_connector, rig_module.transform_grp], decompose=True,
                                 translate=True, rotate=True, scale=True, shear=False)
-
-
-
-    # ...Controls ------------------------------------------------------------------------------------------------------
-    [ctrls[key].setParent(rig_module.transform_grp) for key in ctrl_data]
-
-
-    gen_utils.convert_offset(ctrls["handBend"])
-
+    '''
 
 
     # ...Finger rigs ---------------------------------------------------------------------------------------------------
@@ -74,18 +80,17 @@ def build(rig_module, rig_parent=None):
         # ...Run procedure for each segment in finger
         for i in range(start_index, start_index + seg_count):
 
-
             n = str(i) if i > 0 else "meta"
 
             # Get segment control
-            ctrl = ctrls[finger_dict["key"] + "_" + n]
+            ctrl = ctrls[ f'{finger_dict["key"]}_{n}' ]
 
             #  Parent control to output of preceding segment (if there is a preceding segment)
             if i > start_index:
                 ctrl.setParent(prev_seg_connector)
 
             # Create joint under control
-            jnt = rig_utils.joint(name="fingerIndex_{}".format(n), side=rig_module.side, joint_type=nom.bindJnt,
+            jnt = rig_utils.joint(name=f'fingerIndex_{n}', side=rig_module.side, joint_type=nom.bindJnt,
                                   radius=0.5)
             temp_grp = gen_utils.buffer_obj(jnt, parent=ctrl)
             gen_utils.zero_out(temp_grp)
@@ -99,21 +104,21 @@ def build(rig_module, rig_parent=None):
             # If this is the first segment, wrap it in an extra group to absorb dirty rotations
             if i == start_index:
                 finger_root = gen_utils.buffer_obj(ctrl)
-                finger_dict["root"] = finger_root
+                finger_dict['root'] = finger_root
 
 
             # ...Compose segment output dictionary
-            finger_dict["segs"].append({"jnt": jnt,
-                                       "ctrl": ctrl})
+            finger_dict['segs'].append({'jnt': jnt,
+                                       'ctrl': ctrl})
 
 
 
-    for finger_key in ("index", "middle", "ring", "pinky", "thumb"):
+    for finger_key in finger_keys+['thumb']:
 
-        finger_rig = finger_rigs[finger_key] = {"segs": [],
-                                                "key": finger_key}
+        finger_rig = finger_rigs[finger_key] = {'segs': [],
+                                                'key': finger_key}
 
-        if finger_key == "thumb":
+        if finger_key == 'thumb':
             seg_count = 3
             has_metacarpal = False
         else:
@@ -127,66 +132,67 @@ def build(rig_module, rig_parent=None):
 
         # Wrap metacarpal segments in an extra group to receive rotation from the handBend control
         finger_rig = finger_rigs[key]
-        ctrl_meta_offset = finger_rig["handBend_offset"] = gen_utils.buffer_obj(finger_rig["segs"][0]["ctrl"],
-                                                                                suffix="HANDBEND")
+        ctrl_meta_offset = finger_rig['handBend_offset'] = gen_utils.buffer_obj(finger_rig['segs'][0]['ctrl'],
+                                                                                suffix='HANDBEND')
 
 
 
-    for finger_key, multiplier in (("middle", 0.15),
-                                   ("ring", 0.5),
-                                   ("pinky", 1.0)):
+    for finger_key, multiplier in (('middle', 0.15),
+                                   ('ring', 0.5),
+                                   ('pinky', 1.0)):
 
         if multiplier == 1.0:
-            output_plug = ctrls["handBend"].rotate
+            output_plug = ctrls['handBend'].rotate
         else:
-            mult = pm.shadingNode("animBlendNodeAdditiveRotation", au=1)
-            ctrls["handBend"].rotate.connect(mult.inputA)
+            mult = pm.shadingNode('animBlendNodeAdditiveRotation', au=1)
+            ctrls['handBend'].rotate.connect(mult.inputA)
             mult.weightA.set(multiplier)
             output_plug = mult.output
 
-        output_plug.connect(finger_rigs[finger_key]["handBend_offset"].rotate)
+        output_plug.connect(finger_rigs[finger_key]['handBend_offset'].rotate)
 
 
 
 
     # ...Quick Pose control --------------------------------------------------------------------------------------------
-    quickPose_ctrl = ctrls["quickPose_fingers"]
+    quickPose_fingers.install(ctrls['quickPose_fingers'], finger_rigs)
+    '''quickPose_ctrl = ctrls['quickPose_fingers']
 
-    unit_convert = pm.shadingNode("unitConversion", au=1)
+    unit_convert = pm.shadingNode('unitConversion', au=1)
     quickPose_ctrl.tz.connect(unit_convert.input)
     unit_convert.conversionFactor.set(-0.1)
 
     # ...Create curl transforms above each segment in fingers (exclude metacarpals)
-    for key in ("index", "middle", "ring", "pinky"):
+    for key in finger_keys:
 
         finger = finger_rigs[key]
 
         # Curling
-        for i in range(1, len(finger["segs"])):
-            seg = finger["segs"][i]
-            curl_buffer = seg["curl_buffer"] = gen_utils.buffer_obj(seg["ctrl"])
+        for i in range(1, len(finger['segs'])):
+            seg = finger['segs'][i]
+            curl_buffer = seg['curl_buffer'] = gen_utils.buffer_obj(seg['ctrl'])
             quickPose_ctrl.rz.connect(curl_buffer.rz)
 
             if i == 1:
                 unit_convert.output.connect(curl_buffer.ry)
 
         # Spread + Fanning
-        seg_1 = finger["segs"][1]
-        spread_buffer = finger["spread_buffer"] = gen_utils.buffer_obj(seg_1["ctrl"])
+        seg_1 = finger['segs'][1]
+        spread_buffer = finger['spread_buffer'] = gen_utils.buffer_obj(seg_1['ctrl'])
 
     # Spread + Fanning network
     zeroSpace_sum = node_utils.addDoubleLinear(input1=quickPose_ctrl.sz, input2=-1)
-    for key, spread_weight, fan_weight in (("index", -50, -1),
-                                           ("middle", -16.666, -0.333),
-                                           ("ring", 16.666, 0.333),
-                                           ("pinky", 50, 1)):
+    for key, spread_weight, fan_weight in (('index', -50, -1),
+                                           ('middle', -16.666, -0.333),
+                                           ('ring', 16.666, 0.333),
+                                           ('pinky', 50, 1)):
 
         spread_mult = node_utils.multDoubleLinear(input1=zeroSpace_sum.output, input2=spread_weight,
-                                                  output=finger_rigs[key]["spread_buffer"].ry)
-        fan_mult = pm.shadingNode("animBlendNodeAdditiveDA", au=1)
+                                                  output=finger_rigs[key]['spread_buffer'].ry)
+        fan_mult = pm.shadingNode('animBlendNodeAdditiveDA', au=1)
         quickPose_ctrl.rx.connect(fan_mult.inputA)
         fan_mult.weightA.set(fan_weight)
-        fan_mult.output.connect(finger_rigs[key]["spread_buffer"].rz)
+        fan_mult.output.connect(finger_rigs[key]['spread_buffer'].rz)'''
 
 
 
@@ -198,4 +204,4 @@ def build(rig_module, rig_parent=None):
 
     # ------------------------------------------------------------------------------------------------------------------
     pm.select(clear=1)
-    return rig_module'''
+    return rig_module

@@ -128,9 +128,11 @@ class LimbRig:
         self.socket_name = socket_name if socket_name else default_socket_name
         self.pv_name = pv_name if pv_name else default_pv_name
         self.blend_jnt_chain_buffer = None
+        self.blend_jnts = []
         self.fk_chain_buffer = None
         self.fk_ctrls = []
         self.ik_jnt_chain_buffer = None
+        self.ik_jnts = []
         self.ik_end_marker = None
         self.ik_handles, self.ik_solvers, self.ik_effectors = {}, {}, {}
         self.ik_display_crv = None
@@ -141,12 +143,11 @@ class LimbRig:
         self.tweak_ctrls = []
         self.pv_vector = None
         self.pin_ctrls = []
+        self.total_limb_length = None
+        self.namespace = f'LimbRig_{self.limb_name}'
 
-        pm.namespace(add=f'LimbRig_{self.limb_name}')
-        pm.namespace(set=f'LimbRig_{self.limb_name}')
         self.build_prefab(self.prefab)
-        pm.namespace(set=":")
-        pm.select(clear=1)
+
 
 
 
@@ -220,6 +221,8 @@ class LimbRig:
                                       double_jnt_status = inputs['double_jnt_values'][i])
             self.segments.append(new_segment)
 
+        self.total_limb_length = sum([s.segment_length for s in self.segments])
+
         self.segment_count = len(self.segments)
         self.limb_ik_start_jnt_index = inputs['ik_indices']['start']
         self.limb_ik_end_jnt_index = inputs['ik_indices']['end']
@@ -236,6 +239,8 @@ class LimbRig:
                     limb_ik_end_index=inputs['ik_indices']['end'])
         self.setup_kinematic_blend()
         self.delete_position_holders()
+
+        pm.select(clear=1)
 
 
 
@@ -314,11 +319,12 @@ class LimbRig:
         limb_span_seg_1 = self.segments[limb_span_jnt_indices[0]]
         limb_span_seg_2 = self.segments[limb_span_jnt_indices[1] - 1]
 
+        size = 0.07 * self.total_limb_length
 
         # ...Create control
         ctrl = rig_utils.control(
             ctrl_info={"shape": "circle",
-                       "scale": [0.2, 0.2, 0.2],
+                       "scale": [size, size, size],
                        "up_direction": [1, 0, 0],
                        "forward_direction": [0, 0, 1]},
             name=f'{name}Pin', ctrl_type=nom.animCtrl, side=self.side, color=self.ctrl_colors['other'])
@@ -420,9 +426,11 @@ class LimbRig:
     ####################################################################################################################
     def create_rig_socket_ctrl(self):
 
+        ctrl_size = 0.1 * self.total_limb_length
+
         # ...Create controls
         ctrl = self.ctrls['socket'] = rig_utils.control(ctrl_info = {'shape': 'tag_hexagon',
-                                                                     'scale': [0.2, 0.2, 0.2]},
+                                                                     'scale': [ctrl_size, ctrl_size, ctrl_size]},
                                                         name = f'{self.socket_name}Pin',
                                                         ctrl_type = nom.animCtrl,
                                                         side = self.side,
@@ -567,6 +575,8 @@ class LimbRig:
                 current_pin_ctrl_index += 1
 
 
+            ctrl_size = 0.055 * self.total_limb_length
+
             # ...Create roller system
             rollers = rig_utils.limb_rollers(
                 start_node = start_node,
@@ -577,6 +587,7 @@ class LimbRig:
                 ctrl_color = self.ctrl_colors['other'],
                 side = self.side,
                 parent = self.grps['noTransform'],
+                ctrl_size = ctrl_size
             )
 
             # ...Add resulting new controls and joints to corresponding Segment class variables
@@ -599,10 +610,13 @@ class LimbRig:
 
         pm.select(clear=1)
 
+        jnt_size = 0.025 * self.total_limb_length
+
         # ...Create joints ---------------------------------------------------------------------------------------------
         for i, seg in enumerate(self.segments):
             blend_jnt = seg.blend_jnt = rig_utils.joint(name=f'{seg.segment_name}_blend', side=self.side,
-                                                        joint_type=nom.nonBindJnt, radius=0.1)
+                                                        joint_type=nom.nonBindJnt, radius=jnt_size)
+            self.blend_jnts.append(blend_jnt)
             if i > 0:
                 blend_jnt.setParent(self.segments[i - 1].blend_jnt)
 
@@ -760,10 +774,13 @@ class LimbRig:
     ####################################################################################################################
     def create_ik_jnt_chain(self):
 
+        jnt_size = 0.045 * self.total_limb_length
+
         # ...Create joints ---------------------------------------------------------------------------------------------
         for seg in self.segments:
             jnt = seg.ik_jnt = rig_utils.joint(name=f'{seg.segment_name}_ik', side=self.side, joint_type=nom.nonBindJnt,
-                                               radius=0.08, color=2)
+                                               radius=jnt_size, color=2)
+            self.ik_jnts.append(jnt)
 
             constraint_target = seg.ik_constraint_target = pm.shadingNode('transform',
                                                                           name=f'{seg.segment_name}_ik_target', au=1)
@@ -829,9 +846,11 @@ class LimbRig:
     ####################################################################################################################
     def create_ik_ctrls(self, tarsus_index=None):
 
+        size = 0.1 * self.total_limb_length
+
         # ...Create controls -------------------------------------------------------------------------------------------
         self.ctrls['ik_extrem'] = rig_utils.control(ctrl_info = {'shape': 'circle',
-                                                                 'scale': [0.25, 0.25, 0.25],
+                                                                 'scale': [size, size, size],
                                                                  'up_direction': [1, 0, 0]},
                                                     name = f'{self.segments[-1].segment_name}_IK',
                                                     ctrl_type = nom.animCtrl,
@@ -841,7 +860,7 @@ class LimbRig:
 
 
         self.ctrls['ik_pv'] = rig_utils.control(ctrl_info = {'shape': 'sphere',
-                                                             'scale': [0.1, 0.1, 0.1]},
+                                                             'scale': [size*0.35, size*0.35, size*0.35]},
                                                 name = f'{self.pv_name}_IK',
                                                 ctrl_type = nom.animCtrl,
                                                 side = self.side,
@@ -911,11 +930,11 @@ class LimbRig:
         ik_handle.setParent(self.ik_end_marker)
         gen_utils.zero_out(ik_handle)
 
-        self.ik_handles["limb"], self.ik_effectors["limb"] = ik_handle, ik_eff
+        self.ik_handles['limb'], self.ik_effectors['limb'] = ik_handle, ik_eff
 
-        self.ik_solvers["limb"] = pm.listConnections(f'{ik_handle}.ikSolver', source=True)[0]
+        self.ik_solvers['limb'] = pm.listConnections(f'{ik_handle}.ikSolver', source=True)[0]
 
-        pm.poleVectorConstraint(self.ctrls["ik_pv"], self.ik_handles["limb"])
+        pm.poleVectorConstraint(self.ctrls['ik_pv'], self.ik_handles['limb'])
 
 
         # ...Display curve ---------------------------------------------------------------------------------------------
@@ -1211,7 +1230,8 @@ class LimbRig:
     ####################################################################################################################
     def install_ribbon(self, start_node, end_node, bend_jnts, segment, length_ends):
 
-        ctrl_size = 0.15
+        ctrl_size = 0.04 * self.total_limb_length
+        jnt_size = 0.0175 * self.total_limb_length
         tweak_color = 1
 
         ribbon_up_vector = (0, 0, -1)
@@ -1249,7 +1269,8 @@ class LimbRig:
                                                              ctrl_color = tweak_color,
                                                              ctrl_resolution = 5,
                                                              parent = self.grps['noTransform'],
-                                                             ctrl_size=ctrl_size)
+                                                             ctrl_size = ctrl_size,
+                                                             jnt_size = jnt_size)
         self.tweak_ctrls.append(upperlimb_tweak_ctrls)
 
 

@@ -38,6 +38,7 @@ LimbRig = class_LimbRig.LimbRig
 def build(rig_module, rig_parent=None):
 
     orienters = rig_module.orienters
+    side_tag = rig_module.side_tag
 
 
     # ...Create limb rig -----------------------------------------------------------------------------------------------
@@ -82,42 +83,25 @@ def build(rig_module, rig_parent=None):
                   ('ik_elbow', limb_rig.ctrls['ik_pv']),
                   ('shoulder_pin', limb_rig.ctrls['socket'])]
 
-
     for ctrl_str, ctrl_transform in ctrl_pairs:
         ctrls[ctrl_str] = ctrl_data[ctrl_str].initialize_anim_ctrl(
             existing_obj=ctrl_transform)
         ctrl_data[ctrl_str].finalize_anim_ctrl(delete_existing_shapes=True)
 
-    '''for key in ("ik_hand_follow",):
-        rig_module.ctrls[key] = ctrl_data[key].initialize_anim_ctrl(parent=rig_module.transform_grp)
-        ctrl_data[key].finalize_anim_ctrl()
-
-    ctrls = rig_module.ctrls
-
-
-    blend_mult = gen_utils.get_attr_blend_nodes(attr="fkIk", node=ctrls["shoulder_pin"], mult=True)
-    blend_mult.connect(ctrls["ik_hand_follow"].visibility)
-
-
-    ctrls["ik_hand_follow"].setParent(settings_ctrl_parent) if settings_ctrl_parent else None
-
-
-
 
     # ...Attach biped_arm rig to greater rig ---------------------------------------------------------------------------
-    gen_utils.matrix_constraint(objs=[rig_space_connector, ctrls["shoulder_pin"].getParent()], decompose=True,
-                                translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)
+    '''gen_utils.matrix_constraint(objs=[rig_space_connector, ctrls["shoulder_pin"].getParent()], decompose=True,
+                                translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
 
 
     # ...Hand connection transform -------------------------------------------------------------------------------------
-    hand_connector = rig_module.hand_connector = limb_rig.blend_jnts[2]
+    rig_module.wrist_connector = limb_rig.blend_jnts[-2]
 
 
     # ...
-    gen_utils.convert_offset(ctrls["fk_upperarm"].getParent())
-
+    ###gen_utils.convert_offset(ctrls["fk_upperarm"].getParent())
 
 
 
     pm.select(clear=1)
-    return rig_module'''
+    return rig_module
