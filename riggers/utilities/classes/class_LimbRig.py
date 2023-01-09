@@ -927,7 +927,7 @@ class LimbRig:
         else:
             self.ik_end_marker.setParent(self.ctrls['ik_extrem'])
         self.ik_end_marker.rotate.set(0, 0, 0)
-        ik_handle.setParent(self.ik_end_marker)
+        ik_handle.setParent(self.ik_end_marker.getParent())
         gen_utils.zero_out(ik_handle)
 
         self.ik_handles['limb'], self.ik_effectors['limb'] = ik_handle, ik_eff
@@ -942,7 +942,7 @@ class LimbRig:
                                                         end_driver_1=self.segments[1].ik_jnt,
                                                         end_driver_2=self.ctrls['ik_pv'],
                                                         override_display_type=1, line_width=-1.0,
-                                                        parent=self.grps['transform'])[0]
+                                                        parent=self.grps['noTransform'])[0]
 
         if self.side == nom.rightSideTag:
             [pm.setAttr(f'{self.ik_display_crv}.{a}', lock=0) for a in gen_utils.all_transform_attrs]

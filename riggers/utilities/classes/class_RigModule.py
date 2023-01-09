@@ -77,7 +77,7 @@ class RigModule:
         self.prelim_ctrls = prelim_ctrls if prelim_ctrls else get_module_data.placers(
             self.rig_module_type, side=side, is_driven_side=is_driven_side)
         self.side = side
-        self.side_tag = "{0}_".format(self.side) if self.side else ""
+        self.side_tag = f'{self.side}_' if self.side else ''
         self.module_tag = module_tag if module_tag else self.side_tag+self.name
         self.placer_color = ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
         self.is_driven_side = is_driven_side
@@ -120,12 +120,12 @@ class RigModule:
     ####################################################################################################################
     def create_rig_module_grp(self, parent=None):
 
-        self.rig_module_grp = pm.group(name="{0}{1}_{2}".format(self.side_tag, self.name, "RIG"), world=1, em=1)
+        self.rig_module_grp = pm.group(name=f'{self.side_tag}{self.name}_RIG', world=1, em=1)
 
-        pm.addAttr(self.rig_module_grp, longName="RigScale", attributeType="float", defaultValue=1.0, keyable=0)
+        pm.addAttr(self.rig_module_grp, longName='RigScale', attributeType='float', defaultValue=1.0, keyable=0)
 
-        self.transform_grp = pm.group(name="transform", p=self.rig_module_grp, em=1)
-        self.no_transform_grp = pm.group(name="no_transform", p=self.rig_module_grp, em=1)
+        self.transform_grp = pm.group(name='transform', p=self.rig_module_grp, em=1)
+        self.no_transform_grp = pm.group(name='no_transform', p=self.rig_module_grp, em=1)
         self.no_transform_grp.inheritsTransform.set(0, lock=1)
 
         self.rig_module_grp.setParent(parent) if parent else None
@@ -175,10 +175,10 @@ class RigModule:
     ####################################################################################################################
     def populate_rig_module(self, rig_parent=None):
 
-        build_script = importlib.import_module(dir_string["module_build"].format(self.rig_module_type))
+        build_script = importlib.import_module(dir_string['module_build'].format(self.rig_module_type))
         importlib.reload(build_script)
 
-        exception_types = ["root"]
+        exception_types = ['root']
         if self.module_tag not in exception_types:
 
             # ...Create biped_spine rig group
@@ -187,7 +187,6 @@ class RigModule:
             self.get_armature_orienters()
 
             self.get_setup_module_ctrl()
-
 
         self.mConstruct = build_script.build(rig_module=self, rig_parent=rig_parent)
 

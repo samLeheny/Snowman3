@@ -26,9 +26,9 @@ nom = nameConventions.create_dict()
 import Snowman3.riggers.modules.foot_plantigrade.utilities.animCtrls as animCtrls
 importlib.reload(animCtrls)
 
-import Snowman3.riggers.modules.foot_plantigrade.build.fkFoot as fkFoot
+import Snowman3.riggers.modules.foot_plantigrade.build.subScripts.fkFoot as fkFoot
 importlib.reload(fkFoot)
-import Snowman3.riggers.modules.foot_plantigrade.build.ikFoot as ikFoot
+import Snowman3.riggers.modules.foot_plantigrade.build.subScripts.ikFoot as ikFoot
 importlib.reload(ikFoot)
 ###########################
 ###########################
@@ -48,6 +48,9 @@ importlib.reload(ikFoot)
 #def build(rig_module, rig_parent=None, settings_ctrl=None, foot_roll_ctrl=None):
 def build(rig_module, rig_parent=None):
 
+    foot_attr_loc = pm.spaceLocator()
+    leg_attr_loc = pm.spaceLocator()
+
 
     ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
     ctrls = rig_module.ctrls
@@ -58,16 +61,16 @@ def build(rig_module, rig_parent=None):
     [ctrls[key].setParent(rig_module.transform_grp) for key in ctrl_data]
 
     # ...Ensure a kinematic blend attribute is present on given control
-    '''if not pm.attributeQuery("fkIk", node=settings_ctrl, exists=1):
-        pm.addAttr(settings_ctrl, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0, maxValue=10,
+    if not pm.attributeQuery("fkIk", node=leg_attr_loc, exists=1):
+        pm.addAttr(leg_attr_loc, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0, maxValue=10,
                    defaultValue=10, keyable=1)
 
-        kinematic_blend_mult = gen_utils.create_attr_blend_nodes(attr="fkIk", node=settings_ctrl)
-        kinematic_blend_rev = gen_utils.create_attr_blend_nodes(attr="fkIk", node=settings_ctrl, reverse=True)
+        kinematic_blend_mult = gen_utils.create_attr_blend_nodes(attr="fkIk", node=leg_attr_loc)
+        kinematic_blend_rev = gen_utils.create_attr_blend_nodes(attr="fkIk", node=leg_attr_loc, reverse=True)
 
 
-    kinematic_blend_mult = gen_utils.get_attr_blend_nodes(attr="fkIk", node=settings_ctrl, mult=True)
-    kinematic_blend_rev = gen_utils.get_attr_blend_nodes(attr="fkIk", node=settings_ctrl, reverse=True)
+    kinematic_blend_mult = gen_utils.get_attr_blend_nodes(attr="fkIk", node=leg_attr_loc, mult=True)
+    kinematic_blend_rev = gen_utils.get_attr_blend_nodes(attr="fkIk", node=leg_attr_loc, reverse=True)
 
     kinematic_blend_mult.connect(ctrls["ik_toe"].visibility)
     kinematic_blend_rev.connect(ctrls["fk_toe"].visibility)
@@ -97,38 +100,26 @@ def build(rig_module, rig_parent=None):
             pm.matchTransform(bind_jnts[key], rig_module.orienters[key])
 
 
-    bind_connector = rig_module.bind_connector = pm.spaceLocator(name="{}bindConnector".format(rig_module.side_tag))
-    pm.matchTransform(bind_connector, bind_chain_buffer)
-
-    mult_matrix = node_utils.multMatrix(matrixIn=(bind_connector.worldMatrix,
-                                                  bind_chain_buffer.parentInverseMatrix))
-    node_utils.decomposeMatrix(inputMatrix=mult_matrix.matrixSum, outputTranslate=bind_chain_buffer.translate)
-
-
-
-
     # ...IK rig
     ik_foot_rig = ikFoot.build(side=rig_module.side, parent=rig_module.transform_grp, bind_jnt_keys=bind_jnt_keys,
-                               orienters=rig_module.orienters, ctrls=ctrls, foot_roll_ctrl=foot_roll_ctrl)
+                               orienters=rig_module.orienters, ctrls=ctrls, foot_roll_ctrl=foot_attr_loc)
     rig_module.ik_connector = ik_foot_rig["ik_connector"]
-    rig_module.ik_chain_connector = ik_foot_rig["ik_chain_connector"]
+    ###rig_module.ik_chain_connector = ik_foot_rig["ik_chain_connector"]
     ik_jnts = rig_module.ik_jnts = ik_foot_rig["ik_jnts"]
     rig_module.foot_roll_jnts = ik_foot_rig["foot_roll_jnts"]
-
 
 
 
     # ...FK rig
     fk_foot_rig = fkFoot.build(side=rig_module.side, parent=rig_module.transform_grp,
                                ankle_orienter=rig_module.orienters["foot"], fk_toe_ctrl=ctrls["fk_toe"])
-    rig_module.fk_root_input = fk_foot_rig["fk_root_input"]
-
+    ### rig_module.fk_root_input = fk_foot_rig["fk_root_input"]
 
 
 
 
     # ...Blending ------------------------------------------------------------------------------------------------------
-    rotate_constraint = gen_utils.matrix_constraint(objs=[fk_foot_rig["fk_foot_loc"], ik_jnts["foot"],
+    rotate_constraint = gen_utils.matrix_constraint(objs=[fk_foot_rig["fk_foot_space"], ik_jnts["foot"],
                                                           bind_jnts["foot"]], decompose=True, translate=False,
                                                     rotate=True, scale=True,shear=False)
     kinematic_blend_mult.connect(rotate_constraint["weights"][0])
@@ -142,13 +133,21 @@ def build(rig_module, rig_parent=None):
 
 
 
-
     # ...Clean control transforms --------------------------------------------------------------------------------------
     for ctrl in ctrls.values():
         gen_utils.convert_offset(ctrl)
 
 
+    # ...Foot connection transform -------------------------------------------------------------------------------------
+    rig_module.bind_ankle_plug = bind_jnts['foot'].getParent()
+    rig_module.ik_foot_roll_socket = ik_foot_rig['foot_roll_jnts']['ankle']
+    rig_module.ik_ankle_ctrl_plug = ik_foot_rig['ik_connector']
+    rig_module.ik_ankle_jnt_plug = ik_foot_rig['ik_jnts']['foot']
+    rig_module.fk_ankle_ctrl_plug = fk_foot_rig['fk_foot_space']
+    rig_module.ik_leg_distance_socket = ik_foot_rig['ik_jnts']['foot']
+
+
 
     # ------------------------------------------------------------------------------------------------------------------
     pm.select(clear=1)
-    return rig_module'''
+    return rig_module

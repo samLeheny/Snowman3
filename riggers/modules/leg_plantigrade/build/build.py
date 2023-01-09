@@ -112,11 +112,11 @@ def build(rig_module, rig_parent=None):
 
 
     # ...Foot connection transform -------------------------------------------------------------------------------------
-    rig_module.leg_end_bind_connector = limb_rig.blend_jnts[-2]
-    rig_module.leg_end_ik_jnt_connector = limb_rig.ik_jnts[-2]
-    rig_module.leg_end_ik_connector = ctrls["ik_foot"]
-    rig_module.ik_handle = limb_rig.ik_handles["limb"]
-    rig_module.ik_foot_dist_node = limb_rig.ik_extrem_dist
+    rig_module.bind_ankle_socket = limb_rig.blend_jnts[-2]
+    rig_module.ik_ankle_jnt_socket = limb_rig.ik_jnts[-2]
+    rig_module.ik_ankle_ctrl_socket = ctrls["ik_foot"]
+    rig_module.fk_ankle_ctrl_socket = ctrls['fk_foot']
+    rig_module.ik_handle_plug = limb_rig.ik_handles["limb"].getParent()
 
     # ...
     '''gen_utils.convert_offset(ctrls["fk_thigh"].getParent())'''

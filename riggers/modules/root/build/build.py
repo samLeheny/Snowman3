@@ -31,27 +31,39 @@ def build(rig_module, rig_parent=None):
         ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
         ctrl_data[key].finalize_anim_ctrl()
 
-    ctrls["root"].setParent(rig_parent) if rig_parent else None
-    ctrls["subRoot"].setParent(ctrls["root"])
-    ctrls["cog"].setParent(ctrls["subRoot"])
+    ctrls['root'].setParent(rig_parent) if rig_parent else None
+    ctrls['subRoot'].setParent(ctrls['root'])
+    ctrls['cog'].setParent(ctrls['subRoot'])
 
 
 
     # ...Groups --------------------------------------------------------------------------------------------------------
     # ...Settings controls group
-    settings_ctrls_grp = pm.group(name="settings_{}".format(nom.group), p=ctrls["subRoot"], em=1)
+    settings_ctrls_grp = pm.group(name='settings_{}'.format(nom.group), p=ctrls['subRoot'], em=1)
     # ...Root spaces group
-    root_spaces_grp = pm.group(name="globalSpaces_{}".format(nom.group), p=ctrls["subRoot"], em=1)
+    root_spaces_grp = pm.group(name='globalSpaces_{}'.format(nom.group), p=ctrls['subRoot'], em=1)
     # ...Rig modules group
-    rig_modules_grp = pm.group(name="rigModules_{}".format(nom.group), p=ctrls["subRoot"], em=1)
+    rig_modules_grp = pm.group(name='rigModules_{}'.format(nom.group), p=ctrls['subRoot'], em=1)
 
 
     # ...Rig Scale attribute (So root control can only be scaled evenly in all three axes)
-    pm.addAttr(ctrls["root"], longName="RigScale", minValue=0.001, defaultValue=1, keyable=1)
-    [pm.connectAttr(ctrls["root"] + "." + "RigScale", ctrls["root"] + "." + a) for a in ("sx", "sy", "sz")]
+    pm.addAttr(ctrls['root'], longName='RigScale', minValue=0.001, defaultValue=1, keyable=1)
+    [pm.connectAttr(f'{ctrls["root"]}.RigScale', f'{ctrls["root"]}.{a}') for a in ('sx', 'sy', 'sz')]
 
-    for key in ("root", "subRoot"):
-        [pm.setAttr(ctrls[key] + "." + a, lock=1, keyable=0) for a in ("sx", "sy", "sz")]
+    for key in ('root', 'subRoot'):
+        [pm.setAttr(f'{ctrls[key]}.{a}', lock=1, keyable=0) for a in ('sx', 'sy', 'sz')]
+
+
+    rig_module.ctrls = ctrls
+    rig_module.settings_ctrls_grp = settings_ctrls_grp
+    rig_module.root_spaces_grp = root_spaces_grp
+    rig_module.rig_modules_grp = rig_modules_grp
+
+
+
+    # ------------------------------------------------------------------------------------------------------------------
+    pm.select(clear=1)
+    return rig_module
 
 
 
@@ -59,7 +71,7 @@ def build(rig_module, rig_parent=None):
     
 
 
-    return {"controls": ctrls,
-            "settings_ctrls_grp": settings_ctrls_grp,
-            "root_spaces_grp": root_spaces_grp,
-            "rig_modules_grp": rig_modules_grp}
+    '''return {'controls': ctrls,
+            'settings_ctrls_grp': settings_ctrls_grp,
+            'root_spaces_grp': root_spaces_grp,
+            'rig_modules_grp': rig_modules_grp}'''

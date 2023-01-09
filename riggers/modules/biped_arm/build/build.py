@@ -95,7 +95,7 @@ def build(rig_module, rig_parent=None):
 
 
     # ...Hand connection transform -------------------------------------------------------------------------------------
-    rig_module.wrist_connector = limb_rig.blend_jnts[-2]
+    rig_module.wrist_socket = limb_rig.blend_jnts[-2]
 
 
     # ...

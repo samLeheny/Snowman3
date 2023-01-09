@@ -30,25 +30,17 @@ importlib.reload(gen_utils)
 def build(side=None, parent=None, ankle_orienter=None, fk_toe_ctrl=None):
 
 
-    side_tag = "{}_".format(side) if side else ""
+    side_tag = f'{side}_' if side else ''
 
 
-    fk_foot_loc = pm.spaceLocator(name="{}fkFoot_space".format(side_tag))
-    fk_foot_loc.setParent(parent)
-    pm.matchTransform(fk_foot_loc, ankle_orienter)
+    fk_foot_space = pm.shadingNode('transform', name=f'{side_tag}fkFoot_space', au=1)
+    fk_foot_space.setParent(parent)
+    pm.matchTransform(fk_foot_space, ankle_orienter)
 
-    fk_toe_ctrl.setParent(fk_foot_loc)
-
-    fk_root_input = pm.spaceLocator(name="{}fkFoot_input".format(side_tag))
-    fk_root_input.setParent(fk_foot_loc)
-    pm.matchTransform(fk_root_input, fk_foot_loc)
-    fk_root_input.setParent(world=1)
-    gen_utils.matrix_constraint(objs=[fk_root_input, fk_foot_loc], translate=True, rotate=True, scale=False,
-                                shear=False, decompose=True)
+    fk_toe_ctrl.setParent(fk_foot_space)
 
 
 
     # ------------------------------------------------------------------------------------------------------------------
     pm.select(clear=1)
-    return {"fk_root_input": fk_root_input,
-            "fk_foot_loc": fk_foot_loc}
+    return {'fk_foot_space': fk_foot_space}

@@ -32,10 +32,11 @@ importlib.reload(get_armature_data)
 def create_armature(symmetry_mode=None):
 
     armature = Armature(
-        name = "biped",
+        name = 'biped',
+        prefab_key = 'biped',
         root_size = 55,
         symmetry_mode = symmetry_mode,
-        modules = get_armature_data.modules("biped", symmetry_mode=symmetry_mode)
+        modules = get_armature_data.modules('biped', symmetry_mode=symmetry_mode)
     )
 
     return armature

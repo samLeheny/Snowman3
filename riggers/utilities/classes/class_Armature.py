@@ -44,12 +44,14 @@ class Armature:
     def __init__(
         self,
         name = None,
+        prefab_key = None,
         root_size = None,
         symmetry_mode = None,
         modules = None,
 
     ):
         self.name = gen_utils.get_clean_name(name)
+        self.prefab_key = prefab_key
         self.root_size = root_size if root_size else 1
         self.modules = modules if modules else {}
         self.sided_modules = {"L": {}, "R": {}}
@@ -257,16 +259,19 @@ class Armature:
     ####################################################################################################################
     def assign_armature_metadata(self):
 
-        pm.addAttr(self.root_handle.mobject, longName="ArmatureName", keyable=0, dataType="string")
-        pm.setAttr(f'{self.root_handle.mobject}.ArmatureName', self.name, type="string", lock=1)
+        pm.addAttr(self.root_handle.mobject, longName='ArmatureName', keyable=0, dataType='string')
+        pm.setAttr(f'{self.root_handle.mobject}.ArmatureName', self.name, type='string', lock=1)
 
-        pm.addAttr(self.root_handle.mobject, longName="SymmetryMode", keyable=0, dataType="string")
-        pm.setAttr(f'{self.root_handle.mobject}.SymmetryMode', self.symmetry_mode, type="string", lock=1)
+        pm.addAttr(self.root_handle.mobject, longName='ArmaturePrefabKey', keyable=0, dataType='string')
+        pm.setAttr(f'{self.root_handle.mobject}.ArmaturePrefabKey', self.prefab_key, type='string', lock=1)
 
-        pm.addAttr(self.root_handle.mobject, longName="DriverSide", keyable=0, dataType="string")
-        pm.setAttr(f'{self.root_handle.mobject}.DriverSide', self.driver_side, type="string", lock=1)
+        pm.addAttr(self.root_handle.mobject, longName='SymmetryMode', keyable=0, dataType='string')
+        pm.setAttr(f'{self.root_handle.mobject}.SymmetryMode', self.symmetry_mode, type='string', lock=1)
 
-        pm.addAttr(self.root_handle.mobject, longName="RootSize", keyable=0, attributeType="float")
+        pm.addAttr(self.root_handle.mobject, longName='DriverSide', keyable=0, dataType='string')
+        pm.setAttr(f'{self.root_handle.mobject}.DriverSide', self.driver_side, type='string', lock=1)
+
+        pm.addAttr(self.root_handle.mobject, longName='RootSize', keyable=0, attributeType='float')
         pm.setAttr(f'{self.root_handle.mobject}.RootSize', self.root_size, lock=1)
 
 

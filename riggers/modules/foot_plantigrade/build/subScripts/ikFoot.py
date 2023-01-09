@@ -40,21 +40,20 @@ body_module_type = "foot_plantigrade"
 def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None, foot_roll_ctrl=None):
 
 
-    side_tag = "{}_".format(side) if side else ""
+    side_tag = f'{side}_' if side else ''
 
 
 
     # ...IK joints -----------------------------------------------------------------------------------------------------
-    ik_connector = pm.group(name="{}ikConnector".format(side_tag), em=1,
-                            p=parent)
+    ik_connector = pm.group(name=f'{side_tag}ikConnector', em=1, p=parent)
     gen_utils.zero_out(ik_connector)
-    pm.delete(pm.pointConstraint(orienters["foot"], ik_connector))
+    pm.delete(pm.pointConstraint(orienters['foot'], ik_connector))
 
     ik_jnts = {}
     ik_chain_buffer = None
     for i, key in enumerate(bind_jnt_keys):
         par = ik_jnts[bind_jnt_keys[i-1]] if i > 0 else None
-        ik_jnts[key] = rig_utils.joint(name="ik_" + key, joint_type=nom.nonBindJnt, side=side, radius=1.0, parent=par)
+        ik_jnts[key] = rig_utils.joint(name=f'ik_{key}', joint_type=nom.nonBindJnt, side=side, radius=1.0, parent=par)
         if i == 0:
             ik_chain_buffer = gen_utils.buffer_obj(ik_jnts[key])
 
@@ -67,14 +66,6 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
         else:
             pm.matchTransform(ik_jnts[key], orienters[key])
             rig_utils.joint_rot_to_ori(ik_jnts[key])
-
-
-    ik_chain_connector = pm.spaceLocator(name="{}ikChain_connector".format(side_tag))
-    pm.matchTransform(ik_chain_connector, ik_chain_buffer)
-    mult_matrix = node_utils.multMatrix(matrixIn=(ik_chain_connector.worldMatrix,
-                                                  ik_chain_buffer.parentInverseMatrix))
-    node_utils.decomposeMatrix(inputMatrix=mult_matrix.matrixSum, outputTranslate=ik_chain_buffer.translate)
-
 
 
 
@@ -111,9 +102,9 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     for tag, jnts, parent in (("foot", (ik_jnts["foot"], ik_jnts["ball"]), foot_roll_jnts["ball"]),
                               ("toe", (ik_jnts["ball"], ik_jnts["ball_end"]), ctrls["ik_toe"])):
 
-        ik_handles[tag], ik_effectors[tag] = pm.ikHandle(name="{}{}_{}".format(side_tag, tag, nom.ikHandle),
-                                                         startJoint=jnts[0], endEffector=jnts[1], solver="ikSCsolver")
-        ik_effectors[tag].rename('{}ik_{}_{}'.format(side_tag, tag, nom.effector))
+        ik_handles[tag], ik_effectors[tag] = pm.ikHandle(name=f'{side_tag}{tag}_{nom.ikHandle}',
+                                                         startJoint=jnts[0], endEffector=jnts[1], solver='ikSCsolver')
+        ik_effectors[tag].rename(f'{side_tag}ik_{tag}_{nom.effector}')
         ik_handles[tag].setParent(parent)
     
     
@@ -143,59 +134,59 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
 
     # ...Ball
     # ...Roll
-    ball_toe_total_delay = node_utils.addDoubleLinear(input1=foot_roll_ctrl + "." + "BallDelay",
-                                                      input2=foot_roll_ctrl + "." + "ToeRollStart")
+    ball_toe_total_delay = node_utils.addDoubleLinear(input1=f'{foot_roll_ctrl}.BallDelay',
+                                                      input2=f'{foot_roll_ctrl}.ToeRollStart')
 
     pushed_ball_return = node_utils.addDoubleLinear(input1=ball_toe_total_delay.output,
-                                                    input2=foot_roll_ctrl + "." + "ToeRollStart")
+                                                    input2=f'{foot_roll_ctrl}.ToeRollStart')
 
-    ball_remap_A = node_utils.remapValue(inputValue=foot_roll_ctrl + "." + "FootRoll",
-                                         inputMin=foot_roll_ctrl + "." + "BallDelay",
+    ball_remap_A = node_utils.remapValue(inputValue=f'{foot_roll_ctrl}.FootRoll',
+                                         inputMin=f'{foot_roll_ctrl}.BallDelay',
                                          inputMax=ball_toe_total_delay.output, outputMin=0,
-                                         outputMax=foot_roll_ctrl + "." + "ToeRollStart")
+                                         outputMax=f'{foot_roll_ctrl}.ToeRollStart')
 
-    ball_remap_B = node_utils.remapValue(inputValue=foot_roll_ctrl + "." + "FootRoll",
+    ball_remap_B = node_utils.remapValue(inputValue=f'{foot_roll_ctrl}.FootRoll',
                                          inputMin=ball_toe_total_delay.output,
                                          inputMax=pushed_ball_return.output,
-                                         outputMin=foot_roll_ctrl + "." + "ToeRollStart", outputMax=0)
+                                         outputMin=f'{foot_roll_ctrl}.ToeRollStart', outputMax=0)
 
-    ball_con = node_utils.condition(firstTerm=foot_roll_ctrl + "." + "FootRoll",
+    ball_con = node_utils.condition(firstTerm=f'{foot_roll_ctrl}.FootRoll',
                                     secondTerm=ball_toe_total_delay.output,
                                     colorIfTrue=(ball_remap_B.outValue, 0, 0),
                                     colorIfFalse=(ball_remap_A.outValue, 1, 1),
-                                    operation="greater or equal",
-                                    outColor=(foot_roll_jnts["ball"].rx, None, None))
+                                    operation='greater or equal',
+                                    outColor=(foot_roll_jnts['ball'].rx, None, None))
 
-    node_utils.addDoubleLinear(input1=ball_con.outColor.outColorR, input2=foot_roll_ctrl + "." + "BallRoll",
-                               output=foot_roll_jnts["ball"].rx, force=True)
+    node_utils.addDoubleLinear(input1=ball_con.outColor.outColorR, input2=f'{foot_roll_ctrl}.BallRoll',
+                               output=foot_roll_jnts['ball'].rx, force=True)
 
     # ...Spin
-    pm.connectAttr(foot_roll_ctrl + "." + "BallSpin", foot_roll_jnts["ballPivot"].ry)
+    pm.connectAttr(f'{foot_roll_ctrl}.BallSpin', foot_roll_jnts['ballPivot'].ry)
 
 
     # ...Toe tip
     # ...Roll
     pushed_toe_total = node_utils.addDoubleLinear(input1=total_angle, input2=ball_toe_total_delay.output)
 
-    toe_remap = node_utils.remapValue(inputValue=foot_roll_ctrl + "." + "FootRoll",
-                                      inputMin=ball_toe_total_delay.output, inputMax=pushed_toe_total.output,
-                                      outputMin=0, outputMax=total_angle, outValue=foot_roll_jnts["toeTip"].rx)
+    toe_remap = node_utils.remapValue(inputValue=f'{foot_roll_ctrl}.FootRoll', inputMin=ball_toe_total_delay.output,
+                                      inputMax=pushed_toe_total.output, outputMin=0, outputMax=total_angle,
+                                      outValue=foot_roll_jnts["toeTip"].rx)
 
-    node_utils.addDoubleLinear(input1=toe_remap.outValue, input2=foot_roll_ctrl + "." + "ToeRoll",
-                               output=foot_roll_jnts["toeTip"].rx, force=True)
+    node_utils.addDoubleLinear(input1=toe_remap.outValue, input2=f'{foot_roll_ctrl}.ToeRoll',
+                               output=foot_roll_jnts['toeTip'].rx, force=True)
     # ...Spin
-    pm.connectAttr(foot_roll_ctrl + "." + "ToeSpin", foot_roll_jnts["toeTip"].ry)
+    pm.connectAttr(f'{foot_roll_ctrl}.ToeSpin', foot_roll_jnts['toeTip'].ry)
 
 
     # ...Heel
     # ...Roll
-    clamp = node_utils.clamp(input=(foot_roll_ctrl + "." + "FootRoll", None, None), min=(-total_angle, 0, 0),
-                             max=(0, 0, 0), output=(foot_roll_jnts["heel"].rx, None, None))
+    clamp = node_utils.clamp(input=(f'{foot_roll_ctrl}.FootRoll', None, None), min=(-total_angle, 0, 0),
+                             max=(0, 0, 0), output=(foot_roll_jnts['heel'].rx, None, None))
 
-    node_utils.addDoubleLinear(input1=clamp.output.outputR, input2=foot_roll_ctrl + "." + "HeelRoll",
-                               output=foot_roll_jnts["heel"].rx, force=True)
+    node_utils.addDoubleLinear(input1=clamp.output.outputR, input2=f'{foot_roll_ctrl}.HeelRoll',
+                               output=foot_roll_jnts['heel'].rx, force=True)
     # ...Spin
-    pm.connectAttr(foot_roll_ctrl + "." + "HeelSpin", foot_roll_jnts["heel"].ry)
+    pm.connectAttr(f'{foot_roll_ctrl}.HeelSpin', foot_roll_jnts['heel'].ry)
 
 
     # ...Banking
@@ -212,6 +203,5 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     # ------------------------------------------------------------------------------------------------------------------
     pm.select(clear=1)
     return {"ik_connector": ik_connector,
-            "ik_chain_connector": ik_chain_connector,
             "ik_jnts": ik_jnts,
             "foot_roll_jnts": foot_roll_jnts}

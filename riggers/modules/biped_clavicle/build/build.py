@@ -71,10 +71,11 @@ def build(rig_module, rig_parent=None):
 
 
     # ...Arm connection transform --------------------------------------------------------------------------------------
-    shoulder_connector = rig_module.shoulder_connector = pm.spaceLocator(name="{}shoulder_output".format(side_tag))
+    rig_module.shoulder_socket = ctrls["clavicle"]
+    '''shoulder_connector = rig_module.shoulder_connector = pm.spaceLocator(name="{}shoulder_output".format(side_tag))
     shoulder_connector.setParent(ctrls["clavicle"])
     gen_utils.zero_out(shoulder_connector)
-    pm.delete(pm.pointConstraint(orienters["clavicle_end"], shoulder_connector))
+    pm.delete(pm.pointConstraint(orienters["clavicle_end"], shoulder_connector))'''
 
 
 

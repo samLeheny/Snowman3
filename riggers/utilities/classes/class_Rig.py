@@ -93,10 +93,10 @@ class Rig:
         armature_module = None
 
         # ...Look for Armature modules attributes on provided armature node
-        attr_string = "Module_{}".format(key)
+        attr_string = f'Module_{key}'
         if pm.attributeQuery(attr_string, node=self.armature, exists=1):
             # ...Find the string attribute that matches provided key
-            in_connections = pm.listConnections(self.armature + "." + attr_string, s=1, d=0)
+            in_connections = pm.listConnections(f'{self.armature}.{attr_string}', s=1, d=0)
             if in_connections:
                 armature_module = in_connections[0]
 
@@ -109,9 +109,9 @@ class Rig:
     ####################################################################################################################
     def create_root_groups(self):
 
-        self.character_grp = pm.group(name="{}{}".format(self.name, "CHAR"), world=1, em=1)
-        self.rig_grp = pm.group(name="rig", p=self.character_grp, em=1)
-        self.geo_grp = pm.group(name="geo", p=self.character_grp, em=1)
+        self.character_grp = pm.group(name=f'{self.name}CHAR', world=1, em=1)
+        self.rig_grp = pm.group(name='rig', p=self.character_grp, em=1)
+        self.geo_grp = pm.group(name='geo', p=self.character_grp, em=1)
 
 
 
@@ -172,6 +172,58 @@ class Rig:
 
 
     ####################################################################################################################
+    def attach_modules(self):
+
+        connection_pairs = (
+            (self.modules['root'].ctrls['cog'], self.modules['spine'].transform_grp),
+
+            (self.modules['spine'].neck_socket, self.modules['neck'].transform_grp),
+
+            (self.modules['spine'].clavicles_socket, self.modules['L_clavicle'].transform_grp),
+            (self.modules['spine'].clavicles_socket, self.modules['R_clavicle'].transform_grp),
+
+            (self.modules['L_clavicle'].shoulder_socket, self.modules['L_arm'].transform_grp),
+            (self.modules['R_clavicle'].shoulder_socket, self.modules['R_arm'].transform_grp),
+
+            (self.modules['L_arm'].wrist_socket, self.modules['L_hand'].transform_grp),
+            (self.modules['R_arm'].wrist_socket, self.modules['R_hand'].transform_grp),
+
+            (self.modules['spine'].hips_socket, self.modules['R_leg'].transform_grp),
+            (self.modules['spine'].hips_socket, self.modules['L_leg'].transform_grp),
+
+            (self.modules['L_leg'].bind_ankle_socket, self.modules['L_foot'].bind_ankle_plug),
+            (self.modules['L_leg'].ik_ankle_ctrl_socket, self.modules['L_foot'].ik_ankle_ctrl_plug),
+            (self.modules['L_leg'].ik_ankle_jnt_socket, self.modules['L_foot'].ik_ankle_jnt_plug),
+            (self.modules['L_leg'].fk_ankle_ctrl_socket, self.modules['L_foot'].fk_ankle_ctrl_plug),
+            (self.modules['R_leg'].bind_ankle_socket, self.modules['R_foot'].bind_ankle_plug),
+            (self.modules['R_leg'].ik_ankle_ctrl_socket, self.modules['R_foot'].ik_ankle_ctrl_plug),
+            (self.modules['R_leg'].ik_ankle_jnt_socket, self.modules['R_foot'].ik_ankle_jnt_plug),
+            (self.modules['R_leg'].fk_ankle_ctrl_socket, self.modules['R_foot'].fk_ankle_ctrl_plug),
+
+            (self.modules['L_foot'].ik_foot_roll_socket, self.modules['L_leg'].ik_handle_plug),
+            #(self.modules['L_foot'].ik_leg_distance_socket, self.modules['L_leg'].ik_foot_dist_plug),
+            (self.modules['R_foot'].ik_foot_roll_socket, self.modules['R_leg'].ik_handle_plug),
+            #(self.modules['R_foot'].ik_leg_distance_socket, self.modules['R_leg'].ik_foot_dist_plug),
+        )
+
+        for pair in connection_pairs:
+            # ...Create a locator to hold transforms
+            loc = pm.spaceLocator(name=f'{gen_utils.get_clean_name(pair[1])}_SPACE')
+            buffer = gen_utils.buffer_obj(loc)
+            # ...Match locator to rotate + scale of DRIVEN node (to account for modules in flipped space)
+            buffer.setParent(pair[1])
+            gen_utils.zero_out(buffer)
+            # ...Match locator to translate of DRIVER node (so scaling the driver won't offset the pivot position)
+            buffer.setParent(pair[0])
+            buffer.translate.set(0, 0, 0)
+            # ...Constraint DRIVEN node to locator (with offset!)
+            pm.parentConstraint(loc, pair[1], mo=1)
+
+
+
+
+
+    ####################################################################################################################
     def populate_rig(self):
 
         # ...Get information from armature
@@ -202,6 +254,9 @@ class Rig:
 
         # ...Connect modules to each other as specified in each module
         self.perform_module_attr_handoffs()
+
+        # ...
+        self.attach_modules()
 
 
 

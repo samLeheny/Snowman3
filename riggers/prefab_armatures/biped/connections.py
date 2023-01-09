@@ -22,9 +22,9 @@
 
 
 
-def create_handoffs():
+def create_connection_pairs_dict():
 
-    hand_offs = {
+    connection_pairs = {
 
         "root": (
         ),

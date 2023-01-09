@@ -196,12 +196,13 @@ def build(rig_module, rig_parent=None):
 
 
     # ------------------------------------------------------------------------------------------------------------------
-    rig_module.hips_connector = ctrls["ik_pelvis"]
-    rig_module.clavicles_connector = ctrls["ik_chest"]
+    rig_module.hips_socket = ctrls["ik_pelvis"]
+    rig_module.clavicles_socket = ctrls["ik_chest"]
+    rig_module.neck_socket = fk_ribbon["fkJnts"][-1]
 
-    neck_socket = rig_module.socket["neck"] = pm.spaceLocator(name="neckRig_socket")
+    '''neck_socket = rig_module.socket["neck"] = pm.spaceLocator(name="neckRig_socket")
     neck_socket.setParent(ctrls["ik_chest"])
-    pm.matchTransform(neck_socket, fk_ribbon["fkJnts"][-1])
+    pm.matchTransform(neck_socket, fk_ribbon["fkJnts"][-1])'''
 
 
 
