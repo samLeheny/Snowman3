@@ -18,9 +18,10 @@ importlib.reload(gen_utils)
 
 ###########################
 ######## Variables ########
-dir_string = {"armature":      "Snowman3.riggers.prefab_armatures.{}.armature",
-              "modules":       "Snowman3.riggers.prefab_armatures.{}.modules",
-              "attr_handoffs": "Snowman3.riggers.prefab_armatures.{}.attr_handoffs"}
+dir_string = {"armature":           "Snowman3.riggers.prefab_armatures.{}.armature",
+              "modules":            "Snowman3.riggers.prefab_armatures.{}.modules",
+              "attr_handoffs":      "Snowman3.riggers.prefab_armatures.{}.attr_handoffs",
+              "module_connections": "Snowman3.riggers.prefab_armatures.{}.connections"}
 ###########################
 ###########################
 
@@ -35,7 +36,6 @@ def armature(key, symmetry_mode=None):
     return m.create_armature(symmetry_mode=symmetry_mode)
 
 
-
 ########################################################################################################################
 def modules(key, symmetry_mode=None):
     m = importlib.import_module(dir_string["modules"].format(key))
@@ -43,8 +43,15 @@ def modules(key, symmetry_mode=None):
     return m.create_modules(symmetry_mode=symmetry_mode)
 
 
-
+########################################################################################################################
 def attr_handoffs(key):
     m = importlib.import_module(dir_string["attr_handoffs"].format(key))
     importlib.reload(m)
     return m.create_handoffs()
+
+
+########################################################################################################################
+def module_connections(key, rig_modules):
+    m = importlib.import_module(dir_string["module_connections"].format(key))
+    importlib.reload(m)
+    return m.create_connection_pairs_dict(rig_modules)

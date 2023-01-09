@@ -58,6 +58,7 @@ class Rig:
         self.rig_grp = None
         self.geo_grp = None
         self.attr_handoffs = {}
+        self.rig_prefab_type = self.get_rig_prefab_type()
 
 
 
@@ -66,6 +67,7 @@ class Rig:
     """
     --------- METHODS --------------------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
+    get_rig_prefab_type
     get_armature_module_mObj
     create_root_groups
     get_armature_modules
@@ -75,6 +77,19 @@ class Rig:
     --------------------------------------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
     """
+
+
+
+
+
+    ####################################################################################################################
+    def get_rig_prefab_type(self):
+
+        rig_prefab_type = None
+        if pm.attributeQuery("ArmaturePrefabKey", node=self.armature, exists=1):
+            rig_prefab_type = pm.getAttr(f'{self.armature}.ArmaturePrefabKey')
+
+        return rig_prefab_type
 
 
 
@@ -144,11 +159,7 @@ class Rig:
 
         attr_exceptions = ("LockAttrData", "LockAttrDataT", "LockAttrDataR", "LockAttrDataS", "LockAttrDataV")
 
-        rig_prefab_type = None
-        if pm.attributeQuery("ArmatureName", node=self.armature, exists=1):
-            rig_prefab_type = pm.getAttr(f'{self.armature}.ArmatureName')
-
-        self.attr_handoffs = get_armature_data.attr_handoffs(rig_prefab_type)
+        self.attr_handoffs = get_armature_data.attr_handoffs(self.rig_prefab_type)
 
         for key, data in self.attr_handoffs.items():
             for handoff in data:
@@ -174,37 +185,7 @@ class Rig:
     ####################################################################################################################
     def attach_modules(self):
 
-        connection_pairs = (
-            (self.modules['root'].ctrls['cog'], self.modules['spine'].transform_grp),
-
-            (self.modules['spine'].neck_socket, self.modules['neck'].transform_grp),
-
-            (self.modules['spine'].clavicles_socket, self.modules['L_clavicle'].transform_grp),
-            (self.modules['spine'].clavicles_socket, self.modules['R_clavicle'].transform_grp),
-
-            (self.modules['L_clavicle'].shoulder_socket, self.modules['L_arm'].transform_grp),
-            (self.modules['R_clavicle'].shoulder_socket, self.modules['R_arm'].transform_grp),
-
-            (self.modules['L_arm'].wrist_socket, self.modules['L_hand'].transform_grp),
-            (self.modules['R_arm'].wrist_socket, self.modules['R_hand'].transform_grp),
-
-            (self.modules['spine'].hips_socket, self.modules['R_leg'].transform_grp),
-            (self.modules['spine'].hips_socket, self.modules['L_leg'].transform_grp),
-
-            (self.modules['L_leg'].bind_ankle_socket, self.modules['L_foot'].bind_ankle_plug),
-            (self.modules['L_leg'].ik_ankle_ctrl_socket, self.modules['L_foot'].ik_ankle_ctrl_plug),
-            (self.modules['L_leg'].ik_ankle_jnt_socket, self.modules['L_foot'].ik_ankle_jnt_plug),
-            (self.modules['L_leg'].fk_ankle_ctrl_socket, self.modules['L_foot'].fk_ankle_ctrl_plug),
-            (self.modules['R_leg'].bind_ankle_socket, self.modules['R_foot'].bind_ankle_plug),
-            (self.modules['R_leg'].ik_ankle_ctrl_socket, self.modules['R_foot'].ik_ankle_ctrl_plug),
-            (self.modules['R_leg'].ik_ankle_jnt_socket, self.modules['R_foot'].ik_ankle_jnt_plug),
-            (self.modules['R_leg'].fk_ankle_ctrl_socket, self.modules['R_foot'].fk_ankle_ctrl_plug),
-
-            (self.modules['L_foot'].ik_foot_roll_socket, self.modules['L_leg'].ik_handle_plug),
-            #(self.modules['L_foot'].ik_leg_distance_socket, self.modules['L_leg'].ik_foot_dist_plug),
-            (self.modules['R_foot'].ik_foot_roll_socket, self.modules['R_leg'].ik_handle_plug),
-            #(self.modules['R_foot'].ik_leg_distance_socket, self.modules['R_leg'].ik_foot_dist_plug),
-        )
+        connection_pairs = get_armature_data.module_connections(self.rig_prefab_type, self.modules)
 
         for pair in connection_pairs:
             # ...Create a locator to hold transforms

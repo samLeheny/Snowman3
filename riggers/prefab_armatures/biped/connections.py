@@ -22,64 +22,36 @@
 
 
 
-def create_connection_pairs_dict():
+def create_connection_pairs_dict(modules):
 
-    connection_pairs = {
+    connection_pairs = (
+        (modules['root'].ctrls['cog'], modules['spine'].transform_grp),
 
-        "root": (
-        ),
+        (modules['spine'].neck_socket, modules['neck'].transform_grp),
 
+        (modules['spine'].clavicles_socket, modules['L_clavicle'].transform_grp),
+        (modules['spine'].clavicles_socket, modules['R_clavicle'].transform_grp),
 
-        "spine": (
-            #("root", "COG"),
-        ),
+        (modules['L_clavicle'].shoulder_socket, modules['L_arm'].transform_grp),
+        (modules['R_clavicle'].shoulder_socket, modules['R_arm'].transform_grp),
 
-        "neck": (
-            #("spine", "neck"),
-        ),
+        (modules['L_arm'].wrist_socket, modules['L_hand'].transform_grp),
+        (modules['R_arm'].wrist_socket, modules['R_hand'].transform_grp),
 
+        (modules['spine'].hips_socket, modules['R_leg'].transform_grp),
+        (modules['spine'].hips_socket, modules['L_leg'].transform_grp),
 
-        "L_clavicle": (
-            ("spine", "spine_tweak_7")
-        ),
+        (modules['L_leg'].bind_ankle_socket, modules['L_foot'].bind_ankle_plug),
+        (modules['L_leg'].ik_ankle_ctrl_socket, modules['L_foot'].ik_ankle_ctrl_plug),
+        (modules['L_leg'].ik_ankle_jnt_socket, modules['L_foot'].ik_ankle_jnt_plug),
+        (modules['L_leg'].fk_ankle_ctrl_socket, modules['L_foot'].fk_ankle_ctrl_plug),
+        (modules['R_leg'].bind_ankle_socket, modules['R_foot'].bind_ankle_plug),
+        (modules['R_leg'].ik_ankle_ctrl_socket, modules['R_foot'].ik_ankle_ctrl_plug),
+        (modules['R_leg'].ik_ankle_jnt_socket, modules['R_foot'].ik_ankle_jnt_plug),
+        (modules['R_leg'].fk_ankle_ctrl_socket, modules['R_foot'].fk_ankle_ctrl_plug),
 
+        (modules['L_foot'].ik_foot_roll_socket, modules['L_leg'].ik_handle_plug),
+        (modules['R_foot'].ik_foot_roll_socket, modules['R_leg'].ik_handle_plug),
+    )
 
-        "R_clavicle": (
-            ("spine", "spine_tweak_7")
-        ),
-
-
-        "L_arm": (
-        ),
-
-
-        "R_arm": (
-        ),
-
-
-        "L_hand": (
-        ),
-
-
-        "R_hand": (
-        ),
-
-
-        "L_leg": (
-        ),
-
-
-        "R_leg": (
-        ),
-
-
-        "L_foot": (
-        ),
-
-
-        "R_foot": (
-        ),
-
-    }
-
-    return hand_offs
+    return connection_pairs
