@@ -209,13 +209,12 @@ class Rig:
         for pair in connection_pairs:
             # ...Create a locator to hold transforms
             loc = pm.spaceLocator(name=f'{gen_utils.get_clean_name(pair[1])}_SPACE')
-            buffer = gen_utils.buffer_obj(loc)
             # ...Match locator to rotate + scale of DRIVEN node (to account for modules in flipped space)
-            buffer.setParent(pair[1])
-            gen_utils.zero_out(buffer)
+            loc.setParent(pair[1])
+            gen_utils.zero_out(loc)
             # ...Match locator to translate of DRIVER node (so scaling the driver won't offset the pivot position)
-            buffer.setParent(pair[0])
-            buffer.translate.set(0, 0, 0)
+            loc.setParent(pair[0])
+            loc.translate.set(0, 0, 0)
             # ...Constraint DRIVEN node to locator (with offset!)
             pm.parentConstraint(loc, pair[1], mo=1)
 

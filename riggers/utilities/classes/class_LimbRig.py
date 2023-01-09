@@ -31,7 +31,7 @@ nom = nameConventions.create_dict()
 ######## Variables ########
 default_socket_name = 'limbSocket'
 default_pv_name = 'poleVector'
-ctrl_colors = {"FK": 13, "IK": 6, "other": 17, "sub": (15, 4)}
+ctrl_colors = {"FK": 13, "IK": 6, "other": ([0, 0.220, 1], [0.663, 0.028, 0.032]), "sub": (15, 4)}
 roll_jnt_resolution = 5
 prefab_inputs = {
         'plantigrade': {
@@ -320,6 +320,7 @@ class LimbRig:
         limb_span_seg_2 = self.segments[limb_span_jnt_indices[1] - 1]
 
         size = 0.07 * self.total_limb_length
+        ctrl_color = self.ctrl_colors['other'][1] if self.side == 'R' else self.ctrl_colors['other'][0]
 
         # ...Create control
         ctrl = rig_utils.control(
@@ -327,7 +328,7 @@ class LimbRig:
                        "scale": [size, size, size],
                        "up_direction": [1, 0, 0],
                        "forward_direction": [0, 0, 1]},
-            name=f'{name}Pin', ctrl_type=nom.animCtrl, side=self.side, color=self.ctrl_colors['other'])
+            name=f'{name}Pin', ctrl_type=nom.animCtrl, side=self.side, color=ctrl_color)
 
 
         # ...Determine which blend joint to parent control under
@@ -427,6 +428,7 @@ class LimbRig:
     def create_rig_socket_ctrl(self):
 
         ctrl_size = 0.1 * self.total_limb_length
+        ctrl_color = self.ctrl_colors['other'][1] if self.side == 'R' else self.ctrl_colors['other'][0]
 
         # ...Create controls
         ctrl = self.ctrls['socket'] = rig_utils.control(ctrl_info = {'shape': 'tag_hexagon',
@@ -434,7 +436,7 @@ class LimbRig:
                                                         name = f'{self.socket_name}Pin',
                                                         ctrl_type = nom.animCtrl,
                                                         side = self.side,
-                                                        color = self.ctrl_colors['other'])
+                                                        color = ctrl_color)
 
         # ...Position ctrl in scene and hierarchy
         ctrl.translate.set(self.jnt_positions[0])
@@ -576,6 +578,7 @@ class LimbRig:
 
 
             ctrl_size = 0.055 * self.total_limb_length
+            ctrl_color = self.ctrl_colors['other'][1] if self.side == 'R' else self.ctrl_colors['other'][0]
 
             # ...Create roller system
             rollers = rig_utils.limb_rollers(
@@ -584,7 +587,7 @@ class LimbRig:
                 roller_name = self.segments[i].segment_name,
                 jnt_radius = jnt_radius,
                 up_axis = up_axis,
-                ctrl_color = self.ctrl_colors['other'],
+                ctrl_color = ctrl_color,
                 side = self.side,
                 parent = self.grps['noTransform'],
                 ctrl_size = ctrl_size
