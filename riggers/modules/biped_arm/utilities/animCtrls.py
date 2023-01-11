@@ -81,46 +81,6 @@ def create_anim_ctrls(side=None, module_ctrl=None):
         ),
 
 
-        #"elbow_pin": AnimControl(
-        #    ctrl_name_tag="elbow_pin",
-        #    prelim_ctrl_name="elbow_pin",
-        #    side=side,
-        #    module_ctrl = module_ctrl
-        #),
-
-
-        #"upperarm_bend_start": AnimControl(
-        #    ctrl_name_tag="upperarm_bend_start",
-        #    prelim_ctrl_name="upperarm_bend_start",
-        #    side=side,
-        #    module_ctrl = module_ctrl
-        #),
-
-
-        #"upperarm_bend_mid": AnimControl(
-        #    ctrl_name_tag="upperarm_bend_mid",
-        #    prelim_ctrl_name="upperarm_bend_mid",
-        #    side=side,
-        #    module_ctrl = module_ctrl
-        #),
-
-
-        #"lowerarm_bend_mid": AnimControl(
-        #    ctrl_name_tag="lowerarm_bend_mid",
-        #    prelim_ctrl_name="lowerarm_bend_mid",
-        #    side=side,
-        #    module_ctrl = module_ctrl
-        #),
-
-
-        #"lowerarm_bend_end": AnimControl(
-        #    ctrl_name_tag="lowerarm_bend_end",
-        #    prelim_ctrl_name="lowerarm_bend_end",
-        #    side=side,
-        #    module_ctrl = module_ctrl
-        #),
-
-
         "shoulder_pin": AnimControl(
             ctrl_name_tag="shoulder_pin",
             prelim_ctrl_name="shoulder_pin",

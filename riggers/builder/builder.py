@@ -40,7 +40,7 @@ importlib.reload(get_armature_data)
 
 
 
-# ...Symmetry and side variables
+#...Symmetry and side variables
 symmetry_info = gen_utils.symmetry_info("Left drives Right")
 default_symmetry_mode = symmetry_info[0]
 
@@ -51,14 +51,14 @@ default_symmetry_mode = symmetry_info[0]
 ########################################################################################################################
 def build_armature_in_scene(armature):
 
-    # ...Create and move into armature namespace
+    #...Create and move into armature namespace
     pm.namespace(add=nom.setupRigNamespace)
     pm.namespace(set=nom.setupRigNamespace)
 
-    # ...Build armature
+    #...Build armature
     armature.populate_armature()
 
-    # ...Return to default scene namespace
+    #...Return to default scene namespace
     pm.namespace(set=":")
     pm.select(clear=1)
     return armature
@@ -98,14 +98,14 @@ def build_armature_from_data(data):
 ########################################################################################################################
 def build_rig_in_scene(asset_name=None, armature=None):
 
-    # ...Create namespace for final rig and set it as current namespace
+    #...Create namespace for final rig and set it as current namespace
     pm.namespace(add=nom.finalRigNamespace)
     pm.namespace(set=nom.finalRigNamespace)
 
     rig = Rig(name=asset_name, armature=armature)
     rig.populate_rig()
 
-    # ...Put a bow on this puppy!
+    #...Put a bow on this puppy!
     rigWrapup.execute(modules=rig.modules)
     pm.select(clear=1)
 
@@ -113,10 +113,10 @@ def build_rig_in_scene(asset_name=None, armature=None):
 
     '''
     # --------------------------------------------------------------------------------------------------------------
-    # ...Body modules ----------------------------------------------------------------------------------------------
+    #...Body modules ----------------------------------------------------------------------------------------------
     # --------------------------------------------------------------------------------------------------------------
 
-    # ...Root controls module ######################################################################################
+    #...Root controls module ######################################################################################
     rig_module_parent = None
     root_module = root_build.build(rig_parent=rig_grp)
     rig_module_parent = root_module["rig_modules_grp"]
@@ -125,7 +125,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
 
 
 
-    # ...Spine module ##############################################################################################
+    #...Spine module ##############################################################################################
     ################################################################################################################
 
     armature_module = get_armature_modules("biped_spine", armature)
@@ -143,7 +143,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
 
 
 
-    # ...Neck module ###############################################################################################
+    #...Neck module ###############################################################################################
     ################################################################################################################
 
     armature_module = get_armature_modules("biped_neck", armature)
@@ -158,7 +158,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
     neck_build.build(rig_module=modules["neck"], rig_parent=rig_module_parent,
                      rig_space_connector=modules["spine"].neck_connector)
 
-    # ...Neck rotation space blend -----------------------------------------------------------------------------
+    #...Neck rotation space blend -----------------------------------------------------------------------------
     rig_utils.space_blender(target=modules["neck"].ctrls["neck"].getParent(),
                             source=modules["spine"].ctrls["ik_chest"],
                             source_name="chest",
@@ -167,7 +167,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
                             default_value=10,
                             global_space_parent=root_module["root_spaces_grp"],
                             rotate=True)
-    # ...Head rotation space blend -----------------------------------------------------------------------------
+    #...Head rotation space blend -----------------------------------------------------------------------------
     rig_utils.space_blender(target=modules["neck"].ctrls["head"].getParent(),
                             source=modules["neck"].neck_len_end_node,
                             source_name="neck",
@@ -181,7 +181,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
 
 
 
-    # ...Clavicle modules ##########################################################################################
+    #...Clavicle modules ##########################################################################################
     ################################################################################################################
 
     for side in [nom.leftSideTag, nom.rightSideTag]:
@@ -207,7 +207,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
 
 
 
-    # ...Arm modules ###############################################################################################
+    #...Arm modules ###############################################################################################
     ################################################################################################################
 
     for side in [nom.leftSideTag, nom.rightSideTag]:
@@ -229,8 +229,8 @@ def build_rig_in_scene(asset_name=None, armature=None):
             rig_space_connector = modules[side + "_clavicle"].shoulder_connector,
             settings_ctrl_parent = modules["spine"].clavicles_connector)
 
-        # ...Space blends --------------------------------------------------------------------------------------
-        # ...FK shoulder
+        #...Space blends --------------------------------------------------------------------------------------
+        #...FK shoulder
         rig_utils.space_blender(target=arm_rig.ctrls["fk_upperarm"].getParent(),
                                 source=modules["spine"].ctrls["ik_chest"],
                                 source_name="chest",
@@ -239,7 +239,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
                                 default_value=10,
                                 global_space_parent=root_module["root_spaces_grp"],
                                 rotate=True)
-        # ...IK elbow pole vector
+        #...IK elbow pole vector
         rig_utils.space_blender(target=arm_rig.ctrls["ik_elbow"].getParent(),
                                 source=arm_rig.ctrls["ik_hand"],
                                 source_name="hand",
@@ -248,7 +248,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
                                 default_value=10,
                                 global_space_parent=root_module["root_spaces_grp"],
                                 rotate=True, translate=True)
-        # ...IK biped_hand
+        #...IK biped_hand
         rig_utils.space_blender(target=arm_rig.ctrls["ik_hand"].getParent(),
                                 source=arm_rig.ctrls["ik_hand_follow"],
                                 source_name="ikHandFollow",
@@ -262,7 +262,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
 
 
 
-    # ...Hand modules ##############################################################################################
+    #...Hand modules ##############################################################################################
     ################################################################################################################
 
     for side in [nom.leftSideTag, nom.rightSideTag]:
@@ -292,7 +292,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
 
 
 
-    # ...Leg modules ###############################################################################################
+    #...Leg modules ###############################################################################################
     ################################################################################################################
     
     for side in [nom.leftSideTag, nom.rightSideTag]:
@@ -314,8 +314,8 @@ def build_rig_in_scene(asset_name=None, armature=None):
             rig_space_connector = modules["spine"].hips_connector,
             ctrl_parent = modules["spine"].hips_connector)
 
-        # ...Space blends --------------------------------------------------------------------------------------
-        # ...FK thigh
+        #...Space blends --------------------------------------------------------------------------------------
+        #...FK thigh
         rig_utils.space_blender(target=leg_rig.ctrls["fk_thigh"].getParent(),
                                 source=modules["spine"].ctrls["ik_pelvis"],
                                 source_name="pelvis",
@@ -324,7 +324,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
                                 default_value=10,
                                 global_space_parent=root_module["root_spaces_grp"],
                                 rotate=True)
-        # ...IK knee pole vector
+        #...IK knee pole vector
         rig_utils.space_blender(target=leg_rig.ctrls["ik_knee"].getParent(),
                                 source=leg_rig.ctrls["ik_foot"],
                                 source_name="foot",
@@ -333,7 +333,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
                                 default_value=10,
                                 global_space_parent=root_module["root_spaces_grp"],
                                 rotate=True, translate=True)
-        # ...IK foot
+        #...IK foot
         rig_utils.space_blender(target=leg_rig.ctrls["ik_foot"].getParent(),
                                 source=leg_rig.ctrls["ik_foot_follow"],
                                 source_name="ikFootFollow",
@@ -347,7 +347,7 @@ def build_rig_in_scene(asset_name=None, armature=None):
 
 
 
-    # ...Foot modules ##############################################################################################
+    #...Foot modules ##############################################################################################
     ################################################################################################################
     
     for side in [nom.leftSideTag, nom.rightSideTag]:
@@ -370,12 +370,12 @@ def build_rig_in_scene(asset_name=None, armature=None):
             settings_ctrl=modules[side + "_leg"].ctrls["hip_pin"],
             foot_roll_ctrl=modules[side + "_leg"].ctrls["ik_foot"])
 
-        # ...Connect various foot rig modules to biped_leg rig
-        # ...Bind skeleton
+        #...Connect various foot rig modules to biped_leg rig
+        #...Bind skeleton
         foot_rig.bind_connector.setParent(modules[side + "_leg"].leg_end_bind_connector)
-        # ...FK rig
+        #...FK rig
         foot_rig.fk_root_input.setParent(modules[side + "_leg"].ctrls["fk_foot"])
-        # ...IK rig
+        #...IK rig
         foot_rig.ik_connector.setParent(modules[side + "_leg"].leg_end_ik_connector)
         foot_rig.ik_chain_connector.setParent(modules[side + "_leg"].leg_end_ik_jnt_connector)
         modules[side + "_leg"].ik_handle.setParent(foot_rig.foot_roll_jnts["ankle"])
@@ -391,8 +391,8 @@ def build_rig_in_scene(asset_name=None, armature=None):
                        force=1)
 
 
-    # ...Put a bow on this puppy!
+    #...Put a bow on this puppy!
     rigWrapup.execute(modules=modules)
 
-    # ...Clear any selections
+    #...Clear any selections
     pm.select(clear=1)'''

@@ -36,7 +36,7 @@ PrelimControl = class_PrelimControl.PrelimControl
 
 
 
-def create_prelim_ctrls(side=None, is_driven_side=None):
+def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
 
     prelim_ctrls = {
 
@@ -50,7 +50,8 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "neck"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            module_ctrl = module_ctrl
         ),
 
 
@@ -63,7 +64,8 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "neck"},
             locks = {"s": [0, 0, 0], "v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            module_ctrl = module_ctrl
         ),
 
 
@@ -77,7 +79,8 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "head"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            module_ctrl = module_ctrl
         ),
 
 
@@ -90,7 +93,8 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             color =ctrl_colors["settings"],
             locks = {"v": 1, "t": [1, 1, 1], "r": [1, 1, 1], "s": [1, 1, 1]},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            module_ctrl = module_ctrl
         )
 
     }

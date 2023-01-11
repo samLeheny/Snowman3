@@ -93,18 +93,18 @@ class Orienter:
     ####################################################################################################################
     def get_opposite_orienter(self):
 
-        # ...Check that orienter is sided
+        #...Check that orienter is sided
         if not self.side:
             print("Orienter '{0}' has not assigned side, and therefore, has no opposite orienter".format(self.mobject))
             return None
 
-        # ...Check that orienter's side is valid (left or right)
+        #...Check that orienter's side is valid (left or right)
         if self.side not in (nom.leftSideTag, nom.rightSideTag):
             print(f'Side for orienter "{self.mobject}": {self.side}.'
                   f'Can only find opposite orienters if assigned side is "{nom.leftSideTag}" or "{nom.rightSideTag}"')
             return None
 
-        # ...Find and get opposite orienter
+        #...Find and get opposite orienter
         opposite_orienter = gen_utils.get_opposite_side_obj(self.mobject)
         if not opposite_orienter:
             print(f'Unable to find opposite orienter for placer: "{self.mobject}"')
@@ -125,7 +125,7 @@ class Orienter:
         string_check = pm.ls(get_orienter_string)
         driver_orienter = string_check[0] if string_check else None
 
-        # ...Match orienter
+        #...Match orienter
         pm.orientConstraint(driver_orienter, self.mobject)
 
 

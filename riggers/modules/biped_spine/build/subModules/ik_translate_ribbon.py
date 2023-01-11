@@ -42,7 +42,7 @@ importlib.reload(animCtrls)
 ########################################################################################################################
 def build(ctrls, fk_ribbon, ribbon_parent, ik_parent):
 
-    # ...IK Translate nurbs plane
+    #...IK Translate nurbs plane
     ik_translate_ribbon = pm.duplicate(fk_ribbon, name="spineRibbon_IK_translate_SURF")[0]
     for attr in gen_utils.all_transform_attrs:
         pm.setAttr(ik_translate_ribbon + "." + attr, lock=0)
@@ -51,7 +51,7 @@ def build(ctrls, fk_ribbon, ribbon_parent, ik_parent):
     ik_translate_ribbon.setParent(ribbon_parent)
 
 
-    # ...IK Translate joints
+    #...IK Translate joints
     def ik_translate_jnt_sys(name, v_value, ctrl, mid=False):
         grp = pm.group(name="spine_{}_ik_translate".format(name), p=ik_parent, em=1)
 
@@ -83,21 +83,21 @@ def build(ctrls, fk_ribbon, ribbon_parent, ik_parent):
     ik_translate_top_sys = ik_translate_jnt_sys("chest", 1.0, ctrls["ik_chest"])
 
 
-    # ...Skin IK Translate Ribbon
+    #...Skin IK Translate Ribbon
     pm.select((ik_translate_bottom_sys[1], ik_translate_top_sys[1]), replace=1)
     pm.select(ik_translate_ribbon, add=1)
     pm.skinCluster(toSelectedBones=1, maximumInfluences=1, obeyMaxInfluences=0)
     skin_clust = gen_utils.get_skin_cluster(ik_translate_ribbon)
 
-    # ...Use FK Ribbon as input shape for IK Translate Ribbon's skin cluster
+    #...Use FK Ribbon as input shape for IK Translate Ribbon's skin cluster
     rig_utils.mesh_to_skinClust_input(fk_ribbon.getShape(), skin_clust)
 
-    # ...Use IK Translate base joints as preBindMatrix inputs for skin cluster to avoid double transforms from the FK
-    # ...Ribbon
+    #...Use IK Translate base joints as preBindMatrix inputs for skin cluster to avoid double transforms from the FK
+    #...Ribbon
     ik_translate_bottom_sys[2].worldInverseMatrix[0].connect(skin_clust.bindPreMatrix[0])
     ik_translate_top_sys[2].worldInverseMatrix[0].connect(skin_clust.bindPreMatrix[1])
 
-    # ...Refine weights
+    #...Refine weights
     pm.skinPercent(skin_clust, ik_translate_ribbon + '.cv[0:3][0]', transformValue=[(ik_translate_bottom_sys[1], 1.0)])
     pm.skinPercent(skin_clust, ik_translate_ribbon + '.cv[0:3][1]', transformValue=[(ik_translate_bottom_sys[1], 1.0)])
     pm.skinPercent(skin_clust, ik_translate_ribbon + '.cv[0:3][2]', transformValue=[(ik_translate_bottom_sys[1], 1.0)])
@@ -108,7 +108,7 @@ def build(ctrls, fk_ribbon, ribbon_parent, ik_parent):
     pm.skinPercent(skin_clust, ik_translate_ribbon + '.cv[0:3][5]', transformValue=[(ik_translate_top_sys[1], 1.0)])
     pm.skinPercent(skin_clust, ik_translate_ribbon + '.cv[0:3][6]', transformValue=[(ik_translate_top_sys[1], 1.0)])
 
-    # ...Template FK Ribbon for visual clarity
+    #...Template FK Ribbon for visual clarity
     fk_ribbon.getShape().template.set(1)
 
 

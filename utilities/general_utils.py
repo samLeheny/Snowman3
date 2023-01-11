@@ -132,12 +132,12 @@ def get(node):
         "setup_root" : get_utils.setup_root_ctrl,
     }
 
-    # ...Check argument integrity
+    #...Check argument integrity
     if node not in node_functions:
         print("Invalid argument: {}".format(node))
         return None
 
-    # ...If valid arg provided, fire the corresponding 'get' function and return the node
+    #...If valid arg provided, fire the corresponding 'get' function and return the node
     node = node_functions[node]()
 
 
@@ -715,11 +715,11 @@ def orthogonal_vectors(vector_1, vector_2):
 def vectors_to_euler(aim_vector, up_vector, aim_axis, up_axis, rotation_order):
 
 
-    # ...Neatly format axis arguments, so we don't have to keep checking multiple possible input types
+    #...Neatly format axis arguments, so we don't have to keep checking multiple possible input types
     aim_axis = format_axis_arg(aim_axis)
     up_axis = format_axis_arg(up_axis)
 
-    # ...Vector order matters. X comes before Y which comes before Z
+    #...Vector order matters. X comes before Y which comes before Z
     flip_order = False
     if not aim_axis == "x":
         if aim_axis == "y":
@@ -901,14 +901,14 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
     default_places = {"x": 0, "y": 1, "z": 2}
 
 
-    # ...Rearrange columns
+    #...Rearrange columns
     array = np.array(point_list)
     columns = np.array([default_places[remaining_axis],
                         default_places[up_axis],
                         default_places[forward_axis]])
     new_array = array[ np.array(list(range(0, len(point_list))))[:, np.newaxis], columns ]
 
-    # ...Switch directions of columns if needed
+    #...Switch directions of columns if needed
     multipliers = (mults[default_places[remaining_axis]],
                    mults[default_places[up_axis]],
                    mults[default_places[forward_axis]])
@@ -1106,7 +1106,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
         cvs = [cvs]
 
 
-    # ...Determine which shape build method to use
+    #...Determine which shape build method to use
     form = bulk_up_list(form, new_length=shape_count)
 
     for entry in form:
@@ -1138,7 +1138,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
             acceptable_form_inputs.append(string)
 
 
-    # ...Check degree input integrity
+    #...Check degree input integrity
     degree_is_valid = True
 
     degree = bulk_up_list(degree, new_length=shape_count)
@@ -1157,7 +1157,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
 
 
 
-    # ...Check shape_offset input integrity
+    #...Check shape_offset input integrity
     if not shape_offset:
         shape_offset = [0, 0, 0]
     shape_offset = bulk_up_list(output_variable=shape_offset, check_variable=shape_offset[0], new_length=shape_count)
@@ -1185,7 +1185,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
         shape_degree = degree[i]
         shape_scale = scale
         points_offset = shape_offset[i]
-        # ...For each curve in curve object, build curve using the home-brewed 'curve' function
+        #...For each curve in curve object, build curve using the home-brewed 'curve' function
 
         curve = nurbs_curve( color = color,
                              form = shape_form,
@@ -1201,14 +1201,14 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
         if curve:
             crvs.append(curve)
 
-    # ...Parent shapes together under a single transform node
+    #...Parent shapes together under a single transform node
     crv_obj = crvs[0]
 
     for i in range(1, len(crvs)):
         pm.parent(crvs[i].getShape(), crv_obj, relative=1, shape=1)
         pm.delete(crvs[i])
 
-    # ...Name curve and shapes
+    #...Name curve and shapes
     pm.rename(crv_obj, name)
     rename_shapes(crv_obj)
 
@@ -1224,7 +1224,7 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
 def rename_shapes(obj):
 
 
-    # ...Make sure we're dealing with shape nodes, not transform nodes
+    #...Make sure we're dealing with shape nodes, not transform nodes
     if not pm.nodeType(obj) in ['transform']:
         print("Cannot rename shapes for node '{}'. Function must be given a transform node".format(obj))
         return None
@@ -1234,17 +1234,17 @@ def rename_shapes(obj):
         return None
 
 
-    # ...Compose dictionary of new shape names
+    #...Compose dictionary of new shape names
     new_shape_names = []
     for i, v in enumerate(shapes):
         new_name = "{}Shape{}".format( get_clean_name(obj), str(i+1) )
         new_shape_names.append(new_name)
 
-    # ...Give all shapes temporary names to avoid conflicts while we rename
+    #...Give all shapes temporary names to avoid conflicts while we rename
     for shape in shapes:
         shape.rename("TEMP_SHAPE_NAME_{}".format( str(shapes.index(shape)) ))
 
-    # ...Give shapes their final names
+    #...Give shapes their final names
     for shape in shapes:
         shape.rename(new_shape_names[ shapes.index(shape) ])
 
@@ -1282,7 +1282,7 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
     """
 
 
-    # ...Initialize parameters
+    #...Initialize parameters
     if not up_direction:
         up_direction = [0, 1, 0]
 
@@ -1293,17 +1293,17 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
         shape_offset = [0, 0, 0]
 
 
-    # ...Test that provided dictionary entry exists
+    #...Test that provided dictionary entry exists
     if prefab not in curve_prefabs:
         pm.error("Cannot create prefab curve object. " \
                  "Provided prefab dictionary key '{}' is invalid".format(prefab))
 
 
-    # ...Get shape data dictionary for this prefab
+    #...Get shape data dictionary for this prefab
     prefab_dict = curve_prefabs[prefab]
 
 
-    # ...Initialize dictionary to assemble curve object input data
+    #...Initialize dictionary to assemble curve object input data
     crv_obj_inputs = {
         "cvs" : None,
         "name" : name,
@@ -1314,12 +1314,12 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
         "shape_offset" : shape_offset,
     }
 
-    # ...Update curve object input dictionary with data from the shape dictionary
+    #...Update curve object input dictionary with data from the shape dictionary
     for key in prefab_dict:
         crv_obj_inputs[key] = prefab_dict[key]
 
 
-    # ...Update curve object input dictionary with provided parameters.
+    #...Update curve object input dictionary with provided parameters.
     if color:
         crv_obj_inputs["color"] = color
 
@@ -1327,11 +1327,11 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
         scale = 1
 
 
-    # ...If a name was provided, override any name that came through with the control info
+    #...If a name was provided, override any name that came through with the control info
     if name:
         crv_obj_inputs["name"] = name
 
-    # ...Create the shape object with assembled data
+    #...Create the shape object with assembled data
     output_obj = curve_construct(
                     cvs = crv_obj_inputs["cvs"],
                     name = crv_obj_inputs["name"],
@@ -1576,30 +1576,30 @@ def position_between(obj, between, ratios=None, include_orientation=False):
             ratios.append(1.0/len(between))
 
 
-    # ...Check that an equal number of between nodes and ratio values were provided
+    #...Check that an equal number of between nodes and ratio values were provided
     if len(between) != len(ratios):
         pm.error("Parameters 'between' and 'ratios' require list arguments of equal length.")
 
 
-    # ...Create constraint
+    #...Create constraint
     if include_orientation:
         constraint = pm.parentConstraint(tuple(between), obj)
     else:
         constraint = pm.pointConstraint(tuple(between), obj)
 
 
-    # ...Get constraint weights to edit
+    #...Get constraint weights to edit
     if include_orientation:
         weights = pm.parentConstraint(constraint, query=1, weightAliasList=1)
     else:
         weights = pm.pointConstraint(constraint, query=1, weightAliasList=1)
 
 
-    # ...Apply weights
+    #...Apply weights
     [pm.setAttr(w, r) for w, r in zip(weights, ratios)]
 
 
-    # ...Delete constraint. We're finished with it
+    #...Delete constraint. We're finished with it
     pm.delete(constraint)
 
 
@@ -1619,7 +1619,7 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
                 Otherwise, shit gets weird, yo.
     """
 
-    # ...Remove existing shapes from destination object (if specified)
+    #...Remove existing shapes from destination object (if specified)
     if delete_existing_shapes:
         destination_obj_shapes = destination_obj.getShapes()
         pm.delete(destination_obj_shapes) if destination_obj_shapes else None
@@ -1628,13 +1628,13 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
     destination_obj_name = get_clean_name(str(destination_obj))
 
 
-    # ...If keeping original object, work from a duplicate, so the duplicate is what gets deleted at the end of
-    # ...this function
+    #...If keeping original object, work from a duplicate, so the duplicate is what gets deleted at the end of
+    #...this function
     if keep_original:
         source_obj = pm.duplicate(source_obj, name=str(source_obj) + '_TEMP', renameChildren=1)[0]
 
 
-    # ...Unlock all transform attributes on source object(s) to avoid the shapes jumping when re-parented
+    #...Unlock all transform attributes on source object(s) to avoid the shapes jumping when re-parented
     [pm.setAttr(source_obj + "." + attr, lock=0, channelBox=1) for attr in all_transform_attrs]
     [break_connections(source_obj + "." + attr) for attr in all_transform_attrs + ["offsetParentMatrix"]]
 
@@ -1780,8 +1780,8 @@ def zero_offsetParentMatrix(obj, force=0, zero_transforms=0):
         pm.disconnectAttr(node=obj, attr='offsetParentMatrix', source=True)
 
 
-    # ...Take note of any locked attributes
-    # ...tx, ty, tz, rx, ry, rz, sx, sy, sz
+    #...Take note of any locked attributes
+    #...tx, ty, tz, rx, ry, rz, sx, sy, sz
     locks = [0, 0, 0, 0, 0, 0, 0, 0, 0]
     lock_attr_list = ['tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz']
 
@@ -1794,17 +1794,17 @@ def zero_offsetParentMatrix(obj, force=0, zero_transforms=0):
         pm.setAttr(obj+'.'+attr, lock=0)
 
 
-    # ...Zero out offset parent matrix
+    #...Zero out offset parent matrix
     pm.setAttr(obj+'.offsetParentMatrix', compose_matrix([0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0]),
                type='matrix')
 
 
-    # ...Zero out transforms if specified
+    #...Zero out transforms if specified
     if zero_transforms in [True, 1]:
         zero_out(obj)
 
 
-    # ...Re-lock attributes
+    #...Re-lock attributes
     for val in locks:
         if val == 1:
             pm.setAttr( obj + "." + lock_attr_list[locks.index(val)], lock=1)
@@ -1840,13 +1840,13 @@ def convert_offset(obj, reverse=False):
 
 
     if not reverse:
-        # ...Get current matrix of object
+        #...Get current matrix of object
         m = pm.getAttr(obj + ".matrix")
 
-        # ...Get current offset parent matrix of object
+        #...Get current offset parent matrix of object
         opm = pm.getAttr(obj + ".offsetParentMatrix")
 
-        # ...Convert both matrices to standard attribute form
+        #...Convert both matrices to standard attribute form
         matrix_transforms = decompose_matrix(m)
         offset_parent_matrix_transforms = decompose_matrix(opm)
         transforms = [
@@ -1867,16 +1867,16 @@ def convert_offset(obj, reverse=False):
             matrix_transforms["shear"][2] + offset_parent_matrix_transforms["shear"][2],
         ]
 
-        # ...Compose new matrix from the sum of object's matrix and offset parent matrix
+        #...Compose new matrix from the sum of object's matrix and offset parent matrix
         nm = compose_matrix(transforms)
 
-        # ...Set offset parent matrix as new matrix
+        #...Set offset parent matrix as new matrix
         pm.setAttr(obj+'.offsetParentMatrix', nm, type='matrix')
 
-        # ...Zero out transform attributes
+        #...Zero out transform attributes
         zero_out(obj)
 
-        # ...Re-lock any transform values that were locked
+        #...Re-lock any transform values that were locked
         for locked, a in zip(lock_status, attr_list):
             if locked:
                 pm.setAttr(f'{obj}.{a}', lock=1, keyable=0)
@@ -1912,14 +1912,14 @@ def get_skin_cluster(obj):
 
     obj = obj[0] if isinstance(obj, (tuple, list)) else obj
 
-    # ...If not arg provided, try getting obj from selection
+    #...If not arg provided, try getting obj from selection
     if not obj:
         sel = pm.ls(sl=1)
         if sel:
             obj = sel[0]
 
 
-    # ...Make sure this is a shape node
+    #...Make sure this is a shape node
     obj = obj.getShape() if obj.nodeType() == "transform" else obj
 
 
@@ -2086,17 +2086,17 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
 
     objs = objs if objs else []
 
-    # ...Varify and sort input objects ---------------------------------------------------------------------------------
+    #...Varify and sort input objects ---------------------------------------------------------------------------------
     if len(objs) < 2:
         pm.error("At least two objects need to be provided")
 
-    # ...Determine source object(s) and target object
+    #...Determine source object(s) and target object
     target_obj = objs[-1]
     objs.remove(objs[-1])
     source_objs = objs
 
 
-    # ...Determine if target is parented to world, if not, get parent --------------------------------------------------
+    #...Determine if target is parented to world, if not, get parent --------------------------------------------------
     target_has_parent = True
     try:
         target_parent = pm.listRelatives(target_obj, parent=1)[0]
@@ -2104,7 +2104,7 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
         target_has_parent = False
 
 
-    # ...Determine if there are multiple source objects ----------------------------------------------------------------
+    #...Determine if there are multiple source objects ----------------------------------------------------------------
     multiple_sources = False
     if len(source_objs) > 1:
         multiple_sources = True
@@ -2334,31 +2334,31 @@ def reset_transform_to_shape_center(obj):
 def scale_obj_shape(obj, scale=(1, 1, 1)):
 
 
-    # ...Get object center
+    #...Get object center
     obj_center = pm.xform(obj, q=1, worldSpace=1, rotatePivot=1)
 
 
-    # ...Get shapes
+    #...Get shapes
     for shape in obj.getShapes():
 
         cv_count = shape.numCVs()
 
         for i in range(cv_count):
 
-            # ...Get vert world position
+            #...Get vert world position
             cv_pos = pm.pointPosition(shape.cv[i], world=1)
 
-            # ...Determine delta
+            #...Determine delta
             delta = (cv_pos[0] - obj_center[0],
                      cv_pos[1] - obj_center[1],
                      cv_pos[2] - obj_center[2])
 
-            # ...Scale delta
+            #...Scale delta
             scaled_delta = (delta[0] * scale[0],
                             delta[1] * scale[1],
                             delta[2] * scale[2])
 
-            # ...Reposition CV
+            #...Reposition CV
             pm.move(scaled_delta[0], scaled_delta[1], scaled_delta[2], shape.cv[i], relative=1)
 
 
@@ -2372,7 +2372,7 @@ def interpolate(interp_point, point_1, point_2):
     x2, y2 = point_2
     x = interp_point
 
-    # ...Standard 2d linear interpolation formula
+    #...Standard 2d linear interpolation formula
     y = y1 + ((x-x1) * ( (y2-y1) / (x2-x1) ))
 
     return y
@@ -2389,7 +2389,7 @@ def get_shape_info_from_obj(obj=None):
     periodic_form_tag = "periodic"
 
 
-    # ...If no object provided, try getting object from current selection
+    #...If no object provided, try getting object from current selection
     if not obj:
 
         sel = pm.ls(sl=1)
@@ -2399,27 +2399,27 @@ def get_shape_info_from_obj(obj=None):
             pm.error("No object provided.")
 
 
-    # ...
+    #...
     shapes = obj.getShapes()
 
     if not shapes:
         pm.error("Provided object has no shape nodes.")
 
 
-    # ...Collect and compose data from all object's nurbs curves
-    # ...Curve degrees
+    #...Collect and compose data from all object's nurbs curves
+    #...Curve degrees
     degrees = [shape.degree() for shape in shapes]
 
-    # ...Curve forms (open or periodic curve shapes)
+    #...Curve forms (open or periodic curve shapes)
     forms = [shape.form().key for shape in shapes]
 
-    # ...CV positions
+    #...CV positions
     cv_counts = [shape.numCVs() for shape in shapes]
     cv_positions = []
 
     for shp, deg in zip(shapes, degrees):
         shape_cvs = ([[cv.x, cv.y, cv.z] for cv in shp.getCVs()])
-        # ...If degree of 3, the last three CVs will be repeats. Remove them from final list
+        #...If degree of 3, the last three CVs will be repeats. Remove them from final list
         cv_positions.append(shape_cvs[0: -3] if deg == 3 else shape_cvs)
 
 
@@ -2501,7 +2501,7 @@ def symmetry_info(symmetry_mode):
 def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, channel_box=False, enum_name=None,
              default_value=0, min_value=None, max_value=None, lock=False, parent="", number_of_children=0):
 
-    # ...String type
+    #...String type
     if attribute_type == "string":
 
         if parent:
@@ -2527,8 +2527,8 @@ def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, c
 
     else:
 
-    # ...Non-string type
-        # ...Compound type
+    #...Non-string type
+        #...Compound type
         if attribute_type == "compound":
             pm.addAttr(
                 obj,
@@ -2597,12 +2597,12 @@ def get_attr_data(attr, node):
         (dict): Queried attribute information.
     """
 
-    # ...Check attribute exists
+    #...Check attribute exists
     if not pm.attributeQuery(attr, node=node, exists=1):
         print("Attribute '{}' does not exist".format(node + "." + attr))
         return None
 
-    # ...Query attribute information and compose into a dictionary
+    #...Query attribute information and compose into a dictionary
     attr_data = {
         "longName": pm.attributeQuery(attr, node=node, longName=1),
         "niceName": pm.attributeQuery(attr, node=node, niceName=1),
@@ -2622,7 +2622,7 @@ def get_attr_data(attr, node):
         "shortName": pm.attributeQuery(attr, node=node, shortName=1),
     }
 
-    # ...Add condition-dependant data
+    #...Add condition-dependant data
     if attr_data["attributeType"] == "typed":
         attr_data["attributeType"] = "string"
 
@@ -2645,7 +2645,7 @@ def get_attr_data(attr, node):
 def migrate_attr(old_node, new_node, attr, include_connections=True, remove_original=True):
 
 
-    # ...If attribute conflicts with an attribute already on new node, remove it
+    #...If attribute conflicts with an attribute already on new node, remove it
     if pm.attributeQuery(attr, node=new_node, exists=1):
         pm.deleteAttr(f'{new_node}.{attr}')
 
@@ -2671,11 +2671,11 @@ def migrate_attr(old_node, new_node, attr, include_connections=True, remove_orig
     if attr_data["lock"]:
         pm.setAttr(new_node + "." + attr, lock=1)
 
-    # ...Migrate connections
+    #...Migrate connections
     if include_connections:
         migrate_connections(f'{old_node}.{attr}', f'{new_node}.{attr}')
 
-    # ...Delete attribute in original location to complete apparent migration
+    #...Delete attribute in original location to complete apparent migration
     if remove_original:
         pm.deleteAttr(old_node + "." + attr)
 

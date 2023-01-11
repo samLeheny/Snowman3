@@ -47,16 +47,16 @@ def build(armature_module):
 
     #armature_module.populate_module()
 
-    # ...Position module
+    #...Position module
     armature_module.position_module()
 
 
-    # ...Connect to another module if specified ------------------------------------------------------------------------
+    #...Connect to another module if specified ------------------------------------------------------------------------
     armature_module.connect_modules()
 
 
 
-    # ...Preliminary controls ------------------------------------------------------------------------------------------
+    #...Preliminary controls ------------------------------------------------------------------------------------------
     ctrls_dict = root_prelimControls.create_prelim_ctrls(side=armature_module.side,
                                                          is_driven_side=armature_module.is_driven_side)
     armature_module.create_prelim_ctrls()

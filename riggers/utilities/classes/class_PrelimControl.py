@@ -50,7 +50,9 @@ class PrelimControl:
         up_direction = None,
         side = None,
         is_driven_side = None,
-        body_module = None
+        body_module = None,
+        match_transform = None,
+        module_ctrl = None,
     ):
         self.name = name
         self.shape = shape
@@ -60,13 +62,15 @@ class PrelimControl:
         self.position = position
         self.position_weights = position_weights
         self.orientation = orientation
-        self.locks = locks if locks else {"v": 1}
+        self.locks = locks if locks else {'v': 1}
         self.forward_direction = forward_direction if forward_direction else [0, 0, 1]
         self.up_direction = up_direction if up_direction else [0, 1, 0]
         self.side = side
-        self.side_tag = "{}_".format(self.side) if self.side else ""
+        self.side_tag = f'{self.side}_' if self.side else ''
         self.is_driven_side = is_driven_side
         self.body_module = body_module
+        self.match_transform = match_transform
+        self.module_ctrl = module_ctrl
 
         self.ctrl_obj = None
         self.shape_data = None
@@ -78,7 +82,7 @@ class PrelimControl:
     ####################################################################################################################
     def assemble_shape_data(self):
 
-        # ...Assemble data with which to build controls
+        #...Assemble data with which to build controls
         self.shape_data = {
                                             "name": self.name,
                                            "shape": self.shape,
@@ -99,10 +103,10 @@ class PrelimControl:
     ####################################################################################################################
     def create_prelim_ctrl_obj(self):
 
-        # ...Assemble shape data if needed
+        #...Assemble shape data if needed
         self.assemble_shape_data() if not self.shape_data else None
 
-        # ...Create control object
+        #...Create control object
         self.ctrl_obj = rig_utils.control(ctrl_info=self.shape_data, ctrl_type="non_anim_ctrl", side=self.side)
 
         return self.ctrl_obj
@@ -117,13 +121,13 @@ class PrelimControl:
 
         if self.position:
 
-            # ...Ensure position_data is type: tuple
+            #...Ensure position_data is type: tuple
             self.position = (self.position,) if not isinstance(self.position, tuple) else self.position
 
-            # ...Use keys in position_data to get corresponding placers
+            #...Use keys in position_data to get corresponding placers
             position_placers = tuple([body_module.placers[key].mobject for key in self.position])
 
-            # ...Constrain control's position between placers (or at placer if only one placer provided)
+            #...Constrain control's position between placers (or at placer if only one placer provided)
             position_constraint = pm.pointConstraint(position_placers, self.ctrl_obj)
 
             if len(self.position) > 1:

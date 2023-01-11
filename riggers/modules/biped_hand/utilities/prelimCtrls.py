@@ -37,7 +37,7 @@ PrelimControl = class_PrelimControl.PrelimControl
 
 
 
-def create_prelim_ctrls(side=None, is_driven_side=None):
+def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
 
     prelim_ctrls = {
 
@@ -52,7 +52,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "index_metacarpal"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            match_transform="index_metacarpal",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -66,7 +68,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "index_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="index_1",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -80,7 +84,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "index_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="index_2",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -94,7 +100,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "index_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="index_3",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -108,7 +116,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "middle_metacarpal"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            match_transform="middle_metacarpal",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -122,7 +132,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "middle_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="middle_1",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -136,7 +148,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "middle_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="middle_2",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -150,7 +164,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "middle_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="middle_3",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -164,7 +180,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "ring_metacarpal"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            match_transform="ring_metacarpal",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -178,7 +196,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "ring_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="ring_1",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -192,7 +212,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "ring_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="ring_2",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -206,7 +228,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "ring_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="ring_3",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -219,7 +243,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "pinky_metacarpal"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            match_transform="pinky_metacarpal",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -233,7 +259,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "pinky_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="pinky_1",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -247,7 +275,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "pinky_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="pinky_2",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -261,7 +291,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "pinky_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="pinky_3",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -275,7 +307,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "thumb_1"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="thumb_1",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -289,7 +323,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "thumb_2"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="thumb_2",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -303,7 +339,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "thumb_3"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="thumb_3",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -317,7 +355,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "hand"},
             locks={"v": 1, "t": [1, 1, 0], "r": [0, 1, 0], "s": [1, 1, 0]},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="center to prelim",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -333,7 +373,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "pinky_metacarpal"},
             locks={"v": 1, "t": [1, 1, 1], "s": [1, 1, 1]},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="pinky_metacarpal",
+            module_ctrl=module_ctrl
         ),
 
     }

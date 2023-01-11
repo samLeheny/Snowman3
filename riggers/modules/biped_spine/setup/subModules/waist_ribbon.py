@@ -40,18 +40,18 @@ def install(spine_module, symmetry):
 
     spine_placers = spine_module.placers
 
-    # ...Get total length of waist (will serve as distance between bottom and top waist placer)
+    #...Get total length of waist (will serve as distance between bottom and top waist placer)
     waist_length = gen_utils.distance_between(spine_placers["spine_1"].mobject,
                                               spine_placers["spine_5"].mobject)
 
-    # ...Create ribbon nurbsPlane
+    #...Create ribbon nurbsPlane
     nurbs_plane = pm.nurbsPlane(name="spineRibbon_{}".format("SURF"), lengthRatio=17, width=waist_length / 17,
                                 patchesU=1, patchesV=4, axis=[0, 0, 1])[0]
 
-    # ...Move ribbon to match start and end placers
+    #...Move ribbon to match start and end placers
     nurbs_plane.ty.set(waist_length/2)
 
-    # ...Match isoparms to placers
+    #...Match isoparms to placers
     for i in range(2, 5):
         for j in range (4):
 
@@ -68,14 +68,14 @@ def install(spine_module, symmetry):
 
 
 
-    # ...Create joints that will drive ribbon nurbsPlane
+    #...Create joints that will drive ribbon nurbsPlane
     ribbon_jnts = [rig_utils.joint(name="setupSpineRibbon_{}".format(str(i + 1)),
                                    joint_type=nom.nonBindJnt) for i in range(0, 5)]
 
     ribbon_jnts_grp = pm.group(name="ribbon_jnts", world=1, em=1)
     ribbon_jnts_grp.visibility.set(0)
 
-    # ...Position joints
+    #...Position joints
     for i in range(0, 5):
         mult_matrix = node_utils.multMatrix(matrixIn=(spine_placers["spine_{}".format(i+1)].mobject.worldMatrix,
                                                       ribbon_jnts[i].parentInverseMatrix))
@@ -85,7 +85,7 @@ def install(spine_module, symmetry):
         ribbon_jnts[i].setParent(ribbon_jnts_grp)
 
 
-    # ...Skin bind ribbon
+    #...Skin bind ribbon
     pm.select(ribbon_jnts, replace=1)
     pm.select(nurbs_plane, add=1)
     pm.skinCluster(toSelectedBones=1, maximumInfluences=1, obeyMaxInfluences=0)

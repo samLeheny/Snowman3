@@ -31,11 +31,11 @@ def reorient_ik_foot(ik_foot_ctrl, side):
 
     side_tag = f'_{side}' if side else ''
 
-    # ...Give IK foot control world orientation
+    #...Give IK foot control world orientation
     ctrl = ik_foot_ctrl
     ctrl_buffer = ctrl.getParent()
 
-    # ...Temporarily moved shapes into a holder node (will move them back after reorientation)
+    #...Temporarily moved shapes into a holder node (will move them back after reorientation)
     temp_shape_holder = pm.shadingNode('transform', name='TEMP_shape_holder', au=1)
     gen_utils.copy_shapes(ctrl, temp_shape_holder, keep_original=True)
     [pm.delete(shape) for shape in ctrl.getShapes()]
@@ -60,5 +60,5 @@ def reorient_ik_foot(ik_foot_ctrl, side):
 
     ori_offset.setParent(ctrl)
 
-    # ...Return shapes to control transform
+    #...Return shapes to control transform
     gen_utils.copy_shapes(temp_shape_holder, ctrl, keep_original=False)

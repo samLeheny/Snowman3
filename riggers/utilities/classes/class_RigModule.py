@@ -181,9 +181,9 @@ class RigModule:
         exception_types = ['root']
         if self.module_tag not in exception_types:
 
-            # ...Create biped_spine rig group
+            #...Create biped_spine rig group
             self.create_rig_module_grp(parent=rig_parent)
-            # ...Get orienters from armature
+            #...Get orienters from armature
             self.get_armature_orienters()
 
             self.get_setup_module_ctrl()

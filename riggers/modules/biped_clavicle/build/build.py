@@ -70,7 +70,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Arm connection transform --------------------------------------------------------------------------------------
+    #...Arm connection transform --------------------------------------------------------------------------------------
     rig_module.shoulder_socket = ctrls["clavicle"]
     '''shoulder_connector = rig_module.shoulder_connector = pm.spaceLocator(name="{}shoulder_output".format(side_tag))
     shoulder_connector.setParent(ctrls["clavicle"])

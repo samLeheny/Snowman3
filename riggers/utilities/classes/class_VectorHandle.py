@@ -71,15 +71,15 @@ class VectorHandle:
     ####################################################################################################################
     def create_in_scene(self):
         self.create_mobject()
-        # ...Parent mobject
+        #...Parent mobject
         self.mobject.setParent(self.parent) if self.parent else None
-        # ...Position handle
+        #...Position handle
         self.set_position()
-        # ...
+        #...
         self.create_connector_curve()
-        # ...
+        #...
         self.connect_to_placer_metadata()
-        # ...Drive vector handles visibility from placer attribute
+        #...Drive vector handles visibility from placer attribute
         self.drive_handle_visibility()
 
 
@@ -97,7 +97,7 @@ class VectorHandle:
 
         self.handle_name = f'{self.name}_{vector_type}'
 
-        # ...Create handle
+        #...Create handle
         self.mobject = gen_utils.prefab_curve_construct(prefab=handle_shape, name=self.handle_name, side=self.side,
                                                         scale=self.size, color=self.color)
 
@@ -145,7 +145,7 @@ class VectorHandle:
 
         self.mobject.translate.set(init_placement_vector)
 
-        # ...Keep transforms clean by moving translate values into offsetParentMatrix (optional)
+        #...Keep transforms clean by moving translate values into offsetParentMatrix (optional)
         if convert_offset:
             gen_utils.convert_offset(self.mobject)
 

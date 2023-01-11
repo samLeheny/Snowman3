@@ -123,13 +123,13 @@ def build(parent, ctrls, orienters, ribbon_parent):
 
 
 
-    # ...Skin FK Ribbon
+    #...Skin FK Ribbon
     pm.select((fk_jnts[0], fk_jnts[1], fk_jnts[2], fk_jnts[4], fk_jnts[5], fk_jnts[7]), replace=1)
     pm.select(fk_ribbon, add=1)
     pm.skinCluster(toSelectedBones=1, maximumInfluences=1, obeyMaxInfluences=0)
     skin_clust = gen_utils.get_skin_cluster(fk_ribbon)
 
-    # ...Refine weights
+    #...Refine weights
     pm.skinPercent(skin_clust, fk_ribbon + '.cv[0:3][0]', transformValue=[(fk_jnts[0], 1.0)])
     pm.skinPercent(skin_clust, fk_ribbon + '.cv[0:3][1]', transformValue=[(fk_jnts[0], 1.0)])
     pm.skinPercent(skin_clust, fk_ribbon + '.cv[0:3][2]', transformValue=[(fk_jnts[0], 0.8), (fk_jnts[1], 0.2)])

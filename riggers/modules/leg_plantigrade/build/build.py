@@ -47,7 +47,7 @@ def build(rig_module, rig_parent=None):
     orienters = rig_module.orienters
 
 
-    # ...Create limb rig -----------------------------------------------------------------------------------------------
+    #...Create limb rig -----------------------------------------------------------------------------------------------
     limb_rig = LimbRig(limb_name=rig_module.name,
                        side=rig_module.side,
                        prefab='plantigrade',
@@ -59,16 +59,16 @@ def build(rig_module, rig_parent=None):
                        pv_position=pm.xform(orienters['ik_knee'], q=1, ws=1, rp=1)
                        )
 
-    # ...Conform LimbRig's PV ctrl orientation to that of PV orienter
+    #...Conform LimbRig's PV ctrl orientation to that of PV orienter
     pv_ctrl_buffer = limb_rig.ctrls['ik_pv'].getParent()
     pm.delete(pm.orientConstraint(orienters['ik_knee'], pv_ctrl_buffer))
     pm.delete(pm.scaleConstraint(orienters['ik_knee'], pv_ctrl_buffer))
 
-    # ...Move contents of limb rig into biped_leg rig module's groups
+    #...Move contents of limb rig into biped_leg rig module's groups
     [child.setParent(rig_module.transform_grp) for child in limb_rig.grps['transform'].getChildren()]
     [child.setParent(rig_module.no_transform_grp) for child in limb_rig.grps['noTransform'].getChildren()]
 
-    # ...Migrate Rig Scale attr over to new rig group
+    #...Migrate Rig Scale attr over to new rig group
     for plug in pm.listConnections(f'{limb_rig.grps["root"]}.RigScale', destination=1, plugs=1):
         pm.connectAttr(f'{rig_module.rig_module_grp}.RigScale', plug, force=1)
     for plug in pm.listConnections(f'{limb_rig.grps["root"]}.RigScale', source=1, plugs=1):
@@ -78,7 +78,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Controls ------------------------------------------------------------------------------------------------------
+    #...Controls ------------------------------------------------------------------------------------------------------
     ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
     ctrls = rig_module.ctrls
 
@@ -107,18 +107,18 @@ def build(rig_module, rig_parent=None):
                                 translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
 
 
-    # ...Give IK foot control world orientation ------------------------------------------------------------------------
+    #...Give IK foot control world orientation ------------------------------------------------------------------------
     foot_world_orientation.reorient_ik_foot(ik_foot_ctrl=ctrls["ik_foot"], side=rig_module.side)
 
 
-    # ...Foot connection transform -------------------------------------------------------------------------------------
+    #...Foot connection transform -------------------------------------------------------------------------------------
     rig_module.bind_ankle_socket = limb_rig.blend_jnts[-2]
     rig_module.ik_ankle_jnt_socket = limb_rig.ik_jnts[-2]
     rig_module.ik_ankle_ctrl_socket = ctrls["ik_foot"]
     rig_module.fk_ankle_ctrl_socket = ctrls['fk_foot']
     rig_module.ik_handle_plug = limb_rig.ik_handles["limb"].getParent()
 
-    # ...
+    #...
     '''gen_utils.convert_offset(ctrls["fk_thigh"].getParent())'''
 
 

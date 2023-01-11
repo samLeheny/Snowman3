@@ -36,7 +36,7 @@ PrelimControl = class_PrelimControl.PrelimControl
 
 
 
-def create_prelim_ctrls(side=None, is_driven_side=None):
+def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
 
     prelim_ctrls = {
 
@@ -53,7 +53,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "upperarm"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            match_transform = "upperarm",
+            module_ctrl = module_ctrl
         ),
 
 
@@ -69,7 +71,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "lowerarm"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform = "lowerarm",
+            module_ctrl = module_ctrl
         ),
 
 
@@ -85,7 +89,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "lowerarm_end"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform = "lowerarm_end",
+            module_ctrl = module_ctrl
         ),
 
 
@@ -99,7 +105,8 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "lowerarm_end"},
             locks={"v":1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            module_ctrl = module_ctrl
         ),
 
 
@@ -112,21 +119,8 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "module_ctrl"},
             locks={"r":[1, 1, 1], "s":[1, 1, 1], "v":1},
             side=side,
-            is_driven_side=is_driven_side
-        ),
-
-
-        "ik_hand_follow": PrelimControl(
-            name="ik_hand_follow",
-            shape="tetrahedron",
-            size=[1.5, 1.5, 1.5],
-            shape_offset=[15, 10, 3],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("upperarm",),
-            orientation={"match_to": "module_ctrl"},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            module_ctrl=module_ctrl
         ),
 
 
@@ -142,78 +136,25 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "module_ctrl"},
             locks={"r": [1, 1, 1], "s": [1, 1, 1], "v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform = "upperarm",
+            module_ctrl = module_ctrl
         ),
 
-
-        #"elbow_pin": PrelimControl(
-        #    name="elbow_pin",
-        #    shape="circle",
-        #    size=[5, 5, 5],
-        #    up_direction=[1, 0, 0],
-        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-        #    position=("lowerarm",),
-        #    orientation={"match_to": ("lowerarm",)},
-        #    locks={"v": 1},
-        #    side=side,
-        #    is_driven_side=is_driven_side
-        #),
-
-
-        #"upperarm_bend_start": PrelimControl(
-        #    name="upperarm_bend_start",
-        #    shape="circle",
-        #    size=[5, 5, 5],
-        #    up_direction=[1, 0, 0],
-        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-        #    position=("upperarm",),
-        #    orientation={"match_to": ("upperarm",)},
-        #    locks={"v": 1},
-        #    side=side,
-        #    is_driven_side=is_driven_side
-        #),
-
-
-        #"upperarm_bend_mid": PrelimControl(
-        #    name="upperarm_bend_mid",
-        #    shape="circle",
-        #    size=[5, 5, 5],
-        #    up_direction=[1, 0, 0],
-        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-        #    position=("upperarm", "lowerarm"),
-        #    orientation={"match_to": ("upperarm",)},
-        #    locks={"v": 1},
-        #    side=side,
-        #    is_driven_side=is_driven_side
-        #),
-
-
-        #"lowerarm_bend_mid": PrelimControl(
-        #    name="lowerarm_bend_mid",
-        #    shape="circle",
-        #    size=[5, 5, 5],
-        #    up_direction=[1, 0, 0],
-        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-        #    position=("lowerarm", "lowerarm_end"),
-        #    orientation={"match_to": ("lowerarm",)},
-        #    locks={"v": 1},
-        #    side=side,
-        #    is_driven_side=is_driven_side
-        #),
-
-
-        #"lowerarm_bend_end": PrelimControl(
-        #    name="lowerarm_bend_end",
-        #    shape="circle",
-        #    size=[5, 5, 5],
-        #    up_direction=[1, 0, 0],
-        #    color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-        #    position=("lowerarm_end",),
-        #    orientation={"match_to": ("lowerarm",)},
-        #    locks={"v": 1},
-        #    side=side,
-        #    is_driven_side=is_driven_side
-        #),
+        'ik_hand_follow': PrelimControl(
+            name='ik_hand_follow',
+            shape='tetrahedron',
+            size=[1.5, 1.5, 1.5],
+            shape_offset=[15, 10, 3],
+            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
+            position=('upperarm',),
+            orientation={'match_to': 'module_ctrl'},
+            locks={'v': 1},
+            side=side,
+            is_driven_side=is_driven_side,
+            match_transform='center to prelim',
+            module_ctrl=module_ctrl
+        ),
 
     }
 

@@ -34,7 +34,7 @@ importlib.reload(prelimCtrls)
 def build(armature_module):
 
 
-    # ...Ribbon system -------------------------------------------------------------------------------------------------
+    #...Ribbon system -------------------------------------------------------------------------------------------------
     ribbon_sys = waist_ribbon.install(spine_module=armature_module, symmetry=armature_module.symmetry)
     ribbon_sys["nurbsPlane"].setParent(armature_module.module_ctrl.mobject)
     ribbon_sys["nurbsPlane"].visibility.set(0, lock=1)
@@ -43,22 +43,22 @@ def build(armature_module):
     ribbon_sys["joints_group"].setParent(armature_module.module_ctrl.mobject)
 
 
-    # ...Position module
+    #...Position module
     armature_module.position_module()
 
 
 
-    # ...Spine ribbon --------------------------------------------------------------------------------------------------
+    #...Spine ribbon --------------------------------------------------------------------------------------------------
     armature_module.ribbon = ribbon_sys["nurbsPlane"]
 
 
 
-    # ...Preliminary controls ------------------------------------------------------------------------------------------
+    #...Preliminary controls ------------------------------------------------------------------------------------------
     ctrls_dict = prelimCtrls.create_prelim_ctrls(side=armature_module.side,
                                                  is_driven_side=armature_module.is_driven_side)
     armature_module.create_prelim_ctrls()
 
-    # ... Pin ctrls to ribbon
+    #... Pin ctrls to ribbon
     i = 0
     '''for pair in (("COG", 0.0),'''
     for pair in (("ik_waist", 0.5),

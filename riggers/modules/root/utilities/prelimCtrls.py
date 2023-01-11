@@ -37,7 +37,7 @@ PrelimControl = class_PrelimControl.PrelimControl
 
 
 
-def create_prelim_ctrls(side=None, is_driven_side=None):
+def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
 
     prelim_ctrls = {
 

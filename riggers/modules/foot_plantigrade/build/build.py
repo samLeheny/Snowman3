@@ -60,7 +60,7 @@ def build(rig_module, rig_parent=None):
 
     [ctrls[key].setParent(rig_module.transform_grp) for key in ctrl_data]
 
-    # ...Ensure a kinematic blend attribute is present on given control
+    #...Ensure a kinematic blend attribute is present on given control
     if not pm.attributeQuery("fkIk", node=leg_attr_loc, exists=1):
         pm.addAttr(leg_attr_loc, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0, maxValue=10,
                    defaultValue=10, keyable=1)
@@ -78,7 +78,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Bind joints ---------------------------------------------------------------------------------------------------
+    #...Bind joints ---------------------------------------------------------------------------------------------------
     bind_jnts = {}
     bind_jnt_keys = ("foot", "ball", "ball_end")
     bind_chain_buffer = None
@@ -100,7 +100,7 @@ def build(rig_module, rig_parent=None):
             pm.matchTransform(bind_jnts[key], rig_module.orienters[key])
 
 
-    # ...IK rig
+    #...IK rig
     ik_foot_rig = ikFoot.build(side=rig_module.side, parent=rig_module.transform_grp, bind_jnt_keys=bind_jnt_keys,
                                orienters=rig_module.orienters, ctrls=ctrls, foot_roll_ctrl=foot_attr_loc)
     rig_module.ik_connector = ik_foot_rig["ik_connector"]
@@ -110,7 +110,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...FK rig
+    #...FK rig
     fk_foot_rig = fkFoot.build(side=rig_module.side, parent=rig_module.transform_grp,
                                ankle_orienter=rig_module.orienters["foot"], fk_toe_ctrl=ctrls["fk_toe"])
     ### rig_module.fk_root_input = fk_foot_rig["fk_root_input"]
@@ -118,7 +118,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Blending ------------------------------------------------------------------------------------------------------
+    #...Blending ------------------------------------------------------------------------------------------------------
     rotate_constraint = gen_utils.matrix_constraint(objs=[fk_foot_rig["fk_foot_space"], ik_jnts["foot"],
                                                           bind_jnts["foot"]], decompose=True, translate=False,
                                                     rotate=True, scale=True,shear=False)
@@ -133,12 +133,12 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Clean control transforms --------------------------------------------------------------------------------------
+    #...Clean control transforms --------------------------------------------------------------------------------------
     for ctrl in ctrls.values():
         gen_utils.convert_offset(ctrl)
 
 
-    # ...Foot connection transform -------------------------------------------------------------------------------------
+    #...Foot connection transform -------------------------------------------------------------------------------------
     rig_module.bind_ankle_plug = bind_jnts['foot'].getParent()
     rig_module.ik_foot_roll_socket = ik_foot_rig['foot_roll_jnts']['ankle']
     rig_module.ik_ankle_ctrl_plug = ik_foot_rig['ik_connector']

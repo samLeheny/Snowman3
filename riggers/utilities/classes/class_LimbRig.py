@@ -255,11 +255,11 @@ class LimbRig:
 
         locs_grp = self.grps["position_holders"] = pm.group(name=f'{self.side_tag}position_holders_TEMP', world=1, em=1)
 
-        # ...Mirror transforms if this is a right-sided limb
+        #...Mirror transforms if this is a right-sided limb
         if self.side == nom.rightSideTag:
             gen_utils.flip(locs_grp)
 
-        # ...Create and position locs
+        #...Create and position locs
         for i, pos in enumerate(self.jnt_positions):
             loc = pm.spaceLocator(name=f'{self.side_tag}position_holder_{str(i)}_{nom.locator}')
             loc.translate.set(pos)
@@ -267,10 +267,10 @@ class LimbRig:
             loc.getShape().localScale.set(0.15, 0.15, 0.15)
             self.jnt_position_holders.append(loc)
 
-        # ...Pole vector position holder
+        #...Pole vector position holder
         self.create_pv_position_holder(locs_grp)
 
-        # ...Orient locs
+        #...Orient locs
         mult = 1 if self.side == 'L' else -1
         for i in range(0, len(self.jnt_position_holders)):
             pm.delete(pm.aimConstraint(self.jnt_position_holders[i], self.jnt_position_holders[i-1],
@@ -310,19 +310,19 @@ class LimbRig:
             (mObj): The created control.
         """
 
-        # ...Determine if a SINGLE jnt or a PAIR of jnts are referenced by the provided target index(s)
+        #...Determine if a SINGLE jnt or a PAIR of jnts are referenced by the provided target index(s)
         multi_jnt_target = True if isinstance(target_jnt_index, (tuple, list)) else False
 
 
-        # ...Get limb segments immediately before and after target_node, so we average their world orientations to
-        # ...determine control's orientation
+        #...Get limb segments immediately before and after target_node, so we average their world orientations to
+        #...determine control's orientation
         limb_span_seg_1 = self.segments[limb_span_jnt_indices[0]]
         limb_span_seg_2 = self.segments[limb_span_jnt_indices[1] - 1]
 
         size = 0.07 * self.total_limb_length
         ctrl_color = self.ctrl_colors['other'][1] if self.side == 'R' else self.ctrl_colors['other'][0]
 
-        # ...Create control
+        #...Create control
         ctrl = rig_utils.control(
             ctrl_info={"shape": "circle",
                        "scale": [size, size, size],
@@ -331,33 +331,33 @@ class LimbRig:
             name=f'{name}Pin', ctrl_type=nom.animCtrl, side=self.side, color=ctrl_color)
 
 
-        # ...Determine which blend joint to parent control under
+        #...Determine which blend joint to parent control under
         if multi_jnt_target:
             pos_offset_node_parent = self.segments[target_jnt_index[0]].blend_jnt
         else:
             pos_offset_node_parent = self.segments[target_jnt_index].blend_jnt
 
 
-        # ...Create offset transform
+        #...Create offset transform
         pos_offset_node = pm.shadingNode('transform', name=f'{self.side_tag}{name}_CTRL_OFFSET', au = 1)
-        # ...Put offset node in final position and parent it within the blend joint chain
+        #...Put offset node in final position and parent it within the blend joint chain
         pos_offset_node.setParent(pos_offset_node_parent)
         gen_utils.zero_out(pos_offset_node)
-        # ...If two target joints were provided, position node between them
+        #...If two target joints were provided, position node between them
         if multi_jnt_target:
             target_segment_length = self.segments[target_jnt_index[0]].segment_length
             pos_offset_node.tx.set(target_segment_length / 2)
 
 
-        # ...Put control under orientation buffer node
+        #...Put control under orientation buffer node
         buffer_node = gen_utils.buffer_obj(ctrl, parent=pos_offset_node)
         gen_utils.zero_out(buffer_node)
-        # ...Orient buffer node by averaging world orientations of the two segments in immediate limb span
+        #...Orient buffer node by averaging world orientations of the two segments in immediate limb span
         constraint = pm.orientConstraint(limb_span_seg_1.blend_jnt, limb_span_seg_2.blend_jnt, buffer_node)
         constraint.interpType.set(2)
 
 
-        # ...Add ctrl to LimbRig's pin_ctrls class variable
+        #...Add ctrl to LimbRig's pin_ctrls class variable
         self.pin_ctrls.append(ctrl)
 
 
@@ -415,7 +415,7 @@ class LimbRig:
             gen_utils.flip(self.grps['root'])
             gen_utils.flip(self.grps['noTransform'])
 
-        # ...Rig Scale attribute
+        #...Rig Scale attribute
         pm.addAttr(self.grps['root'], longName="RigScale", minValue=0.001, defaultValue=1, keyable=0)
 
         pm.select(clear=1)
@@ -430,7 +430,7 @@ class LimbRig:
         ctrl_size = 0.1 * self.total_limb_length
         ctrl_color = self.ctrl_colors['other'][1] if self.side == 'R' else self.ctrl_colors['other'][0]
 
-        # ...Create controls
+        #...Create controls
         ctrl = self.ctrls['socket'] = rig_utils.control(ctrl_info = {'shape': 'tag_hexagon',
                                                                      'scale': [ctrl_size, ctrl_size, ctrl_size]},
                                                         name = f'{self.socket_name}Pin',
@@ -438,19 +438,19 @@ class LimbRig:
                                                         side = self.side,
                                                         color = ctrl_color)
 
-        # ...Position ctrl in scene and hierarchy
+        #...Position ctrl in scene and hierarchy
         ctrl.translate.set(self.jnt_positions[0])
         ctrl.setParent(self.grps['transform'])
         [pm.setAttr(ctrl+'.'+a, 0) for a in ('rx', 'ry', 'rz')]
         [pm.setAttr(ctrl+'.'+a, 1) for a in ('sx', 'sy', 'sz')]
         gen_utils.buffer_obj(ctrl)
 
-        # ...Rig Scale attribute
+        #...Rig Scale attribute
         pm.addAttr(ctrl, longName='LimbScale', minValue=0.001, defaultValue=1, keyable=1)
         [pm.connectAttr(f'{ctrl}.LimbScale', f'{ctrl}.{a}') for a in ('sx', 'sy', 'sz')]
 
         '''
-        # ...Add settings attributes
+        #...Add settings attributes
         pm.addAttr(ctrl, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0, maxValue=10,
                    defaultValue=10, keyable=1)
 
@@ -489,13 +489,13 @@ class LimbRig:
     ####################################################################################################################
     def blend_rig(self, pin_ctrls_data):
 
-        # ...Blend skeleton
+        #...Blend skeleton
         self.create_blend_jnts()
-        # ...Limb pin controls
+        #...Limb pin controls
         self.create_limb_pin_ctrls(pin_ctrls_data)
-        # ...Rollers
+        #...Rollers
         self.install_rollers()
-        # ...Ribbons
+        #...Ribbons
         self.install_ribbons()
 
 
@@ -545,7 +545,7 @@ class LimbRig:
     def install_rollers(self, jnt_radius=0.05, up_axis=(0, -1, 0)):
 
 
-        # ...Create bend ctrl vis switch
+        #...Create bend ctrl vis switch
         bend_ctrl_vis_attr_string = 'BendCtrls'
         pm.addAttr(self.ctrls['socket'], longName=bend_ctrl_vis_attr_string, attributeType='bool', keyable=0,
                    defaultValue=0)
@@ -562,13 +562,13 @@ class LimbRig:
                 continue
 
             if i == 0:
-                # ...If first roller system in limb, stick start of roller system to limb socket ctrl. Else, stick it
+                #...If first roller system in limb, stick start of roller system to limb socket ctrl. Else, stick it
                 # to the current pin control in sequence.
                 start_node = self.ctrls['socket']
                 end_node = self.pin_ctrls[current_pin_ctrl_index]
             else:
-                # ...Target next pin control in sequence unless this is the last roller system in limb, then target
-                # ...next blend jnt instead.
+                #...Target next pin control in sequence unless this is the last roller system in limb, then target
+                #...next blend jnt instead.
                 start_node = self.pin_ctrls[current_pin_ctrl_index]
                 if i == len(self.segments)-3:
                     end_node = self.segments[i+1].blend_jnt
@@ -580,7 +580,7 @@ class LimbRig:
             ctrl_size = 0.055 * self.total_limb_length
             ctrl_color = self.ctrl_colors['other'][1] if self.side == 'R' else self.ctrl_colors['other'][0]
 
-            # ...Create roller system
+            #...Create roller system
             rollers = rig_utils.limb_rollers(
                 start_node = start_node,
                 end_node = end_node,
@@ -593,14 +593,14 @@ class LimbRig:
                 ctrl_size = ctrl_size
             )
 
-            # ...Add resulting new controls and joints to corresponding Segment class variables
+            #...Add resulting new controls and joints to corresponding Segment class variables
             for ctrl in rollers['ctrls']:
                 self.segments[i].bend_ctrls.append(ctrl)
             for jnt in rollers['jnts']:
                 self.segments[i].bend_jnts.append(jnt)
 
 
-            # ...Plug bend ctrls visibility switch attr into ctrls
+            #...Plug bend ctrls visibility switch attr into ctrls
             for ctrl in rollers['ctrls']:
                 pm.connectAttr(f'{self.ctrls["socket"]}.{bend_ctrl_vis_attr_string}', ctrl.visibility)
 
@@ -615,7 +615,7 @@ class LimbRig:
 
         jnt_size = 0.025 * self.total_limb_length
 
-        # ...Create joints ---------------------------------------------------------------------------------------------
+        #...Create joints ---------------------------------------------------------------------------------------------
         for i, seg in enumerate(self.segments):
             blend_jnt = seg.blend_jnt = rig_utils.joint(name=f'{seg.segment_name}_blend', side=self.side,
                                                         joint_type=nom.nonBindJnt, radius=jnt_size)
@@ -624,7 +624,7 @@ class LimbRig:
                 blend_jnt.setParent(self.segments[i - 1].blend_jnt)
 
 
-        # ...Wrap top of chain in a buffer group -----------------------------------------------------------------------
+        #...Wrap top of chain in a buffer group -----------------------------------------------------------------------
         self.blend_jnt_chain_buffer = gen_utils.buffer_obj(self.segments[0].blend_jnt)
         if self.side == nom.rightSideTag:
             gen_utils.flip(self.blend_jnt_chain_buffer)
@@ -652,7 +652,7 @@ class LimbRig:
         self.segments[-1].blend_jnt.scale.set(1, 1, 1)
 
 
-        # ...Clean joint rotations -------------------------------------------------------------------------------------
+        #...Clean joint rotations -------------------------------------------------------------------------------------
         for i, seg in enumerate(self.segments):
             if i == 0: continue
             seg.blend_jnt.jointOrient.set(seg.blend_jnt.rotate.get() + seg.blend_jnt.jointOrient.get())
@@ -685,8 +685,8 @@ class LimbRig:
             fk_ctrl = None
 
             if not seg.double_jnt:
-                # ...Single-jointed FK ctrl
-                # ...Create and parent control
+                #...Single-jointed FK ctrl
+                #...Create and parent control
                 parent = self.segments[n-1].fk_jnt_cap
                 fk_ctrl = seg.fk_ctrl = rig_utils.control(ctrl_info={
                     'shape': 'cube',
@@ -711,7 +711,7 @@ class LimbRig:
                                                        joint_type=nom.nonBindJnt, radius=0.04, color=2, parent=jnt)
             cap_jnt.tx.set(seg.segment_length)
 
-            # ...Position control
+            #...Position control
             seg_start_node = jnt if seg.double_jnt else fk_ctrl
             orig_parent = seg_start_node.getParent()
             seg_start_node.setParent(seg.blend_jnt)
@@ -727,12 +727,12 @@ class LimbRig:
                                           output=self.segments[n-1].fk_jnt_cap.rotate)
 
 
-        # ...Wrap top of ctrl chain in buffer group --------------------------------------------------------------------
+        #...Wrap top of ctrl chain in buffer group --------------------------------------------------------------------
         gen_utils.convert_offset(self.segments[i].fk_ctrl, reverse=True)
         self.fk_chain_buffer = gen_utils.buffer_obj(self.segments[0].fk_ctrl, parent=self.ctrls['socket'])
         self.fk_chain_buffer.setParent(self.ctrls['socket'])
 
-        # ...Connect FK segment lengths to settings attributes ---------------------------------------------------------
+        #...Connect FK segment lengths to settings attributes ---------------------------------------------------------
         for i, seg in enumerate(self.segments):
             if i == len(self.segments)-1:
                 continue
@@ -779,7 +779,7 @@ class LimbRig:
 
         jnt_size = 0.045 * self.total_limb_length
 
-        # ...Create joints ---------------------------------------------------------------------------------------------
+        #...Create joints ---------------------------------------------------------------------------------------------
         for seg in self.segments:
             jnt = seg.ik_jnt = rig_utils.joint(name=f'{seg.segment_name}_ik', side=self.side, joint_type=nom.nonBindJnt,
                                                radius=jnt_size, color=2)
@@ -793,16 +793,16 @@ class LimbRig:
             pm.select(clear=1)
 
 
-        # ...Parent joints into a chain --------------------------------------------------------------------------------
+        #...Parent joints into a chain --------------------------------------------------------------------------------
         for i, seg in enumerate(self.segments):
             if i == 0:
                 continue
             seg.ik_jnt.setParent(self.segments[i-1].ik_jnt)
 
-        # ...Wrap top of chain in a buffer group -----------------------------------------------------------------------
+        #...Wrap top of chain in a buffer group -----------------------------------------------------------------------
         self.ik_jnt_chain_buffer = gen_utils.buffer_obj(self.segments[0].ik_jnt, parent=self.ctrls['socket'])
 
-        # ...Position and orient joints --------------------------------------------------------------------------------
+        #...Position and orient joints --------------------------------------------------------------------------------
         match_nodes = [seg.ik_jnt for seg in self.segments]
         match_nodes[0] = self.ik_jnt_chain_buffer
         for i, node in enumerate(match_nodes):
@@ -819,12 +819,12 @@ class LimbRig:
         self.segments[-1].ik_jnt.rotate.set(0, 0, 0)
         self.segments[-1].ik_jnt.scale.set(1, 1, 1)
 
-        # ...Clean joint rotations -------------------------------------------------------------------------------------
+        #...Clean joint rotations -------------------------------------------------------------------------------------
         for seg in self.segments:
             seg.ik_jnt.jointOrient.set(seg.ik_jnt.rotate.get() + seg.ik_jnt.jointOrient.get())
             seg.ik_jnt.rotate.set(0, 0, 0)
 
-        # ...Connect IK joint lengths to settings attributes -----------------------------------------------------------
+        #...Connect IK joint lengths to settings attributes -----------------------------------------------------------
         for i, seg in enumerate(self.segments):
             if seg.length_mult_node:
                 seg.length_mult_node.output.connect(self.segments[i+1].ik_jnt.tx)
@@ -838,7 +838,7 @@ class LimbRig:
 
     ####################################################################################################################
     def get_pv_vector(self):
-        # ...Pole vector vector ----------------------------------------------------------------------------------------
+        #...Pole vector vector ----------------------------------------------------------------------------------------
         self.pv_vector = gen_utils.vector_between(obj_1=self.jnt_position_holders[1],
                                                   obj_2=self.pv_position_holder)
 
@@ -851,7 +851,7 @@ class LimbRig:
 
         size = 0.1 * self.total_limb_length
 
-        # ...Create controls -------------------------------------------------------------------------------------------
+        #...Create controls -------------------------------------------------------------------------------------------
         self.ctrls['ik_extrem'] = rig_utils.control(ctrl_info = {'shape': 'circle',
                                                                  'scale': [size, size, size],
                                                                  'up_direction': [1, 0, 0]},
@@ -885,7 +885,7 @@ class LimbRig:
             tarsus_buffer = gen_utils.buffer_obj(self.ctrls['ik_tarsus'], parent=self.ctrls['ik_extrem'])
 
 
-        # ...Position controls -----------------------------------------------------------------------------------------
+        #...Position controls -----------------------------------------------------------------------------------------
         extrem_buffer.setParent(self.segments[-2].ik_jnt)
         gen_utils.zero_out(extrem_buffer)
         extrem_buffer.setParent(self.grps['transform'])
@@ -904,7 +904,7 @@ class LimbRig:
             gen_utils.zero_out(tarsus_buffer)
             tarsus_buffer.setParent(self.ctrls['ik_extrem'])
 
-        # ...Drive IK extrem scale via socket ctrl's Limb Scale attr
+        #...Drive IK extrem scale via socket ctrl's Limb Scale attr
         [pm.connectAttr(f'{self.ctrls["socket"]}.LimbScale',
                         f'{self.ctrls["ik_extrem"]}.{a}') for a in ('sx', 'sy', 'sz')]
 
@@ -940,7 +940,7 @@ class LimbRig:
         pm.poleVectorConstraint(self.ctrls['ik_pv'], self.ik_handles['limb'])
 
 
-        # ...Display curve ---------------------------------------------------------------------------------------------
+        #...Display curve ---------------------------------------------------------------------------------------------
         self.ik_display_crv = rig_utils.connector_curve(name=f'{self.side_tag}ik_{self.segment_names[-2]}',
                                                         end_driver_1=self.segments[1].ik_jnt,
                                                         end_driver_2=self.ctrls['ik_pv'],
@@ -963,13 +963,13 @@ class LimbRig:
     ####################################################################################################################
     def install_extrem_ik_solver(self):
 
-        # ...Create solver
+        #...Create solver
         [self.ik_handles["extrem"], self.ik_effectors["extrem"]] = pm.ikHandle(
             name=f'{self.side_tag}{self.segments[-2].segment_name}_{nom.ikHandle}',
             startJoint=self.segments[-2].ik_jnt,
             endEffector=self.segments[-1].ik_jnt, solver="ikSCsolver")
 
-        # ...Rename effector
+        #...Rename effector
         self.ik_effectors["extrem"].rename(
             f'{self.side_tag}ik_{self.segments[-2].segment_name}_{nom.effector}')
 
@@ -982,13 +982,13 @@ class LimbRig:
     ####################################################################################################################
     def install_tarsus_ik_solver(self, tarsus_index):
 
-        # ...Create solver
+        #...Create solver
         [self.ik_handles["tarsus"], self.ik_effectors["tarsus"]] = pm.ikHandle(
             name=f'{self.side_tag}{self.segments[tarsus_index].segment_name}_{nom.ikHandle}',
             startJoint=self.segments[tarsus_index].ik_jnt,
             endEffector=self.segments[tarsus_index+1].ik_jnt, solver="ikSCsolver")
 
-        # ...Rename effector
+        #...Rename effector
         self.ik_effectors["extrem"].rename(
             f'{self.side_tag}ik_{self.segments[tarsus_index].segment_name}_{nom.effector}')
 
@@ -1039,21 +1039,21 @@ class LimbRig:
 
         [straight_condition.outColor.outColorR.connect(self.segments[i].ik_jnt.sx) for i in subject_indices]
 
-        # ...Make stretch optional -------------------------------------------------------------------------------------
+        #...Make stretch optional -------------------------------------------------------------------------------------
         stretch_option_remap = node_utils.remapValue(inputValue=f'{self.ctrls["socket"]}.stretchy_ik',
                                                      outputMin=1, inputMax=10,
                                                      outputMax=straight_condition.outColor.outColorR,)
         [stretch_option_remap.outValue.connect(self.segments[i].ik_jnt.sx, force=1) for i in subject_indices]
 
 
-        # ...Squash option ---------------------------------------------------------------------------------------------
+        #...Squash option ---------------------------------------------------------------------------------------------
         if squash:
             node_utils.remapValue(inputValue=f'{self.ctrls["socket"]}.squash_ik', inputMax=10, outputMin=1,
                                   outputMax=limb_straigtness_div.outFloat,
                                   outValue=straight_condition.colorIfFalse.colorIfFalseR)
 
 
-        # ...Include Soft IK effect ------------------------------------------------------------------------------------
+        #...Include Soft IK effect ------------------------------------------------------------------------------------
         if soft_ik:
             pm.addAttr(self.ctrls['socket'], longName='soft_ik', niceName='Soft IK', attributeType=float,
                        minValue=0, maxValue=10, defaultValue=0, keyable=1)
@@ -1079,12 +1079,12 @@ class LimbRig:
     ####################################################################################################################
     def get_length_sum(self, ik_end_index):
 
-        # ...Combine initial two lengths in first sum
+        #...Combine initial two lengths in first sum
         first_sum = node_utils.addDoubleLinear(input1=self.segments[0].segment_length,
                                                input2=self.segments[1].segment_length)
         prev_sum, final_sum = first_sum, first_sum
 
-        # ...Add each sum as input to the next until all lengths have been added together
+        #...Add each sum as input to the next until all lengths have been added together
         for i in range(2, ik_end_index):
             new_sum = node_utils.addDoubleLinear(input1=prev_sum.output,
                                                  input2=self.segments[i].segment_length)
@@ -1099,9 +1099,9 @@ class LimbRig:
     ####################################################################################################################
     def soft_ik_curve(self, input=None, output=None):
 
-        # ...Create anim curve node
+        #...Create anim curve node
         anim_curve = pm.shadingNode('animCurveUU', name=f'{self.side_tag}_anim_crv_softIk_{self.limb_name}', au=1)
-        # ...Shape its curve
+        #...Shape its curve
         if input:
             pm.connectAttr(input, anim_curve + '.input')
         pm.setKeyframe(anim_curve, float=10, value=1)
@@ -1145,7 +1145,7 @@ class LimbRig:
         pm.addAttr(self.ctrls['socket'], longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0,
                    maxValue=10, defaultValue=10, keyable=1)
 
-        # ...Outfit blend attribute with mult nodes to get to 0-to-1 space from a 0-to-10 attr input
+        #...Outfit blend attribute with mult nodes to get to 0-to-1 space from a 0-to-10 attr input
         blend_driver_plugs = gen_utils.create_attr_blend_nodes(attr='fkIk', node=self.ctrls['socket'], reverse=True)
 
 
@@ -1162,11 +1162,11 @@ class LimbRig:
             seg.blend_jnt.jointOrient.set(0, 0, 0)
 
 
-        # ...Blend joint scale
+        #...Blend joint scale
         self.kinematic_blend_jnt_lengths(blend_driver_plugs)
 
 
-        # ...FK/IK controls visibility
+        #...FK/IK controls visibility
         for seg in self.segments:
             if seg.fk_ctrl:
                 blend_driver_plugs.rev.outputX.connect(seg.fk_ctrl.visibility)
@@ -1183,9 +1183,9 @@ class LimbRig:
     ####################################################################################################################
     def kinematic_blend_jnt_lengths(self, blend_driver_plugs):
 
-        # ...Joint scale
+        #...Joint scale
         self.kinematic_blend_jnt_scale(blend_driver_plugs)
-        # ...Joint cap translation
+        #...Joint cap translation
         self.kinematic_blend_jnt_cap_translate(blend_driver_plugs)
 
 
@@ -1197,14 +1197,14 @@ class LimbRig:
 
         for i, seg in enumerate(self.segments):
             if seg.dynamic_length:
-                # ...Create blend node
+                #...Create blend node
                 blend = pm.shadingNode("blendTwoAttr", au=1)
-                # ...Blend inputs
+                #...Blend inputs
                 self.segments[i].fk_jnt.sx.connect(blend.input[0])
                 self.segments[i].ik_jnt.sx.connect(blend.input[1])
-                # ...Drive blend
+                #...Drive blend
                 pm.connectAttr(blend_driver_plugs.multOutput, blend.attributesBlender)
-                # ...Output blend
+                #...Output blend
                 blend.output.connect(self.segments[i].blend_jnt.sx)
 
 
@@ -1216,14 +1216,14 @@ class LimbRig:
 
         for i, seg in enumerate(self.segments):
             if seg.dynamic_length:
-                # ...Create blend node
+                #...Create blend node
                 blend = pm.shadingNode("blendTwoAttr", au=1)
-                # ...Blend inputs
+                #...Blend inputs
                 self.segments[i].fk_jnt.getChildren()[0].tx.connect(blend.input[0])
                 self.segments[i+1].ik_jnt.tx.connect(blend.input[1])
-                # ...Drive blend
+                #...Drive blend
                 pm.connectAttr(blend_driver_plugs.multOutput, blend.attributesBlender)
-                # ...Output blend
+                #...Output blend
                 blend.output.connect(self.segments[i+1].blend_jnt.tx)
 
 
@@ -1241,7 +1241,7 @@ class LimbRig:
         if self.side == nom.rightSideTag:
             ribbon_up_vector = (0, 0, 1)
 
-        # ...Create ribbons
+        #...Create ribbons
         segment_ribbon = rig_utils.ribbon_plane(name=self.segments[0].segment_name,
                                                 start_obj=start_node,
                                                 end_obj=end_node,
@@ -1252,12 +1252,12 @@ class LimbRig:
         segment_ribbon["nurbsStrip"].setParent(self.grps['noTransform'])
         segment_ribbon["nurbsStrip"].scale.set(1, 1, 1)
 
-        # ...Skin ribbons
+        #...Skin ribbons
         pm.select(bend_jnts[0], bend_jnts[1], bend_jnts[2], replace=1)
         pm.select(segment_ribbon["nurbsStrip"], add=1)
         pm.skinCluster(maximumInfluences=1, toSelectedBones=1)
 
-        # ...Tweak ctrls
+        #...Tweak ctrls
         if self.side == nom.leftSideTag:
             tweak_color = self.ctrl_colors["sub"][0]
         elif self.side == nom.rightSideTag:

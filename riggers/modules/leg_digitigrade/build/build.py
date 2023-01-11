@@ -44,14 +44,14 @@ def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_paren
     side_tag = "{}_".format(rig_module.side) if rig_module.side else ""
 
 
-    # ...Create biped_leg rig group
+    #...Create biped_leg rig group
     rig_module_grp = rig_module.create_rig_module_grp(parent=rig_parent)
-    # ...Get orienters from armature
+    #...Get orienters from armature
     rig_module.get_armature_orienters()
     setup_module_ctrl = rig_module.get_setup_module_ctrl()
 
 
-    # ...Create limb rig -----------------------------------------------------------------------------------------------
+    #...Create limb rig -----------------------------------------------------------------------------------------------
     limb_rig = LimbRig(limb_name = rig_module.name,
                        side = rig_module.side,
                        segment_names=("thigh", "calf", "foot", "footEnd"),
@@ -63,14 +63,14 @@ def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_paren
                                            rig_module.orienters["ankle_end"],
                                            rig_module.orienters["ik_knee"]))
 
-    # ...Move contents of limb rig into biped_leg rig module's groups
+    #...Move contents of limb rig into biped_leg rig module's groups
     for child in limb_rig.transform_grp.getChildren():
         child.setParent(rig_module.transform_grp)
 
     for child in limb_rig.no_transform_grp.getChildren():
         child.setParent(rig_module.no_transform_grp)
 
-    # ...Move Rig Scale attr over to new rig group
+    #...Move Rig Scale attr over to new rig group
     for plug in pm.listConnections(f'{limb_rig.root_grp}.RigScale', destination=1, plugs=1):
         pm.connectAttr(f'{rig_module_grp}.RigScale', plug, force=1)
     for plug in pm.listConnections(f'{limb_rig.root_grp}.RigScale', source=1, plugs=1):
@@ -80,7 +80,7 @@ def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_paren
 
 
 
-    # ...Controls ------------------------------------------------------------------------------------------------------
+    #...Controls ------------------------------------------------------------------------------------------------------
     ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=setup_module_ctrl)
     ctrls = rig_module.ctrls
 
@@ -132,11 +132,11 @@ def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_paren
 
 
 
-    # ...Give IK foot control world orientation ------------------------------------------------------------------------
+    #...Give IK foot control world orientation ------------------------------------------------------------------------
     ctrl = ctrls["ik_foot"]
     ctrl_buffer = ctrl.getParent()
 
-    # ...Temporarily moved shapes into a holder node (will move them back after reorientation)
+    #...Temporarily moved shapes into a holder node (will move them back after reorientation)
     temp_shape_holder = pm.shadingNode("transform", name="TEMP_shape_holder", au=1)
     gen_utils.copy_shapes(ctrl, temp_shape_holder, keep_original=True)
     [pm.delete(shape) for shape in ctrl.getShapes()]
@@ -162,20 +162,20 @@ def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_paren
 
     ori_offset.setParent(ctrl)
 
-    # ...Return shapes to control transform
+    #...Return shapes to control transform
     gen_utils.copy_shapes(temp_shape_holder, ctrl, keep_original=False)
 
 
 
 
-    # ...Foot connection transform -------------------------------------------------------------------------------------
+    #...Foot connection transform -------------------------------------------------------------------------------------
     rig_module.leg_end_bind_connector = limb_rig.blend_jnts[2]
     rig_module.leg_end_ik_jnt_connector = limb_rig.ik_jnts[2]
     rig_module.leg_end_ik_connector = ctrls["ik_foot"]
     rig_module.ik_handle = limb_rig.ik_handles["limb"]
     rig_module.ik_foot_dist_node = limb_rig.ik_extrem_dist
 
-    # ...
+    #...
     gen_utils.convert_offset(ctrls["fk_thigh"].getParent())
 
 

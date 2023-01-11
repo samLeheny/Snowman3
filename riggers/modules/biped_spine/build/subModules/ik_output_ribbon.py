@@ -41,7 +41,7 @@ importlib.reload(animCtrls)
 
 ########################################################################################################################
 def build(ctrls, ik_rotate_ribbon, ribbon_parent, jnt_parent):
-    # ...IK Output nurbs plane
+    #...IK Output nurbs plane
     ik_output_ribbon = pm.duplicate(ik_rotate_ribbon["nurbsPlane"], name="spineRibbon_IK_output_SURF")[0]
     for attr in gen_utils.all_transform_attrs:
         pm.setAttr(ik_output_ribbon + "." + attr, lock=0)
@@ -49,7 +49,7 @@ def build(ctrls, ik_rotate_ribbon, ribbon_parent, jnt_parent):
 
     ik_output_ribbon.setParent(ribbon_parent)
 
-    # ...IK Output joints
+    #...IK Output joints
     def ik_output_jnt_sys(name):
 
         jnt = rig_utils.joint(name="spine_{}_ik_output".format(name), joint_type=nom.nonBindJnt, parent=jnt_parent)
@@ -66,22 +66,22 @@ def build(ctrls, ik_rotate_ribbon, ribbon_parent, jnt_parent):
 
     ik_output_mid_sys = ik_output_jnt_sys("waist")
 
-    # ...Skin IK Rotate Ribbon
+    #...Skin IK Rotate Ribbon
     pm.select((ik_rotate_ribbon["bottom_sys"][2], ik_rotate_ribbon["top_sys"][2], ik_output_mid_sys[0]), replace=1)
     pm.select(ik_output_ribbon, add=1)
     pm.skinCluster(toSelectedBones=1, maximumInfluences=1, obeyMaxInfluences=0)
     skin_clust = gen_utils.get_skin_cluster(ik_output_ribbon)
 
-    # ...Use IK Rotate Ribbon as input shape for IK Output Ribbon's skin cluster
+    #...Use IK Rotate Ribbon as input shape for IK Output Ribbon's skin cluster
     rig_utils.mesh_to_skinClust_input(ik_rotate_ribbon["nurbsPlane"].getShape(), skin_clust)
 
-    # ...Use IK Rotate base joints as preBindMatrix inputs for skin cluster to avoid double transforms from the IK
-    # ...Translate Ribbon
+    #...Use IK Rotate base joints as preBindMatrix inputs for skin cluster to avoid double transforms from the IK
+    #...Translate Ribbon
     ik_rotate_ribbon["bottom_sys"][2].worldInverseMatrix[0].connect(skin_clust.bindPreMatrix[0])
     ik_rotate_ribbon["top_sys"][2].worldInverseMatrix[0].connect(skin_clust.bindPreMatrix[1])
     ik_output_mid_sys[1].worldInverseMatrix[0].connect(skin_clust.bindPreMatrix[2])
 
-    # ...Refine weights
+    #...Refine weights
     pm.skinPercent(skin_clust, ik_output_ribbon + '.cv[0:3][0]', transformValue=[(ik_rotate_ribbon["bottom_sys"][2], 1.0)])
     pm.skinPercent(skin_clust, ik_output_ribbon + '.cv[0:3][1]', transformValue=[(ik_rotate_ribbon["bottom_sys"][2], 1.0)])
     pm.skinPercent(skin_clust, ik_output_ribbon + '.cv[0:3][2]', transformValue=[(ik_rotate_ribbon["bottom_sys"][2], 0.715),
@@ -92,7 +92,7 @@ def build(ctrls, ik_rotate_ribbon, ribbon_parent, jnt_parent):
     pm.skinPercent(skin_clust, ik_output_ribbon + '.cv[0:3][5]', transformValue=[(ik_rotate_ribbon["top_sys"][2], 1.0)])
     pm.skinPercent(skin_clust, ik_output_ribbon + '.cv[0:3][6]', transformValue=[(ik_rotate_ribbon["top_sys"][2], 1.0)])
 
-    # ...Template FK Ribbon for visual clarity
+    #...Template FK Ribbon for visual clarity
     ik_rotate_ribbon["nurbsPlane"].getShape().template.set(1)
 
 

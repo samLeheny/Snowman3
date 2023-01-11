@@ -57,10 +57,10 @@ class ArmatureRootHandle:
     ####################################################################################################################
     def create_mobject(self):
 
-        # ...Compose object name
+        #...Compose object name
         obj_name = f'{self.name}_ARMATURE'
 
-        # ...Create root object
+        #...Create root object
         self.mobject = gen_utils.prefab_curve_construct(prefab = "COG",
                                                         name = obj_name,
                                                         color = [0.6, 0.6, 0.6],

@@ -120,17 +120,17 @@ class Placer:
             (mObj): Placer.
         """
 
-        # ...Create placer
+        #...Create placer
         self.create_mobject()
-        # ...Metadata
+        #...Metadata
         self.placer_metadata()
-        # ...Vector handles. Aim Handle and Up Handle
+        #...Vector handles. Aim Handle and Up Handle
         self.create_vector_handles() if self.vector_handle_data else None
-        # ...Buffer group
+        #...Buffer group
         self.buffer_node = gen_utils.buffer_obj(self.mobject)
-        # ...Position placer
+        #...Position placer
         self.set_position() if self.position else None
-        # ...Orienter
+        #...Orienter
         self.create_orienter()
 
         return self.mobject
@@ -145,12 +145,12 @@ class Placer:
         Creates placer MObject in scene based on class properties.
         """
 
-        # ...Compose placer name
+        #...Compose placer name
         placer_name = "{0}{1}_{2}".format(self.side_tag, self.name, nom.placer)
-        # ...Create placer MObject
+        #...Create placer MObject
         self.mobject = gen_utils.prefab_curve_construct(prefab=self.shape_type, name=placer_name, color=self.color,
                                                         scale=self.size, side=self.side)
-        # ...Parent placer
+        #...Parent placer
         self.mobject.setParent(self.parent) if self.parent else None
 
 
@@ -160,9 +160,9 @@ class Placer:
     ####################################################################################################################
     def create_vector_handles(self):
 
-        # ...A group to house vector handles
+        #...A group to house vector handles
         self.vector_handle_grp = pm.group(name="vectorHandlesVis", em=1, p=self.mobject)
-        # ...Create handles for Aim vector and Up vector
+        #...Create handles for Aim vector and Up vector
         self.aim_vector_handle = VectorHandle(name="{}{}".format(self.side_tag, self.name), vector="aim",
                                               side=self.side, parent=self.vector_handle_grp, color=self.color,
                                               placer=self)
@@ -190,7 +190,7 @@ class Placer:
     ####################################################################################################################
     def set_position(self):
 
-        # ...Position placer
+        #...Position placer
         self.mobject.translate.set(self.position)
 
 
@@ -203,7 +203,7 @@ class Placer:
         if self.side not in (nom.leftSideTag, nom.rightSideTag):
             return
 
-        # ...Find and get opposite placer
+        #...Find and get opposite placer
         opposite_placer = gen_utils.get_opposite_side_obj(self.mobject)
         if not opposite_placer:
             print("Unable to find opposite placer for placer: '{0}'".format(self.mobject))
@@ -218,7 +218,7 @@ class Placer:
     ####################################################################################################################
     def setup_live_symmetry(self, reverse=False):
 
-        # ...Get opposite placer
+        #...Get opposite placer
         opposite_placer = self.get_opposite_placer()
         if not opposite_placer:
             print("No opposite placer found. Cannot setup live symmetry for placer '{0}'".format(self.mobject))
@@ -265,14 +265,14 @@ class Placer:
     def make_benign(self, hide=True):
 
         if hide:
-            # ...Hide placer shape
+            #...Hide placer shape
             for shape in self.mobject.getShapes():
                 shape.visibility.set(0, lock=1) if not shape.visibility.get(lock=1) else None
 
-        # ...Lock attributes
+        #...Lock attributes
         [pm.setAttr(self.mobject + "." + attr, lock=1, keyable=0) for attr in gen_utils.keyable_attrs]
 
-        # ...Dull placer color
+        #...Dull placer color
         self.dull_color()
 
         handles = []
@@ -320,12 +320,12 @@ class Placer:
                                  match_to=self.orienter_data["match_to"],
                                  placer=self)
 
-        # ...Connect orienter to placer via message attr
+        #...Connect orienter to placer via message attr
         orienter_attr_name = "OrienterNode"
         pm.addAttr(self.mobject, longName=orienter_attr_name, dataType="string", keyable=0)
         self.orienter.mobject.message.connect(self.mobject + "." + orienter_attr_name)
 
-        # ...Drive orienter's visibility from placer attribute
+        #...Drive orienter's visibility from placer attribute
         pm.addAttr(self.mobject, longName=attr_strings["orienter_vis"], attributeType="bool", keyable=0, defaultValue=0)
         pm.setAttr(self.mobject + '.' + attr_strings["orienter_vis"], channelBox=1)
         pm.connectAttr(self.mobject + "." + attr_strings["orienter_vis"], self.orienter.mobject.visibility)
@@ -371,17 +371,17 @@ class Placer:
 
         obj = self.mobject
 
-        # ...Placer tag
+        #...Placer tag
         self.metadata_PlacerTag()
-        # ...Side
+        #...Side
         self.metadata_Side()
-        # ...Size
+        #...Size
         self.metadata_Size()
-        # ...Vector handle data
+        #...Vector handle data
         self.metadata_VectorHandleData()
-        # ...Orienter data
+        #...Orienter data
         self.metadata_OrienterData()
-        # ...Connect targets
+        #...Connect targets
         self.metadata_ConnectorTargets()
 
         pm.addAttr(self.mobject, longName="ReceivedConnectors", dataType="string", keyable=0)

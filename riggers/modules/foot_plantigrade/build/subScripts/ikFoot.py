@@ -44,7 +44,7 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
 
 
 
-    # ...IK joints -----------------------------------------------------------------------------------------------------
+    #...IK joints -----------------------------------------------------------------------------------------------------
     ik_connector = pm.group(name=f'{side_tag}ikConnector', em=1, p=parent)
     gen_utils.zero_out(ik_connector)
     pm.delete(pm.pointConstraint(orienters['foot'], ik_connector))
@@ -70,7 +70,7 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
 
 
 
-    # ...Foot roll jnts-------------------------------------------------------------------------------------------------
+    #...Foot roll jnts-------------------------------------------------------------------------------------------------
     foot_roll_jnts = {}
     foot_roll_chain_buffer = None
     foot_roll_keys = ("heel", "ballPivot", "outer", "inner", "toeTip", "ball", "ankle")
@@ -84,7 +84,7 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     foot_roll_chain_buffer.setParent(ik_connector)
     gen_utils.zero_out(foot_roll_chain_buffer)
 
-    # ... Get foot roll placer positions
+    #... Get foot roll placer positions
     foot_roll_placer_keys = ("sole_heel", "sole_toe", "sole_outer", "sole_inner", "sole_toe_end", "ball", "foot")
 
     for placer_key, roll_key in zip(foot_roll_placer_keys, foot_roll_keys):
@@ -95,7 +95,7 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
 
 
 
-    # ...IK handles ----------------------------------------------------------------------------------------------------
+    #...IK handles ----------------------------------------------------------------------------------------------------
     ik_handles = {}
     ik_effectors = {}
 
@@ -110,7 +110,7 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     
     
     
-    # ...Foot roll attributes ------------------------------------------------------------------------------------------
+    #...Foot roll attributes ------------------------------------------------------------------------------------------
     for attr_name, attr_type in (("FootRoll", "float"),
                                  ("BallRoll", "float"),
                                  ("ToeRoll", "float"),
@@ -132,8 +132,8 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     total_angle = 180
 
 
-    # ...Ball
-    # ...Roll
+    #...Ball
+    #...Roll
     ball_toe_total_delay = node_utils.addDoubleLinear(input1=f'{foot_roll_ctrl}.BallDelay',
                                                       input2=f'{foot_roll_ctrl}.ToeRollStart')
 
@@ -160,12 +160,12 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     node_utils.addDoubleLinear(input1=ball_con.outColor.outColorR, input2=f'{foot_roll_ctrl}.BallRoll',
                                output=foot_roll_jnts['ball'].rx, force=True)
 
-    # ...Spin
+    #...Spin
     pm.connectAttr(f'{foot_roll_ctrl}.BallSpin', foot_roll_jnts['ballPivot'].ry)
 
 
-    # ...Toe tip
-    # ...Roll
+    #...Toe tip
+    #...Roll
     pushed_toe_total = node_utils.addDoubleLinear(input1=total_angle, input2=ball_toe_total_delay.output)
 
     toe_remap = node_utils.remapValue(inputValue=f'{foot_roll_ctrl}.FootRoll', inputMin=ball_toe_total_delay.output,
@@ -174,22 +174,22 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
 
     node_utils.addDoubleLinear(input1=toe_remap.outValue, input2=f'{foot_roll_ctrl}.ToeRoll',
                                output=foot_roll_jnts['toeTip'].rx, force=True)
-    # ...Spin
+    #...Spin
     pm.connectAttr(f'{foot_roll_ctrl}.ToeSpin', foot_roll_jnts['toeTip'].ry)
 
 
-    # ...Heel
-    # ...Roll
+    #...Heel
+    #...Roll
     clamp = node_utils.clamp(input=(f'{foot_roll_ctrl}.FootRoll', None, None), min=(-total_angle, 0, 0),
                              max=(0, 0, 0), output=(foot_roll_jnts['heel'].rx, None, None))
 
     node_utils.addDoubleLinear(input1=clamp.output.outputR, input2=f'{foot_roll_ctrl}.HeelRoll',
                                output=foot_roll_jnts['heel'].rx, force=True)
-    # ...Spin
+    #...Spin
     pm.connectAttr(f'{foot_roll_ctrl}.HeelSpin', foot_roll_jnts['heel'].ry)
 
 
-    # ...Banking
+    #...Banking
     [pm.connectAttr(foot_roll_ctrl + "." + "Bank", foot_roll_jnts[key].rz) for key in ("outer", "inner")]
     pm.setAttr(foot_roll_jnts["outer"] + '.maxRotLimitEnable.maxRotZLimitEnable', 1)
     pm.setAttr(foot_roll_jnts["outer"] + '.maxRotLimit.maxRotZLimit', 0)

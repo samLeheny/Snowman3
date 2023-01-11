@@ -37,7 +37,7 @@ PrelimControl = class_PrelimControl.PrelimControl
 
 
 
-def create_prelim_ctrls(side=None, is_driven_side=None):
+def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
 
     prelim_ctrls = {
 
@@ -54,7 +54,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "thigh"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            match_transform = "thigh",
+            module_ctrl = module_ctrl
         ),
 
 
@@ -70,7 +72,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "calf"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform = "calf",
+            module_ctrl = module_ctrl
         ),
 
 
@@ -86,7 +90,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "calf_end"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform = "calf_end",
+            module_ctrl = module_ctrl
         ),
 
 
@@ -102,20 +108,8 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "calf_end"},
             locks={"v":1},
             side=side,
-            is_driven_side=is_driven_side
-        ),
-
-
-        "ik_knee": PrelimControl(
-            name="ik_knee",
-            shape="sphere",
-            size=[2, 2, 2],
-            color=[ctrl_colors[nom.leftSideTag], ctrl_colors[nom.rightSideTag]],
-            position=("ik_knee",),
-            orientation={"match_to": "module_ctrl"},
-            locks={"r":[1, 1, 1], "s":[1, 1, 1], "v":1},
-            side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            module_ctrl = module_ctrl
         ),
 
 
@@ -129,7 +123,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "module_ctrl"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="center to prelim",
+            module_ctrl=module_ctrl
         ),
 
 
@@ -145,77 +141,8 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "module_ctrl"},
             locks={"r": [1, 1, 1], "s": [1, 1, 1], "v": 1},
             side=side,
-            is_driven_side=is_driven_side
-        ),
-
-
-        "knee_pin": PrelimControl(
-            name="knee_pin",
-            shape="circle",
-            size=[7.5, 7.5, 7.5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("calf",),
-            orientation={"match_to": ("thigh", "calf")},
-            locks={"v":1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
-
-
-        "thigh_bend_start": PrelimControl(
-            name="thigh_bend_start",
-            shape="circle",
-            size=[7.5, 7.5, 7.5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("thigh",),
-            orientation={"match_to": ("thigh",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
-
-
-        "thigh_bend_mid": PrelimControl(
-            name="thigh_bend_mid",
-            shape="circle",
-            size=[7.5, 7.5, 7.5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("thigh", "calf"),
-            orientation={"match_to": ("thigh",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
-
-
-        "calf_bend_mid": PrelimControl(
-            name="calf_bend_mid",
-            shape="circle",
-            size=[7.5, 7.5, 7.5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("calf", "calf_end"),
-            orientation={"match_to": ("calf",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
-        ),
-
-
-        "calf_bend_end": PrelimControl(
-            name="calf_bend_end",
-            shape="circle",
-            size=[7.5, 7.5, 7.5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("calf_end",),
-            orientation={"match_to": ("calf",)},
-            locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
+            match_transform = "thigh",
+            module_ctrl = module_ctrl
         ),
 
     }

@@ -42,7 +42,7 @@ class ArmatureDataIO(object):
         dirpath
     ):
 
-        # ...vars
+        #...vars
         self.armature_data = {}
         self.dirpath = dirpath
 
@@ -65,9 +65,9 @@ class ArmatureDataIO(object):
     def get_modules_data(self, armature):
 
         self.armature_data["modules"] = {}
-        # ...Get all modules in armature
+        #...Get all modules in armature
         modules = amtr_utils.get_modules_in_armature(armature)
-        # ...Get data from each module
+        #...Get data from each module
         [self.get_data_from_module(modules[key], key) for key in modules]
 
 
@@ -77,10 +77,10 @@ class ArmatureDataIO(object):
     #################################################################################################################---
     def get_armature_data_from_scene(self):
 
-        # ...Find armature container in scene
+        #...Find armature container in scene
         scene_armature = self.find_armature_in_scene()
 
-        # ...Fill in armature data based on values stored in hidden armature attributes
+        #...Fill in armature data based on values stored in hidden armature attributes
         for key, attr in (("name", "ArmatureName"),
                           ("armature_scale", "ArmatureScale"),
                           ("symmetry_mode", "SymmetryMode"),
@@ -88,7 +88,7 @@ class ArmatureDataIO(object):
                           ("root_size", "RootSize")):
             self.armature_data[key] = pm.getAttr(scene_armature + "." + attr)
 
-        # ...Get data from armature modules
+        #...Get data from armature modules
         self.get_modules_data(scene_armature)
 
         return self.armature_data
@@ -115,7 +115,7 @@ class ArmatureDataIO(object):
             "color" : gen_utils.get_color(module_ctrl)
         }
 
-        # ...Populate module's placers data
+        #...Populate module's placers data
         self.get_module_placers_data(init_data, module)
 
         self.armature_data["modules"][module_key] = init_data
@@ -127,7 +127,7 @@ class ArmatureDataIO(object):
     #################################################################################################################---
     def get_module_placers_data(self, module_data, module):
 
-        # ...Get module placement control. It has the attributes whose values we need
+        #...Get module placement control. It has the attributes whose values we need
         module_ctrl = pm.listConnections(module + "." + "ModuleRootCtrl", s=1, d=0)[0]
 
         module_data["placers"] = []
@@ -146,23 +146,23 @@ class ArmatureDataIO(object):
     def get_placer_data(self, placer):
 
         out_dict = {
-            # ...Name
+            #...Name
             "name" : pm.getAttr(placer + "." + "PlacerTag"),
-            # ...Side
+            #...Side
             "side" : pm.getAttr(placer + "." + "Side"),
-            # ...Position
+            #...Position
             "position" : [round(i, decimal_count) for i in mc.getAttr(placer + ".translate")[0]],
-            # ...Size
+            #...Size
             "size" : pm.getAttr(f'{placer}.Size'),
-            # ...Vector Handle Data
+            #...Vector Handle Data
             "vectorHandleData" : pm.getAttr(f'{placer}.VectorHandleData'),
-            # ...Orienter Data
+            #...Orienter Data
             "orienterData" : pm.getAttr(f'{placer}.OrienterData'),
-            # ...Connector targets
+            #...Connector targets
             "connectorTargets" : pm.getAttr(f'{placer}.ConnectorData'),
         }
 
-        # ...Pole vector distance
+        #...Pole vector distance
         if pm.attributeQuery("IkDistance", node=placer, exists=1):
             out_dict["ikDistance"] = pm.getAttr(f'{placer}.IkDistance')
 
@@ -181,16 +181,16 @@ class ArmatureDataIO(object):
     #################################################################################################################---
     def get_driver_placers_in_module(self, module):
 
-        # ...Placers
+        #...Placers
         placers = amtr_utils.get_placers_in_module(module)
 
-        # ...Check which placers (if any) drive constraints
+        #...Check which placers (if any) drive constraints
         constraining_placers = {}
         for key in placers:
             if amtr_utils.get_outgoing_constraints(placers[key]):
                 constraining_placers[key] = placers[key]
 
-        # ...Check which constraining placers are driving other placers
+        #...Check which constraining placers are driving other placers
         driver_placers = {}
         for driver_key in constraining_placers:
             constraint_nodes = amtr_utils.get_outgoing_constraints(placers[driver_key])
@@ -226,7 +226,7 @@ class ArmatureDataIO(object):
     #################################################################################################################---
     def get_drawn_connections(self, module):
 
-        # ...Placers in this module
+        #...Placers in this module
         module_placers = amtr_utils.get_placers_in_module(module)
 
         if not pm.attributeQuery("ExtraDrawnConnections", node=module, exists=1):
@@ -234,7 +234,7 @@ class ArmatureDataIO(object):
 
         connector_data = {}
 
-        # ...Get connectors in modules
+        #...Get connectors in modules
         connectors = pm.listConnections(f"{module}.ExtraDrawnConnections", d=1, s=0)
 
 
@@ -290,12 +290,12 @@ class ArmatureDataIO(object):
 
         data = None
 
-        # ...
+        #...
         if not os.path.exists(filepath):
             print("ERROR: Provided file path not found on disk.")
             return False
 
-        # ...Read data
+        #...Read data
         with open(filepath, 'r') as fh:
             data = json.load(fh)
 

@@ -34,7 +34,7 @@ ArmatureModuleHandle = class_ArmatureModuleHandle.ArmatureModuleHandle
 def build(armature_module):
 
 
-    # ...Finger reverse pole vectors
+    #...Finger reverse pole vectors
     for key in ["thumb", "index", "middle", "ring", "pinky"]:
         pv_loc = armature_module.placers[f'ik_{key}'].install_reverse_ik(
             pv_chain_mid=armature_module.placers[f'{key}_2'].mobject,
@@ -46,12 +46,12 @@ def build(armature_module):
         pv_loc.setParent(armature_module.rig_subGrps["extra_systems"])
 
 
-    # ...Position module
+    #...Position module
     armature_module.position_module()
 
 
 
-    # ...Add a control for each finger ---------------------------------------------------------------------------------
+    #...Add a control for each finger ---------------------------------------------------------------------------------
     for key in ["thumb", "index", "middle", "ring", "pinky"]:
 
         finger_ctrl = armature_module.module_handles[key] = ArmatureModuleHandle(
@@ -78,7 +78,7 @@ def build(armature_module):
 
 
 
-    # ...Preliminary controls ------------------------------------------------------------------------------------------
+    #...Preliminary controls ------------------------------------------------------------------------------------------
     ctrls_dict = prelimCtrls.create_prelim_ctrls(side=armature_module.side,
                                                  is_driven_side=armature_module.is_driven_side)
     armature_module.create_prelim_ctrls()

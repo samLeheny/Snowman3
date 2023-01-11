@@ -24,7 +24,7 @@ def build(rig_module, rig_parent=None):
     ctrls = {}
 
 
-    # ...Create controls -----------------------------------------------------------------------------------------------
+    #...Create controls -----------------------------------------------------------------------------------------------
     ctrl_data = animCtrls.create_anim_ctrls()
 
     for key in ctrl_data:
@@ -37,16 +37,16 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Groups --------------------------------------------------------------------------------------------------------
-    # ...Settings controls group
+    #...Groups --------------------------------------------------------------------------------------------------------
+    #...Settings controls group
     settings_ctrls_grp = pm.group(name='settings_{}'.format(nom.group), p=ctrls['subRoot'], em=1)
-    # ...Root spaces group
+    #...Root spaces group
     root_spaces_grp = pm.group(name='globalSpaces_{}'.format(nom.group), p=ctrls['subRoot'], em=1)
-    # ...Rig modules group
+    #...Rig modules group
     rig_modules_grp = pm.group(name='rigModules_{}'.format(nom.group), p=ctrls['subRoot'], em=1)
 
 
-    # ...Rig Scale attribute (So root control can only be scaled evenly in all three axes)
+    #...Rig Scale attribute (So root control can only be scaled evenly in all three axes)
     pm.addAttr(ctrls['root'], longName='RigScale', minValue=0.001, defaultValue=1, keyable=1)
     [pm.connectAttr(f'{ctrls["root"]}.RigScale', f'{ctrls["root"]}.{a}') for a in ('sx', 'sy', 'sz')]
 

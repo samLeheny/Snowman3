@@ -74,20 +74,20 @@ def build(rig_module, rig_parent=None):
     # Uses several ribbons layered via connected skinClusters.
     # There are four ribbons: FK ribbon > IK Translate > IK Rotate > IK Output (final output ribbon)
 
-    # ...Group to house ribbons
+    #...Group to house ribbons
     ribbons_grp = pm.group(name="spine_ribbons", p=rig_module.no_transform_grp, em=1)
 
     ik_ctrls_grp = pm.group(name="ik_spine_ctrls", em=1, p=rig_module.no_transform_grp)
 
-    # ...FK
+    #...FK
     fk_ribbon = build_fk_ribbon.build(rig_module.transform_grp, ctrls, rig_module.orienters, ribbon_parent=ribbons_grp)
-    # ...IK Translate
+    #...IK Translate
     ik_translate_ribbon = build_ik_translate_ribbon.build(ctrls, fk_ribbon["nurbsPlane"], ribbon_parent=ribbons_grp,
                                                           ik_parent=ik_ctrls_grp)
-    # ...IK Rotate
+    #...IK Rotate
     ik_rotate_ribbon = build_ik_rotate_ribbon.build(ctrls, ik_translate_ribbon["nurbsPlane"],
                                                     ribbon_parent=ribbons_grp, ik_parent=ik_ctrls_grp)
-    # ...IK Output
+    #...IK Output
     ik_output_ribbon = build_ik_output_ribbon.build(ctrls, ik_rotate_ribbon, ribbon_parent=ribbons_grp,
                                                     jnt_parent=ctrls["ik_waist"].getParent())
 

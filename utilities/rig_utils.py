@@ -274,23 +274,23 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 ########################################################################################################################
 def embed_transform_lock_data(ctrl, ctrl_info):
 
-    # ...Confirm lock data was provided. If not, skip embedding procedure
+    #...Confirm lock data was provided. If not, skip embedding procedure
     if 'locks' not in ctrl_info:
         return False
 
     locks = ctrl_info['locks']
 
-    # ...Fill in missing entries with zeroed lists
+    #...Fill in missing entries with zeroed lists
     for key in ('t', 'r', 's', 'v'):
         if key not in locks:
             locks[key] = [0, 0, 0] if key in ('t', 'r', 's') else 0
 
-    # ...Add compound attr to ctrl
+    #...Add compound attr to ctrl
     pm.addAttr(ctrl, longName="LockAttrData", keyable=0, attributeType="compound", numberOfChildren=4)
     for key in ('t', 'r', 's', 'v'):
         pm.addAttr(ctrl, longName=f'LockAttrData{key.upper()}', keyable=0, dataType="string", parent="LockAttrData")
 
-    # ...Embed lock data values in new attrs
+    #...Embed lock data values in new attrs
     for key in ('t', 'r', 's', 'v'):
         pm.setAttr(f'{ctrl}.LockAttrData{key.upper()}', str(locks[key]), type="string")
 
@@ -733,11 +733,11 @@ def apply_ctrl_locks(ctrl):
 
     attr_string = "LockAttrData"
 
-    # ...Confirm lock data attrs are present on this ctrl
+    #...Confirm lock data attrs are present on this ctrl
     if not pm.attributeQuery(attr_string, node=ctrl, exists=1):
         return False
 
-    # ...Dictionary pairing each child attr and the transform attrs it corresponds to
+    #...Dictionary pairing each child attr and the transform attrs it corresponds to
     pairs = ((f'{attr_string}T', (ctrl.tx, ctrl.ty, ctrl.tz)),
              (f'{attr_string}R', (ctrl.rx, ctrl.ry, ctrl.rz)),
              (f'{attr_string}S', (ctrl.sx, ctrl.sy, ctrl.sz)))
@@ -745,17 +745,17 @@ def apply_ctrl_locks(ctrl):
 
     for attr, transform_attrs in pairs:
 
-        # ...Extract data from lock info attribute (get its string and convert to tuple of integers)
+        #...Extract data from lock info attribute (get its string and convert to tuple of integers)
         string_val = pm.getAttr(f'{ctrl}.{attr}')
         string_list = ( string_val.split("[")[1].split("]")[0] )
         string_list = string_list.split(", ")
         numeric_data = (int(string_list[0]), int(string_list[1]), int(string_list[2]))
 
-        # ...Lock transform attrs in accordance with extracted lock info
+        #...Lock transform attrs in accordance with extracted lock info
         for a, lock_val in zip(transform_attrs, numeric_data):
             a.set(lock=lock_val, keyable=lock_val ^ 1)
 
-    # ...Delete lock data attribute. It has done its job. Now... it may rest.
+    #...Delete lock data attribute. It has done its job. Now... it may rest.
     pm.deleteAttr(ctrl, attribute=attr_string)
 
     return True
@@ -773,15 +773,15 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
 
     side_tag = f'{side}_' if side else ''
 
-    # ...Stretch rig group
+    #...Stretch rig group
     stretch_rig_grp = pm.group(name=f'{side_tag}stretch_rig_{roller_name}', p=parent, em=1)
     pm.pointConstraint(start_node, stretch_rig_grp)
     pm.aimConstraint(end_node, stretch_rig_grp, aimVector=roll_axis, upVector=up_axis, worldUpType='objectrotation',
                      worldUpObject=start_node, worldUpVector=(-up_axis[0], -up_axis[1], -up_axis[2]))
 
 
-    # ...Bend controls visibility attribute ------------------------------------------------------------------------
-    # ...Start, Mid, and End controls
+    #...Bend controls visibility attribute ------------------------------------------------------------------------
+    #...Start, Mid, and End controls
     def bend_control(tag, match_node, rot_match_node):
 
         ctrl = control(ctrl_info={'shape': 'circle',
@@ -813,7 +813,7 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
     end_jnt, end_ctrl, end_mod, end_buffer = bend_control(
         tag="end", match_node=end_node, rot_match_node=start_node)
 
-    # ...Roll locators
+    #...Roll locators
     start_roll_loc = pm.spaceLocator(name=f'{side_tag}{roller_name}_roll_start_{nom.locator}')
     start_roll_loc.setParent(stretch_rig_grp)
     gen_utils.zero_out(start_roll_loc)
@@ -832,8 +832,8 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
     gen_utils.matrix_constraint(objs=[end_node, end_roll_loc], decompose=True, maintain_offset=True,
                                 translate=True, rotate=True, scale=False, shear=False)
 
-    # ...Position ctr grps based on locators
-    # ...Start
+    #...Position ctr grps based on locators
+    #...Start
     start_roll_loc.translate.connect(start_buffer.translate)
 
     rotate_attr_tag = ('X', 'x')
@@ -846,7 +846,7 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
     pm.connectAttr(f'{start_rot_convert}.outputRotate.outputRotate{rotate_attr_tag[0]}',
                    f'{start_mod}.r{rotate_attr_tag[1]}')
 
-    # ...End
+    #...End
     end_roll_loc.translate.connect(end_buffer.translate)
 
     decomp = node_utils.decomposeMatrix(inputMatrix=end_roll_loc.matrix)
@@ -857,7 +857,7 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
     pm.connectAttr(f'{end_rot_convert}.outputRotate.outputRotate{rotate_attr_tag[0]}',
                    f'{end_mod}.r{rotate_attr_tag[1]}')
 
-    # ...Mid
+    #...Mid
     node_utils.multDoubleLinear(input1=end_roll_loc.tx, input2=0.5, output=mid_buffer.tx)
 
     blend = pm.shadingNode("blendWeighted", au=1)
@@ -881,7 +881,7 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
 
     side_tag = "{}_".format(side) if side else ""
 
-    # ...Create live length measurement
+    #...Create live length measurement
     live_len = node_utils.distanceBetween(inMatrix1=length_ends[0].worldMatrix,
                                           inMatrix2=length_ends[1].worldMatrix)
     stretch_output = node_utils.floatMath(floatA=live_len.distance, floatB=length_attr, operation=3)
@@ -896,7 +896,7 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
                defaultValue=1, keyable=1)
 
 
-    # ...Group for tweak controls, parented under segment bend control
+    #...Group for tweak controls, parented under segment bend control
     tweak_ctrls_grp = pm.group(name="{}{}_tweak_ctrls".format(side_tag, ctrl_name), em=1,
                                p=parent)
     if side == nom.rightSideTag:
@@ -905,7 +905,7 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
     tweak_ctrls = []
 
 
-    # ...Bend controls visibility attribute ------------------------------------------------------------------------
+    #...Bend controls visibility attribute ------------------------------------------------------------------------
     tweak_ctrl_vis_attr_string = "TweakCtrls"
     if not pm.attributeQuery(tweak_ctrl_vis_attr_string, node=attr_ctrl, exists=1):
         pm.addAttr(attr_ctrl, longName=tweak_ctrl_vis_attr_string, attributeType="bool", keyable=0, defaultValue=0)
@@ -976,13 +976,13 @@ def space_blender(target, source, source_name, name, attr_node, attr_name=None, 
     side_tag = "{}_".format(side) if side else ""
     attr_name = attr_name if attr_name else "Global"
 
-    # ...Create attribute ----------------------------------------------------------------------------------------------
+    #...Create attribute ----------------------------------------------------------------------------------------------
     pm.addAttr(attr_node, longName=attr_name, attributeType="float", minValue=0, maxValue=10,
                defaultValue=default_value, keyable=1)
 
 
 
-    # ...Create space locators -----------------------------------------------------------------------------------------
+    #...Create space locators -----------------------------------------------------------------------------------------
     locs = []
 
     global_space_loc = pm.spaceLocator(name="{}{}_global_SPACE".format(side_tag, name))
@@ -1001,7 +1001,7 @@ def space_blender(target, source, source_name, name, attr_node, attr_name=None, 
         gen_utils.convert_offset(loc)
 
 
-    # ...Create driver network -----------------------------------------------------------------------------------------
+    #...Create driver network -----------------------------------------------------------------------------------------
     blend = gen_utils.create_attr_blend_nodes(attr=attr_name, node=attr_node, reverse=False)
 
     blend_matrix = node_utils.blendMatrix(inputMatrix=source_loc.worldMatrix,
@@ -1030,7 +1030,7 @@ def space_switch(target, sources, source_names, name, attr_node, attr_name=None,
     attr_name = attr_name if attr_name else "Space"
 
 
-    # ...Create attribute ----------------------------------------------------------------------------------------------
+    #...Create attribute ----------------------------------------------------------------------------------------------
     enum_name_string = source_names[0]
     for i in range(1, len(source_names)):
         enum_name_string += ":{}".format(source_names[i])
@@ -1039,7 +1039,7 @@ def space_switch(target, sources, source_names, name, attr_node, attr_name=None,
     pm.addAttr(attr_node, longName=attr_name, attributeType="enum", enumName=enum_name_string, keyable=1)
 
 
-    # ...Create space locators -----------------------------------------------------------------------------------------
+    #...Create space locators -----------------------------------------------------------------------------------------
     locs = []
 
     global_space_loc = pm.spaceLocator(name="{}{}_global_SPACE".format(side_tag, name))
@@ -1061,7 +1061,7 @@ def space_switch(target, sources, source_names, name, attr_node, attr_name=None,
         gen_utils.convert_offset(loc)
 
 
-    # ...Create driver network -----------------------------------------------------------------------------------------
+    #...Create driver network -----------------------------------------------------------------------------------------
     blend = gen_utils.create_attr_blend_nodes(attr=attr_name, node=attr_node, reverse=False)
 
     blend_matrix = node_utils.blendMatrix(inputMatrix=local_locs[0].worldMatrix,

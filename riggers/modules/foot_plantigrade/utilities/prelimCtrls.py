@@ -37,7 +37,7 @@ PrelimControl = class_PrelimControl.PrelimControl
 
 
 
-def create_prelim_ctrls(side=None, is_driven_side=None):
+def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
 
     prelim_ctrls = {
 
@@ -54,7 +54,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation = {"match_to": "ball"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side
+            is_driven_side = is_driven_side,
+            match_transform="ball",
+            module_ctrl=module_ctrl
         ),
 
         "ik_toe": PrelimControl(
@@ -69,7 +71,9 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "ball"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side
+            is_driven_side=is_driven_side,
+            match_transform="ball",
+            module_ctrl=module_ctrl
         ),
 
 

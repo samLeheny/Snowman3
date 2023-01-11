@@ -28,7 +28,7 @@ importlib.reload(prelimCtrls)
 def build(armature_module):
 
 
-    # ...Reverse pole vector elbow
+    #...Reverse pole vector elbow
     pv_loc = armature_module.placers["ik_knee"].install_reverse_ik(
         pv_chain_mid=armature_module.placers["calf"].mobject,
         limb_start=armature_module.placers["thigh"].mobject,
@@ -38,12 +38,12 @@ def build(armature_module):
     pv_loc.setParent(armature_module.rig_subGrps["extra_systems"])
 
 
-    # ...Position module
+    #...Position module
     armature_module.position_module()
 
 
 
-    # ...Preliminary controls ------------------------------------------------------------------------------------------
+    #...Preliminary controls ------------------------------------------------------------------------------------------
     ctrls_dict = prelimCtrls.create_prelim_ctrls(side=armature_module.side,
                                                  is_driven_side=armature_module.is_driven_side)
     armature_module.create_prelim_ctrls()

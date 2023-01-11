@@ -47,16 +47,16 @@ connect_pair
 ########################################################################################################################
 def get_modules_in_armature(armature):
 
-    # ...Get all attributes in the provided armature MObject
+    #...Get all attributes in the provided armature MObject
     search = pm.listAttr(armature)
 
-    # ...Isolate only those attributes starting with "Module_"
+    #...Isolate only those attributes starting with "Module_"
     module_hooks = []
     for attr in search:
         if attr.startswith("Module_"):
             module_hooks.append(attr)
 
-    # ...Follow those attributes to module MObjects, and use the attributes as tags
+    #...Follow those attributes to module MObjects, and use the attributes as tags
     modules = {}
     for attr_name in module_hooks:
         search = pm.listConnections(armature + "." + attr_name, s=1, d=0)
@@ -85,13 +85,13 @@ def check_if_constrained(obj):
 
     constrained_status = False
 
-    # ...Get all nodes driving provided object via translation
+    #...Get all nodes driving provided object via translation
     connected_nodes = []
     for attr_name in ("translate", "tx", "ty", "tz"):
         possible_connection = pm.listConnections(obj + "." + attr_name, s=1, d=0)
         connected_nodes.append(possible_connection[0]) if possible_connection else None
 
-    # ...Check if any of these nodes are constraint nodes
+    #...Check if any of these nodes are constraint nodes
     for node in connected_nodes:
         if node.nodeType() in ("pointConstraint", "parentConstraint"):
             constrained_status = True
@@ -108,7 +108,7 @@ def get_outgoing_constraints(obj):
 
     driver_status = False
 
-    # ...Get any nodes coming from object's translation
+    #...Get any nodes coming from object's translation
     constraint_nodes = []
     for attr_name in ("translate", "rotate", "scale"):
         connected_nodes = pm.listConnections(obj + "." + attr_name, d=1, s=0)
@@ -218,10 +218,10 @@ def get_module_from_placer(obj, return_tag=False):
 ########################################################################################################################
 def get_placers_in_module(module):
 
-    # ...Get module control
+    #...Get module control
     ctrl = pm.listConnections(module + ".ModuleRootCtrl", s=1, d=0)[0]
 
-    # ...Get placers
+    #...Get placers
     placers = {}
     attr_string = "PlacerNodes"
     for attr_name in pm.listAttr(ctrl + "." + attr_string):
@@ -267,11 +267,11 @@ def get_piece_keys_from_module(module):
 ########################################################################################################################
 def connect_pair(obj, attrs=()):
 
-    # ...Determine driver and follower placers in placer pair
+    #...Determine driver and follower placers in placer pair
     driver_obj = obj
     receiver_obj = gen_utils.get_opposite_side_obj(driver_obj)
 
-    # ...Drive translation
+    #...Drive translation
     for attr in attrs:
         if not pm.attributeQuery(attr, node=driver_obj, exists=1):
             continue

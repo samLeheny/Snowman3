@@ -1,4 +1,4 @@
-### ...Full Body #########################################################################
+###...Full Body #########################################################################
 import importlib
 import pymel.core as pm
 import maya.cmds as mc
@@ -9,15 +9,15 @@ import Snowman3.riggers.IO.armature_IO as IO
 importlib.reload(IO)
 ArmatureDataIO = IO.ArmatureDataIO
 
-# ...New Scene
+#...New Scene
 mc.file(new=True, f=True)
 
-# ...Build armature
+#...Build armature
 rig = builder.build_prefab_armature(
     prefab_tag = "biped",
     symmetry_mode = "Left drives Right")
     
-# ...Build rig
+#...Build rig
 builder.build_rig_in_scene(
     armature=pm.ls("::biped_ARMATURE", type="transform")[0],
     asset_name="test")

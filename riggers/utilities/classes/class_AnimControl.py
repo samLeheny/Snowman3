@@ -93,13 +93,13 @@ class AnimControl:
     ####################################################################################################################
     def initialize_anim_ctrl(self, existing_obj=None, parent=None):
 
-        # ...If an existing object was provided, rename it and denote it as the initialized control object
+        #...If an existing object was provided, rename it and denote it as the initialized control object
         if existing_obj:
             self.convert_existing_obj_to_ctrl(existing_obj)
             return self.ctrl_transform
 
-        # ...Or -------------------
-        # ...Create an empty transform node to serve as control (it will get a shape later)
+        #...Or -------------------
+        #...Create an empty transform node to serve as control (it will get a shape later)
         self.new_ctrl_transform(parent=parent)
         return self.ctrl_transform
 
@@ -124,7 +124,7 @@ class AnimControl:
                                              name=f'{self.side_tag}{self.ctrl_name_tag}_{nom.animCtrl}', au=1)
         self.ctrl_transform.setParent(parent) if parent else None
 
-        # ...Position control
+        #...Position control
         self.position_ctrl(self.ctrl_transform)
 
 
@@ -136,29 +136,29 @@ class AnimControl:
 
         temp_loc, match_transform_obj = None, None
 
-        # ...Get corresponding prelim ctrl if none was provided
+        #...Get corresponding prelim ctrl if none was provided
         if not self.prelim_ctrl:
             self.prelim_ctrl = self.get_prelim_ctrl()
 
         if not self.match_transform:
-            # ...Get corresponding prelim control in scene
+            #...Get corresponding prelim control in scene
             match_transform_obj = self.prelim_ctrl if self.prelim_ctrl else None
 
-        # ...Matching ctrl -
+        #...Matching ctrl -
         else:
-            # ... - to its module's root ctrl
+            #... - to its module's root ctrl
             if self.match_transform == 'module_ctrl':
                 match_transform_obj = self.module_ctrl_obj
-            # ... - to its prelim ctrl's shape's center
+            #... - to its prelim ctrl's shape's center
             elif self.match_transform == 'center to prelim':
                 match_transform_obj = temp_loc = self.prep_center_ctrl_to_prelim_ctrl(ctrl)
-            # ... - to its orienter
+            #... - to its orienter
             else:
                 match_transform_obj = temp_loc = self.prep_center_ctrl_to_orienter(ctrl)
 
-        # ...Put ctrl into final position
+        #...Put ctrl into final position
         pm.matchTransform(ctrl, match_transform_obj)
-        # ...Do away with any temp locator
+        #...Do away with any temp locator
         pm.delete(temp_loc) if temp_loc else None
 
 
@@ -168,16 +168,16 @@ class AnimControl:
     ####################################################################################################################
     def prep_center_ctrl_to_prelim_ctrl(self, ctrl):
 
-        # ...Get center of prelim ctrl's shape
+        #...Get center of prelim ctrl's shape
         center_coord = gen_utils.get_shape_center(self.prelim_ctrl)
-        # ...Create temporary locator that matches prelim ctrl's position
+        #...Create temporary locator that matches prelim ctrl's position
         temp_loc = pm.spaceLocator()
         temp_loc.setParent(self.prelim_ctrl)
         gen_utils.zero_out(temp_loc)
         temp_loc.setParent(world=1)
-        # ...Ensure locator is at the center of prelim ctrl's shape, while retaining prelim ctrl's rotate and scale
+        #...Ensure locator is at the center of prelim ctrl's shape, while retaining prelim ctrl's rotate and scale
         temp_loc.translate.set(center_coord)
-        # ...Put locator alongside control
+        #...Put locator alongside control
         temp_loc.setParent(ctrl.getParent())
 
         return temp_loc
@@ -189,12 +189,12 @@ class AnimControl:
     ####################################################################################################################
     def prep_center_ctrl_to_orienter(self, ctrl):
 
-        # ...Match temp locator to corresponding orienter
+        #...Match temp locator to corresponding orienter
         ori = pm.ls(f'::{self.side_tag}{self.match_transform}_{nom.orienter}')[0]
         temp_loc = pm.spaceLocator()
         temp_loc.setParent(ori)
         gen_utils.zero_out(temp_loc)
-        # ...Put locator alongside ctrl and make loc the match transform object
+        #...Put locator alongside ctrl and make loc the match transform object
         temp_loc.setParent(ctrl.getParent())
 
         return temp_loc
@@ -206,13 +206,13 @@ class AnimControl:
     ####################################################################################################################
     def copy_shape_from_prelim(self, delete_existing_shapes=False, keep_original=True):
 
-        # ...Get corresponding prelim control in scene
+        #...Get corresponding prelim control in scene
         self.get_prelim_ctrl() if not self.prelim_ctrl else None
 
         for attr in gen_utils.all_transform_attrs:
             gen_utils.break_connections(f'{self.prelim_ctrl}.{attr}')
 
-        # ...Copy shape across
+        #...Copy shape across
         gen_utils.copy_shapes(self.prelim_ctrl, self.ctrl_transform, delete_existing_shapes=delete_existing_shapes,
                               keep_original=keep_original)
 
@@ -223,10 +223,10 @@ class AnimControl:
     ####################################################################################################################
     def transfer_locks_from_prelim(self):
 
-        # ...Get corresponding prelim control in scene
+        #...Get corresponding prelim control in scene
         self.get_prelim_ctrl() if not self.prelim_ctrl else None
 
-        # ...Transfer lock information from prelim control to final control
+        #...Transfer lock information from prelim control to final control
         attr = 'LockAttrData'
         if pm.attributeQuery(attr, node=self.prelim_ctrl, exists=1):
             pm.addAttr(self.ctrl_transform, longName=attr, keyable=0, attributeType='compound', numberOfChildren=4)

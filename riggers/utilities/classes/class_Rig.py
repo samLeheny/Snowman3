@@ -107,10 +107,10 @@ class Rig:
 
         armature_module = None
 
-        # ...Look for Armature modules attributes on provided armature node
+        #...Look for Armature modules attributes on provided armature node
         attr_string = f'Module_{key}'
         if pm.attributeQuery(attr_string, node=self.armature, exists=1):
-            # ...Find the string attribute that matches provided key
+            #...Find the string attribute that matches provided key
             in_connections = pm.listConnections(f'{self.armature}.{attr_string}', s=1, d=0)
             if in_connections:
                 armature_module = in_connections[0]
@@ -188,15 +188,15 @@ class Rig:
         connection_pairs = get_armature_data.module_connections(self.rig_prefab_type, self.modules)
 
         for pair in connection_pairs:
-            # ...Create a locator to hold transforms
+            #...Create a locator to hold transforms
             loc = pm.spaceLocator(name=f'{gen_utils.get_clean_name(pair[1])}_SPACE')
-            # ...Match locator to rotate + scale of DRIVEN node (to account for modules in flipped space)
+            #...Match locator to rotate + scale of DRIVEN node (to account for modules in flipped space)
             loc.setParent(pair[1])
             gen_utils.zero_out(loc)
-            # ...Match locator to translate of DRIVER node (so scaling the driver won't offset the pivot position)
+            #...Match locator to translate of DRIVER node (so scaling the driver won't offset the pivot position)
             loc.setParent(pair[0])
             loc.translate.set(0, 0, 0)
-            # ...Constraint DRIVEN node to locator (with offset!)
+            #...Constraint DRIVEN node to locator (with offset!)
             pm.parentConstraint(loc, pair[1], mo=1)
 
 
@@ -206,7 +206,7 @@ class Rig:
     ####################################################################################################################
     def populate_rig(self):
 
-        # ...Get information from armature
+        #...Get information from armature
         self.create_root_groups()
         self.get_module_types()
 
@@ -224,18 +224,18 @@ class Rig:
                 piece_keys=arm_utils.get_piece_keys_from_module(armature_module)
             )
 
-        # ...Build modules in scene
+        #...Build modules in scene
         [module.populate_rig_module(rig_parent=self.rig_grp) for module in self.modules.values()]
 
-        # ...Populate sided modules dictionary
+        #...Populate sided modules dictionary
         for key, module in self.modules.items():
             if module.side in (nom.leftSideTag, nom.rightSideTag):
                 self.sided_modules[module.side][key] = module
 
-        # ...Connect modules to each other as specified in each module
+        #...Connect modules to each other as specified in each module
         self.perform_module_attr_handoffs()
 
-        # ...
+        #...
         self.attach_modules()
 
 

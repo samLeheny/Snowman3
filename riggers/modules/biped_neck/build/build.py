@@ -80,7 +80,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Bind joints ---------------------------------------------------------------------------------------------------
+    #...Bind joints ---------------------------------------------------------------------------------------------------
     jnts = {"head": rig_utils.joint(name="head", joint_type=nom.bindJnt, radius=1.25, side=rig_module.side)}
 
     jnts["head"].setParent(ctrls["head"])
@@ -88,7 +88,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...
+    #...
     temp_neck_aimer = pm.spaceLocator(name="neck_aimer_TEMP")
     pm.delete(pm.pointConstraint(ctrls["neck"], temp_neck_aimer))
     pm.delete(pm.aimConstraint(ctrls["head"], temp_neck_aimer, worldUpType="object", worldUpObject=up_obj,
@@ -111,11 +111,11 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Roll joint system ---------------------------------------------------------------------------------------------
+    #...Roll joint system ---------------------------------------------------------------------------------------------
     pm.addAttr(ctrls["settings"], longName="NeckLen", attributeType="float", minValue=0.001, defaultValue=1, keyable=1)
 
 
-    # ...Rollers
+    #...Rollers
     neck_roller = rig_utils.limb_rollers(start_node = stretch_socket, #ctrls["neck"],
                                          end_node = stretch_out_socket, #ctrls["head"],
                                          roller_name = 'neck',
@@ -125,12 +125,12 @@ def build(rig_module, rig_parent=None):
                                          parent = rig_module.no_transform_grp,
                                          side = rig_module.side)
 
-    # ...Ribbon
+    #...Ribbon
     ribbon_up_vector = (0, 0, -1)
     if rig_module.side == nom.rightSideTag:
         ribbon_up_vector = (0, 0, 1)
 
-    # ...Create ribbons
+    #...Create ribbons
     neck_ribbon = rig_utils.ribbon_plane(name="neck", start_obj=stretch_socket, end_obj=stretch_out_socket,
                                          up_obj=up_obj, density=jnt_resolution, side=rig_module.side,
                                          up_vector=ribbon_up_vector)
@@ -138,13 +138,13 @@ def build(rig_module, rig_parent=None):
     neck_ribbon["nurbsStrip"].scale.set(1, 1, 1)
 
 
-    # ...Skin ribbons
+    #...Skin ribbons
     pm.select(neck_roller['jnts'][0], neck_roller['jnts'][1], neck_roller['jnts'][2], replace=1)
     pm.select(neck_ribbon["nurbsStrip"], add=1)
     pm.skinCluster(maximumInfluences=1, toSelectedBones=1)
 
 
-    # ...Tweak ctrls
+    #...Tweak ctrls
     neck_length = node_utils.multDoubleLinear(input1=ctrls["settings"] + "." + "NeckLen",
                                               input2= gen_utils.distance_between(obj_1=ctrls["neck"],
                                                                                  obj_2=ctrls["head"]))
@@ -198,7 +198,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Attach neck rig to greater rig --------------------------------------------------------------------------------
+    #...Attach neck rig to greater rig --------------------------------------------------------------------------------
     '''if rig_space_connector:
         gen_utils.matrix_constraint(objs=[rig_space_connector, rig_connector], decompose=True,
                                     translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''

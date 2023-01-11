@@ -75,14 +75,14 @@ class ArmatureModuleHandle:
     ####################################################################################################################
     def create(self):
 
-        # ...Assemble data with which to build controls
+        #...Assemble data with which to build controls
         ctrl_data = {"name": self.name,
                      "shape": self.shape,
                      "color": self.color,
                      "locks": self.locks,
                      "scale": self.scale}
 
-        # ...Create control
+        #...Create control
         self.mobject = rig_utils.control(ctrl_info=ctrl_data, ctrl_type="setup_ctrl", side=self.side,
                                          parent=self.parent)
 
@@ -106,14 +106,14 @@ class ArmatureModuleHandle:
     def make_benign(self, hide=True):
 
         if hide:
-            # ...Hide ctrl shape
+            #...Hide ctrl shape
             for shape in self.mobject.getShapes():
                 shape.visibility.set(0, lock=1) if not shape.visibility.get(lock=1) else None
 
-        # ...Lock attributes
+        #...Lock attributes
         [pm.setAttr(self.mobject + "." + attr, lock=1, keyable=0) for attr in gen_utils.keyable_attrs]
 
-        # ...Dull ctrl color
+        #...Dull ctrl color
         self.dull_color()
 
 

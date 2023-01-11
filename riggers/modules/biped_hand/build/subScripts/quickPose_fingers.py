@@ -39,7 +39,7 @@ def install(quick_pose_ctrl, finger_rigs):
     quickPose_ctrl.tz.connect(unit_convert.input)
     unit_convert.conversionFactor.set(-0.1)
 
-    # ...Create curl transforms above each segment in fingers (exclude metacarpals)
+    #...Create curl transforms above each segment in fingers (exclude metacarpals)
     for key in finger_keys:
 
         finger = finger_rigs[key]

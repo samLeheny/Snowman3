@@ -46,7 +46,7 @@ finger_keys = ['index', 'middle', 'ring', 'pinky']
 #def build(rig_module=None, rig_parent=None, rig_space_connector=None):
 def build(rig_module, rig_parent=None):
 
-    # ...Controls ------------------------------------------------------------------------------------------------------
+    #...Controls ------------------------------------------------------------------------------------------------------
     ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
     ctrls = rig_module.ctrls
     for key in ctrl_data:
@@ -66,18 +66,18 @@ def build(rig_module, rig_parent=None):
     '''
 
 
-    # ...Finger rigs ---------------------------------------------------------------------------------------------------
+    #...Finger rigs ---------------------------------------------------------------------------------------------------
 
     finger_rigs = {}
 
     def build_finger_rig(finger_dict, seg_count=4, has_metacarpal=True):
 
-        # ...If a non-Thumb finger, include zero segment (the metacarpal)
+        #...If a non-Thumb finger, include zero segment (the metacarpal)
         start_index = 0 if has_metacarpal else 1
 
         prev_seg_connector = None
 
-        # ...Run procedure for each segment in finger
+        #...Run procedure for each segment in finger
         for i in range(start_index, start_index + seg_count):
 
             n = str(i) if i > 0 else "meta"
@@ -107,7 +107,7 @@ def build(rig_module, rig_parent=None):
                 finger_dict['root'] = finger_root
 
 
-            # ...Compose segment output dictionary
+            #...Compose segment output dictionary
             finger_dict['segs'].append({'jnt': jnt,
                                        'ctrl': ctrl})
 
@@ -154,7 +154,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Quick Pose control --------------------------------------------------------------------------------------------
+    #...Quick Pose control --------------------------------------------------------------------------------------------
     quickPose_fingers.install(ctrls['quickPose_fingers'], finger_rigs)
     '''quickPose_ctrl = ctrls['quickPose_fingers']
 
@@ -162,7 +162,7 @@ def build(rig_module, rig_parent=None):
     quickPose_ctrl.tz.connect(unit_convert.input)
     unit_convert.conversionFactor.set(-0.1)
 
-    # ...Create curl transforms above each segment in fingers (exclude metacarpals)
+    #...Create curl transforms above each segment in fingers (exclude metacarpals)
     for key in finger_keys:
 
         finger = finger_rigs[key]
@@ -196,7 +196,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Clean control transforms --------------------------------------------------------------------------------------
+    #...Clean control transforms --------------------------------------------------------------------------------------
     for ctrl in ctrls.values():
         gen_utils.convert_offset(ctrl)
 

@@ -112,8 +112,8 @@ def execute(modules):
     pm.namespace(removeNamespace=":{}".format(nom.finalRigNamespace), mergeNamespaceWithRoot=True)
 
 
-    # ...Lock control transforms (this should be done in each rig module on creation, but in case any controls managed
-    # ...to slip through...) (Also lock vis attr) ----------------------------------------------------------------------
+    #...Lock control transforms (this should be done in each rig module on creation, but in case any controls managed
+    #...to slip through...) (Also lock vis attr) ----------------------------------------------------------------------
     for ctrl in pm.ls("*_{}".format(nom.animCtrl), type="transform"):
         rig_utils.apply_ctrl_locks(ctrl)
         ctrl.visibility.set(lock=1, keyable=0)

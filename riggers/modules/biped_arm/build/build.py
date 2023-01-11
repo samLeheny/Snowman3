@@ -41,7 +41,7 @@ def build(rig_module, rig_parent=None):
     side_tag = rig_module.side_tag
 
 
-    # ...Create limb rig -----------------------------------------------------------------------------------------------
+    #...Create limb rig -----------------------------------------------------------------------------------------------
     limb_rig = LimbRig(limb_name = rig_module.name,
                        side = rig_module.side,
                        prefab = 'plantigrade',
@@ -53,16 +53,16 @@ def build(rig_module, rig_parent=None):
                        pv_position = pm.xform(orienters['ik_elbow'], q=1, ws=1, rp=1)
                        )
 
-    # ...Conform LimbRig's PV ctrl orientation to that of PV orienter
+    #...Conform LimbRig's PV ctrl orientation to that of PV orienter
     pv_ctrl_buffer = limb_rig.ctrls['ik_pv'].getParent()
     pm.delete(pm.orientConstraint(orienters['ik_elbow'], pv_ctrl_buffer))
     pm.delete(pm.scaleConstraint(orienters['ik_elbow'], pv_ctrl_buffer))
 
-    # ...Move contents of limb rig into biped_arm rig module's groups
+    #...Move contents of limb rig into biped_arm rig module's groups
     [child.setParent(rig_module.transform_grp) for child in limb_rig.grps['transform'].getChildren()]
     [child.setParent(rig_module.no_transform_grp) for child in limb_rig.grps['noTransform'].getChildren()]
 
-    # ...Migrate Rig Scale attr over to new rig group
+    #...Migrate Rig Scale attr over to new rig group
     for plug in pm.listConnections(f'{limb_rig.grps["root"]}.RigScale', destination=1, plugs=1):
         pm.connectAttr(f'{rig_module.rig_module_grp}.RigScale', plug, force=1)
     for plug in pm.listConnections(f'{limb_rig.grps["root"]}.RigScale', source=1, plugs=1):
@@ -72,7 +72,7 @@ def build(rig_module, rig_parent=None):
 
 
 
-    # ...Controls ------------------------------------------------------------------------------------------------------
+    #...Controls ------------------------------------------------------------------------------------------------------
     ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
     ctrls = rig_module.ctrls
 
@@ -89,16 +89,16 @@ def build(rig_module, rig_parent=None):
         ctrl_data[ctrl_str].finalize_anim_ctrl(delete_existing_shapes=True)
 
 
-    # ...Attach biped_arm rig to greater rig ---------------------------------------------------------------------------
+    #...Attach biped_arm rig to greater rig ---------------------------------------------------------------------------
     '''gen_utils.matrix_constraint(objs=[rig_space_connector, ctrls["shoulder_pin"].getParent()], decompose=True,
                                 translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
 
 
-    # ...Hand connection transform -------------------------------------------------------------------------------------
+    #...Hand connection transform -------------------------------------------------------------------------------------
     rig_module.wrist_socket = limb_rig.blend_jnts[-2]
 
 
-    # ...
+    #...
     ###gen_utils.convert_offset(ctrls["fk_upperarm"].getParent())
 
 

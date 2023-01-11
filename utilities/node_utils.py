@@ -75,18 +75,18 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
     }
 
 
-    # ...Create node
+    #...Create node
     if name:
         node = pm.shadingNode("floatMath", name=name, asUtility=1)
     else:
         node = pm.shadingNode("floatMath", asUtility=1)
 
 
-    # ...Pass arguments to floatMath input attributes 'floatA' and 'floatB'. If the provided arguments are numeric
-    # ...types, set the attributes to match them. If they are mObject attributes, connect them to the floatMath node's
-    # ...input attributes.
+    #...Pass arguments to floatMath input attributes 'floatA' and 'floatB'. If the provided arguments are numeric
+    #...types, set the attributes to match them. If they are mObject attributes, connect them to the floatMath node's
+    #...input attributes.
 
-    # ...floatA
+    #...floatA
     if floatA:
 
         if isinstance(floatA, (int, float)):
@@ -94,7 +94,7 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
         else:
             pm.connectAttr(floatA, node.floatA)
 
-    # ...floatB
+    #...floatB
     if floatB:
 
         if isinstance(floatB, (int, float)):
@@ -104,7 +104,7 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
 
 
 
-    # ...Set floatMath node's operation attribute
+    #...Set floatMath node's operation attribute
     if isinstance(operation, int):
         pass
     elif isinstance(operation, str):
@@ -115,7 +115,7 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
 
 
 
-    # ....Connect node's outFloat attribute to its destination
+    #....Connect node's outFloat attribute to its destination
     if outFloat:
         node.outFloat.connect(outFloat)
 
@@ -141,17 +141,17 @@ def floatConstant(name=None, inFloat=None, outFloat=None):
     """
 
 
-    # ...Create node
+    #...Create node
     if name:
         node = pm.shadingNode("floatConstant", name=name, asUtility=1)
     else:
         node = pm.shadingNode("floatConstant", asUtility=1)
 
 
-    # ...Pass arguments to floatConstant inFloat attribute 'inFloat'. If the provided argument is numeric type, set the
-    # ...attribute to match it. If it is an mObject attribute, connect it to the node's inFloat attribute.
+    #...Pass arguments to floatConstant inFloat attribute 'inFloat'. If the provided argument is numeric type, set the
+    #...attribute to match it. If it is an mObject attribute, connect it to the node's inFloat attribute.
 
-    # ...inFloat
+    #...inFloat
     if inFloat:
 
         if isinstance(inFloat, (int, float)):
@@ -160,7 +160,7 @@ def floatConstant(name=None, inFloat=None, outFloat=None):
             inFloat.connect(node.inFloat)
 
 
-    # ....Connect node's outFloat attribute to its destination
+    #....Connect node's outFloat attribute to its destination
     if outFloat:
         node.outFloat.connect(outFloat)
 
@@ -189,19 +189,19 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
 
 
 
-    # ...Create multDoubleLinear node
+    #...Create multDoubleLinear node
     if name:
         node = pm.shadingNode("addDoubleLinear", name=name, asUtility=1)
     else:
         node = pm.shadingNode("addDoubleLinear", asUtility=1)
 
-    # ...Pass arguments to addDoubleLinear input attributes 'input1' and 'input2'. If the provided arguments are numeric
-    # ...types, set the attributes to match them. If they are mObject attributes, connect them to the addDoubleLinear
-    # ...node's input attributes.
+    #...Pass arguments to addDoubleLinear input attributes 'input1' and 'input2'. If the provided arguments are numeric
+    #...types, set the attributes to match them. If they are mObject attributes, connect them to the addDoubleLinear
+    #...node's input attributes.
 
 
 
-    # ...input1
+    #...input1
     if input1:
 
         if isinstance(input1, (int, float)):
@@ -209,7 +209,7 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
         else:
             pm.connectAttr(input1, node.input1)
 
-    # ...input2
+    #...input2
     if input2:
 
         if isinstance(input2, (int, float)):
@@ -219,7 +219,7 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
 
 
 
-    # ...Connect node's output attribute to its destination
+    #...Connect node's output attribute to its destination
     if output:
         if not isinstance(output, (tuple, list)):
             node.output.connect(output, force=1)
@@ -250,17 +250,17 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
     """
 
 
-    # ...Create multDoubleLinear node
+    #...Create multDoubleLinear node
     if name:
         node = pm.shadingNode("multDoubleLinear", name=name, asUtility=1)
     else:
         node = pm.shadingNode("multDoubleLinear", asUtility=1)
 
-    # ...Pass arguments to multDoubleLinear input attributes 'input1' and 'input2'. If the provided arguments are
-    # ...numeric types, set the attributes to match them. If they are mObject attributes, connect them to the
-    # ...multDoubleLinear node's input attributes.
+    #...Pass arguments to multDoubleLinear input attributes 'input1' and 'input2'. If the provided arguments are
+    #...numeric types, set the attributes to match them. If they are mObject attributes, connect them to the
+    #...multDoubleLinear node's input attributes.
 
-    # ...input1
+    #...input1
     if input1:
 
         if isinstance(input1, (int, float)):
@@ -268,7 +268,7 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
         else:
             pm.connectAttr(input1, node.input1)
 
-    # ...input2
+    #...input2
     if input2:
 
         if isinstance(input2, (int, float)):
@@ -278,7 +278,7 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
 
 
 
-    # ...Connect node's output attribute to its destination
+    #...Connect node's output attribute to its destination
     if output:
         pm.connectAttr(node.output, output)
 
@@ -406,7 +406,7 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
 
 
 
-    # ...Create node
+    #...Create node
     node = None
     if name:
         node = pm.shadingNode("pointOnSurfaceInfo", name=name, au=1)
@@ -414,7 +414,7 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
         node = pm.shadingNode("pointOnSurfaceInfo", au=1)
 
 
-    # ...Plug in input surface
+    #...Plug in input surface
     if inputSurface:
         if inputSurface.nodeType() != "nurbsSurface":
             pm.error("Invalid argument given to parameter: '{0}'. Needs node type: '{1}'".format("input_surface",
@@ -425,7 +425,7 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
             pm.connectAttr(inputSurface.worldSpace, node + ".inputSurface")
 
 
-    # ...Set parameters
+    #...Set parameters
     if isinstance(turnOnPercentage, bool):
         node.turnOnPercentage.set(turnOnPercentage)
     else:
@@ -445,7 +445,7 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
 
 
 
-    # ...Connect outputs (if provided)
+    #...Connect outputs (if provided)
     pm.connectAttr(resultPosition, node.result.position) if resultPosition else None
     pm.connectAttr(resultNormal, node.result.normal) if resultNormal else None
     pm.connectAttr(resultNormalizedNormal, node.result.normalizedNormal) if resultNormalizedNormal else None
@@ -466,7 +466,7 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
 def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=None):
 
 
-    # ...Derive correct numerical value for operation arg if provided arg is a string
+    #...Derive correct numerical value for operation arg if provided arg is a string
     if operation:
         if isinstance(operation, str):
             operation_strings = {0: ["None", "none", "noOperation", "no_operation", "no operation", "0"],
@@ -480,14 +480,14 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
                 break
 
 
-    # ...Create node
+    #...Create node
     if name:
         node = pm.shadingNode("multiplyDivide", name=name, au=1)
     else:
         node = pm.shadingNode("multiplyDivide", au=1)
 
 
-    # ...input1
+    #...input1
     input1_array = ["input1X", "input1Y", "input1Z"]
 
     if input1:
@@ -501,7 +501,7 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
         else:
             pm.connectAttr(input1, node.input1)
 
-    # ...input2
+    #...input2
     input2_array = ["input2X", "input2Y", "input2Z"]
 
     if input2:
@@ -516,7 +516,7 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
             pm.connectAttr(input2, node.input2)
 
 
-    # ...operation
+    #...operation
     if operation:
         if isinstance(operation, (int, float)):
             pm.setAttr(node.operation, operation)
@@ -524,7 +524,7 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
             pm.connectAttr(operation, node.operation)
 
 
-    # ...output
+    #...output
     output_array = ["outputX", "outputY", "outputZ"]
 
     if output:
