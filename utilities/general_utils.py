@@ -2645,9 +2645,10 @@ def get_attr_data(attr, node):
 def migrate_attr(old_node, new_node, attr, include_connections=True, remove_original=True):
 
 
-    #...If attribute conflicts with an attribute already on new node, remove it
+    #...If attribute conflicts with an attribute already on new node, merge them
     if pm.attributeQuery(attr, node=new_node, exists=1):
-        pm.deleteAttr(f'{new_node}.{attr}')
+        migrate_connections(f'{old_node}.{attr}', f'{new_node}.{attr}')
+        return
 
     attr_data = get_attr_data(attr, old_node)
 

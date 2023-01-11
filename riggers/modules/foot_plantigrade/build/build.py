@@ -48,8 +48,8 @@ importlib.reload(ikFoot)
 #def build(rig_module, rig_parent=None, settings_ctrl=None, foot_roll_ctrl=None):
 def build(rig_module, rig_parent=None):
 
-    foot_attr_loc = pm.spaceLocator()
-    leg_attr_loc = pm.spaceLocator()
+    rig_module.foot_attr_loc = pm.spaceLocator()
+    rig_module.leg_attr_loc = pm.spaceLocator()
 
 
     ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
@@ -61,16 +61,16 @@ def build(rig_module, rig_parent=None):
     [ctrls[key].setParent(rig_module.transform_grp) for key in ctrl_data]
 
     #...Ensure a kinematic blend attribute is present on given control
-    if not pm.attributeQuery("fkIk", node=leg_attr_loc, exists=1):
-        pm.addAttr(leg_attr_loc, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0, maxValue=10,
-                   defaultValue=10, keyable=1)
+    if not pm.attributeQuery("fkIk", node=rig_module.leg_attr_loc, exists=1):
+        pm.addAttr(rig_module.leg_attr_loc, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0,
+                   maxValue=10, defaultValue=10, keyable=1)
 
-        kinematic_blend_mult = gen_utils.create_attr_blend_nodes(attr="fkIk", node=leg_attr_loc)
-        kinematic_blend_rev = gen_utils.create_attr_blend_nodes(attr="fkIk", node=leg_attr_loc, reverse=True)
+        kinematic_blend_mult = gen_utils.create_attr_blend_nodes(attr="fkIk", node=rig_module.leg_attr_loc)
+        kinematic_blend_rev = gen_utils.create_attr_blend_nodes(attr="fkIk", node=rig_module.leg_attr_loc, reverse=True)
 
 
-    kinematic_blend_mult = gen_utils.get_attr_blend_nodes(attr="fkIk", node=leg_attr_loc, mult=True)
-    kinematic_blend_rev = gen_utils.get_attr_blend_nodes(attr="fkIk", node=leg_attr_loc, reverse=True)
+    kinematic_blend_mult = gen_utils.get_attr_blend_nodes(attr="fkIk", node=rig_module.leg_attr_loc, mult=True)
+    kinematic_blend_rev = gen_utils.get_attr_blend_nodes(attr="fkIk", node=rig_module.leg_attr_loc, reverse=True)
 
     kinematic_blend_mult.connect(ctrls["ik_toe"].visibility)
     kinematic_blend_rev.connect(ctrls["fk_toe"].visibility)
@@ -102,7 +102,7 @@ def build(rig_module, rig_parent=None):
 
     #...IK rig
     ik_foot_rig = ikFoot.build(side=rig_module.side, parent=rig_module.transform_grp, bind_jnt_keys=bind_jnt_keys,
-                               orienters=rig_module.orienters, ctrls=ctrls, foot_roll_ctrl=foot_attr_loc)
+                               orienters=rig_module.orienters, ctrls=ctrls, foot_roll_ctrl=rig_module.foot_attr_loc)
     rig_module.ik_connector = ik_foot_rig["ik_connector"]
     ###rig_module.ik_chain_connector = ik_foot_rig["ik_chain_connector"]
     ik_jnts = rig_module.ik_jnts = ik_foot_rig["ik_jnts"]

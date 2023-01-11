@@ -22,65 +22,19 @@
 
 
 
-def create_handoffs():
+def create_handoffs(modules):
 
     hand_offs = {
 
-        "root": (
-        ),
+        (modules['spine'].ctrls['settings'], modules['root'].ctrls['cog'], True),
 
+        (modules['neck'].ctrls['settings'], modules['neck'].ctrls['neck'], True),
 
-        "spine": (
-            #("settings", ("root", "COG"), True),
-        ),
+        (modules['L_foot'].foot_attr_loc, modules['L_leg'].ctrls['ik_foot'], True),
+        (modules['L_foot'].leg_attr_loc, modules['L_leg'].ctrls['hip_pin'], True),
 
-        "neck": (
-            ("settings", ("neck", "neck"), True),
-        ),
-
-
-        "L_clavicle": (
-        ),
-
-
-        "R_clavicle": (
-        ),
-
-
-        "L_arm": (
-        ),
-
-
-        "R_arm": (
-        ),
-
-
-        "L_hand": (
-            ("settings", ("L_arm", "settings"), True),
-        ),
-
-
-        "R_hand": (
-            ("settings", ("R_arm", "settings"), True),
-        ),
-
-
-        "L_leg": (
-        ),
-
-
-        "R_leg": (
-        ),
-
-
-        "L_foot": (
-            ("settings", ("L_leg", "settings"), True),
-        ),
-
-
-        "R_foot": (
-            ("settings", ("R_leg", "settings"), True),
-        ),
+        (modules['R_foot'].foot_attr_loc, modules['R_leg'].ctrls['ik_foot'], True),
+        (modules['R_foot'].leg_attr_loc, modules['R_leg'].ctrls['hip_pin'], True),
 
     }
 

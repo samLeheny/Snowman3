@@ -159,24 +159,13 @@ class Rig:
 
         attr_exceptions = ("LockAttrData", "LockAttrDataT", "LockAttrDataR", "LockAttrDataS", "LockAttrDataV")
 
-        self.attr_handoffs = get_armature_data.attr_handoffs(self.rig_prefab_type)
+        self.attr_handoffs = get_armature_data.attr_handoffs(self.rig_prefab_type, self.modules)
 
-        for key, data in self.attr_handoffs.items():
-            for handoff in data:
-                if key in ("root", "spine", "neck", "L_clavicle", "R_clavicle", "L_arm", "R_arm"):
-                    module = self.modules[key]
-
-                    old_ctrl_key, new_ctrl_data, delete_old_ctrl = handoff
-                    old_ctrl = module.ctrls[old_ctrl_key]
-                    new_ctrl = self.modules[new_ctrl_data[0]].ctrls[new_ctrl_data[1]]
-
-                    attrs = pm.listAttr(old_ctrl, userDefined=1)
-                    [attrs.remove(a) if a in attrs else None for a in attr_exceptions]
-                    for attr in attrs:
-                        gen_utils.migrate_attr(old_ctrl, new_ctrl, attr)
-
-                    if delete_old_ctrl:
-                        pm.delete(old_ctrl)
+        for old_attr_node, new_attr_node, delete_old_node in self.attr_handoffs:
+            attrs = pm.listAttr(old_attr_node, userDefined=1)
+            [attrs.remove(a) if a in attrs else None for a in attr_exceptions]
+            [gen_utils.migrate_attr(old_attr_node, new_attr_node, a) for a in attrs]
+            pm.delete(old_attr_node) if delete_old_node else None
 
 
 
@@ -210,10 +199,7 @@ class Rig:
         self.create_root_groups()
         self.get_module_types()
 
-        #for key in armature_modules:
-        for key in ('root', 'spine', 'neck', 'L_clavicle', 'R_clavicle', 'L_arm', 'R_arm', 'L_hand', 'R_hand', 'L_leg',
-                    'R_leg', 'L_foot', 'R_foot'):
-
+        for key in self.armature_modules:
             armature_module = self.get_armature_module_mObj(key)
 
             self.modules[key] = RigModule(
@@ -227,16 +213,12 @@ class Rig:
         #...Build modules in scene
         [module.populate_rig_module(rig_parent=self.rig_grp) for module in self.modules.values()]
 
-        #...Populate sided modules dictionary
+        #...Compose dictionary if sided modules (left and right)
         for key, module in self.modules.items():
             if module.side in (nom.leftSideTag, nom.rightSideTag):
                 self.sided_modules[module.side][key] = module
 
-        #...Connect modules to each other as specified in each module
+        #...Transfer attributes between nodes in the rig as specified in the attr_handoffs data
         self.perform_module_attr_handoffs()
-
-        #...
+        #...Attach modules to each other in accordance with prefab's connection pairs data
         self.attach_modules()
-
-
-
