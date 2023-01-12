@@ -89,21 +89,18 @@ def build(rig_module, rig_parent=None):
                   ('hip_pin', limb_rig.ctrls['socket'])]
 
     for ctrl_str, ctrl_transform in ctrl_pairs:
-        ctrls[ctrl_str] = anim_ctrl_data[ctrl_str].initialize_anim_ctrl(
-            existing_obj=ctrl_transform)
-        anim_ctrl_data[ctrl_str].finalize_anim_ctrl(delete_existing_shapes=True)
+        ctrls[ctrl_str] = anim_ctrl_data[ctrl_str].initialize_anim_ctrl(existing_obj=ctrl_transform)
+
+    # ...IK Foot Follow control
+    anim_ctrl_data['ik_foot_follow'] = rig_module.ctrl_data['ik_foot_follow'].create_anim_ctrl()
+    ctrls['ik_foot_follow'] = anim_ctrl_data['ik_foot_follow'].initialize_anim_ctrl()
+
+    for c in anim_ctrl_data.values():
+        c.finalize_anim_ctrl(delete_existing_shapes=True)
 
 
-    # ------------------------------------------------------------------------------------------------------------------
-    '''hip_connector_loc = pm.spaceLocator("{}hipConnector_{}".format(rig_module.side_tag, nom.locator))
-    loc_buffer = gen_utils.buffer_obj(hip_connector_loc)
-    loc_buffer.setParent(ctrls["hip_pin"])
-    gen_utils.zero_out(loc_buffer)
-    loc_buffer.setParent(rig_space_connector)
-    pm.delete(pm.parentConstraint(ctrls["hip_pin"], hip_connector_loc))
+    ik_foot_follow_ctrl_buffer = gen_utils.buffer_obj(ctrls['ik_foot_follow'], parent=rig_module.transform_grp)
 
-    gen_utils.matrix_constraint(objs=[hip_connector_loc, ctrls["hip_pin"].getParent()], decompose=True,
-                                translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
 
 
     #...Give IK foot control world orientation ------------------------------------------------------------------------
@@ -116,9 +113,6 @@ def build(rig_module, rig_parent=None):
     rig_module.ik_ankle_ctrl_socket = ctrls["ik_foot"]
     rig_module.fk_ankle_ctrl_socket = ctrls['fk_foot']
     rig_module.ik_handle_plug = limb_rig.ik_handles["limb"].getParent()
-
-    #...
-    '''gen_utils.convert_offset(ctrls["fk_thigh"].getParent())'''
 
 
 

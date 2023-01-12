@@ -15,7 +15,7 @@ import pymel.core as pm
 
 
 ########################################################################################################################
-#############-------------------------------    TABLE OF CONTENTS    ------------------------------------###############
+################----------------------------    TABLE OF CONTENTS    ------------------------------------###############
 ########################################################################################################################
 '''
 floatMath
@@ -879,43 +879,43 @@ def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, 
     if targetMatrix:
         if not isinstance(targetMatrix, (list, tuple)):
             targetMatrix = (targetMatrix,)
-        [pm.connectAttr(tm, targ.targetMatrix) for tm, targ in zip(targetMatrix, node.target)]
+        [pm.connectAttr(tm, node.target[i].targetMatrix) for i, tm in enumerate(targetMatrix)]
 
 
     if useMatrix:
         if not isinstance(useMatrix, (list, tuple)):
             useMatrix = (useMatrix,)
-        [pm.connectAttr(um, targ.useMatrix) for um, targ in zip(useMatrix, node.target)]
+        [pm.connectAttr(um, node.target[i].useMatrix) for i, um in enumerate(useMatrix)]
 
 
     if weight:
         if not isinstance(weight, (list, tuple)):
             weight = (weight,)
-        [pm.connectAttr(w, targ.weight) for w, targ in zip(weight, node.target)]
+        [pm.connectAttr(w, node.target[i].weight) for i, w in enumerate(weight)]
 
 
     if useScale:
         if not isinstance(useScale, (list, tuple)):
             useScale = (useScale,)
-        [pm.connectAttr(us, targ.useScale) for us, targ in zip(useScale, node.target)]
+        [pm.connectAttr(us, node.target[i].useScale) for i, us in enumerate(useScale)]
 
 
     if useTranslate:
         if not isinstance(useTranslate, (list, tuple)):
             useTranslate = (useTranslate,)
-        [pm.connectAttr(ut, targ.useTranslate) for ut, targ in zip(useTranslate, node.target)]
+        [pm.connectAttr(ut, node.target[i].useTranslate) for i, ut in enumerate(useTranslate)]
 
 
     if useShear:
         if not isinstance(useShear, (list, tuple)):
             useShear = (useShear,)
-        [pm.connectAttr(us, targ.useShear) for us, targ in zip(useShear, node.target)]
+        [pm.connectAttr(us, node.target[i].useShear) for i, us in enumerate(useShear)]
 
 
     if useRotate:
         if not isinstance(useRotate, (list, tuple)):
             useRotate = (useRotate,)
-        [pm.connectAttr(ur, targ.useRotate) for ur, targ in zip(useRotate, node.target)]
+        [pm.connectAttr(ur, node.target[i].useRotate) for i, ur in enumerate(useRotate)]
 
 
 

@@ -147,7 +147,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             name='ik_hand_follow',
             shape='tetrahedron',
             size=[1.5, 1.5, 1.5],
-            shape_offset=[15, 10, 3],
+            shape_offset=[6, 10, 0],
             color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
             position=('upperarm',),
             orientation={'match_to': 'module_ctrl'},

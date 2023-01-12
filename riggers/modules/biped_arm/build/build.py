@@ -83,22 +83,23 @@ def build(rig_module, rig_parent=None):
                   ('shoulder_pin', limb_rig.ctrls['socket'])]
 
     for ctrl_str, ctrl_transform in ctrl_pairs:
-        ctrls[ctrl_str] = anim_ctrl_data[ctrl_str].initialize_anim_ctrl(
-            existing_obj=ctrl_transform)
-        anim_ctrl_data[ctrl_str].finalize_anim_ctrl(delete_existing_shapes=True)
+        ctrls[ctrl_str] = anim_ctrl_data[ctrl_str].initialize_anim_ctrl(existing_obj=ctrl_transform)
+
+    #...IK Hand Follow control
+    anim_ctrl_data['ik_hand_follow'] = rig_module.ctrl_data['ik_hand_follow'].create_anim_ctrl()
+    ctrls['ik_hand_follow'] = anim_ctrl_data['ik_hand_follow'].initialize_anim_ctrl()
+
+    for c in anim_ctrl_data.values():
+        c.finalize_anim_ctrl(delete_existing_shapes=True)
 
 
-    #...Attach biped_arm rig to greater rig ---------------------------------------------------------------------------
-    '''gen_utils.matrix_constraint(objs=[rig_space_connector, ctrls["shoulder_pin"].getParent()], decompose=True,
-                                translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
+    ik_hand_follow_ctrl_buffer = gen_utils.buffer_obj(ctrls['ik_hand_follow'], parent=rig_module.transform_grp)
+
 
 
     #...Hand connection transform -------------------------------------------------------------------------------------
     rig_module.wrist_socket = limb_rig.blend_jnts[-2]
 
-
-    #...
-    ###gen_utils.convert_offset(ctrls["fk_upperarm"].getParent())
 
 
 

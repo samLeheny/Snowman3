@@ -132,7 +132,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             name="ik_foot_follow",
             shape="tetrahedron",
             size=[2, 2, 2],
-            shape_offset=[15, 10, 3],
+            shape_offset=[10, 6, 0],
             color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
             position=("thigh",),
             orientation={"match_to": "module_ctrl"},
@@ -158,21 +158,6 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             side=side,
             is_driven_side=is_driven_side,
             match_transform = "thigh",
-            module_ctrl = module_ctrl
-        ),
-
-
-        "knee_pin": ControlData(
-            name="knee_pin",
-            shape="circle",
-            size=[7.5, 7.5, 7.5],
-            up_direction=[1, 0, 0],
-            color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
-            position=("calf",),
-            orientation={"match_to": ("thigh", "calf")},
-            locks={"v":1},
-            side=side,
-            is_driven_side=is_driven_side,
             module_ctrl = module_ctrl
         ),
 

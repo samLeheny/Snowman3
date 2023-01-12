@@ -59,6 +59,28 @@ def install_space_blends(modules):
             side=nom.leftSideTag,
             translate=False, rotate=True, scale=False
         )
+        rig_utils.space_blender(
+            target=modules[f'{side}_arm'].ctrls['ik_hand'].getParent(),
+            source=(modules[f'{side}_arm'].ctrls['ik_hand_follow']),
+            source_name='global',
+            name='ik_hand',
+            attr_node=modules[f'{side}_arm'].ctrls['ik_hand'],
+            attr_name='FollowSpace',
+            global_space_parent=modules['root'].ctrls['subRoot'],
+            translate=True, rotate=True, scale=True,
+            reverse=True, default_value=0
+        )
+        rig_utils.space_blender(
+            target=modules[f'{side}_arm'].ctrls['ik_elbow'].getParent(),
+            source=(modules[f'{side}_arm'].ctrls['ik_hand']),
+            source_name='global',
+            name='ik_elbow',
+            attr_node=modules[f'{side}_arm'].ctrls['ik_elbow'],
+            attr_name='GlobalSpace',
+            global_space_parent=modules['root'].ctrls['subRoot'],
+            translate=True, rotate=True, scale=False,
+            reverse=True
+        )
 
         #...Legs
         rig_utils.space_switch(
@@ -72,4 +94,26 @@ def install_space_blends(modules):
             global_space_parent=modules['root'].ctrls['subRoot'],
             side=nom.leftSideTag,
             translate=False, rotate=True, scale=False
+        )
+        rig_utils.space_blender(
+            target=modules[f'{side}_leg'].ctrls['ik_foot'].getParent(),
+            source=(modules[f'{side}_leg'].ctrls['ik_foot_follow']),
+            source_name='global',
+            name='ik_foot',
+            attr_node=modules[f'{side}_leg'].ctrls['ik_foot'],
+            attr_name='FollowSpace',
+            global_space_parent=modules['root'].ctrls['subRoot'],
+            translate=True, rotate=True, scale=True,
+            reverse=True, default_value=0
+        )
+        rig_utils.space_blender(
+            target=modules[f'{side}_leg'].ctrls['ik_knee'].getParent(),
+            source=(modules[f'{side}_leg'].ctrls['ik_foot']),
+            source_name='global',
+            name='ik_knee',
+            attr_node=modules[f'{side}_leg'].ctrls['ik_knee'],
+            attr_name='GlobalSpace',
+            global_space_parent=modules['root'].ctrls['subRoot'],
+            translate=True, rotate=True, scale=False,
+            reverse=False
         )

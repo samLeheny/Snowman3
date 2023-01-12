@@ -970,16 +970,15 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
 
 
 ########################################################################################################################
-def space_blender(target, source, source_name, name, attr_node, attr_name=None, default_value=None,
+def space_blender(target, source, source_name, name, attr_node, attr_name=None, default_value=10, reverse=False,
                   global_space_parent=None, side=None, translate=False, rotate=False, scale=False):
 
     side_tag = f'{side}_' if side else ''
     attr_name = attr_name if attr_name else 'Global'
-    default_val = default_value if default_value else 10
 
     #...Create attribute ----------------------------------------------------------------------------------------------
-    pm.addAttr(attr_node, longName=attr_name, attributeType="float", minValue=0, maxValue=10, defaultValue=default_val,
-               keyable=1)
+    pm.addAttr(attr_node, longName=attr_name, attributeType="float", minValue=0, maxValue=10,
+               defaultValue=default_value, keyable=1)
 
 
 
@@ -1003,11 +1002,14 @@ def space_blender(target, source, source_name, name, attr_node, attr_name=None, 
 
 
     #...Create driver network -----------------------------------------------------------------------------------------
-    blend = gen_utils.create_attr_blend_nodes(attr=attr_name, node=attr_node, reverse=False)
+    blend = gen_utils.create_attr_blend_nodes(attr=attr_name, node=attr_node, reverse=reverse)
 
     blend_matrix = node_utils.blendMatrix(inputMatrix=source_loc.worldMatrix,
                                           targetMatrix=global_space_loc.worldMatrix)
-    pm.connectAttr(blend.multOutput, blend_matrix.target[0].weight)
+    if reverse:
+        pm.connectAttr(blend.revOutput, blend_matrix.target[0].weight)
+    else:
+        pm.connectAttr(blend.multOutput, blend_matrix.target[0].weight)
 
     mult_matrix = node_utils.multMatrix(matrixIn=(blend_matrix.outputMatrix, target.parentInverseMatrix))
 
