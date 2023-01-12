@@ -1,4 +1,4 @@
-# Title: clavicleControls.py
+# Title: prelimCtrls.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -36,28 +36,42 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-
-
 def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
 
     ctrl_data = {
-
-
-        "clavicle": ControlData(
-            name = "clavicle",
-            shape = "biped_clavicle",
-            size = [9, 9, 9],
-            shape_offset = [6, 0, 0],
-            color = [ctrl_colors[nom.leftSideTag], ctrl_colors[nom.rightSideTag]],
-            position = "clavicle",
-            orientation = {"match_to": "module_ctrl"},
-            locks = {"v": 1},
-            side = side,
-            is_driven_side = is_driven_side,
-            match_transform = "module_ctrl",
-            module_ctrl = module_ctrl,
+        'root': ControlData(
+            name = "root",
+            shape = "COG",
+            size = [60, 0, 60],
+            forward_direction = [0, 0, 1],
+            up_direction = [0, 1, 0],
+            color = ctrl_colors["root"],
+            position = ("root",),
+            locks = {"s": [1, 1, 1], "v": 1},
         ),
 
+        'subRoot': ControlData(
+            name = "subRoot",
+            shape = "circle",
+            size = [50, 0, 50],
+            forward_direction = [0, 0, 1],
+            up_direction = [0, 1, 0],
+            color = ctrl_colors["root"],
+            position = ("root",),
+            locks = {"s": [1, 1, 1], "v": 1},
+        ),
+
+
+        "COG": ControlData(
+            name = "COG",
+            shape = "COG",
+            size = [20, 20, 20],
+            color = ctrl_colors[nom.majorSideTag],
+            position = ("COG",),
+            orientation = {"aim_vector": ("y", (0, 1, 0)),
+                           "up_vector": ("z", (0, 0, 1))},
+            locks = {"v": 1},
+        )
     }
 
     return ctrl_data

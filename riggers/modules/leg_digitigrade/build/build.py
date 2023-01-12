@@ -17,7 +17,7 @@ import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman3.riggers.modules.leg_plantigrade.utilities.ctrl_data as animCtrls
+import Snowman3.riggers.modules.leg_plantigrade.data.ctrl_data as animCtrls
 importlib.reload(animCtrls)
 
 import Snowman3.riggers.utilities.classes.class_LimbRig as class_LimbRig

@@ -17,9 +17,6 @@ import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman3.riggers.modules.leg_plantigrade.utilities.ctrl_data as animCtrls
-importlib.reload(animCtrls)
-
 import Snowman3.riggers.utilities.classes.class_LimbRig as class_LimbRig
 importlib.reload(class_LimbRig)
 LimbRig = class_LimbRig.LimbRig
@@ -79,9 +76,8 @@ def build(rig_module, rig_parent=None):
 
 
     #...Controls ------------------------------------------------------------------------------------------------------
-    ctrl_data = animCtrls.create_ctrl_data(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
     anim_ctrl_data, ctrls = {}, {}
-    for key, data in ctrl_data.items():
+    for key, data in rig_module.ctrl_data.items():
         anim_ctrl_data[key] = data.create_anim_ctrl()
     rig_module.ctrls = ctrls
 

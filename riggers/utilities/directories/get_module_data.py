@@ -16,8 +16,8 @@ import importlib
 ###########################
 ######## Variables ########
 dir_string = {"setup":       "Snowman3.riggers.modules.{}.setup.setup",
-              "placers":     "Snowman3.riggers.modules.{}.utilities.placers",
-              "ctrl_data":   "Snowman3.riggers.modules.{}.utilities.ctrl_data"}
+              "placers":     "Snowman3.riggers.modules.{}.data.placers",
+              "ctrl_data":   "Snowman3.riggers.modules.{}.data.ctrl_data"}
 ###########################
 ###########################
 
@@ -40,8 +40,8 @@ def placers(key, side=None, is_driven_side=False):
 
 
 ########################################################################################################################
-def ctrl_data(key, side=None, is_driven_side=False):
+def ctrl_data(key, side=None, is_driven_side=False, module_ctrl=None):
     m = importlib.import_module(dir_string["ctrl_data"].format(key))
     importlib.reload(m)
-    return m.create_ctrl_data(side=side, is_driven_side=is_driven_side)
+    return m.create_ctrl_data(side=side, is_driven_side=is_driven_side, module_ctrl=module_ctrl)
 

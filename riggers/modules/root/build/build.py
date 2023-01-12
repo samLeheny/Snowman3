@@ -1,3 +1,12 @@
+# Title: root_build.py
+# Author: Sam Leheny
+# Contact: samleheny@live.com
+
+# Description: Builds setup module of biped foot rig.
+
+
+###########################
+##### Import Commands #####
 import importlib
 import pymel.core as pm
 
@@ -10,9 +19,15 @@ importlib.reload(gen_utils)
 
 import Snowman3.utilities.rig_utils as rig_utils
 importlib.reload(rig_utils)
+###########################
+###########################
 
-import Snowman3.riggers.modules.root.utilities.ctrl_data as animCtrls
-importlib.reload(animCtrls)
+
+###########################
+######## Variables ########
+
+###########################
+###########################
 
 
 
@@ -22,9 +37,8 @@ def build(rig_module, rig_parent=None):
 
 
     #...Create controls -----------------------------------------------------------------------------------------------
-    ctrl_data = animCtrls.create_ctrl_data()
     anim_ctrl_data, ctrls = {}, {}
-    for key, data in ctrl_data.items():
+    for key, data in rig_module.ctrl_data.items():
         anim_ctrl_data[key] = data.create_anim_ctrl()
         ctrls[key] = anim_ctrl_data[key].initialize_anim_ctrl()
         anim_ctrl_data[key].finalize_anim_ctrl()

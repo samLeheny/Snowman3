@@ -64,7 +64,7 @@ class RigModule:
         armature_module = None,
         module_tag = None,
         body_pieces = None,
-        prelim_ctrls = None,
+        ctrl_data = None,
         side = None,
         is_driven_side = None,
         piece_keys = None,
@@ -74,8 +74,6 @@ class RigModule:
         self.armature_module = armature_module
         self.body_pieces = body_pieces
         self.rig_module_type = rig_module_type
-        self.prelim_ctrls = prelim_ctrls if prelim_ctrls else get_module_data.placers(
-            self.rig_module_type, side=side, is_driven_side=is_driven_side)
         self.side = side
         self.side_tag = f'{self.side}_' if self.side else ''
         self.module_tag = module_tag if module_tag else self.side_tag+self.name
@@ -83,16 +81,16 @@ class RigModule:
         self.is_driven_side = is_driven_side
         self.piece_keys = piece_keys
 
-        # Initialized variables
         self.rig_module_grp = None
         self.no_transform_grp = None
         self.transform_grp = None
         self.bind_jnts = {}
-        self.ctrls = {}
+        self.setup_module_ctrl = self.get_setup_module_ctrl()
+        self.ctrl_data = ctrl_data if ctrl_data else get_module_data.ctrl_data(
+            self.rig_module_type, side=side, is_driven_side=is_driven_side, module_ctrl=self.setup_module_ctrl)
         self.placers = {}
         self.pv_placers = {}
         self.orienters = {}
-        self.setup_module_ctrl = None
         self.settings_ctrl = None
         self.mConstruct = None
         self.socket = {}

@@ -14,7 +14,7 @@ importlib.reload(gen_utils)
 import Snowman3.riggers.modules.biped_spine.setup.subModules.waist_ribbon as waist_ribbon
 importlib.reload(waist_ribbon)
 
-import Snowman3.riggers.modules.biped_spine.utilities.ctrl_data as prelimCtrls
+import Snowman3.riggers.modules.biped_spine.data.ctrl_data as prelimCtrls
 importlib.reload(prelimCtrls)
 ###########################
 ###########################
@@ -55,7 +55,8 @@ def build(armature_module):
 
     #...Preliminary controls ------------------------------------------------------------------------------------------
     ctrls_dict = prelimCtrls.create_ctrl_data(side=armature_module.side,
-                                                 is_driven_side=armature_module.is_driven_side)
+                                              is_driven_side=armature_module.is_driven_side,
+                                              module_ctrl=armature_module.module_ctrl)
     armature_module.create_prelim_ctrls()
 
     #... Pin ctrls to ribbon

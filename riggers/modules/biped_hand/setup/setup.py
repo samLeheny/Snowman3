@@ -10,7 +10,7 @@
 import importlib
 import pymel.core as pm
 
-import Snowman3.riggers.modules.biped_hand.utilities.ctrl_data as prelimCtrls
+import Snowman3.riggers.modules.biped_hand.data.ctrl_data as prelimCtrls
 importlib.reload(prelimCtrls)
 
 import Snowman3.riggers.utilities.classes.class_ArmatureModuleHandle as class_ArmatureModuleHandle
@@ -80,7 +80,8 @@ def build(armature_module):
 
     #...Preliminary controls ------------------------------------------------------------------------------------------
     ctrls_dict = prelimCtrls.create_ctrl_data(side=armature_module.side,
-                                              is_driven_side=armature_module.is_driven_side)
+                                              is_driven_side=armature_module.is_driven_side,
+                                              module_ctrl=armature_module.module_ctrl)
     armature_module.create_prelim_ctrls()
 
 

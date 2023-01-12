@@ -26,9 +26,6 @@ nom = nameConventions.create_dict()
 import Snowman3.riggers.dictionaries.control_colors as control_colors
 importlib.reload(control_colors)
 ctrl_colors = control_colors.create_dict()
-
-import Snowman3.riggers.modules.biped_neck.utilities.ctrl_data as animCtrls
-importlib.reload(animCtrls)
 ###########################
 ###########################
 
@@ -50,9 +47,8 @@ def build(rig_module, rig_parent=None):
 
 
     # ...Create controls -----------------------------------------------------------------------------------------------
-    ctrl_data = animCtrls.create_ctrl_data(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
     anim_ctrl_data, ctrls = {}, {}
-    for key, data in ctrl_data.items():
+    for key, data in rig_module.ctrl_data.items():
         anim_ctrl_data[key] = data.create_anim_ctrl()
         ctrls[key] = anim_ctrl_data[key].initialize_anim_ctrl()
         anim_ctrl_data[key].finalize_anim_ctrl()
