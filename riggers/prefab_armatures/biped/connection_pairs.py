@@ -1,4 +1,4 @@
-# Title: connections.py
+# Title: connection_pairs.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -25,7 +25,7 @@
 def create_connection_pairs_dict(modules):
 
     connection_pairs = (
-        (modules['root'].ctrls['cog'], modules['spine'].transform_grp),
+        (modules['root'].ctrls['COG'], modules['spine'].transform_grp),
 
         (modules['spine'].neck_socket, modules['neck'].transform_grp),
 

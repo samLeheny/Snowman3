@@ -17,8 +17,7 @@ import importlib
 ######## Variables ########
 dir_string = {"setup":       "Snowman3.riggers.modules.{}.setup.setup",
               "placers":     "Snowman3.riggers.modules.{}.utilities.placers",
-              "prelimCtrls": "Snowman3.riggers.modules.{}.utilities.prelimCtrls",
-              "animCtrls":   "Snowman3.riggers.modules.{}.utilities.animCtrls"}
+              "ctrl_data":   "Snowman3.riggers.modules.{}.utilities.ctrl_data"}
 ###########################
 ###########################
 
@@ -41,14 +40,8 @@ def placers(key, side=None, is_driven_side=False):
 
 
 ########################################################################################################################
-def prelim_ctrls(key, side=None, is_driven_side=False):
-    m = importlib.import_module(dir_string["prelimCtrls"].format(key))
+def ctrl_data(key, side=None, is_driven_side=False):
+    m = importlib.import_module(dir_string["ctrl_data"].format(key))
     importlib.reload(m)
-    return m.create_prelim_ctrls(side=side, is_driven_side=is_driven_side)
+    return m.create_ctrl_data(side=side, is_driven_side=is_driven_side)
 
-
-########################################################################################################################
-def anim_ctrls(key, side=None, module_ctrl=None):
-    m = importlib.import_module(dir_string["animCtrls"].format(key))
-    importlib.reload(m)
-    return m.create_anim_ctrls(side=side, module_ctrl=module_ctrl)

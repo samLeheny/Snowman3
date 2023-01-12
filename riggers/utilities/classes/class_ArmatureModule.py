@@ -66,7 +66,7 @@ class ArmatureModule:
         self,
         name = None,
         placer_data = None,
-        prelim_ctrls = None,
+        ctrl_data = None,
         side = None,
         symmetry = None,
         is_driven_side = None,
@@ -94,11 +94,11 @@ class ArmatureModule:
         self.draw_connections = draw_connections
         self.modules_parent = modules_parent
 
-        self.ctrls = {}
+        self.prelim_ctrls = {}
         self.placers = {}
         self.placer_data = placer_data if placer_data else get_module_data.placers(
             self.rig_module_type, side=side, is_driven_side=is_driven_side)
-        self.prelim_ctrls = prelim_ctrls if prelim_ctrls else get_module_data.prelim_ctrls(
+        self.ctrl_data = ctrl_data if ctrl_data else get_module_data.ctrl_data(
             self.rig_module_type, side=side, is_driven_side=is_driven_side)
         self.pv_placers = {}
         self.orienters = {}
@@ -605,9 +605,9 @@ class ArmatureModule:
         parent = parent if parent else self.rig_subGrps["prelim_ctrls"]
 
         #...Operate on each control in dictionary
-        for key in self.prelim_ctrls:
+        for key in self.ctrl_data:
 
-            prelim_ctrl = self.prelim_ctrls[key]
+            prelim_ctrl = self.prelim_ctrls[key] = self.ctrl_data[key].create_prelim_ctrl()
             ctrl = prelim_ctrl.create_prelim_ctrl_obj()
             #...Position ctrl
             prelim_ctrl.position_prelim_ctrl(body_module=self)

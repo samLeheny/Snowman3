@@ -101,6 +101,7 @@ class AnimControl:
         #...Or -------------------
         #...Create an empty transform node to serve as control (it will get a shape later)
         self.new_ctrl_transform(parent=parent)
+
         return self.ctrl_transform
 
 

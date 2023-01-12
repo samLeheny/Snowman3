@@ -17,7 +17,7 @@ import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman3.riggers.modules.leg_plantigrade.utilities.animCtrls as animCtrls
+import Snowman3.riggers.modules.leg_plantigrade.utilities.ctrl_data as animCtrls
 importlib.reload(animCtrls)
 
 import Snowman3.riggers.utilities.classes.class_LimbRig as class_LimbRig
@@ -79,8 +79,11 @@ def build(rig_module, rig_parent=None):
 
 
     #...Controls ------------------------------------------------------------------------------------------------------
-    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
-    ctrls = rig_module.ctrls
+    ctrl_data = animCtrls.create_ctrl_data(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
+    anim_ctrl_data, ctrls = {}, {}
+    for key, data in ctrl_data.items():
+        anim_ctrl_data[key] = data.create_anim_ctrl()
+    rig_module.ctrls = ctrls
 
     ctrl_pairs = [('fk_thigh', limb_rig.fk_ctrls[0]),
                   ('fk_calf', limb_rig.fk_ctrls[1]),
@@ -90,9 +93,9 @@ def build(rig_module, rig_parent=None):
                   ('hip_pin', limb_rig.ctrls['socket'])]
 
     for ctrl_str, ctrl_transform in ctrl_pairs:
-        ctrls[ctrl_str] = ctrl_data[ctrl_str].initialize_anim_ctrl(
+        ctrls[ctrl_str] = anim_ctrl_data[ctrl_str].initialize_anim_ctrl(
             existing_obj=ctrl_transform)
-        ctrl_data[ctrl_str].finalize_anim_ctrl(delete_existing_shapes=True)
+        anim_ctrl_data[ctrl_str].finalize_anim_ctrl(delete_existing_shapes=True)
 
 
     # ------------------------------------------------------------------------------------------------------------------

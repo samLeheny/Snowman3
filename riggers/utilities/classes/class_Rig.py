@@ -193,6 +193,15 @@ class Rig:
 
 
     ####################################################################################################################
+    def install_space_blends(self):
+
+        get_armature_data.space_blends(self.rig_prefab_type, self.modules)
+
+
+
+
+
+    ####################################################################################################################
     def populate_rig(self):
 
         #...Get information from armature
@@ -222,3 +231,7 @@ class Rig:
         self.perform_module_attr_handoffs()
         #...Attach modules to each other in accordance with prefab's connection pairs data
         self.attach_modules()
+        #...Install space blends
+        self.install_space_blends()
+
+        import Snowman3.utilities.rig_utils as rig_utils

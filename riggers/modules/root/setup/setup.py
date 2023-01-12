@@ -24,7 +24,7 @@ importlib.reload(body_attributes)
 attrNom = body_attributes.create_dict()
 
 import Snowman3.riggers.modules.root.utilities.placers as armature_module_placers
-import Snowman3.riggers.modules.root.utilities.prelimCtrls as root_prelimControls
+import Snowman3.riggers.modules.root.utilities.ctrl_data as root_prelimControls
 importlib.reload(armature_module_placers)
 importlib.reload(root_prelimControls)
 ###########################
@@ -56,9 +56,17 @@ def build(armature_module):
 
 
 
-    #...Preliminary controls ------------------------------------------------------------------------------------------
-    ctrls_dict = root_prelimControls.create_prelim_ctrls(side=armature_module.side,
-                                                         is_driven_side=armature_module.is_driven_side)
+    #...Preliminary controls -------------------------------------------------------------------------------------------
+    '''ctrl_data = root_prelimControls.create_ctrl_data(side=armature_module.side,
+                                                     is_driven_side=armature_module.is_driven_side)'''
+    ctrls_dict = root_prelimControls.create_ctrl_data(side=armature_module.side,
+                                                     is_driven_side=armature_module.is_driven_side)
+    '''for key, data in ctrl_data.items():
+        ctrls_dict[key] = data.create_prelim_ctrl()'''
+
+
+    '''ctrls_dict = root_prelimControls.create_prelim_ctrls(side=armature_module.side,
+                                                         is_driven_side=armature_module.is_driven_side)'''
     armature_module.create_prelim_ctrls()
 
 

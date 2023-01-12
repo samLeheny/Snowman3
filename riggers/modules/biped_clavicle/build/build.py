@@ -20,10 +20,7 @@ import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman3.riggers.modules.biped_clavicle.utilities.animCtrls as animCtrls
-importlib.reload(animCtrls)
-
-import Snowman3.riggers.modules.biped_clavicle.utilities.animCtrls as animCtrls
+import Snowman3.riggers.modules.biped_clavicle.utilities.ctrl_data as animCtrls
 importlib.reload(animCtrls)
 ###########################
 ###########################
@@ -43,11 +40,15 @@ importlib.reload(animCtrls)
 #def build(rig_module=None, rig_parent=None, rig_space_connector=None):
 def build(rig_module, rig_parent=None):
 
-    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
-    ctrls = rig_module.ctrls
-    for key in ctrl_data:
-        ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
-        ctrl_data[key].finalize_anim_ctrl()
+
+    # ...Create controls -----------------------------------------------------------------------------------------------
+    ctrl_data = animCtrls.create_ctrl_data(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
+    anim_ctrl_data, ctrls = {}, {}
+    for key, data in ctrl_data.items():
+        anim_ctrl_data[key] = data.create_anim_ctrl()
+        ctrls[key] = anim_ctrl_data[key].initialize_anim_ctrl()
+        anim_ctrl_data[key].finalize_anim_ctrl()
+    rig_module.ctrls = ctrls
 
 
     orienters = rig_module.orienters

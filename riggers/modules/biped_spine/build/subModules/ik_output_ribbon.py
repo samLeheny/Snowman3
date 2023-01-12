@@ -22,9 +22,6 @@ importlib.reload(rig_utils)
 import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
-
-import Snowman3.riggers.modules.biped_spine.utilities.animCtrls as animCtrls
-importlib.reload(animCtrls)
 ###########################
 ###########################
 

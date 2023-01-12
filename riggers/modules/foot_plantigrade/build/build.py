@@ -23,7 +23,7 @@ import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 
-import Snowman3.riggers.modules.foot_plantigrade.utilities.animCtrls as animCtrls
+import Snowman3.riggers.modules.foot_plantigrade.utilities.ctrl_data as animCtrls
 importlib.reload(animCtrls)
 
 import Snowman3.riggers.modules.foot_plantigrade.build.subScripts.fkFoot as fkFoot
@@ -51,12 +51,14 @@ def build(rig_module, rig_parent=None):
     rig_module.foot_attr_loc = pm.spaceLocator()
     rig_module.leg_attr_loc = pm.spaceLocator()
 
-
-    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
-    ctrls = rig_module.ctrls
-    for key in ctrl_data:
-        ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
-        ctrl_data[key].finalize_anim_ctrl()
+    # ...Create controls -----------------------------------------------------------------------------------------------
+    ctrl_data = animCtrls.create_ctrl_data(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
+    anim_ctrl_data, ctrls = {}, {}
+    for key, data in ctrl_data.items():
+        anim_ctrl_data[key] = data.create_anim_ctrl()
+        ctrls[key] = anim_ctrl_data[key].initialize_anim_ctrl()
+        anim_ctrl_data[key].finalize_anim_ctrl()
+    rig_module.ctrls = ctrls
 
     [ctrls[key].setParent(rig_module.transform_grp) for key in ctrl_data]
 

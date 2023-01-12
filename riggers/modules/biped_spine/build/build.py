@@ -37,7 +37,7 @@ importlib.reload(build_ik_rotate_ribbon)
 import Snowman3.riggers.modules.biped_spine.build.subModules.ik_output_ribbon as build_ik_output_ribbon
 importlib.reload(build_ik_output_ribbon)
 
-import Snowman3.riggers.modules.biped_spine.utilities.animCtrls as animCtrls
+import Snowman3.riggers.modules.biped_spine.utilities.ctrl_data as animCtrls
 importlib.reload(animCtrls)
 ###########################
 ###########################
@@ -59,11 +59,15 @@ attr_names = {"spine_volume": "SpineVolume",
 ########################################################################################################################
 def build(rig_module, rig_parent=None):
 
-    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
-    ctrls = rig_module.ctrls
-    for key in ctrl_data:
-        ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
-        ctrl_data[key].finalize_anim_ctrl()
+
+    # ...Create controls -----------------------------------------------------------------------------------------------
+    ctrl_data = animCtrls.create_ctrl_data(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
+    anim_ctrl_data, ctrls = {}, {}
+    for key, data in ctrl_data.items():
+        anim_ctrl_data[key] = data.create_anim_ctrl()
+        ctrls[key] = anim_ctrl_data[key].initialize_anim_ctrl()
+        anim_ctrl_data[key].finalize_anim_ctrl()
+    rig_module.ctrls = ctrls
 
 
     ctrls["settings"].setParent(rig_module.transform_grp)
@@ -177,28 +181,28 @@ def build(rig_module, rig_parent=None):
                                   outputMax=div.outFloat)
 
     for i in (2, 3, 4, 5):
-        for attr in ("sx", "sz"):
+        for attr in ('sx', 'sz'):
             pm.connectAttr(remap.outValue, f'{ctrls[f"spine_tweak_{i}"].getParent()}.{attr}')
 
 
 
     # IK control pivot height settings ---------------------------------------------------------------------------------
-    for node_set in (("settings", [],), ("ik_pelvis", [ik_rotate_ribbon["bottom_sys"][1].getParent()],),
-                        ("ik_chest", [ik_rotate_ribbon["top_sys"][1].getParent()])):
+    for node_set in (('settings', [],), ('ik_pelvis', [ik_rotate_ribbon['bottom_sys'][1].getParent()],),
+                        ('ik_chest', [ik_rotate_ribbon['top_sys'][1].getParent()])):
         ctrl = ctrls[node_set[0]]
         target_nodes = node_set[1]
         target_nodes.append(ctrl)
         pm.addAttr(ctrl, longName=attr_names["pivot_height"], keyable=1, attributeType='float', defaultValue=0)
         for node in target_nodes:
-            pm.connectAttr(ctrl+'.'+attr_names["pivot_height"], node+'.rotatePivotY')
+            pm.connectAttr(f'{ctrl}.{attr_names["pivot_height"]}', f'{node}.rotatePivotY')
 
 
 
 
     # ------------------------------------------------------------------------------------------------------------------
-    rig_module.hips_socket = ctrls["ik_pelvis"]
-    rig_module.clavicles_socket = ctrls["ik_chest"]
-    rig_module.neck_socket = fk_ribbon["fkJnts"][-1]
+    rig_module.hips_socket = ctrls['ik_pelvis']
+    rig_module.clavicles_socket = ctrls['ik_chest']
+    rig_module.neck_socket = ctrls['ik_chest']
 
     '''neck_socket = rig_module.socket["neck"] = pm.spaceLocator(name="neckRig_socket")
     neck_socket.setParent(ctrls["ik_chest"])

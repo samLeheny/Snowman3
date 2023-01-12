@@ -10,9 +10,6 @@
 import importlib
 import pymel.core as pm
 
-import Snowman3.riggers.modules.biped_neck.utilities.animCtrls as animCtrls
-importlib.reload(animCtrls)
-
 import Snowman3.utilities.general_utils as gen_utils
 importlib.reload(gen_utils)
 
@@ -30,7 +27,7 @@ import Snowman3.riggers.dictionaries.control_colors as control_colors
 importlib.reload(control_colors)
 ctrl_colors = control_colors.create_dict()
 
-import Snowman3.riggers.modules.biped_neck.utilities.animCtrls as animCtrls
+import Snowman3.riggers.modules.biped_neck.utilities.ctrl_data as animCtrls
 importlib.reload(animCtrls)
 ###########################
 ###########################
@@ -51,30 +48,35 @@ tweak_ctrl_color = ctrl_colors[nom.midSideTag3]
 #def build(rig_module, rig_parent=None, rig_space_connector=None):
 def build(rig_module, rig_parent=None):
 
-    ctrl_data = animCtrls.create_anim_ctrls(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
-    ctrls = rig_module.ctrls
-    for key in ctrl_data:
-        ctrls[key] = ctrl_data[key].initialize_anim_ctrl()
-        ctrl_data[key].finalize_anim_ctrl()
+
+    # ...Create controls -----------------------------------------------------------------------------------------------
+    ctrl_data = animCtrls.create_ctrl_data(side=rig_module.side, module_ctrl=rig_module.setup_module_ctrl)
+    anim_ctrl_data, ctrls = {}, {}
+    for key, data in ctrl_data.items():
+        anim_ctrl_data[key] = data.create_anim_ctrl()
+        ctrls[key] = anim_ctrl_data[key].initialize_anim_ctrl()
+        anim_ctrl_data[key].finalize_anim_ctrl()
+    rig_module.ctrls = ctrls
 
 
     temp_nodes_to_delete = []
 
 
-    ctrls["settings"].setParent(rig_module.transform_grp)
+    ctrls['settings'].setParent(rig_module.transform_grp)
 
-    ctrls["neck"].setParent(rig_module.transform_grp)
+    ctrls['neck'].setParent(rig_module.transform_grp)
+    gen_utils.buffer_obj(ctrls['neck'])
 
-    up_obj = pm.spaceLocator(name="neckRibbon_up_{}".format(nom.locator))
-    up_obj.setParent(ctrls["neck"])
+    up_obj = pm.spaceLocator(name=f'neckRibbon_up_{nom.locator}')
+    up_obj.setParent(ctrls['neck'])
     gen_utils.zero_out(up_obj)
-    up_obj.tz.set(gen_utils.distance_between(obj_1=ctrls["neck"], obj_2=ctrls["head"]))
+    up_obj.tz.set(gen_utils.distance_between(obj_1=ctrls['neck'], obj_2=ctrls['head']))
     up_obj.setParent(rig_module.transform_grp)
     temp_nodes_to_delete.append(up_obj)
 
 
-    ctrls["head"].setParent(ctrls["neck"])
-    gen_utils.buffer_obj(ctrls["head"])
+    ctrls['head'].setParent(ctrls['neck'])
+    gen_utils.buffer_obj(ctrls['head'])
 
 
 

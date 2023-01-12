@@ -8,7 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
-import Snowman3.riggers.modules.biped_arm.utilities.prelimCtrls as prelimCtrls
+import Snowman3.riggers.modules.biped_arm.utilities.ctrl_data as prelimCtrls
 importlib.reload(prelimCtrls)
 ###########################
 ###########################
@@ -42,7 +42,7 @@ def build(armature_module):
 
 
     #...Preliminary controls ------------------------------------------------------------------------------------------
-    ctrls_dict = prelimCtrls.create_prelim_ctrls(side=armature_module.side,
+    ctrls_dict = prelimCtrls.create_ctrl_data(side=armature_module.side,
                                                  is_driven_side=armature_module.is_driven_side)
     armature_module.create_prelim_ctrls()
 

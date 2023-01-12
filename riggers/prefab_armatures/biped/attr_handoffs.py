@@ -26,7 +26,7 @@ def create_handoffs(modules):
 
     hand_offs = {
 
-        (modules['spine'].ctrls['settings'], modules['root'].ctrls['cog'], True),
+        (modules['spine'].ctrls['settings'], modules['root'].ctrls['COG'], True),
 
         (modules['neck'].ctrls['settings'], modules['neck'].ctrls['neck'], True),
 

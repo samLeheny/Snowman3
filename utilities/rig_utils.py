@@ -970,34 +970,35 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
 
 
 ########################################################################################################################
-def space_blender(target, source, source_name, name, attr_node, attr_name=None, default_value=10,
+def space_blender(target, source, source_name, name, attr_node, attr_name=None, default_value=None,
                   global_space_parent=None, side=None, translate=False, rotate=False, scale=False):
 
-    side_tag = "{}_".format(side) if side else ""
-    attr_name = attr_name if attr_name else "Global"
+    side_tag = f'{side}_' if side else ''
+    attr_name = attr_name if attr_name else 'Global'
+    default_val = default_value if default_value else 10
 
     #...Create attribute ----------------------------------------------------------------------------------------------
-    pm.addAttr(attr_node, longName=attr_name, attributeType="float", minValue=0, maxValue=10,
-               defaultValue=default_value, keyable=1)
+    pm.addAttr(attr_node, longName=attr_name, attributeType="float", minValue=0, maxValue=10, defaultValue=default_val,
+               keyable=1)
 
 
 
     #...Create space locators -----------------------------------------------------------------------------------------
     locs = []
 
-    global_space_loc = pm.spaceLocator(name="{}{}_global_SPACE".format(side_tag, name))
+    global_space_loc = pm.spaceLocator(name=f'{side_tag}{name}_global_SPACE')
     global_space_loc.setParent(global_space_parent)
     locs.append(global_space_loc)
 
-    source_loc = pm.spaceLocator(name="{}{}_{}_SPACE".format(side_tag, name, source_name))
+    source_loc = pm.spaceLocator(name=f'{side_tag}{name}_{source_name}_SPACE')
     source_loc.setParent(source)
     locs.append(source_loc)
 
     for loc in locs:
-        par = loc.getParent()
+        orig_parent = loc.getParent()
         loc.setParent(target)
         gen_utils.zero_out(loc)
-        loc.setParent(par)
+        loc.setParent(orig_parent)
         gen_utils.convert_offset(loc)
 
 
@@ -1026,38 +1027,38 @@ def space_blender(target, source, source_name, name, attr_node, attr_name=None, 
 def space_switch(target, sources, source_names, name, attr_node, attr_name=None, global_space_parent=None, side=None,
                  translate=False, rotate=False, scale=False):
 
-    side_tag = "{}_".format(side) if side else ""
-    attr_name = attr_name if attr_name else "Space"
+    side_tag = f'{side}_' if side else ''
+    attr_name = attr_name if attr_name else 'Space'
 
 
     #...Create attribute ----------------------------------------------------------------------------------------------
     enum_name_string = source_names[0]
     for i in range(1, len(source_names)):
-        enum_name_string += ":{}".format(source_names[i])
-    enum_name_string += ":Global"
+        enum_name_string += f':{source_names[i]}'
+    enum_name_string += ':Global'
 
-    pm.addAttr(attr_node, longName=attr_name, attributeType="enum", enumName=enum_name_string, keyable=1)
+    pm.addAttr(attr_node, longName=attr_name, attributeType='enum', enumName=enum_name_string, keyable=1)
 
 
     #...Create space locators -----------------------------------------------------------------------------------------
     locs = []
 
-    global_space_loc = pm.spaceLocator(name="{}{}_global_SPACE".format(side_tag, name))
+    global_space_loc = pm.spaceLocator(name=f'{side_tag}{name}_global_SPACE')
     global_space_loc.setParent(global_space_parent)
     locs.append(global_space_loc)
 
     local_locs = []
     for source_name, source in zip(source_names, sources):
-        loc = pm.spaceLocator(name="{}{}_{}_SPACE".format(side_tag, name, source_name))
+        loc = pm.spaceLocator(name=f'{side_tag}{name}_{source_name}_SPACE')
         local_locs.append(loc)
         locs.append(loc)
         loc.setParent(source)
 
     for loc in locs:
-        par = loc.getParent()
+        orig_parent = loc.getParent()
         loc.setParent(target)
         gen_utils.zero_out(loc)
-        loc.setParent(par)
+        loc.setParent(orig_parent)
         gen_utils.convert_offset(loc)
 
 
@@ -1071,7 +1072,7 @@ def space_switch(target, sources, source_names, name, attr_node, attr_name=None,
     global_space_loc.worldMatrix.connect(blend_matrix.target[len(local_locs)].targetMatrix)
 
     for i in range(1, len(local_locs)+1):
-        con = node_utils.condition(firstTerm=attr_node + "." + attr_name, secondTerm=i, operation="equal",
+        con = node_utils.condition(firstTerm=f'{attr_node}.{attr_name}', secondTerm=i, operation='equal',
                                    colorIfTrue=(1, 0, 0), colorIfFalse=(0, 1, 1),
                                    outColor=(blend_matrix.target[i].weight, None, None))
 
