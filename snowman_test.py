@@ -21,6 +21,9 @@ rig = builder.build_prefab_armature(
 builder.build_rig_in_scene(
     armature=pm.ls("::biped_ARMATURE", type="transform")[0],
     asset_name="test")
+    
+for ctrl in ('L_hip_pin_CTRL', 'R_hip_pin_CTRL', 'L_shoulder_pin_CTRL', 'R_shoulder_pin_CTRL'):
+    pm.setAttr(f'{ctrl}.BendCtrls', 1)
 
 '''
 # ----------------------------------------------------------------------------------------

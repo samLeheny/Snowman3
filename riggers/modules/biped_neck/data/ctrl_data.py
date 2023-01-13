@@ -56,20 +56,6 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
         ),
 
 
-        "neckBend": ControlData(
-            name = "neckBend",
-            shape = "circle",
-            size = [7, 7, 7],
-            color = ctrl_colors[nom.midSideTag],
-            position = ("neck", "head"),
-            orientation = {"match_to": "neck"},
-            locks = {"s": [0, 0, 0], "v": 1},
-            side = side,
-            is_driven_side = is_driven_side,
-            module_ctrl = module_ctrl
-        ),
-
-
         "head": ControlData(
             name = "head",
             shape = "cylinder",

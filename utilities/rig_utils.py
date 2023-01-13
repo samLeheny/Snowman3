@@ -241,8 +241,8 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 
 
     # Determine forward and up direction
-    forward_direction = [ ctrl_info["forward_direction"] if "forward_direction" in ctrl_info else [0, 0, 1] ][0]
-    up_direction = [ ctrl_info["up_direction"] if "up_direction" in ctrl_info else [0, 1, 0] ][0]
+    forward_direction = ctrl_info["forward_direction"] if "forward_direction" in ctrl_info else [0, 0, 1]
+    up_direction = ctrl_info["up_direction"] if "up_direction" in ctrl_info else [0, 1, 0]
 
 
     # Create the control's curve shape based on control info
@@ -766,7 +766,7 @@ def apply_ctrl_locks(ctrl):
 
 ########################################################################################################################
 def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, jnt_radius = 0.3, up_axis = (0, 0, 1),
-                 ctrl_color = 15, roll_axis=(1, 0, 0), ctrl_size=0.15):
+                 ctrl_color=15, roll_axis=(1, 0, 0), ctrl_size=0.15):
     """
 
     """
@@ -777,17 +777,23 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
     stretch_rig_grp = pm.group(name=f'{side_tag}stretch_rig_{roller_name}', p=parent, em=1)
     pm.pointConstraint(start_node, stretch_rig_grp)
     pm.aimConstraint(end_node, stretch_rig_grp, aimVector=roll_axis, upVector=up_axis, worldUpType='objectrotation',
-                     worldUpObject=start_node, worldUpVector=(-up_axis[0], -up_axis[1], -up_axis[2]))
+                     worldUpObject=start_node, worldUpVector=up_axis)
 
+    print('-' * 200)
+    print(roller_name)
+    print(f'Roll Axis: {roll_axis}')
+    print(f'Up Axis: {up_axis}')
+    print(f'Ctrl Up Direction: {roll_axis}')
+    print(f'Ctrl Forward Direction: {up_axis}')
+    print('-' * 200)
 
-    #...Bend controls visibility attribute ------------------------------------------------------------------------
     #...Start, Mid, and End controls
     def bend_control(tag, match_node, rot_match_node):
 
         ctrl = control(ctrl_info={'shape': 'circle',
                                   'scale': [ctrl_size, ctrl_size, ctrl_size],
-                                  'up_direction': list(roll_axis),
-                                  'forward_direction': list(up_axis)},
+                                  'up_direction': [1, 0, 0],
+                                  'forward_direction': [0, 1, 0]},
                        name=f'{roller_name}_bend_{tag}', ctrl_type=nom.animCtrl, side=side, color=ctrl_color)
 
         jnt = joint(name=f'{roller_name}bend_{tag}', side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)

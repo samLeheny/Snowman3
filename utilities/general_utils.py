@@ -955,8 +955,8 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
         (mTransform object) The newly created curve object.
     """
 
-    up_direction = up_direction if up_direction else (0, 1, 0)
-    forward_direction = forward_direction if forward_direction else (0, 0, 1)
+    if not up_direction: up_direction = (0, 1, 0)
+    if not forward_direction: forward_direction = (0, 0, 1)
     points_offset = points_offset if points_offset else (0, 0, 0)
     side_tag = side_tag_from_string(side) if side else None
 

@@ -34,6 +34,7 @@ ctrl_colors = control_colors.create_dict()
 ######## Variables ########
 jnt_resolution = 5
 tweak_ctrl_color = ctrl_colors[nom.midSideTag3]
+bend_ctrl_color = ctrl_colors[nom.midSideTag]
 ###########################
 ###########################
 
@@ -42,7 +43,6 @@ tweak_ctrl_color = ctrl_colors[nom.midSideTag3]
 
 
 ########################################################################################################################
-#def build(rig_module, rig_parent=None, rig_space_connector=None):
 def build(rig_module, rig_parent=None):
 
 
@@ -112,16 +112,18 @@ def build(rig_module, rig_parent=None):
     #...Roll joint system ---------------------------------------------------------------------------------------------
     pm.addAttr(ctrls["settings"], longName="NeckLen", attributeType="float", minValue=0.001, defaultValue=1, keyable=1)
 
-
     #...Rollers
-    neck_roller = rig_utils.limb_rollers(start_node = stretch_socket, #ctrls["neck"],
-                                         end_node = stretch_out_socket, #ctrls["head"],
+    neck_length = gen_utils.distance_between(obj_1=rig_module.orienters['neck'], obj_2=rig_module.orienters['head'])
+    bend_ctrl_size = neck_length * 0.5
+    neck_roller = rig_utils.limb_rollers(start_node = stretch_socket,
+                                         end_node = stretch_out_socket,
                                          roller_name = 'neck',
                                          roll_axis = (0, 1, 0),
                                          up_axis = (0, 0, 1),
-                                         ctrl_color = 15,
+                                         ctrl_color = bend_ctrl_color,
                                          parent = rig_module.no_transform_grp,
-                                         side = rig_module.side)
+                                         side = rig_module.side,
+                                         ctrl_size = bend_ctrl_size)
 
     #...Ribbon
     ribbon_up_vector = (0, 0, -1)
