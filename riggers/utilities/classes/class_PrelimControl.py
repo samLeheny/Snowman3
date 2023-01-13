@@ -83,16 +83,15 @@ class PrelimControl:
     def assemble_shape_data(self):
 
         #...Assemble data with which to build controls
-        self.shape_data = {
-                                            "name": self.name,
-                                           "shape": self.shape,
-                                           "color": self.color,
-                                           "locks": self.locks,
-                               "forward_direction": self.forward_direction,
-                                    "up_direction": self.up_direction,
-                                           "scale": self.size,
-                                          "offset": self.shape_offset,
-        }
+        self.shape_data = {'name': self.name,
+                           'shape': self.shape,
+                           'color': self.color,
+                           'locks': self.locks,
+                           'forward_direction': self.forward_direction,
+                           'up_direction': self.up_direction,
+                           'scale': self.size,
+                           'offset': self.shape_offset
+                           }
 
         return self.shape_data
 
@@ -147,15 +146,15 @@ class PrelimControl:
         if not self.orientation:
             return
 
-        if "match_to" in self.orientation:
+        if 'match_to' in self.orientation:
 
-            if self.orientation["match_to"] == "module_ctrl":
+            if self.orientation['match_to'] == 'module_ctrl':
                 pm.setAttr(self.ctrl_obj.rotate, 0, 0, 0)
                 pm.setAttr(self.ctrl_obj.scale, 1, 1, 1)
 
             else:
 
-                match_key = self.orientation["match_to"]
+                match_key = self.orientation['match_to']
 
                 if not isinstance(match_key, (list, tuple)):
                     match_key = (match_key,)
@@ -163,12 +162,12 @@ class PrelimControl:
                 match_objs = []
                 for key in match_key:
 
-                    ori_string = "::{0}{1}_{2}".format(self.side_tag, key, nom.orienter)
+                    ori_string = f'::{self.side_tag}{key}_{nom.orienter}'
 
                     if pm.objExists(ori_string):
-                        ori = pm.ls("::{0}{1}_{2}".format(self.side_tag, key, nom.orienter))
+                        ori = pm.ls(f'::{self.side_tag}{key}_{nom.orienter}')
                     else:
-                        print("Could not find orienter '{}' in scene".format(ori_string))
+                        print(f'Could not find orienter "{ori_string}" in scene')
 
                     if ori:
                         match_objs.append(ori[0])
@@ -176,13 +175,13 @@ class PrelimControl:
                 pm.orientConstraint(tuple(match_objs), self.ctrl_obj)
 
 
-        elif "aim_vector" in self.orientation:
+        elif 'aim_vector' in self.orientation:
 
-            aim_axis = self.orientation["aim_vector"][0]
-            aim_vector = self.orientation["aim_vector"][1]
+            aim_axis = self.orientation['aim_vector'][0]
+            aim_vector = self.orientation['aim_vector'][1]
 
-            up_axis = self.orientation["up_vector"][0]
-            up_vector = self.orientation["up_vector"][1]
+            up_axis = self.orientation['up_vector'][0]
+            up_vector = self.orientation['up_vector'][1]
 
             self.ctrl_obj.setParent(world=1)
 

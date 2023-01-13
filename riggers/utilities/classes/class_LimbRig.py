@@ -542,7 +542,7 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def install_rollers(self, jnt_radius=0.05, up_axis=(0, -1, 0)):
+    def install_rollers(self, jnt_radius=0.05, up_axis=(0, 1, 0)):
 
 
         #...Create bend ctrl vis switch
@@ -582,6 +582,7 @@ class LimbRig:
 
             #...Create roller system
             rollers = rig_utils.limb_rollers(
+                world_up_obj = self.segments[i].blend_jnt,
                 start_node = start_node,
                 end_node = end_node,
                 roller_name = self.segments[i].segment_name,
@@ -644,7 +645,7 @@ class LimbRig:
         nodes_to_orient[0] = self.blend_jnt_chain_buffer
         nodes_to_orient.remove(nodes_to_orient[-1])
         for i, node in enumerate(nodes_to_orient):
-            pm.delete(pm.aimConstraint(self.jnt_position_holders[i + 1], node, worldUpType="object",
+            pm.delete(pm.aimConstraint(self.jnt_position_holders[i + 1], node, worldUpType='object',
                                        aimVector=(1, 0, 0), upVector=(0, 0, -1),
                                        worldUpObject=self.pv_position_holder))
 

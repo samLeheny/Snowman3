@@ -35,7 +35,7 @@ def create_dict():
 
         nom.midSideTag : [0.25, 1, 0],
         nom.midSideTag2 : [0, 1, 0.033],
-        nom.midSideTag3 : [0, 0.33, 0],
+        nom.midSideTag3 : [0, 0.2, 0],
         nom.midSideTag4 : [0, 0.278, 0.097],
 
         nom.majorSideTag : [0.445, 1, 0.175],

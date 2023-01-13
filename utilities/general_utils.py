@@ -813,8 +813,7 @@ def format_axis_arg(axis):
 def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_direction=None):
     """
         Goes through a list of point coordinates and rearranges each point's coordinates such that the resulting shape
-            made from those points will be rotated.
-            Requires: numpy
+            made from those points will be rotated. (Requires: numpy)
         Args:
             point_list (mTransformObj): The list of coordinates to be rearranged.
             up_direction ([float, float, float]):
@@ -823,107 +822,20 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
             (list) List with entries rearranged to obey new vectors
     """
 
+    y_vector = up_direction
+    z_vector = forward_direction
+    x_vector = cross_product(y_vector, z_vector)
 
-    # Determine remaining axis:
-    first_direction, second_direction = up_direction, forward_direction
-    flip = False
+    init_move_matrix = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    init_move_matrix[:, 0] = x_vector
+    init_move_matrix[:, 1] = y_vector
+    init_move_matrix[:, 2] = z_vector
+    move_matrix = np.asmatrix(init_move_matrix)
 
-    if up_direction == [1, 0, 0]:
-        if forward_direction in ([0, -1, 0], [0, 0, 1]):
-            flip = True
+    new_point_list = [move_matrix.dot(p).tolist()[0] for p in point_list]
 
-    elif up_direction == [-1, 0, 0]:
-        if forward_direction in ([0, 1, 0], [0, 0, -1]):
-            flip = True
+    return new_point_list
 
-    elif up_direction == [0, 1, 0]:
-        if forward_direction in ([1, 0, 0], [0, 0, -1]):
-            flip = True
-
-    elif up_direction == [0, -1, 0]:
-        if forward_direction in ([-1, 0, 0], [0, 0, 1]):
-            flip = True
-
-    elif up_direction == [0, 0, 1]:
-        if forward_direction in ([-1, 0, 0], [0, 1, 0]):
-            flip = True
-
-    elif up_direction == [0, 0, -1]:
-        if forward_direction in ([1, 0, 0], [0, -1, 0]):
-            flip = True
-
-    if flip:
-        first_direction, second_direction = forward_direction, up_direction
-
-    remaining_direction = cross_product(first_direction, second_direction)
-
-
-
-    # Determine axes
-    axes_dict = {"x": ([1, 0, 0], [-1, 0, 0]),
-                 "y": ([0, 1, 0], [0, -1, 0]),
-                 "z": ([0, 0, 1], [0, 0, -1])}
-
-    up_axis, forward_axis, remaining_axis = None, None, None
-
-    for key in axes_dict:
-        if up_direction in axes_dict[key]:
-            up_axis = key
-            break
-
-    for key in axes_dict:
-        if forward_direction in axes_dict[key]:
-            forward_axis = key
-            break
-
-    for key in axes_dict:
-        if remaining_direction in axes_dict[key]:
-            remaining_axis = key
-            break
-
-
-    # Determine signs of directions (positive or negative)
-    up_mult, forward_mult, remaining_mult = 1, 1, 1
-
-    if up_direction in ([-1, 0, 0], [0, -1, 0], [0, 0, -1]):
-        up_mult = -1
-
-    if forward_direction in ([-1, 0, 0], [0, -1, 0], [0, 0, -1]):
-        forward_mult = -1
-
-    if remaining_direction in ([-1, 0, 0], [0, -1, 0], [0, 0, -1]):
-        remaining_mult = -1
-
-
-    mults = (remaining_mult, up_mult, forward_mult)
-
-
-    default_places = {"x": 0, "y": 1, "z": 2}
-
-
-    #...Rearrange columns
-    array = np.array(point_list)
-    columns = np.array([default_places[remaining_axis],
-                        default_places[up_axis],
-                        default_places[forward_axis]])
-    new_array = array[ np.array(list(range(0, len(point_list))))[:, np.newaxis], columns ]
-
-    #...Switch directions of columns if needed
-    multipliers = (mults[default_places[remaining_axis]],
-                   mults[default_places[up_axis]],
-                   mults[default_places[forward_axis]])
-
-    if multipliers == (1, 1, 1):
-        output_array = new_array
-
-    else:
-        multipliers = np.array(multipliers)
-        multiplier_array = np.tile(multipliers, (len(point_list), 1))
-
-        output_array = np.multiply(new_array, multiplier_array)
-
-
-    return output_array.tolist()
 
 
 
@@ -2644,6 +2556,8 @@ def get_attr_data(attr, node):
 ########################################################################################################################
 def migrate_attr(old_node, new_node, attr, include_connections=True, remove_original=True):
 
+    #...Get channel box status of attribute, so it can be preserved in its new location
+    channel_box_status = pm.getAttr(f'{old_node}.{attr}', channelBox=1)
 
     #...If attribute conflicts with an attribute already on new node, merge them
     if pm.attributeQuery(attr, node=new_node, exists=1):
@@ -2679,6 +2593,11 @@ def migrate_attr(old_node, new_node, attr, include_connections=True, remove_orig
     #...Delete attribute in original location to complete apparent migration
     if remove_original:
         pm.deleteAttr(old_node + "." + attr)
+
+    if channel_box_status:
+        pm.setAttr(f'{new_node}.{attr}', channelBox=1)
+
+
 
 
 

@@ -211,12 +211,12 @@ class ArmatureModule:
 
         #...Parent placers group to control
         mult_matrix = node_utils.multMatrix(matrixIn=(self.module_ctrl.mobject.worldMatrix,
-                                                      self.rig_subGrps["placers"].parentInverseMatrix))
+                                                      self.rig_subGrps['placers'].parentInverseMatrix))
 
         node_utils.decomposeMatrix(inputMatrix=mult_matrix.matrixSum,
-                                   outputTranslate=self.rig_subGrps["placers"].translate,
-                                   outputRotate=self.rig_subGrps["placers"].rotate,
-                                   outputScale=self.rig_subGrps["placers"].scale)
+                                   outputTranslate=self.rig_subGrps['placers'].translate,
+                                   outputRotate=self.rig_subGrps['placers'].rotate,
+                                   outputScale=self.rig_subGrps['placers'].scale)
 
 
 
@@ -229,7 +229,7 @@ class ArmatureModule:
         self.ordered_placer_keys.append(placer.name)
 
         placer.color = self.ctrl_color
-        placer.parent = self.rig_subGrps["placers"]
+        placer.parent = self.rig_subGrps['placers']
         placer.create_placer_in_scene()
 
         #...Lock and hide rotate, scale, and visibility. Placers only need translation
@@ -245,7 +245,7 @@ class ArmatureModule:
         pm.select(clear=1)
 
         #...Drive placer scale with module root control attributes
-        for attr in ("sx", "sy", "sz"):
+        for attr in ('sx', 'sy', 'sz'):
             pm.setAttr(f'{placer.mobject}.{attr}', lock=0)
             pm.connectAttr(f'{self.module_ctrl.mobject}.PlacerScale', f'{placer.mobject}.{attr}')
             pm.setAttr(f'{placer.mobject}.{attr}', lock=1)
@@ -282,11 +282,10 @@ class ArmatureModule:
             placer = self.placers[key]
             orienter = placer.orienter
 
-            if orienter:
-                #...Sort returned data
-                self.orienters[key] = orienter
-                #...orienter.aim_orienter(orient_constrain_target=self.module_ctrl.mobject)
-                placer.aim_orienter()
+            if not orienter: continue
+            #...Sort returned data
+            self.orienters[key] = orienter
+            placer.aim_orienter()
 
 
 
@@ -299,13 +298,13 @@ class ArmatureModule:
 
         for placer in self.placers.values():
 
-            if placer.connect_targets:
+            if not placer.connect_targets: continue
 
-                connectors_attr_name = "Connectors"
-                pm.addAttr(placer.mobject, longName=connectors_attr_name, dataType="string", keyable=0)
+            connectors_attr_name = "Connectors"
+            pm.addAttr(placer.mobject, longName=connectors_attr_name, dataType="string", keyable=0)
 
-                for target in placer.connect_targets:
-                    placer.create_connector_curve(target=self.placers[target], parent=parent_obj)
+            for target in placer.connect_targets:
+                placer.create_connector_curve(target=self.placers[target], parent=parent_obj)
 
 
 
@@ -320,7 +319,7 @@ class ArmatureModule:
         if not scale: scale = [1.2, 1.2, 1.2]
 
         #...
-        self.module_ctrl = self.module_handles["module_root"] = ArmatureModuleHandle(
+        self.module_ctrl = self.module_handles['module_root'] = ArmatureModuleHandle(
             name = name,
             shape = shape,
             locks = locks,
@@ -336,14 +335,14 @@ class ArmatureModule:
         #...attributes
 
         #...Placer scale
-        placer_scale_attr_string = "PlacerScale"
+        placer_scale_attr_string = 'PlacerScale'
 
         pm.addAttr(self.module_ctrl.mobject, longName=placer_scale_attr_string, attributeType=float, minValue=0.001,
                    defaultValue=1, keyable=0)
         pm.setAttr(f'{self.module_ctrl.mobject}.{placer_scale_attr_string}', channelBox=1)
 
         #...Module scale
-        pm.addAttr(self.module_ctrl.mobject, longName="ModuleScale", attributeType=float, minValue=0.001,
+        pm.addAttr(self.module_ctrl.mobject, longName='ModuleScale', attributeType=float, minValue=0.001,
                    defaultValue=1, keyable=0)
         pm.setAttr(f'{self.module_ctrl.mobject}.ModuleScale', channelBox=1)
         for attr in gen_utils.scale_attrs:
@@ -351,10 +350,10 @@ class ArmatureModule:
             pm.setAttr(f'{self.module_ctrl.mobject}.{attr}', lock=1, keyable=0)
 
         #...Vis options
-        attr_strings = ("PlacersVis", "VectorHandlesVis", "OrientersVis", "ControlsVis")
+        attr_strings = ('PlacersVis', 'VectorHandlesVis', 'OrientersVis', 'ControlsVis')
         default_vals = (1, 0, 0, 0)
         for attr_string, default_val in zip(attr_strings, default_vals):
-            pm.addAttr(self.module_ctrl.mobject, longName=attr_string, attributeType="bool", defaultValue=default_val,
+            pm.addAttr(self.module_ctrl.mobject, longName=attr_string, attributeType='bool', defaultValue=default_val,
                        keyable=0)
             pm.setAttr(f'{self.module_ctrl.mobject}.{attr_string}', channelBox=1)
 
@@ -364,14 +363,14 @@ class ArmatureModule:
 
 
         #...Hook module control to root group
-        hook_string = "ModuleRootCtrl"
-        pm.addAttr(self.rig_root_grp, longName=hook_string, dataType="string", keyable=0)
+        hook_string = 'ModuleRootCtrl'
+        pm.addAttr(self.rig_root_grp, longName=hook_string, dataType='string', keyable=0)
         pm.connectAttr(self.module_ctrl.mobject.message, f'{self.rig_root_grp}.{hook_string}')
 
         #...Hook root group to parent Armature
-        attr_prefix = "Module_"
+        attr_prefix = 'Module_'
         attr_name = f'{attr_prefix}{self.side_tag}{self.name}'
-        pm.addAttr(self.armature_container, longName=attr_name, keyable=0, dataType="string")
+        pm.addAttr(self.armature_container, longName=attr_name, keyable=0, dataType='string')
         pm.connectAttr(self.rig_root_grp.message, f'{self.armature_container}.{attr_name}')
 
 

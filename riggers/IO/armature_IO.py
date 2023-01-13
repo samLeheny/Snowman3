@@ -81,12 +81,13 @@ class ArmatureDataIO(object):
         scene_armature = self.find_armature_in_scene()
 
         #...Fill in armature data based on values stored in hidden armature attributes
-        for key, attr in (("name", "ArmatureName"),
-                          ("armature_scale", "ArmatureScale"),
-                          ("symmetry_mode", "SymmetryMode"),
-                          ("driver_side", "DriverSide"),
-                          ("root_size", "RootSize")):
-            self.armature_data[key] = pm.getAttr(scene_armature + "." + attr)
+        for key, attr in (('name', 'ArmatureName'),
+                          ('prefab_key', 'ArmaturePrefabKey'),
+                          ('armature_scale', 'ArmatureScale'),
+                          ('symmetry_mode', 'SymmetryMode'),
+                          ('driver_side', 'DriverSide'),
+                          ('root_size', 'RootSize')):
+            self.armature_data[key] = pm.getAttr(f'{scene_armature}.{attr}')
 
         #...Get data from armature modules
         self.get_modules_data(scene_armature)

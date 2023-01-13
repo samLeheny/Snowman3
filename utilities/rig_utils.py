@@ -765,8 +765,8 @@ def apply_ctrl_locks(ctrl):
 
 
 ########################################################################################################################
-def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, jnt_radius = 0.3, up_axis = (0, 0, 1),
-                 ctrl_color=15, roll_axis=(1, 0, 0), ctrl_size=0.15):
+def limb_rollers(start_node, end_node, roller_name, world_up_obj, side=None, parent=None, jnt_radius=0.3,
+                 up_axis=(0, 0, 1), ctrl_color=15, roll_axis=(1, 0, 0), ctrl_size=0.15, populate_ctrls=[1, 1, 1]):
     """
 
     """
@@ -777,23 +777,16 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
     stretch_rig_grp = pm.group(name=f'{side_tag}stretch_rig_{roller_name}', p=parent, em=1)
     pm.pointConstraint(start_node, stretch_rig_grp)
     pm.aimConstraint(end_node, stretch_rig_grp, aimVector=roll_axis, upVector=up_axis, worldUpType='objectrotation',
-                     worldUpObject=start_node, worldUpVector=up_axis)
+                     worldUpObject=world_up_obj)
 
-    print('-' * 200)
-    print(roller_name)
-    print(f'Roll Axis: {roll_axis}')
-    print(f'Up Axis: {up_axis}')
-    print(f'Ctrl Up Direction: {roll_axis}')
-    print(f'Ctrl Forward Direction: {up_axis}')
-    print('-' * 200)
 
     #...Start, Mid, and End controls
     def bend_control(tag, match_node, rot_match_node):
 
         ctrl = control(ctrl_info={'shape': 'circle',
                                   'scale': [ctrl_size, ctrl_size, ctrl_size],
-                                  'up_direction': [1, 0, 0],
-                                  'forward_direction': [0, 1, 0]},
+                                  'up_direction': roll_axis,
+                                  'forward_direction': up_axis},
                        name=f'{roller_name}_bend_{tag}', ctrl_type=nom.animCtrl, side=side, color=ctrl_color)
 
         jnt = joint(name=f'{roller_name}bend_{tag}', side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)
@@ -818,6 +811,12 @@ def limb_rollers(start_node, end_node, roller_name, side = None, parent = None, 
 
     end_jnt, end_ctrl, end_mod, end_buffer = bend_control(
         tag="end", match_node=end_node, rot_match_node=start_node)
+
+    #...Exclude controls based on arguments
+    for ctrl, param in zip((start_ctrl, mid_ctrl, end_ctrl), populate_ctrls):
+        if param: continue
+        pm.rename(ctrl, str(ctrl).replace('_CTRL', '_handle'))
+        [pm.delete(s) for s in ctrl.getShapes()]
 
     #...Roll locators
     start_roll_loc = pm.spaceLocator(name=f'{side_tag}{roller_name}_roll_start_{nom.locator}')

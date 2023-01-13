@@ -51,10 +51,10 @@ class Armature:
 
     ):
         self.name = gen_utils.get_clean_name(name)
-        self.prefab_key = prefab_key
+        self.prefab_key = prefab_key if prefab_key else 'None'
         self.root_size = root_size if root_size else 1
         self.modules = modules if modules else {}
-        self.sided_modules = {"L": {}, "R": {}}
+        self.sided_modules = {'L': {}, 'R': {}}
         self.root_groups = {}
         self.symmetry_mode = symmetry_mode
         self.driver_side = gen_utils.symmetry_info(self.symmetry_mode)[1]

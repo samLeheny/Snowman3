@@ -123,7 +123,9 @@ def build(rig_module, rig_parent=None):
                                          ctrl_color = bend_ctrl_color,
                                          parent = rig_module.no_transform_grp,
                                          side = rig_module.side,
-                                         ctrl_size = bend_ctrl_size)
+                                         ctrl_size = bend_ctrl_size,
+                                         populate_ctrls = [0, 1, 0],
+                                         world_up_obj = stretch_socket)
 
     #...Ribbon
     ribbon_up_vector = (0, 0, -1)

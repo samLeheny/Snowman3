@@ -150,7 +150,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             size=[6, 6, 6],
             shape_offset=[0, 0, 0],
             up_direction=[1, 0, 0],
-            forward_direction=[0, 0, 1],
+            forward_direction=[0, 0, -1],
             color=[ctrl_colors[nom.leftSideTag2], ctrl_colors[nom.rightSideTag2]],
             position=("thigh",),
             orientation = {"match_to": "module_ctrl"},
