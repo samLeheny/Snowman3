@@ -17,8 +17,8 @@ nom = nameConventions.create_dict()
 import Snowman3.utilities.general_utils as gen_utils
 importlib.reload(gen_utils)
 
-import Snowman3.riggers.utilities.armature_utils as arm_utils
-importlib.reload(arm_utils)
+import Snowman3.riggers.utilities.armature_utils as amtr_utils
+importlib.reload(amtr_utils)
 
 import Snowman3.riggers.utilities.directories.get_armature_data as get_armature_data
 importlib.reload(get_armature_data)
@@ -135,7 +135,7 @@ class Rig:
     ####################################################################################################################
     def get_armature_modules(self):
 
-        self.armature_modules = arm_utils.get_modules_in_armature(self.armature)
+        self.armature_modules = amtr_utils.get_modules_in_armature(self.armature)
 
 
 
@@ -148,7 +148,7 @@ class Rig:
             self.get_armature_modules()
 
         for key in self.armature_modules:
-            self.module_types[key] = arm_utils.get_module_type(self.armature_modules[key])
+            self.module_types[key] = amtr_utils.get_module_type(self.armature_modules[key])
 
 
 
@@ -216,7 +216,7 @@ class Rig:
                 rig_module_type=self.module_types[key],
                 armature_module=armature_module,
                 side=pm.getAttr(f'{armature_module}.Side'),
-                piece_keys=arm_utils.get_piece_keys_from_module(armature_module)
+                piece_keys=amtr_utils.get_piece_keys_from_module(armature_module)
             )
 
         #...Build modules in scene

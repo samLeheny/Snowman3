@@ -20,8 +20,8 @@ importlib.reload(node_utils)
 import Snowman3.utilities.rig_utils as rig_utils
 importlib.reload(rig_utils)
 
-import Snowman3.riggers.utilities.armature_utils as arm_utils
-importlib.reload(arm_utils)
+import Snowman3.riggers.utilities.armature_utils as amtr_utils
+importlib.reload(amtr_utils)
 
 import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
@@ -144,7 +144,7 @@ class RigModule:
     ####################################################################################################################
     def get_armature_orienters(self):
 
-        armature_placers = arm_utils.get_placers_in_module(self.armature_module)
+        armature_placers = amtr_utils.get_placers_in_module(self.armature_module)
 
         for placer in armature_placers.values():
             key = pm.getAttr(f'{placer}.PlacerTag')

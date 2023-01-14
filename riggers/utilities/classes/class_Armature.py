@@ -59,6 +59,7 @@ class Armature:
         self.symmetry_mode = symmetry_mode
         self.driver_side = gen_utils.symmetry_info(self.symmetry_mode)[1]
         self.root_handle = ArmatureRootHandle(name=self.name, root_size=self.root_size)
+        self.metadata_fields = self.compose_metadata_fields()
 
 
 
@@ -259,20 +260,34 @@ class Armature:
     ####################################################################################################################
     def assign_armature_metadata(self):
 
-        pm.addAttr(self.root_handle.mobject, longName='ArmatureName', keyable=0, dataType='string')
-        pm.setAttr(f'{self.root_handle.mobject}.ArmatureName', self.name, type='string', lock=1)
+        node = self.root_handle.mobject
 
-        pm.addAttr(self.root_handle.mobject, longName='ArmaturePrefabKey', keyable=0, dataType='string')
-        pm.setAttr(f'{self.root_handle.mobject}.ArmaturePrefabKey', self.prefab_key, type='string', lock=1)
+        for data_field in self.metadata_fields:
+            IO_key, attr_name, attr_type, attr_value = data_field
 
-        pm.addAttr(self.root_handle.mobject, longName='SymmetryMode', keyable=0, dataType='string')
-        pm.setAttr(f'{self.root_handle.mobject}.SymmetryMode', self.symmetry_mode, type='string', lock=1)
+            if pm.attributeQuery(attr_name, node=node, exists=1):
+                continue
 
-        pm.addAttr(self.root_handle.mobject, longName='DriverSide', keyable=0, dataType='string')
-        pm.setAttr(f'{self.root_handle.mobject}.DriverSide', self.driver_side, type='string', lock=1)
+            if attr_type == 'string':
+                pm.addAttr(node, longName=attr_name, keyable=0, dataType=attr_type)
+                pm.setAttr(f'{node}.{attr_name}', attr_value, type=attr_type, lock=1)
+            else:
+                pm.addAttr(node, longName=attr_name, keyable=0, attributeType=attr_type)
+                pm.setAttr(f'{node}.{attr_name}', attr_value, lock=1)
 
-        pm.addAttr(self.root_handle.mobject, longName='RootSize', keyable=0, attributeType='float')
-        pm.setAttr(f'{self.root_handle.mobject}.RootSize', self.root_size, lock=1)
+
+
+
+
+    def compose_metadata_fields(self):
+
+        data_fields = [('name', 'ArmatureName', 'string', self.name),
+                       ('prefab_key', 'ArmaturePrefabKey', 'string', self.prefab_key),
+                       ('symmetry_mode', 'SymmetryMode', 'string', self.symmetry_mode),
+                       ('driver_side', 'DriverSide', 'string', self.driver_side),
+                       ('root_size', 'RootSize', 'float', self.root_size)]
+                       #('armature_scale', 'ArmatureScale', 'float', None)]
+        return data_fields
 
 
 

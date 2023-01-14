@@ -826,7 +826,7 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
     z_vector = forward_direction
     x_vector = cross_product(y_vector, z_vector)
 
-    init_move_matrix = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    init_move_matrix = np.array([ [0, 0, 0], [0, 0, 0], [0, 0, 0] ])
     init_move_matrix[:, 0] = x_vector
     init_move_matrix[:, 1] = y_vector
     init_move_matrix[:, 2] = z_vector

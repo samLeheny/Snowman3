@@ -16,6 +16,10 @@ import Snowman3.riggers.utilities.armature_utils as amtr_utils
 import Snowman3.utilities.general_utils as gen_utils
 importlib.reload(amtr_utils)
 importlib.reload(gen_utils)
+
+import Snowman3.riggers.dictionaries.IO_data_fields as IO_data_fields_dict
+importlib.reload(IO_data_fields_dict)
+IO_data_fields = IO_data_fields_dict.get_dict('armature')
 ###########################
 ###########################
 
@@ -81,12 +85,7 @@ class ArmatureDataIO(object):
         scene_armature = self.find_armature_in_scene()
 
         #...Fill in armature data based on values stored in hidden armature attributes
-        for key, attr in (('name', 'ArmatureName'),
-                          ('prefab_key', 'ArmaturePrefabKey'),
-                          ('armature_scale', 'ArmatureScale'),
-                          ('symmetry_mode', 'SymmetryMode'),
-                          ('driver_side', 'DriverSide'),
-                          ('root_size', 'RootSize')):
+        for key, attr in IO_data_fields:
             self.armature_data[key] = pm.getAttr(f'{scene_armature}.{attr}')
 
         #...Get data from armature modules
