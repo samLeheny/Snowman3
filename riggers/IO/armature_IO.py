@@ -39,11 +39,12 @@ decimal_count = 9
 dirpath = r'C:\Users\61451\Desktop'
 
 
-class ArmatureDataIO(object, IO_data_fields=IO_data_fields):
+class ArmatureDataIO(object):
 
     def __init__(
         self,
-        dirpath
+        dirpath,
+        IO_data_fields = IO_data_fields
     ):
 
         #...vars
@@ -86,8 +87,8 @@ class ArmatureDataIO(object, IO_data_fields=IO_data_fields):
         scene_armature = self.find_armature_in_scene()
 
         #...Fill in armature data based on values stored in hidden armature attributes
-        for key, attr in self.data_fields:
-            self.armature_data[key] = pm.getAttr(f'{scene_armature}.{attr}')
+        for data_field in self.data_fields:
+            self.armature_data[data_field.IO_key] = pm.getAttr(f'{scene_armature}.{data_field.attr_name}')
 
         #...Get data from armature modules
         self.get_modules_data(scene_armature)
@@ -134,9 +135,9 @@ class ArmatureDataIO(object, IO_data_fields=IO_data_fields):
         module_data['placers'] = []
 
         attr_string = 'PlacerNodes'
-        for attr_name in pm.listAttr(f'{module_ctrl}.attr_string'):
+        for attr_name in pm.listAttr(f'{module_ctrl}.{attr_string}'):
             if attr_name != attr_string:
-                placer = pm.listConnections(f'{module_ctrl}.attr_string.{attr_name}', s=1, d=0)[0]
+                placer = pm.listConnections(f'{module_ctrl}.{attr_string}.{attr_name}', s=1, d=0)[0]
                 module_data['placers'].append(self.get_placer_data(placer))
 
 
