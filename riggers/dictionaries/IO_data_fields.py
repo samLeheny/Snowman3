@@ -21,11 +21,11 @@ def get_dict(key):
     dict = {
         'armature':
             [('name', 'ArmatureName'),
-            ('prefab_key', 'ArmaturePrefabKey'),
-            ('symmetry_mode', 'SymmetryMode'),
-            ('driver_side', 'DriverSide'),
-            ('root_size', 'RootSize'),
-            ('armature_scale', 'ArmatureScale')],
+             ('prefab_key', 'ArmaturePrefabKey'),
+             ('symmetry_mode', 'SymmetryMode'),
+             ('driver_side', 'DriverSide'),
+             ('root_size', 'RootSize'),
+             ('armature_scale', 'ArmatureScale')],
     }
 
 
