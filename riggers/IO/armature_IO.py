@@ -17,9 +17,9 @@ import Snowman3.utilities.general_utils as gen_utils
 importlib.reload(amtr_utils)
 importlib.reload(gen_utils)
 
-import Snowman3.riggers.dictionaries.IO_data_fields as IO_data_fields_dict
-importlib.reload(IO_data_fields_dict)
-IO_data_fields = IO_data_fields_dict.get_dict('armature')
+import Snowman3.riggers.utilities.classes.class_Armature as classArmature
+importlib.reload(classArmature)
+Armature = classArmature.Armature
 ###########################
 ###########################
 
@@ -36,21 +36,20 @@ decimal_count = 9
 ########################################################################################################################
 
 
-dirpath = r'C:\Users\61451\Desktop'
+dirpath = r'C:\Users\61451\Desktop' #...For testing purposes
 
 
 class ArmatureDataIO(object):
 
     def __init__(
         self,
-        dirpath,
-        IO_data_fields = IO_data_fields
+        dirpath
     ):
 
-        #...vars
         self.armature_data = {}
         self.dirpath = dirpath
-        self.data_fields = IO_data_fields
+        self.filepath = f'{self.dirpath}/test_armature_data.json'
+        self.scene_armature = None
 
 
 
@@ -60,8 +59,7 @@ class ArmatureDataIO(object):
     def find_armature_in_scene(self):
 
         found_armatures = pm.ls("::*_ARMATURE", type="transform")
-        scene_armature = found_armatures[0] if found_armatures else None
-        return scene_armature
+        self.scene_armature = found_armatures[0] if found_armatures else None
 
 
 
@@ -84,14 +82,24 @@ class ArmatureDataIO(object):
     def get_armature_data_from_scene(self):
 
         #...Find armature container in scene
-        scene_armature = self.find_armature_in_scene()
+        self.find_armature_in_scene() if not self.scene_armature else None
 
         #...Fill in armature data based on values stored in hidden armature attributes
-        for data_field in self.data_fields:
-            self.armature_data[data_field.IO_key] = pm.getAttr(f'{scene_armature}.{data_field.attr_name}')
+        IO_data_fields = (('name', 'ArmatureName'),
+                          ('prefab_key', 'ArmaturePrefabKey'),
+                          ('symmetry_mode', 'SymmetryMode'),
+                          ('driver_side', 'DriverSide'),
+                          ('root_size', 'RootSize'),
+                          ('armature_scale', 'ArmatureScale'))
+
+        for IO_key, attr_name in IO_data_fields:
+            if not pm.attributeQuery(attr_name, node=self.scene_armature, exists=1):
+                pm.error(f'Could not get armature data attr "{attr_name}" from scene armature root.'
+                         f'Attribute not found.')
+            self.armature_data[IO_key] = pm.getAttr(f'{self.scene_armature}.{attr_name}')
 
         #...Get data from armature modules
-        self.get_modules_data(scene_armature)
+        self.get_modules_data(self.scene_armature)
 
         return self.armature_data
 
@@ -136,9 +144,10 @@ class ArmatureDataIO(object):
 
         attr_string = 'PlacerNodes'
         for attr_name in pm.listAttr(f'{module_ctrl}.{attr_string}'):
-            if attr_name != attr_string:
-                placer = pm.listConnections(f'{module_ctrl}.{attr_string}.{attr_name}', s=1, d=0)[0]
-                module_data['placers'].append(self.get_placer_data(placer))
+            if attr_name == attr_string:
+                continue
+            placer = pm.listConnections(f'{module_ctrl}.{attr_string}.{attr_name}', s=1, d=0)[0]
+            module_data['placers'].append(self.get_placer_data(placer))
 
 
 
@@ -148,19 +157,12 @@ class ArmatureDataIO(object):
     def get_placer_data(self, placer):
 
         out_dict = {
-            #...Name
             'name' : pm.getAttr(f'{placer}.PlacerTag'),
-            #...Side
             'side' : pm.getAttr(f'{placer}.Side'),
-            #...Position
             'position' : [round(i, decimal_count) for i in mc.getAttr(f'{placer}.translate')[0]],
-            #...Size
             'size' : pm.getAttr(f'{placer}.Size'),
-            #...Vector Handle Data
             'vectorHandleData' : pm.getAttr(f'{placer}.VectorHandleData'),
-            #...Orienter Data
             'orienterData' : pm.getAttr(f'{placer}.OrienterData'),
-            #...Connector targets
             'connectorTargets' : pm.getAttr(f'{placer}.ConnectorData'),
         }
 
@@ -194,29 +196,49 @@ class ArmatureDataIO(object):
 
         #...Check which constraining placers are driving other placers
         driver_placers = {}
+
+        placer_data = {}
         for driver_key in constraining_placers:
-            constraint_nodes = amtr_utils.get_outgoing_constraints(placers[driver_key])
-            connected_nodes = []
-            for constraint_node in constraint_nodes:
+            placer_data[driver_key] = {
+                'constraint_nodes' : {},
+                'connected_nodes' : [],
+                'check_attr_data' : [],
+                'attrs' : [],
+                'connections' : []
+            }
+
+        for driver_key in placer_data.keys():
+            plc_data = placer_data[driver_key]
+            plc_data['constraint_nodes'] = amtr_utils.get_outgoing_constraints(placers[driver_key])
+            for constraint_node in plc_data['constraint_nodes']:
                 for attr in ("constraintTranslate", "constraintRotate", "constraintScale"):
-                    if pm.attributeQuery(attr, node=constraint_node, exists=1):
-                        for letter in ("X", "Y", "Z"):
-                            connections = pm.listConnections(constraint_node + "." + attr + letter, d=1, s=0)
-                            if connections:
-                                for node in connections:
-                                    connected_nodes.append(node) if node not in connected_nodes else None
+                    plc_data['check_attr_data'].append((constraint_node, attr))
 
-            for node in connected_nodes:
-                if amtr_utils.check_if_placer(node):
+            for attr_data in plc_data['check_attr_data']:
+                constraint_node, attr = attr_data
+                if not pm.attributeQuery(attr, node=constraint_node, exists=1):
+                    continue
+                for letter in ("X", "Y", "Z"):
+                    plc_data['attrs'].append(f'{constraint_node}.{attr}{letter}')
 
-                    driven_placer_module_tag = amtr_utils.get_module_from_placer(node)
-                    module_tag = str(pm.getAttr(f'{driven_placer_module_tag}.ModuleName'))
-                    placer_tag = pm.getAttr(f'{node}.PlacerTag')
+            for attr in plc_data['attrs']:
+                connections = pm.listConnections(attr, d=1, s=0)
+                if not connections:
+                    continue
+                for node in connections:
+                    plc_data['connected_nodes'].append(node) if node not in plc_data['connected_nodes'] else None
 
-                    if driver_key in driver_placers:
-                        driver_placers[str(driver_key)].append((module_tag, str(placer_tag)))
-                    else:
-                        driver_placers[str(driver_key)] = [(module_tag, str(placer_tag))]
+            for node in plc_data['connected_nodes']:
+                if not amtr_utils.check_if_placer(node):
+                    continue
+                driven_placer_module_tag = amtr_utils.get_module_from_placer(node)
+                module_tag = str(pm.getAttr(f'{driven_placer_module_tag}.ModuleName'))
+                placer_tag = pm.getAttr(f'{node}.PlacerTag')
+
+                if driver_key in driver_placers:
+                    driver_placers[str(driver_key)].append((module_tag, str(placer_tag)))
+                else:
+                    driver_placers[str(driver_key)] = [(module_tag, str(placer_tag))]
 
 
         return driver_placers
@@ -279,8 +301,7 @@ class ArmatureDataIO(object):
     def save(self):
 
         self.get_armature_data_from_scene() if not self.armature_data else None
-        filepath = '{}/{}.json'.format(self.dirpath, 'test_armature_data')
-        with open(filepath, 'w') as fh:
+        with open(self.filepath, 'w') as fh:
             json.dump(self.armature_data, fh, indent=5)
 
 
@@ -288,17 +309,31 @@ class ArmatureDataIO(object):
 
 
     ####################################################################################################################
-    def load(self, filepath):
-
-        data = None
+    def load(self):
 
         #...
-        if not os.path.exists(filepath):
+        if not os.path.exists(self.filepath):
             print('ERROR: Provided file path not found on disk.')
             return False
 
         #...Read data
-        with open(filepath, 'r') as fh:
+        with open(self.filepath, 'r') as fh:
             data = json.load(fh)
 
         return data
+
+
+
+
+
+    ####################################################################################################################
+    def build_armature_data_from_file(self):
+
+        data = self.load()
+        armature = Armature(name=data['name'],
+                            prefab_key=data['prefab_key'],
+                            root_size=data['root_size'],
+                            symmetry_mode=data['symmetry_mode'],
+                            modules=data['modules'])
+
+        return armature

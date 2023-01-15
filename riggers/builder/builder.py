@@ -28,6 +28,10 @@ importlib.reload(rigWrapup)
 
 import Snowman3.riggers.utilities.directories.get_armature_data as get_armature_data
 importlib.reload(get_armature_data)
+
+import Snowman3.riggers.IO.armature_IO as IO
+importlib.reload(IO)
+ArmatureDataIO = IO.ArmatureDataIO
 ###########################
 ###########################
 
@@ -80,13 +84,10 @@ def build_prefab_armature(prefab_tag, symmetry_mode=None):
 
 
 ########################################################################################################################
-def build_armature_from_data(data):
+def build_armature_from_file(dirpath):
 
-    armature = Armature(name = data['name'],
-                        prefab_key = data['prefab_key'],
-                        root_size = data['root_size'],
-                        symmetry_mode = data['symmetry_mode'],
-                        modules = data['modules'])
+    armature_IO = ArmatureDataIO(dirpath)
+    armature = armature_IO.build_armature_data_from_file()
     armature.modules_from_data()
     build_armature_in_scene(armature)
 
