@@ -78,8 +78,7 @@ def install_space_blends(modules):
             attr_node=modules[f'{side}_arm'].ctrls['ik_elbow'],
             attr_name='GlobalSpace',
             global_space_parent=modules['root'].ctrls['subRoot'],
-            translate=True, rotate=True, scale=False,
-            reverse=True
+            translate=True, rotate=True, scale=False
         )
 
         #...Legs
@@ -114,6 +113,5 @@ def install_space_blends(modules):
             attr_node=modules[f'{side}_leg'].ctrls['ik_knee'],
             attr_name='GlobalSpace',
             global_space_parent=modules['root'].ctrls['subRoot'],
-            translate=True, rotate=True, scale=False,
-            reverse=False
+            translate=True, rotate=True, scale=False
         )

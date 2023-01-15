@@ -273,24 +273,25 @@ class ArmatureDataIO(object):
 
             for key in module_placers:
                 module_placer = module_placers[key]
-                if module_placer in driver_placers:
+                if module_placer not in driver_placers:
+                    continue
 
-                    this_module_placer_key = key
+                this_module_placer_key = key
 
-                    driver_placers.remove(module_placer)
-                    remaining_placer = driver_placers[0]
+                driver_placers.remove(module_placer)
+                remaining_placer = driver_placers[0]
 
-                    remaining_placer_tag = pm.getAttr(f'{remaining_placer}.PlacerTag')
-                    remaining_placer_module_tag = amtr_utils.get_module_from_placer(remaining_placer, return_tag=True)
+                remaining_placer_tag = pm.getAttr(f'{remaining_placer}.PlacerTag')
+                remaining_placer_module_tag = amtr_utils.get_module_from_placer(remaining_placer, return_tag=True)
 
-                    if this_module_placer_key in connector_data:
-                        connector_data[str(this_module_placer_key)].append(str(remaining_placer_module_tag),
-                                                                           str(remaining_placer_tag))
-                    else:
-                        connector_data[str(this_module_placer_key)] = [(str(remaining_placer_module_tag),
-                                                                        str(remaining_placer_tag)),]
+                if this_module_placer_key in connector_data:
+                    connector_data[str(this_module_placer_key)].append(str(remaining_placer_module_tag),
+                                                                       str(remaining_placer_tag))
+                else:
+                    connector_data[str(this_module_placer_key)] = [(str(remaining_placer_module_tag),
+                                                                    str(remaining_placer_tag)),]
 
-                    break
+                break
 
 
             return connector_data

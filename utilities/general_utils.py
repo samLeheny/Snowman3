@@ -822,15 +822,13 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
             (list) List with entries rearranged to obey new vectors
     """
 
-    y_vector = up_direction
-    z_vector = forward_direction
-    x_vector = cross_product(y_vector, z_vector)
+    y = up_direction
+    z = forward_direction
+    x = cross_product(y, z)
 
-    init_move_matrix = np.array([ [0, 0, 0], [0, 0, 0], [0, 0, 0] ])
-    init_move_matrix[:, 0] = x_vector
-    init_move_matrix[:, 1] = y_vector
-    init_move_matrix[:, 2] = z_vector
-    move_matrix = np.asmatrix(init_move_matrix)
+    move_matrix = np.asmatrix(np.array([ [x[0], y[0], z[0]],
+                                         [x[1], y[1], z[1]],
+                                         [x[2], y[2], z[2]] ]))
 
     new_point_list = [move_matrix.dot(p).tolist()[0] for p in point_list]
 
@@ -1406,7 +1404,7 @@ def get_clean_name(node_name, keep_namespace=False):
     """
 
 
-    node_to_check = ""
+    node_to_check = ''
 
     if isinstance(node_name, (list,)):
         node_to_check = node_name[0]

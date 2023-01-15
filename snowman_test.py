@@ -24,7 +24,7 @@ rig = builder.build_prefab_armature(
 # ...Build rig
 '''builder.build_rig_in_scene(
     armature=pm.ls( "::biped_ARMATURE",
-    type="transform")[0] asset_name="test" )'''
+    type="transform")[0], asset_name="test" )'''
 
 # ...Save armature data to file
 armature_data = ArmatureDataIO(dirpath)
