@@ -195,40 +195,42 @@ class ArmatureDataIO(object):
                 constraining_placers[key] = placers[key]
 
         #...Check which constraining placers are driving other placers
-        driver_placers = {}
+        constraint_nodes = {}
+        connected_nodes = {}
+        check_attr_data = {}
+        attrs = {}
+        connections = {}
+        for dict in (constraint_nodes, connected_nodes, check_attr_data, attrs, connections):
+            for driver_key in constraining_placers:
+                dict[driver_key] = []
 
-        placer_data = {}
         for driver_key in constraining_placers:
-            placer_data[driver_key] = {
-                'constraint_nodes' : {},
-                'connected_nodes' : [],
-                'check_attr_data' : [],
-                'attrs' : [],
-                'connections' : []
-            }
+            constraint_nodes[driver_key] = amtr_utils.get_outgoing_constraints(placers[driver_key])
 
-        for driver_key in placer_data.keys():
-            plc_data = placer_data[driver_key]
-            plc_data['constraint_nodes'] = amtr_utils.get_outgoing_constraints(placers[driver_key])
-            for constraint_node in plc_data['constraint_nodes']:
-                for attr in ("constraintTranslate", "constraintRotate", "constraintScale"):
-                    plc_data['check_attr_data'].append((constraint_node, attr))
+        for driver_key, nodes in constraint_nodes.items():
+            for node in nodes:
+                for attr in ('constraintTranslate', 'constraintRotate', 'constraintScale'):
+                    check_attr_data[driver_key].append((node, attr))
 
-            for attr_data in plc_data['check_attr_data']:
+        for driver_key, attr_data_package in check_attr_data.items():
+            for attr_data in attr_data_package:
                 constraint_node, attr = attr_data
                 if not pm.attributeQuery(attr, node=constraint_node, exists=1):
                     continue
-                for letter in ("X", "Y", "Z"):
-                    plc_data['attrs'].append(f'{constraint_node}.{attr}{letter}')
+                for letter in ('X', 'Y', 'Z'):
+                    attrs[driver_key].append(f'{constraint_node}.{attr}{letter}')
 
-            for attr in plc_data['attrs']:
-                connections = pm.listConnections(attr, d=1, s=0)
-                if not connections:
-                    continue
-                for node in connections:
-                    plc_data['connected_nodes'].append(node) if node not in plc_data['connected_nodes'] else None
+        for driver_key, attr in attrs.items():
+            connections = pm.listConnections(attr, d=1, s=0)
+            if not connections:
+                continue
+            for node in connections:
+                connected_nodes[driver_key].append(node) if node not in connected_nodes[driver_key] else None
 
-            for node in plc_data['connected_nodes']:
+        driver_placers = {}
+
+        for driver_key, nodes in connected_nodes.items():
+            for node in nodes:
                 if not amtr_utils.check_if_placer(node):
                     continue
                 driven_placer_module_tag = amtr_utils.get_module_from_placer(node)
