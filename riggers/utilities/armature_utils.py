@@ -266,7 +266,7 @@ def get_piece_keys_from_module(module):
 
 ########################################################################################################################
 def connect_pair(obj, attrs=()):
-
+    print("A")
     #...Determine driver and follower placers in placer pair
     driver_obj = obj
     receiver_obj = gen_utils.get_opposite_side_obj(driver_obj)
@@ -277,3 +277,4 @@ def connect_pair(obj, attrs=()):
             continue
         if not pm.getAttr(receiver_obj + "." + attr, lock=1):
             pm.connectAttr(driver_obj + "." + attr, receiver_obj + "." + attr, f=1)
+    print("B")

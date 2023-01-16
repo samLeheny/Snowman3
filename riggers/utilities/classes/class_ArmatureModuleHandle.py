@@ -122,6 +122,8 @@ class ArmatureModuleHandle:
 
     ####################################################################################################################
     def setup_symmetry(self):
-
+        print("<<<<<")
+        print(self.mobject)
         amtr_utils.connect_pair(self.mobject, attrs=("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz",
                                                      "ModuleScale"))
+        print(">>>>>")

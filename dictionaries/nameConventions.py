@@ -24,7 +24,9 @@ def create_dict():
 
             # Prefixes
             self.animCtrl = "CTRL"
-            self.nonAnimCtrl = "SetupCTRL"
+            self.setupCtrl = "SetupCTRL"
+            self.prelimCtrl = "PrelimCTRL"
+            #self.nonAnimCtrl = "SetupCTRL"
             self.bindJnt = "BIND"
             self.nonBindJnt = "JNT"
             self.curve = "CRV"

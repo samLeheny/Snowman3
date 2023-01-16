@@ -356,7 +356,7 @@ def setup_root_ctrl():
 
     for name_tag in possible_name_tags:
 
-        setup_root_ctrl_string = "{0}_{1}".format(name_tag, nom.nonAnimCtrl)
+        setup_root_ctrl_string = "{0}_{1}".format(name_tag, nom.setupCtrl)
         possible_setup_root_ctrls = pm.ls("::" + setup_root_ctrl_string, type="transform")
 
         if len(possible_setup_root_ctrls):

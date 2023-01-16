@@ -74,7 +74,7 @@ class AnimControl:
     ####################################################################################################################
     def get_prelim_ctrl(self):
 
-        search_string = f'{self.side_tag}{self.prelim_ctrl_name}_{nom.nonAnimCtrl}'
+        search_string = f'{self.side_tag}{self.prelim_ctrl_name}_{nom.prelimCtrl}'
 
         search = pm.ls(f'::{search_string}')
         if search:

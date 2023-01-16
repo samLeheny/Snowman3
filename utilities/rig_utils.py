@@ -177,11 +177,10 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 
     # Determine control prefix
     ctrl_type_dict = {
-        nom.animCtrl : ["CTRL", "control", "animCtrl", "anim_ctrl", "anim_control", "animControl", "anim", "AnimCtrl",
-                        "Anim_Ctrl", "Anim Ctrl", "anim ctrl", "anim", "Anim", nom.animCtrl],
-        nom.nonAnimCtrl : ["setupCtrl", "SetupCTRL", "nonAnimCtrl", "non_anim_ctrl", "non_anim_control",
-                           "nonAnimControl", "nonAnim", "NonAnimCtrl", "Non_Anim_Ctrl", "Non Anim Ctrl",
-                           "non anim ctrl", "Non Anim", nom.nonAnimCtrl],
+        nom.animCtrl : ['animCtrl', 'anim_ctrl', 'anim ctrl', 'anim_control', 'animControl', 'anim', 'Anim', 'AnimCtrl',
+                        'Anim_Ctrl', 'Anim Ctrl', nom.animCtrl],
+        nom.setupCtrl : ['setupCtrl', 'SetupCTRL', nom.setupCtrl],
+        nom.prelimCtrl : ['prelimCtrl', 'PrelimCtrl', nom.prelimCtrl]
     }
 
     ctrl_suffix = nom.animCtrl
@@ -192,7 +191,7 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
             break
 
     if ctrl_suffix:
-        ctrl_suffix = "_{0}".format(ctrl_suffix)
+        ctrl_suffix = f'_{ctrl_suffix}'
 
 
     # Determine if control name needs a sided prefix

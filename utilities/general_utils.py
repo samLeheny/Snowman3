@@ -93,7 +93,6 @@ get_shape_info_from_obj
 matrix_to_list
 list_to_matrix
 get_obj_matrix
-add_attr
 symmetry_info
 add_attr
 get_attr_data
@@ -1436,18 +1435,17 @@ def get_clean_name(node_name, keep_namespace=False):
 
 ########################################################################################################################
 def get_opposite_side_obj(obj):
-
+    print(1)
     # Get side of this object
-    side_tags = {nom.leftSideTag: "{}_".format(nom.leftSideTag),
-                 nom.rightSideTag: "{}_".format(nom.rightSideTag)}
+    side_tags = {nom.leftSideTag: f'{nom.leftSideTag}_',
+                 nom.rightSideTag: f'{nom.rightSideTag}_'}
     opp_side_tags = {nom.leftSideTag: side_tags[nom.rightSideTag],
                      nom.rightSideTag: side_tags[nom.leftSideTag]}
 
     this_obj_clean_name = get_clean_name(str(obj))
+    print(this_obj_clean_name)
 
     opp_side_tag = None
-
-
     key = None
     for key in side_tags:
         if this_obj_clean_name.startswith(side_tags[key]):
@@ -1456,20 +1454,23 @@ def get_opposite_side_obj(obj):
             break
 
     if not opp_side_tag:
-        print("Object: '{0}' is not sided. Can't get opposite sided object.".format(obj))
+        print(f"Object: '{obj}' is not sided. Can't get opposite sided object.")
         return None
 
     # Get expected name of opposite obj
     opp_obj_check_string = this_obj_clean_name.replace( side_tags[key], opp_side_tag )
+    print(opp_obj_check_string)
 
     # Check for an obj of this expected name
-    opp_obj = pm.PyNode(f'::{opp_obj_check_string}') if pm.objExists(f'::{opp_obj_check_string}') else None
+    search = pm.ls(f'::{opp_obj_check_string}')
+    opp_obj = search[0] if search else None
+    print(opp_obj)
 
 
     if not obj:
-        print("Unable to find opposite side object. Expected an object of name: '{0}'".format(opp_obj_check_string))
+        print(f"Unable to find opposite side object. Expected an object of name: '{opp_obj_check_string}'")
 
-
+    print(2)
     return opp_obj
 
 
@@ -2293,28 +2294,31 @@ def interpolate(interp_point, point_1, point_2):
 
 ########################################################################################################################
 def get_shape_info_from_obj(obj=None):
-
+    """
+    Takes a nurbs curve object and composes a dictionary of data from which the obj can be reproduced.
+        Handy for rig IO - the format of the information is compatible with the inputs for Snowman's nurbs curve
+        prefabs.
+    Args:
+        obj (pyNode): The object (transform) whose shape data should be composed.
+    Returns:
+        (dict): 'form' - open/periodic,
+            'cvs' - cv positions relative to object's transform,
+            'degree' - curve smoothing algorithm
+    """
 
     open_form_tag = "open"
     periodic_form_tag = "periodic"
 
-
     #...If no object provided, try getting object from current selection
     if not obj:
-
         sel = pm.ls(sl=1)
-        if sel:
-            obj = sel[0]
-        else:
-            pm.error("No object provided.")
+        pm.error("No object provided.") if not sel else None
+        obj = sel[0]
 
-
-    #...
+    #...Get object's nurbs curve children
     shapes = obj.getShapes()
 
-    if not shapes:
-        pm.error("Provided object has no shape nodes.")
-
+    pm.error("Provided object has no shape nodes.") if not shapes else None
 
     #...Collect and compose data from all object's nurbs curves
     #...Curve degrees
@@ -2594,8 +2598,6 @@ def migrate_attr(old_node, new_node, attr, include_connections=True, remove_orig
 
     if channel_box_status:
         pm.setAttr(f'{new_node}.{attr}', channelBox=1)
-
-
 
 
 

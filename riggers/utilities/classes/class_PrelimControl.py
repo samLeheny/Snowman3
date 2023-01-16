@@ -106,7 +106,7 @@ class PrelimControl:
         self.assemble_shape_data() if not self.shape_data else None
 
         #...Create control object
-        self.ctrl_obj = rig_utils.control(ctrl_info=self.shape_data, ctrl_type="non_anim_ctrl", side=self.side)
+        self.ctrl_obj = rig_utils.control(ctrl_info=self.shape_data, ctrl_type="prelim_ctrl", side=self.side)
 
         return self.ctrl_obj
 
