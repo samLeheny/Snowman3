@@ -83,7 +83,7 @@ class ArmatureModuleHandle:
                      "scale": self.scale}
 
         #...Create control
-        self.mobject = rig_utils.control(ctrl_info=ctrl_data, ctrl_type="setup_ctrl", side=self.side,
+        self.mobject = rig_utils.control(ctrl_info=ctrl_data, ctrl_type="setupCTRL", side=self.side,
                                          parent=self.parent)
 
 
@@ -122,8 +122,7 @@ class ArmatureModuleHandle:
 
     ####################################################################################################################
     def setup_symmetry(self):
-        print("<<<<<")
-        print(self.mobject)
+
         amtr_utils.connect_pair(self.mobject, attrs=("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz",
                                                      "ModuleScale"))
-        print(">>>>>")
+

@@ -179,16 +179,21 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
     ctrl_type_dict = {
         nom.animCtrl : ['animCtrl', 'anim_ctrl', 'anim ctrl', 'anim_control', 'animControl', 'anim', 'Anim', 'AnimCtrl',
                         'Anim_Ctrl', 'Anim Ctrl', nom.animCtrl],
-        nom.setupCtrl : ['setupCtrl', 'SetupCTRL', nom.setupCtrl],
-        nom.prelimCtrl : ['prelimCtrl', 'PrelimCtrl', nom.prelimCtrl]
+        nom.setupCtrl : ['setupCtrl', 'SetupCTRL', 'setup_ctrl', 'setupCTRL', nom.setupCtrl],
+        nom.prelimCtrl : ['prelimCtrl', 'PrelimCtrl', 'prelim_ctrl', 'prelimCTRL', nom.prelimCtrl]
     }
 
     ctrl_suffix = nom.animCtrl
 
-    for key in ctrl_type_dict:
-        if ctrl_type in ctrl_type_dict[key]:
-            ctrl_suffix = key
-            break
+
+    if ctrl_type:
+        ctrl_suffix = None
+        for key in ctrl_type_dict:
+            if ctrl_type in ctrl_type_dict[key]:
+                ctrl_suffix = key
+                break
+        if not ctrl_suffix:
+            pm.error(f"Could not create control. Invalid argument '{ctrl_type}' provided to 'ctrl_type' parameter")
 
     if ctrl_suffix:
         ctrl_suffix = f'_{ctrl_suffix}'

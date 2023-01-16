@@ -43,8 +43,9 @@ class CtrlDataIO(object):
         dirpath
     ):
         self.dirpath = dirpath
-        self.filepath = f'{self.dirpath}/test_armature_data.json'
+        self.filepath = f'{self.dirpath}/test_ctrlShape_data.json'
         self.scene_ctrls = None
+        self.ctrl_shapes_data = {}
 
 
 
@@ -52,14 +53,54 @@ class CtrlDataIO(object):
     ####################################################################################################################
     def get_all_ctrls_in_scene(self):
 
+        scene_ctrls = []
+
         #...Get all transform nodes ending with control suffix
         transform_suffix_nodes = pm.ls(f'::*_{nom.animCtrl}', type='transform')
         #...Test each to confirm it has a nurbs curve(s) as an immediate child
-        anim_ctrls = []
         for node in transform_suffix_nodes:
             for shape in node.getShapes():
                 if shape.nodeType() == 'nurbsCurve':
-                    anim_ctrls.append(node)
+                    scene_ctrls.append(node)
                     continue
 
-        self.scene_ctrls = anim_ctrls
+        # ...Get all transform nodes ending with control suffix
+        transform_suffix_nodes = pm.ls(f'::*_{nom.prelimCtrl}', type='transform')
+        # ...Test each to confirm it has a nurbs curve(s) as an immediate child
+        for node in transform_suffix_nodes:
+            for shape in node.getShapes():
+                if shape.nodeType() == 'nurbsCurve':
+                    scene_ctrls.append(node)
+                    continue
+
+        self.scene_ctrls = scene_ctrls
+
+
+
+
+
+    ####################################################################################################################
+    def ctrl_compose_shape_data(self):
+
+        unwanted_suffixes = [f'_{nom.prelimCtrl}', f'_{nom.animCtrl}']
+
+        for ctrl in self.scene_ctrls:
+
+            ctrl_key = gen_utils.get_clean_name(str(ctrl))
+            for suffix in unwanted_suffixes:
+                if not ctrl_key.endswith(suffix):
+                    continue
+                ctrl_key = ctrl_key.split(suffix)[0]
+                break
+
+            self.ctrl_shapes_data[ctrl_key] = gen_utils.get_shape_data_from_obj(ctrl)
+
+
+
+
+
+    ####################################################################################################################
+    def save(self):
+
+        with open(self.filepath, 'w') as fh:
+            json.dump(self.ctrl_shapes_data, fh, indent=5)

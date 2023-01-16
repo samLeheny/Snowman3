@@ -89,7 +89,7 @@ point_on_surface_matrix
 flip
 get_shape_center
 interp
-get_shape_info_from_obj
+get_shape_data_from_obj
 matrix_to_list
 list_to_matrix
 get_obj_matrix
@@ -556,6 +556,8 @@ def flip_obj(obj=None, axis="x"):
 ########################################################################################################################
 def get_color(obj):
 
+    decimals = 4
+
     color = None
     objs = []
 
@@ -577,6 +579,7 @@ def get_color(obj):
         else:
             color = obj.overrideColorRGB.get()
             color = list(color)
+            color = [round(color[i], decimals) for i, v in enumerate(color)]
         if color:
             break
 
@@ -1435,7 +1438,7 @@ def get_clean_name(node_name, keep_namespace=False):
 
 ########################################################################################################################
 def get_opposite_side_obj(obj):
-    print(1)
+
     # Get side of this object
     side_tags = {nom.leftSideTag: f'{nom.leftSideTag}_',
                  nom.rightSideTag: f'{nom.rightSideTag}_'}
@@ -1464,13 +1467,10 @@ def get_opposite_side_obj(obj):
     # Check for an obj of this expected name
     search = pm.ls(f'::{opp_obj_check_string}')
     opp_obj = search[0] if search else None
-    print(opp_obj)
-
 
     if not obj:
         print(f"Unable to find opposite side object. Expected an object of name: '{opp_obj_check_string}'")
 
-    print(2)
     return opp_obj
 
 
@@ -2293,7 +2293,7 @@ def interpolate(interp_point, point_1, point_2):
 
 
 ########################################################################################################################
-def get_shape_info_from_obj(obj=None):
+def get_shape_data_from_obj(obj=None):
     """
     Takes a nurbs curve object and composes a dictionary of data from which the obj can be reproduced.
         Handy for rig IO - the format of the information is compatible with the inputs for Snowman's nurbs curve
@@ -2305,6 +2305,8 @@ def get_shape_info_from_obj(obj=None):
             'cvs' - cv positions relative to object's transform,
             'degree' - curve smoothing algorithm
     """
+
+    cv_position_decimals = 6
 
     open_form_tag = "open"
     periodic_form_tag = "periodic"
@@ -2327,19 +2329,26 @@ def get_shape_info_from_obj(obj=None):
     #...Curve forms (open or periodic curve shapes)
     forms = [shape.form().key for shape in shapes]
 
+    #...Color
+    color = get_color(obj)
+
     #...CV positions
     cv_counts = [shape.numCVs() for shape in shapes]
     cv_positions = []
 
     for shp, deg in zip(shapes, degrees):
         shape_cvs = ([[cv.x, cv.y, cv.z] for cv in shp.getCVs()])
+        #...Round coordinates
+        for i, v in enumerate(shape_cvs):
+            shape_cvs[i] = [round(v[j], cv_position_decimals) for j, w in enumerate(v)]
         #...If degree of 3, the last three CVs will be repeats. Remove them from final list
         cv_positions.append(shape_cvs[0: -3] if deg == 3 else shape_cvs)
 
 
-    return {"form": forms,
-            "cvs": cv_positions,
-            "degree": degrees}
+    return {'form': forms,
+            'cvs': cv_positions,
+            'degree': degrees,
+            'color': color}
 
 
 
