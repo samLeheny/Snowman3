@@ -111,7 +111,7 @@ class ControlData:
             prelim_ctrl_name = self.name,
             side = self.side,
             match_transform = self.match_transform,
-            module_ctrl = self.module_ctrl
+            module_ctrl = self.module_ctrl,
         )
 
         return ctrl

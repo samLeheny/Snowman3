@@ -68,5 +68,3 @@ points = [
 ]
 
 new_points = [move_matrix.dot(p).tolist()[0] for p in points]
-print(points)
-print(new_points)

@@ -159,6 +159,7 @@ class AnimControl:
 
         #...Put ctrl into final position
         pm.matchTransform(ctrl, match_transform_obj)
+
         #...Do away with any temp locator
         pm.delete(temp_loc) if temp_loc else None
 

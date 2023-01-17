@@ -57,8 +57,11 @@ def build(armature_module):
 
 
     #...Preliminary controls -------------------------------------------------------------------------------------------
-    ctrls_dict = root_prelimControls.create_ctrl_data(side=armature_module.side,
-                                                      is_driven_side=armature_module.is_driven_side)
+    armature_module.ctrl_data = root_prelimControls.create_ctrl_data(
+        side=armature_module.side,
+        is_driven_side=armature_module.is_driven_side,
+        module_ctrl=armature_module.module_ctrl
+    )
 
     armature_module.create_prelim_ctrls()
 

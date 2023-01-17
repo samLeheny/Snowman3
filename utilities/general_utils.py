@@ -1446,7 +1446,6 @@ def get_opposite_side_obj(obj):
                      nom.rightSideTag: side_tags[nom.leftSideTag]}
 
     this_obj_clean_name = get_clean_name(str(obj))
-    print(this_obj_clean_name)
 
     opp_side_tag = None
     key = None
@@ -1462,7 +1461,6 @@ def get_opposite_side_obj(obj):
 
     # Get expected name of opposite obj
     opp_obj_check_string = this_obj_clean_name.replace( side_tags[key], opp_side_tag )
-    print(opp_obj_check_string)
 
     # Check for an obj of this expected name
     search = pm.ls(f'::{opp_obj_check_string}')

@@ -316,3 +316,13 @@ class Armature:
         #...Enact live symmetry if needed -------------------------------------------------------------------------
         if self.symmetry_mode in ("Left drives Right", "Right drives Left"):
             self.setup_armature_realtime_symmetry(driver_side=self.driver_side)
+
+
+
+
+
+    ####################################################################################################################
+    def hibernate_armature(self):
+
+        for module in self.modules.values():
+            module.hibernate_module()

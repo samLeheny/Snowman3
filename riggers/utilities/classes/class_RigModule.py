@@ -157,7 +157,7 @@ class RigModule:
     ####################################################################################################################
     def get_setup_module_ctrl(self):
 
-        search_string = f'::{self.side_tag}{self.name}_{nom.animCtrl}'
+        search_string = f'::{self.side_tag}{self.name}_{nom.setupCtrl}'
 
         if pm.ls(search_string):
             self.setup_module_ctrl = pm.ls(search_string)[0]

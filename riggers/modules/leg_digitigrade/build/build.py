@@ -41,7 +41,7 @@ LimbRig = class_LimbRig.LimbRig
 def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_parent=None, include_fk_foot_rot=False):
 
 
-    side_tag = "{}_".format(rig_module.side) if rig_module.side else ""
+    side_tag = f'{rig_module.side}_' if rig_module.side else ''
 
 
     #...Create biped_leg rig group

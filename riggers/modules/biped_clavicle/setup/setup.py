@@ -1,4 +1,4 @@
-# Title: spine_setup.py
+# Title: clavicle_setup.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -31,11 +31,11 @@ def build(armature_module):
     #...Position module
     armature_module.position_module()
 
-
     #...Preliminary controls ------------------------------------------------------------------------------------------
-    ctrls_dict = prelimCtrls.create_ctrl_data(side=armature_module.side,
-                                              is_driven_side=armature_module.is_driven_side,
-                                              module_ctrl=armature_module.module_ctrl)
+    armature_module.ctrl_data = prelimCtrls.create_ctrl_data(
+        side=armature_module.side,
+        is_driven_side=armature_module.is_driven_side,
+        module_ctrl=armature_module.module_ctrl)
     armature_module.create_prelim_ctrls()
 
 

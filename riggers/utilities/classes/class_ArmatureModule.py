@@ -98,8 +98,7 @@ class ArmatureModule:
         self.placers = {}
         self.placer_data = placer_data if placer_data else get_module_data.placers(
             self.rig_module_type, side=side, is_driven_side=is_driven_side)
-        self.ctrl_data = ctrl_data if ctrl_data else get_module_data.ctrl_data(
-            self.rig_module_type, side=side, is_driven_side=is_driven_side)
+        self.ctrl_data = ctrl_data if ctrl_data else None
         self.pv_placers = {}
         self.orienters = {}
         self.module_handles = {}
@@ -725,3 +724,15 @@ class ArmatureModule:
                            orienter_data = p_dict["orienterData"],
                            connect_targets = p_dict["connectorTargets"])
                 )
+
+
+
+
+
+    ####################################################################################################################
+    def hibernate_module(self):
+
+        for placer in self.placers.values():
+            for attr in gen_utils.all_transform_attrs:
+                if pm.getAttr(f'{placer.mobject}.{attr}', keyable=1):
+                    pm.setAttr(f'{placer.mobject}.{attr}', lock=1)
