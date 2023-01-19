@@ -733,6 +733,4 @@ class ArmatureModule:
     def hibernate_module(self):
 
         for placer in self.placers.values():
-            for attr in gen_utils.all_transform_attrs:
-                if pm.getAttr(f'{placer.mobject}.{attr}', keyable=1):
-                    pm.setAttr(f'{placer.mobject}.{attr}', lock=1)
+            placer.hibernate_placer()

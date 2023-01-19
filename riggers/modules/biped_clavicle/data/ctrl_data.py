@@ -38,23 +38,22 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
+def create_ctrl_data(side=None, is_driven_side=None):
 
     ctrl_data = {
 
-        "clavicle": ControlData(
-            name = "clavicle",
-            shape = "biped_clavicle",
+        'clavicle': ControlData(
+            name = 'clavicle',
+            shape = 'biped_clavicle',
             size = [9, 9, 9],
             shape_offset = [6, 0, 0],
             color = [ctrl_colors[nom.leftSideTag], ctrl_colors[nom.rightSideTag]],
-            position = "clavicle",
-            orientation = {"match_to": "module_ctrl"},
+            position = 'clavicle',
+            orientation = {'match_to': 'module_ctrl'},
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            match_transform = "module_ctrl",
-            module_ctrl = module_ctrl,
+            match_transform = 'clavicle'
         ),
 
     }

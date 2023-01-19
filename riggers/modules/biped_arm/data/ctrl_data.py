@@ -38,7 +38,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
+def create_ctrl_data(side=None, is_driven_side=None):
 
     ctrl_data = {
 
@@ -56,8 +56,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            match_transform = "upperarm",
-            module_ctrl = module_ctrl
+            match_transform = "upperarm"
         ),
 
 
@@ -74,8 +73,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform = "lowerarm",
-            module_ctrl = module_ctrl
+            match_transform = "lowerarm"
         ),
 
 
@@ -92,8 +90,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform = "lowerarm_end",
-            module_ctrl = module_ctrl
+            match_transform = "lowerarm_end"
         ),
 
 
@@ -107,8 +104,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             orientation={"match_to": "lowerarm_end"},
             locks={"v":1},
             side=side,
-            is_driven_side=is_driven_side,
-            module_ctrl = module_ctrl
+            is_driven_side=is_driven_side
         ),
 
 
@@ -121,8 +117,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             orientation={"match_to": "module_ctrl"},
             locks={"r":[1, 1, 1], "s":[1, 1, 1], "v":1},
             side=side,
-            is_driven_side=is_driven_side,
-            module_ctrl=module_ctrl
+            is_driven_side=is_driven_side
         ),
 
 
@@ -139,8 +134,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"r": [1, 1, 1], "s": [1, 1, 1], "v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform = "upperarm",
-            module_ctrl = module_ctrl
+            match_transform = "upperarm"
         ),
 
         'ik_hand_follow': ControlData(
@@ -154,8 +148,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={'v': 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform='center to prelim',
-            module_ctrl=module_ctrl
+            match_transform='center to prelim'
         ),
 
     }

@@ -37,7 +37,7 @@ PrelimControl = class_PrelimControl.PrelimControl
 
 
 
-def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
+def create_prelim_ctrls(side=None, is_driven_side=None):
 
     prelim_ctrls = {
 
@@ -54,9 +54,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
             orientation = {"match_to": "thigh"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
-            match_transform = "thigh",
-            module_ctrl = module_ctrl
+            is_driven_side = is_driven_side
         ),
 
 
@@ -72,9 +70,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
             orientation={"match_to": "calf"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            match_transform = "calf",
-            module_ctrl = module_ctrl
+            is_driven_side=is_driven_side
         ),
 
 
@@ -90,9 +86,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
             orientation={"match_to": "calf_end"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            match_transform = "calf_end",
-            module_ctrl = module_ctrl
+            is_driven_side=is_driven_side
         ),
 
 
@@ -108,8 +102,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
             orientation={"match_to": "calf_end"},
             locks={"v":1},
             side=side,
-            is_driven_side=is_driven_side,
-            module_ctrl = module_ctrl
+            is_driven_side=is_driven_side
         ),
 
 
@@ -123,9 +116,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
             orientation={"match_to": "module_ctrl"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
-            match_transform="center to prelim",
-            module_ctrl=module_ctrl
+            is_driven_side=is_driven_side
         ),
 
 
@@ -140,9 +131,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None, module_ctrl=None):
             position=("thigh",),
             orientation = {"match_to": "module_ctrl"},
             locks={"r": [1, 1, 1], "s": [1, 1, 1], "v": 1},
-            side=side,
-            match_transform = "thigh",
-            module_ctrl = module_ctrl
+            side=side
         ),
 
     }

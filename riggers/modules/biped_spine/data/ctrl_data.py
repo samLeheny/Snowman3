@@ -36,7 +36,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
+def create_ctrl_data(side=None, is_driven_side=None):
 
     ctrl_data = {
         'ik_chest': ControlData(
@@ -47,8 +47,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             color = ctrl_colors[nom.midSideTag],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -59,8 +58,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             color = ctrl_colors[nom.midSideTag],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -72,8 +70,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             color = ctrl_colors[nom.midSideTag],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -85,8 +82,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
             locks = {'v': 1},
-            up_direction = [0, -1, 0],
-            module_ctrl = module_ctrl
+            up_direction = [0, -1, 0]
         ),
 
 
@@ -99,8 +95,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
             locks = {'v': 1},
-            up_direction = [0, -1, 0],
-            module_ctrl = module_ctrl
+            up_direction = [0, -1, 0]
         ),
 
 
@@ -113,8 +108,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
             locks = {'v': 1},
-            up_direction = [0, -1, 0],
-            module_ctrl = module_ctrl
+            up_direction = [0, -1, 0]
         ),
 
 
@@ -126,8 +120,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             color = ctrl_colors[nom.midSideTag2],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -140,8 +133,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             forward_direction = [0, 1, 0],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -154,8 +146,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             forward_direction = [0, 1, 0],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -168,8 +159,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             forward_direction = [0, 1, 0],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -182,8 +172,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             forward_direction = [0, 1, 0],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -196,8 +185,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             forward_direction = [0, 1, 0],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -210,8 +198,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             forward_direction = [0, 1, 0],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -224,8 +211,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             forward_direction = [0, 1, 0],
             orientation = {'aim_vector': ('y', (0, 1, 0)),
                              'up_vector': ('z', (0, 0, 1))},
-            locks = {'v': 1},
-            module_ctrl = module_ctrl
+            locks = {'v': 1}
         ),
 
 
@@ -236,8 +222,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             position = ('spine_1',),
             shape_offset = [18.5, 8, 0],
             color = ctrl_colors['settings'],
-            locks = {'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]},
-            module_ctrl = module_ctrl
+            locks = {'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]}
         )
     }
 

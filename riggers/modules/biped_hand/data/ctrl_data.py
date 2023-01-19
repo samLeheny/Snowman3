@@ -39,7 +39,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
+def create_ctrl_data(side=None, is_driven_side=None):
 
     ctrl_data = {
 
@@ -55,8 +55,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            match_transform="index_metacarpal",
-            module_ctrl=module_ctrl
+            match_transform="index_metacarpal"
         ),
 
 
@@ -71,8 +70,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="index_1",
-            module_ctrl=module_ctrl
+            match_transform="index_1"
         ),
 
 
@@ -87,8 +85,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="index_2",
-            module_ctrl=module_ctrl
+            match_transform="index_2"
         ),
 
 
@@ -103,8 +100,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="index_3",
-            module_ctrl=module_ctrl
+            match_transform="index_3"
         ),
 
 
@@ -119,8 +115,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            match_transform="middle_metacarpal",
-            module_ctrl=module_ctrl
+            match_transform="middle_metacarpal"
         ),
 
 
@@ -135,8 +130,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="middle_1",
-            module_ctrl=module_ctrl
+            match_transform="middle_1"
         ),
 
 
@@ -151,8 +145,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="middle_2",
-            module_ctrl=module_ctrl
+            match_transform="middle_2"
         ),
 
 
@@ -167,8 +160,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="middle_3",
-            module_ctrl=module_ctrl
+            match_transform="middle_3"
         ),
 
 
@@ -183,8 +175,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            match_transform="ring_metacarpal",
-            module_ctrl=module_ctrl
+            match_transform="ring_metacarpal"
         ),
 
 
@@ -199,8 +190,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="ring_1",
-            module_ctrl=module_ctrl
+            match_transform="ring_1"
         ),
 
 
@@ -215,8 +205,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="ring_2",
-            module_ctrl=module_ctrl
+            match_transform="ring_2"
         ),
 
 
@@ -231,8 +220,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="ring_3",
-            module_ctrl=module_ctrl
+            match_transform="ring_3"
         ),
 
 
@@ -246,8 +234,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks = {"v": 1},
             side = side,
             is_driven_side = is_driven_side,
-            match_transform="pinky_metacarpal",
-            module_ctrl=module_ctrl
+            match_transform="pinky_metacarpal"
         ),
 
 
@@ -262,8 +249,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="pinky_1",
-            module_ctrl=module_ctrl
+            match_transform="pinky_1"
         ),
 
 
@@ -278,8 +264,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="pinky_2",
-            module_ctrl=module_ctrl
+            match_transform="pinky_2"
         ),
 
 
@@ -294,8 +279,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="pinky_3",
-            module_ctrl=module_ctrl
+            match_transform="pinky_3"
         ),
 
 
@@ -310,8 +294,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="thumb_1",
-            module_ctrl=module_ctrl
+            match_transform="thumb_1"
         ),
 
 
@@ -326,8 +309,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="thumb_2",
-            module_ctrl=module_ctrl
+            match_transform="thumb_2"
         ),
 
 
@@ -342,8 +324,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="thumb_3",
-            module_ctrl=module_ctrl
+            match_transform="thumb_3"
         ),
 
 
@@ -358,8 +339,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1, "t": [1, 1, 0], "r": [0, 1, 0], "s": [1, 1, 0]},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="center to prelim",
-            module_ctrl=module_ctrl
+            match_transform="center to prelim"
         ),
 
 
@@ -376,8 +356,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             locks={"v": 1, "t": [1, 1, 1], "s": [1, 1, 1]},
             side=side,
             is_driven_side=is_driven_side,
-            match_transform="pinky_metacarpal",
-            module_ctrl=module_ctrl
+            match_transform="pinky_metacarpal"
         ),
 
     }

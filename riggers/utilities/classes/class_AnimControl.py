@@ -37,18 +37,16 @@ class AnimControl:
         ctrl_name_tag,
         prelim_ctrl_name,
         side = None,
-        match_transform = None,
-        module_ctrl = None,
+        match_transform = None
     ):
         self.ctrl_name_tag = ctrl_name_tag
         self.prelim_ctrl_name = prelim_ctrl_name if prelim_ctrl_name else self.ctrl_name_tag
         self.side = side
-        self.match_transform = match_transform if match_transform else None
+        self.match_transform = match_transform
 
         self.side_tag = f'{self.side}_' if self.side else ''
         self.prelim_ctrl = None
         self.ctrl_transform = None
-        self.module_ctrl_obj = module_ctrl if module_ctrl else None
 
 
     """
@@ -147,11 +145,8 @@ class AnimControl:
 
         #...Matching ctrl -
         else:
-            #... - to its module's root ctrl
-            if self.match_transform == 'module_ctrl':
-                match_transform_obj = self.module_ctrl_obj
             #... - to its prelim ctrl's shape's center
-            elif self.match_transform == 'center to prelim':
+            if self.match_transform == 'center to prelim':
                 match_transform_obj = temp_loc = self.prep_center_ctrl_to_prelim_ctrl(ctrl)
             #... - to its orienter
             else:

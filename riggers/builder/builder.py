@@ -45,7 +45,8 @@ ArmatureDataIO = IO.ArmatureDataIO
 
 
 #...Symmetry and side variables
-symmetry_info = gen_utils.symmetry_info("Left drives Right")
+default_symmetry_arg = "Left drives Right"
+symmetry_info = gen_utils.symmetry_info(default_symmetry_arg)
 default_symmetry_mode = symmetry_info[0]
 
 
@@ -53,14 +54,15 @@ default_symmetry_mode = symmetry_info[0]
 
 
 ########################################################################################################################
-def build_armature_in_scene(armature):
+def build_armature_in_scene(armature_data):
 
     #...Create and move into armature namespace
     pm.namespace(add=nom.setupRigNamespace)
     pm.namespace(set=nom.setupRigNamespace)
 
     #...Build armature
-    armature.populate_armature()
+    armature_data.populate_armature()
+    armature = armature_data
 
     #...Return to default scene namespace
     pm.namespace(set=":")
@@ -74,8 +76,8 @@ def build_armature_in_scene(armature):
 ########################################################################################################################
 def build_prefab_armature(prefab_tag, symmetry_mode=None):
 
-    armature = get_armature_data.armature(prefab_tag, symmetry_mode=symmetry_mode)
-    build_armature_in_scene(armature)
+    armature_data = get_armature_data.armature(prefab_tag, symmetry_mode=symmetry_mode)
+    armature = build_armature_in_scene(armature_data)
 
     return armature
 
@@ -87,9 +89,10 @@ def build_prefab_armature(prefab_tag, symmetry_mode=None):
 def build_armature_from_file(dirpath):
 
     armature_IO = ArmatureDataIO(dirpath)
-    armature = armature_IO.build_armature_data_from_file()
-    armature.modules_from_data()
-    build_armature_in_scene(armature)
+    armature_data = armature_IO.build_armature_data_from_file()
+    armature_data.modules_from_data()
+    build_armature_in_scene(armature_data)
+    armature = armature_data
 
     return armature
 

@@ -40,8 +40,8 @@ def placers(key, side=None, is_driven_side=False):
 
 
 ########################################################################################################################
-def ctrl_data(key, side=None, is_driven_side=False, module_ctrl=None):
+def ctrl_data(key, side=None, is_driven_side=False):
     m = importlib.import_module(dir_string["ctrl_data"].format(key))
     importlib.reload(m)
-    return m.create_ctrl_data(side=side, is_driven_side=is_driven_side, module_ctrl=module_ctrl)
+    return m.create_ctrl_data(side=side, is_driven_side=is_driven_side)
 

@@ -86,7 +86,9 @@ class Rig:
     def get_rig_prefab_type(self):
 
         rig_prefab_type = None
-        if pm.attributeQuery("ArmaturePrefabKey", node=self.armature, exists=1):
+        armature_has_prefab_key = pm.attributeQuery("ArmaturePrefabKey", node=self.armature, exists=1)
+
+        if armature_has_prefab_key:
             rig_prefab_type = pm.getAttr(f'{self.armature}.ArmaturePrefabKey')
 
         return rig_prefab_type
@@ -96,24 +98,17 @@ class Rig:
 
 
     ####################################################################################################################
-    def get_armature_module_mObj(self, key):
-        """
-        Given an armature, will look through its connections to find the armature module of the specified key.
-        Args:
-            key (str): The name of the string attribute that is connected to the desired module.
-        Returns:
-            (mObj): Armature module root object.
-        """
+    def get_armature_module_mObj(self, module_key):
 
         armature_module = None
 
-        #...Look for Armature modules attributes on provided armature node
-        attr_string = f'Module_{key}'
-        if pm.attributeQuery(attr_string, node=self.armature, exists=1):
-            #...Find the string attribute that matches provided key
-            in_connections = pm.listConnections(f'{self.armature}.{attr_string}', s=1, d=0)
-            if in_connections:
-                armature_module = in_connections[0]
+        #...Look for Armature module attribute on provided armature node
+        attr_string = f'Module_{module_key}'
+        module_in_armature = pm.attributeQuery(attr_string, node=self.armature, exists=1)
+
+        if module_in_armature:
+            source_nodes = pm.listConnections(f'{self.armature}.{attr_string}', s=1, d=0)
+            armature_module = source_nodes[0] if source_nodes else None
 
         return armature_module
 
@@ -124,9 +119,9 @@ class Rig:
     ####################################################################################################################
     def create_root_groups(self):
 
-        self.character_grp = pm.group(name=f'{self.name}CHAR', world=1, em=1)
-        self.rig_grp = pm.group(name='rig', p=self.character_grp, em=1)
-        self.geo_grp = pm.group(name='geo', p=self.character_grp, em=1)
+        self.character_grp = pm.group(name=f'{self.name}CHAR', world=1, empty=1)
+        self.rig_grp = pm.group(name='rig', parent=self.character_grp, empty=1)
+        self.geo_grp = pm.group(name='geo', parent=self.character_grp, empty=1)
 
 
 
@@ -143,9 +138,6 @@ class Rig:
 
     ####################################################################################################################
     def get_module_types(self):
-
-        if not self.armature_modules:
-            self.get_armature_modules()
 
         for key in self.armature_modules:
             self.module_types[key] = amtr_utils.get_module_type(self.armature_modules[key])
@@ -206,26 +198,27 @@ class Rig:
 
         #...Get information from armature
         self.create_root_groups()
+        self.get_armature_modules()
         self.get_module_types()
 
-        for key in self.armature_modules:
-            armature_module = self.get_armature_module_mObj(key)
-
-            self.modules[key] = RigModule(
-                name=pm.getAttr(f'{armature_module}.ModuleNameParticle'),
-                rig_module_type=self.module_types[key],
-                armature_module=armature_module,
-                side=pm.getAttr(f'{armature_module}.Side'),
-                piece_keys=amtr_utils.get_piece_keys_from_module(armature_module)
-            )
+        #...Get modules data from armature
+        for module_key in self.armature_modules:
+            armature_module = self.get_armature_module_mObj(module_key=module_key)
+            self.modules[module_key] = RigModule(
+                name = pm.getAttr(f'{armature_module}.ModuleNameParticle'),
+                rig_module_type = self.module_types[module_key],
+                armature_module = armature_module,
+                side = pm.getAttr(f'{armature_module}.Side'),
+                piece_keys = amtr_utils.get_piece_keys_from_module(armature_module))
 
         #...Build modules in scene
         [module.populate_rig_module(rig_parent=self.rig_grp) for module in self.modules.values()]
 
-        #...Compose dictionary if sided modules (left and right)
+        #...Compose dictionary of sided modules (left and right)
         for key, module in self.modules.items():
             if module.side in (nom.leftSideTag, nom.rightSideTag):
                 self.sided_modules[module.side][key] = module
+
 
         #...Transfer attributes between nodes in the rig as specified in the attr_handoffs data
         self.perform_module_attr_handoffs()
@@ -233,5 +226,3 @@ class Rig:
         self.attach_modules()
         #...Install space blends
         self.install_space_blends()
-
-        import Snowman3.utilities.rig_utils as rig_utils

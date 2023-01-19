@@ -81,7 +81,7 @@ def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_paren
 
 
     #...Controls ------------------------------------------------------------------------------------------------------
-    ctrl_data = animCtrls.create_prelim_ctrls(side=rig_module.side, module_ctrl=setup_module_ctrl)
+    ctrl_data = animCtrls.create_prelim_ctrls(side=rig_module.side)
     ctrls = rig_module.ctrls
 
     ctrl_pairs = [("fk_thigh", "upperlimb_FK"),

@@ -48,7 +48,6 @@ class ControlData:
         is_driven_side = None,
         body_module = None,
         match_transform = None,
-        module_ctrl = None,
         side = None,
     ):
         self.name = name
@@ -65,7 +64,6 @@ class ControlData:
         self.is_driven_side = is_driven_side
         self.body_module = body_module
         self.match_transform = match_transform
-        self.module_ctrl = module_ctrl
         self.side = side
 
         self.ctrl_obj = None
@@ -91,10 +89,8 @@ class ControlData:
             orientation = self.orientation,
             locks = self.locks,
             body_module = self.body_module,
-            match_transform = self.match_transform,
             side = self.side,
-            is_driven_side = self.is_driven_side,
-            module_ctrl = self.module_ctrl
+            is_driven_side = self.is_driven_side
         )
 
         return ctrl
@@ -110,8 +106,7 @@ class ControlData:
             ctrl_name_tag = self.name,
             prelim_ctrl_name = self.name,
             side = self.side,
-            match_transform = self.match_transform,
-            module_ctrl = self.module_ctrl,
+            match_transform = self.match_transform
         )
 
         return ctrl

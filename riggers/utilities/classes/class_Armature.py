@@ -228,10 +228,10 @@ class Armature:
             m_data = data[key]
 
             #...Fill in any missing properties with None values
-            for property in ("rig_module_type", "name", "side", "is_driven_side", "position", "rotation", "scale",
+            for field in ("rig_module_type", "name", "side", "is_driven_side", "position", "rotation", "scale",
                              "drive_target", "color", "draw_connections", "placers"):
-                if property not in m_data:
-                    m_data[property] = None
+                if field not in m_data:
+                    m_data[field] = None
 
 
             new_module = ArmatureModule(

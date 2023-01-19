@@ -56,8 +56,7 @@ def build(armature_module):
     #...Preliminary controls ------------------------------------------------------------------------------------------
     armature_module.ctrl_data = prelimCtrls.create_ctrl_data(
         side=armature_module.side,
-        is_driven_side=armature_module.is_driven_side,
-        module_ctrl=armature_module.module_ctrl)
+        is_driven_side=armature_module.is_driven_side)
     armature_module.create_prelim_ctrls()
 
     #... Pin ctrls to ribbon

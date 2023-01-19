@@ -423,3 +423,11 @@ class Placer:
         gen_utils.add_attr(self.mobject, long_name="ConnectorData", attribute_type="string", keyable=0,
                            default_value=str(self.connect_targets))
 
+
+
+    ####################################################################################################################
+    def hibernate_placer(self):
+
+        for attr in gen_utils.all_transform_attrs:
+            if pm.getAttr(f'{self.mobject}.{attr}', keyable=1):
+                pm.setAttr(f'{self.mobject}.{attr}', lock=1)

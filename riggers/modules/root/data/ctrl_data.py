@@ -36,7 +36,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
+def create_ctrl_data(side=None, is_driven_side=None):
 
     ctrl_data = {
         'root': ControlData(
@@ -49,6 +49,7 @@ def create_ctrl_data(side=None, is_driven_side=None, module_ctrl=None):
             position = ("root",),
             locks = {"s": [1, 1, 1], "v": 1},
         ),
+
 
         'subRoot': ControlData(
             name = "subRoot",

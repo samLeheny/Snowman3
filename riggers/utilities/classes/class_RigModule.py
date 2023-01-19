@@ -87,7 +87,7 @@ class RigModule:
         self.bind_jnts = {}
         self.setup_module_ctrl = self.get_setup_module_ctrl()
         self.ctrl_data = ctrl_data if ctrl_data else get_module_data.ctrl_data(
-            self.rig_module_type, side=side, is_driven_side=is_driven_side, module_ctrl=self.setup_module_ctrl)
+            self.rig_module_type, side=side, is_driven_side=is_driven_side)
         self.placers = {}
         self.pv_placers = {}
         self.orienters = {}

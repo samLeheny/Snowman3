@@ -50,9 +50,7 @@ class PrelimControl:
         up_direction = None,
         side = None,
         is_driven_side = None,
-        body_module = None,
-        match_transform = None,
-        module_ctrl = None,
+        body_module = None
     ):
         self.name = name
         self.shape = shape
@@ -69,8 +67,6 @@ class PrelimControl:
         self.side_tag = f'{self.side}_' if self.side else ''
         self.is_driven_side = is_driven_side
         self.body_module = body_module
-        self.match_transform = match_transform
-        self.module_ctrl = module_ctrl
 
         self.ctrl_obj = None
         self.shape_data = None
