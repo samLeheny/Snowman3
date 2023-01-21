@@ -60,6 +60,10 @@ def build_armature_in_scene(armature_data):
     pm.namespace(add=nom.setupRigNamespace)
     pm.namespace(set=nom.setupRigNamespace)
 
+    #...Export armature data
+    armature_IO = ArmatureDataIO(armature=armature_data)
+    armature_IO.save()
+
     #...Build armature
     armature_data.populate_armature()
     armature = armature_data

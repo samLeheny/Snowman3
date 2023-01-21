@@ -9,20 +9,21 @@
 ##### Import Commands #####
 import importlib
 import pymel.core as pm
+import maya.cmds as mc
 import json
 import os
+import Snowman3.riggers.utilities.armature_utils as amtr_utils
 import Snowman3.utilities.general_utils as gen_utils
+import Snowman3.utilities.general_utils as rig_utils
+importlib.reload(amtr_utils)
 importlib.reload(gen_utils)
-
-import Snowman3.dictionaries.nameConventions as nameConventions
-importlib.reload(nameConventions)
-nom = nameConventions.create_dict()
+importlib.reload(rig_utils)
 ###########################
 ###########################
 
 ###########################
 ######## Variables ########
-
+decimal_count = 9
 ###########################
 ###########################
 
@@ -33,67 +34,58 @@ nom = nameConventions.create_dict()
 ########################################################################################################################
 
 
-dirpath = r'C:\Users\61451\Desktop' #...For testing purposes
 
 
-class CtrlDataIO(object):
+
+class ControlsDataIO(object):
 
     def __init__(
         self,
+        module_key,
+        ctrls,
         dirpath
     ):
+
         self.dirpath = dirpath
-        self.filepath = f'{self.dirpath}/test_ctrlShape_data.json'
-        self.scene_ctrls = None
-        self.ctrl_shapes_data = {}
-
-
-
-
-    ####################################################################################################################
-    def get_all_ctrls_in_scene(self):
-
-        scene_ctrls = []
-
-        #...Get all transform nodes ending with control suffix
-        transform_suffix_nodes = pm.ls(f'::*_{nom.animCtrl}', type='transform')
-        #...Test each to confirm it has a nurbs curve(s) as an immediate child
-        for node in transform_suffix_nodes:
-            for shape in node.getShapes():
-                if shape.nodeType() == 'nurbsCurve':
-                    scene_ctrls.append(node)
-                    continue
-
-        # ...Get all transform nodes ending with control suffix
-        transform_suffix_nodes = pm.ls(f'::*_{nom.prelimCtrl}', type='transform')
-        # ...Test each to confirm it has a nurbs curve(s) as an immediate child
-        for node in transform_suffix_nodes:
-            for shape in node.getShapes():
-                if shape.nodeType() == 'nurbsCurve':
-                    scene_ctrls.append(node)
-                    continue
-
-        self.scene_ctrls = scene_ctrls
+        self.ctrls = ctrls
+        self.ctrls_data = None
+        self.module_key = module_key
+        self.dirpath = dirpath
+        self.file = f'{self.module_key}_controls.json'
 
 
 
 
 
     ####################################################################################################################
-    def ctrl_compose_shape_data(self):
+    def prep_data_for_export(self):
 
-        unwanted_suffixes = [f'_{nom.prelimCtrl}', f'_{nom.animCtrl}']
+        self.ctrls_data = {}
 
-        for ctrl in self.scene_ctrls:
+        for ctrl_key, ctrl in self.ctrls.items():
 
-            ctrl_key = gen_utils.get_clean_name(str(ctrl))
-            for suffix in unwanted_suffixes:
-                if not ctrl_key.endswith(suffix):
-                    continue
-                ctrl_key = ctrl_key.split(suffix)[0]
-                break
+            ctrls_data_dict = {}
 
-            self.ctrl_shapes_data[ctrl_key] = gen_utils.get_shape_data_from_obj(ctrl)
+            # ...
+            IO_data_fields = (('name', ctrl.name),
+                              ('shape', ctrl.shape),
+                              ('size', ctrl.size),
+                              ('shape_offset', ctrl.shape_offset),
+                              ('color', ctrl.color),
+                              ('position', ctrl.position),
+                              ('position_weights', ctrl.position_weights),
+                              ('orientation', ctrl.orientation),
+                              ('locks', ctrl.locks),
+                              ('forward_direction', ctrl.forward_direction),
+                              ('up_direction', ctrl.up_direction),
+                              ('is_driven_side', ctrl.is_driven_side),
+                              ('body_module', ctrl.body_module),
+                              ('match_transform', ctrl.match_transform),
+                              ('side', ctrl.side))
+
+            for IO_key, input_attr in IO_data_fields:
+                ctrls_data_dict[IO_key] = input_attr
+            self.ctrls_data[ctrl_key] = ctrls_data_dict
 
 
 
@@ -102,5 +94,6 @@ class CtrlDataIO(object):
     ####################################################################################################################
     def save(self):
 
-        with open(self.filepath, 'w') as fh:
-            json.dump(self.ctrl_shapes_data, fh, indent=5)
+        self.prep_data_for_export() if not self.ctrls_data else None
+        with open(f'{self.dirpath}/{self.file}', 'w') as fh:
+            json.dump(self.ctrls_data, fh, indent=5)

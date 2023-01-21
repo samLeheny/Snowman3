@@ -9,6 +9,7 @@
 ##### Import Commands #####
 import importlib
 import ast
+import os
 import numpy as np
 import pymel.core as pm
 
@@ -42,6 +43,18 @@ ArmatureModuleHandle = class_ArmatureModuleHandle.ArmatureModuleHandle
 
 import Snowman3.riggers.utilities.directories.get_module_data as get_module_data
 importlib.reload(get_module_data)
+
+import Snowman3.riggers.IO.armature_module_IO as armature_module_IO
+importlib.reload(armature_module_IO)
+ArmatureModuleDataIO = armature_module_IO.ArmatureModuleDataIO
+
+import Snowman3.riggers.IO.placer_IO as placers_IO
+importlib.reload(placers_IO)
+PlacerDataIO = placers_IO.PlacerDataIO
+
+import Snowman3.riggers.IO.controls_IO as controls_IO
+importlib.reload(controls_IO)
+ControlsDataIO = controls_IO.ControlsDataIO
 ###########################
 ###########################
 
@@ -107,6 +120,7 @@ class ArmatureModule:
         self.rig_subGrps = None
         self.module_ctrl = None
         self.armature_container = None
+        self.module_key = f'{self.side_tag}{self.name}'
 
         self.ctrl_color = color
         if not color:
@@ -257,6 +271,11 @@ class ArmatureModule:
     def create_module_placers(self):
 
         self.create_module_ctrl_in_scene()
+
+        dirpath = r'C:\Users\61451\Desktop\test_build\rig_modules'
+        dirpath = os.path.join(dirpath, self.module_key)
+        placers_IO = PlacerDataIO(module_key=self.module_key, placers=self.placer_data, dirpath=dirpath)
+        placers_IO.save()
 
         #...Add placer hooks to module control
         pm.addAttr(self.module_ctrl.mobject, longName=placers_attr_string, attributeType="compound", keyable=0,
@@ -426,7 +445,7 @@ class ArmatureModule:
 
         #...Reconnect
         if connection:
-            pm.connectAttr(connection, self.rig_root_grp + ".sz")
+            pm.connectAttr(connection, f'{self.rig_root_grp}.sz')
 
 
 
@@ -514,7 +533,7 @@ class ArmatureModule:
     def get_placer_from_tag(self, module_tag, placer_tag):
 
         target_module_ctrl = self.get_other_module(name=module_tag, return_module_ctrl=True)
-        target_node = pm.listConnections(target_module_ctrl + "." + "PlacerNodes" + "." + placer_tag, s=1, d=0)[0]
+        target_node = pm.listConnections(f'{target_module_ctrl}.PlacerNodes.{placer_tag}', s=1, d=0)[0]
 
         return target_node
 
@@ -602,6 +621,11 @@ class ArmatureModule:
 
         parent = parent if parent else self.rig_subGrps["prelim_ctrls"]
 
+        dirpath = r'C:\Users\61451\Desktop\test_build\rig_modules'
+        dirpath = os.path.join(dirpath, self.module_key)
+        ctrls_IO = ControlsDataIO(module_key=self.module_key, ctrls=self.ctrl_data, dirpath=dirpath)
+        ctrls_IO.save()
+
         #...Operate on each control in dictionary
         for key in self.ctrl_data:
 
@@ -643,7 +667,7 @@ class ArmatureModule:
 
 
     ####################################################################################################################
-    def populate_module(self):
+    def populate_module(self, key):
 
         #...Get scene armature
         self.get_scene_armature()
@@ -655,6 +679,8 @@ class ArmatureModule:
         self.create_connector_curves()
         #...Orienters
         self.aim_module_orienters()
+
+
 
         #...Run any required bespoke setup
         get_module_data.bespokeSetup(self.rig_module_type).build(self)
@@ -691,7 +717,7 @@ class ArmatureModule:
 
 
     ####################################################################################################################
-    def placers_from_data(self, data):
+    '''def placers_from_data(self, data):
 
         self.placer_data = []
 
@@ -723,14 +749,4 @@ class ArmatureModule:
                            vector_handle_data = p_dict["vectorHandleData"],
                            orienter_data = p_dict["orienterData"],
                            connect_targets = p_dict["connectorTargets"])
-                )
-
-
-
-
-
-    ####################################################################################################################
-    def hibernate_module(self):
-
-        for placer in self.placers.values():
-            placer.hibernate_placer()
+                )'''

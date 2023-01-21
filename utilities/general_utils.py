@@ -2327,9 +2327,6 @@ def get_shape_data_from_obj(obj=None):
     #...Curve forms (open or periodic curve shapes)
     forms = [shape.form().key for shape in shapes]
 
-    #...Color
-    color = get_color(obj)
-
     #...CV positions
     cv_counts = [shape.numCVs() for shape in shapes]
     cv_positions = []
@@ -2345,8 +2342,7 @@ def get_shape_data_from_obj(obj=None):
 
     return {'form': forms,
             'cvs': cv_positions,
-            'degree': degrees,
-            'color': color}
+            'degree': degrees}
 
 
 

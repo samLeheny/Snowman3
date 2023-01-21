@@ -25,6 +25,10 @@ import Snowman3.utilities.general_utils as gen_utils
 import Snowman3.riggers.utilities.armature_utils as amtr_utils
 importlib.reload(gen_utils)
 importlib.reload(amtr_utils)
+
+import Snowman3.riggers.IO.armature_module_IO as armatureModule_IO
+importlib.reload(armatureModule_IO)
+ArmatureModuleDataIO = armatureModule_IO.ArmatureModuleDataIO
 ###########################
 ###########################
 
@@ -43,21 +47,23 @@ importlib.reload(amtr_utils)
 class Armature:
     def __init__(
         self,
-        name = None,
-        prefab_key = None,
-        root_size = None,
-        symmetry_mode = None,
-        modules = None,
-
+        name: str,
+        prefab_key: str = None,
+        root_size: float = None,
+        symmetry_mode: str = None,
+        driver_side: str = None,
+        modules: dict = None,
+        armature_scale: float = None,
     ):
-        self.name = gen_utils.get_clean_name(name)
+        self.name = name
         self.prefab_key = prefab_key if prefab_key else 'None'
-        self.root_size = root_size if root_size else 1
+        self.root_size = root_size if root_size else 55.0
         self.modules = modules if modules else {}
+        self.symmetry_mode = symmetry_mode
         self.sided_modules = {'L': {}, 'R': {}}
         self.root_groups = {}
-        self.symmetry_mode = symmetry_mode
         self.driver_side = gen_utils.symmetry_info(self.symmetry_mode)[1]
+        self.armature_scale = armature_scale if armature_scale else 1.0
         self.root_handle = ArmatureRootHandle(name=self.name, root_size=self.root_size)
         self.metadata_fields = self.compose_metadata_fields()
 
@@ -298,9 +304,11 @@ class Armature:
 
         self.create_root_handle_in_scene()
 
-        for module in self.modules.values():
+        for key, module in self.modules.items():
+            module_IO = ArmatureModuleDataIO(module_key=key, armature_module=module)
+            module_IO.save()
             module.modules_parent = self.root_groups["modules"]
-            module.populate_module()
+            module.populate_module(key)
 
         for key in self.modules:
             module = self.modules[key]
@@ -316,13 +324,3 @@ class Armature:
         #...Enact live symmetry if needed -------------------------------------------------------------------------
         if self.symmetry_mode in ("Left drives Right", "Right drives Left"):
             self.setup_armature_realtime_symmetry(driver_side=self.driver_side)
-
-
-
-
-
-    ####################################################################################################################
-    def hibernate_armature(self):
-
-        for module in self.modules.values():
-            module.hibernate_module()
