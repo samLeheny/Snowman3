@@ -9,6 +9,7 @@
 ##### Import Commands #####
 import importlib
 import pymel.core as pm
+import os
 
 import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
@@ -29,6 +30,14 @@ importlib.reload(amtr_utils)
 import Snowman3.riggers.IO.armature_module_IO as armatureModule_IO
 importlib.reload(armatureModule_IO)
 ArmatureModuleDataIO = armatureModule_IO.ArmatureModuleDataIO
+
+import Snowman3.riggers.IO.placerConnectors_IO as placerConnectors_IO
+importlib.reload(placerConnectors_IO)
+PlacerConnectorsDataIO = placerConnectors_IO.PlacerConnectorsDataIO
+
+import Snowman3.riggers.utilities.classes.class_PlacerConnector as classPlacerConnector
+importlib.reload(classPlacerConnector)
+PlacerConnector = classPlacerConnector.PlacerConnector
 ###########################
 ###########################
 
@@ -54,6 +63,7 @@ class Armature:
         driver_side: str = None,
         modules: dict = None,
         armature_scale: float = None,
+        placer_connectors: dict = None
     ):
         self.name = name
         self.prefab_key = prefab_key if prefab_key else 'None'
@@ -66,6 +76,7 @@ class Armature:
         self.armature_scale = armature_scale if armature_scale else 1.0
         self.root_handle = ArmatureRootHandle(name=self.name, root_size=self.root_size)
         self.metadata_fields = self.compose_metadata_fields()
+        self.placer_connectors = placer_connectors
 
 
 
@@ -300,6 +311,24 @@ class Armature:
 
 
     ####################################################################################################################
+    def draw_module_connectors(self, modules):
+
+        dirpath = r'C:\Users\User\Desktop\test_build'
+
+        for connector in self.placer_connectors:
+            connector.source_module = self.modules[connector.source_module_key]
+            connector.parent = self.modules[connector.source_module_key].rig_subGrps["connector_curves"]
+            connector.create_connector()
+
+        connectors_IO = PlacerConnectorsDataIO(placer_connectors=self.placer_connectors, dirpath=dirpath)
+        connectors_IO.save()
+
+
+
+
+
+
+    ####################################################################################################################
     def populate_armature(self):
 
         self.create_root_handle_in_scene()
@@ -307,7 +336,7 @@ class Armature:
         for key, module in self.modules.items():
             module_IO = ArmatureModuleDataIO(module_key=key, armature_module=module)
             module_IO.save()
-            module.modules_parent = self.root_groups["modules"]
+            module.modules_parent = self.root_groups['modules']
             module.populate_module(key)
 
         for key in self.modules:
@@ -319,8 +348,9 @@ class Armature:
         self.drive_module_attrs()
 
         #...Connect modules to each other as specified in each module ---------------------------------------------
-        [module.connect_modules() for module in self.modules.values()]
+        #[module.connect_modules() for module in self.modules.values()]
+        self.draw_module_connectors(self.modules)
 
         #...Enact live symmetry if needed -------------------------------------------------------------------------
-        if self.symmetry_mode in ("Left drives Right", "Right drives Left"):
+        if self.symmetry_mode in ('Left drives Right', 'Right drives Left'):
             self.setup_armature_realtime_symmetry(driver_side=self.driver_side)

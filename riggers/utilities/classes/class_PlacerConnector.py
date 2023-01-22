@@ -49,12 +49,14 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 class PlacerConnector:
     def __init__(
         self,
+        source_module_key: str,
         source_placer_key: str,
         destination_module_key: str,
         destination_placer_key: str,
-        parent,
-        source_module
+        parent = None,
+        source_module = None
     ):
+        self.source_module_key = source_module_key
         self.source_placer_key = source_placer_key
         self.destination_module_key = destination_module_key
         self.destination_placer_key = destination_placer_key
@@ -80,20 +82,21 @@ class PlacerConnector:
             end_driver_2=end_2_node, override_display_type=2, parent=self.parent, inheritsTransform=False)[0]
 
         # ...Connect curve to module attribute
-        pm.addAttr(connector, longName="Module", dataType="string", keyable=0)
-        pm.connectAttr(f'{self.source_module.rig_root_grp}.ExtraDrawnConnections', f'{connector}.Module')
+        '''pm.addAttr(connector, longName="Module", dataType="string", keyable=0)
+        pm.connectAttr(f'{self.source_module.rig_root_grp}.ExtraDrawnConnections', f'{connector}.Module')'''
 
 
 
 
 
     ####################################################################################################################
-    def get_data_dictionary(self):
+    def get_data_list(self):
 
         data_dict = {}
 
         # ...
-        IO_data_fields = (('source_placer_key', self.source_placer_key),
+        IO_data_fields = (('source_module_key', self.source_module_key),
+                          ('source_placer_key', self.source_placer_key),
                           ('destination_module_key', self.destination_module_key),
                           ('destination_placer_key', self.destination_placer_key))
 

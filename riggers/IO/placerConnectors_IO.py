@@ -41,7 +41,6 @@ class PlacerConnectorsDataIO(object):
 
     def __init__(
         self,
-        module_key,
         placer_connectors,
         dirpath
     ):
@@ -49,9 +48,8 @@ class PlacerConnectorsDataIO(object):
         self.dirpath = dirpath
         self.placer_connectors = placer_connectors
         self.connectors_data = None
-        self.module_key = module_key
         self.dirpath = dirpath
-        self.file = f'{self.module_key}_placer_connectors.json'
+        self.file = 'placer_connectors.json'
 
 
 
@@ -60,15 +58,9 @@ class PlacerConnectorsDataIO(object):
     ####################################################################################################################
     def prep_data_for_export(self):
 
-        self.connectors_data = {}
+        self.connectors_data = []
         for connector in self.placer_connectors:
-
-            if connector.source_placer_key in self.connectors_data.keys():
-                self.connectors_data[connector.source_placer_key].append([connector.destination_module_key,
-                                                                          connector.destination_placer_key])
-            else:
-                self.connectors_data[connector.source_placer_key] = [[connector.destination_module_key,
-                                                                      connector.destination_placer_key]]
+            self.connectors_data.append(connector.get_data_list())
 
 
 

@@ -22,7 +22,8 @@ dir_string = {'armature':           'Snowman3.riggers.prefab_armatures.{}.armatu
               'modules':            'Snowman3.riggers.prefab_armatures.{}.modules',
               'attr_handoffs':      'Snowman3.riggers.prefab_armatures.{}.attr_handoffs',
               'module_connections': 'Snowman3.riggers.prefab_armatures.{}.connection_pairs',
-              'space_blends':       'Snowman3.riggers.prefab_armatures.{}.space_blends'}
+              'space_blends':       'Snowman3.riggers.prefab_armatures.{}.space_blends',
+              'placer_connectors':  'Snowman3.riggers.prefab_armatures.{}.placer_connectors'}
 ###########################
 ###########################
 
@@ -64,3 +65,9 @@ def space_blends(key, rig_modules):
     importlib.reload(m)
     return m.install_space_blends(rig_modules)
 
+
+########################################################################################################################
+def placer_connectors(key):
+    m = importlib.import_module(dir_string["placer_connectors"].format(key))
+    importlib.reload(m)
+    return m.create_placer_connectors()
