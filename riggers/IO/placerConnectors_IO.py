@@ -1,4 +1,4 @@
-# Title: controls_IO.py
+# Title: placerConnectors_IO.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -37,21 +37,21 @@ importlib.reload(rig_utils)
 
 
 
-class ControlsDataIO(object):
+class PlacerConnectorsDataIO(object):
 
     def __init__(
         self,
         module_key,
-        ctrls,
+        placer_connectors,
         dirpath
     ):
 
         self.dirpath = dirpath
-        self.ctrls = ctrls
-        self.ctrls_data = None
+        self.placer_connectors = placer_connectors
+        self.connectors_data = None
         self.module_key = module_key
         self.dirpath = dirpath
-        self.file = f'{self.module_key}_controls.json'
+        self.file = f'{self.module_key}_placer_connectors.json'
 
 
 
@@ -60,10 +60,16 @@ class ControlsDataIO(object):
     ####################################################################################################################
     def prep_data_for_export(self):
 
-        self.ctrls_data = {}
-        for ctrl_key, ctrl in self.ctrls.items():
-            ctrls_data_dict = ctrl.get_data_dictionary()
-            self.ctrls_data[ctrl_key] = ctrls_data_dict
+        self.connectors_data = {}
+        for connector in self.placer_connectors:
+
+            if connector.source_placer_key in self.connectors_data.keys():
+                self.connectors_data[connector.source_placer_key].append([connector.destination_module_key,
+                                                                          connector.destination_placer_key])
+            else:
+                self.connectors_data[connector.source_placer_key] = [[connector.destination_module_key,
+                                                                      connector.destination_placer_key]]
+
 
 
 
@@ -72,6 +78,6 @@ class ControlsDataIO(object):
     ####################################################################################################################
     def save(self):
 
-        self.prep_data_for_export() if not self.ctrls_data else None
+        self.prep_data_for_export() if not self.connectors_data else None
         with open(f'{self.dirpath}/{self.file}', 'w') as fh:
-            json.dump(self.ctrls_data, fh, indent=5)
+            json.dump(self.connectors_data, fh, indent=5)

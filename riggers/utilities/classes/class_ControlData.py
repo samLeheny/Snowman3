@@ -74,6 +74,37 @@ class ControlData:
 
 
     ####################################################################################################################
+    def get_data_dictionary(self):
+
+        data_dict = {}
+
+        # ...
+        IO_data_fields = (('name', self.name),
+                          ('shape', self.shape),
+                          ('size', self.size),
+                          ('shape_offset', self.shape_offset),
+                          ('color', self.color),
+                          ('position', self.position),
+                          ('position_weights', self.position_weights),
+                          ('orientation', self.orientation),
+                          ('locks', self.locks),
+                          ('forward_direction', self.forward_direction),
+                          ('up_direction', self.up_direction),
+                          ('is_driven_side', self.is_driven_side),
+                          ('body_module', self.body_module),
+                          ('match_transform', self.match_transform),
+                          ('side', self.side))
+
+        for IO_key, input_attr in IO_data_fields:
+            data_dict[IO_key] = input_attr
+
+        return data_dict
+
+
+
+
+
+    ####################################################################################################################
     def create_prelim_ctrl(self):
 
         ctrl = PrelimControl(

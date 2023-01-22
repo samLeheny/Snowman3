@@ -23,7 +23,7 @@ importlib.reload(rig_utils)
 
 ###########################
 ######## Variables ########
-decimal_count = 9
+
 ###########################
 ###########################
 
@@ -61,25 +61,8 @@ class PlacerDataIO(object):
     def prep_data_for_export(self):
 
         self.placer_data = {}
-
         for placer in self.placers:
-
-            placer_data_dict = {}
-
-            # ...
-            IO_data_fields = (('name', placer.name),
-                              ('position', placer.position),
-                              ('size', placer.size),
-                              ('shape_type', placer.shape_type),
-                              ('side', placer.side),
-                              ('color', placer.color),
-                              ('parent', placer.parent),
-                              ('vector_handle_data', placer.vector_handle_data),
-                              ('orienter_data', placer.orienter_data),
-                              ('connect_targets', placer.connect_targets))
-
-            for IO_key, input_attr in IO_data_fields:
-                placer_data_dict[IO_key] = input_attr
+            placer_data_dict = placer.get_data_dictionary()
             self.placer_data[placer.name] = placer_data_dict
 
 

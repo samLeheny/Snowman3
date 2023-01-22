@@ -34,7 +34,7 @@ decimal_count = 9
 ########################################################################################################################
 
 
-dirpath = r'C:\Users\61451\Desktop\test_build' #...For testing purposes
+dirpath = r'C:\Users\User\Desktop\test_build' #...For testing purposes
 
 
 class ArmatureModuleDataIO(object):
@@ -90,6 +90,10 @@ class ArmatureModuleDataIO(object):
     def prep_data_for_export(self):
 
         self.module_data = {}
+        data_dict = self.armature_module.get_data_dictionary()
+        self.module_data[self.module_key] = data_dict
+
+        '''self.module_data = {}
 
         #...
         IO_data_fields = (('rig_module_type', self.armature_module.rig_module_type),
@@ -97,13 +101,12 @@ class ArmatureModuleDataIO(object):
                           ('side', self.armature_module.side),
                           ('is_driven_side', self.armature_module.is_driven_side),
                           ('drive_target', self.armature_module.drive_target),
-                          ('draw_connections', self.armature_module.draw_connections),
                           ('position', self.armature_module.position),
                           ('rotation', self.armature_module.rotation),
                           ('scale', self.armature_module.scale),
                           ('color', self.armature_module.ctrl_color))
         for IO_key, input_attr in IO_data_fields:
-            self.module_data[IO_key] = input_attr
+            self.module_data[IO_key] = input_attr'''
 
 
 

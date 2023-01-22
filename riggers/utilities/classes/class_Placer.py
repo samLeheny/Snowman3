@@ -367,6 +367,32 @@ class Placer:
 
 
     ####################################################################################################################
+    def get_data_dictionary(self):
+
+        data_dict = {}
+
+        # ...
+        IO_data_fields = (('name', self.name),
+                          ('position', self.position),
+                          ('size', self.size),
+                          ('shape_type', self.shape_type),
+                          ('side', self.side),
+                          ('color', self.color),
+                          ('parent', self.parent),
+                          ('vector_handle_data', self.vector_handle_data),
+                          ('orienter_data', self.orienter_data),
+                          ('connect_targets', self.connect_targets))
+
+        for IO_key, input_attr in IO_data_fields:
+            data_dict[IO_key] = input_attr
+
+        return data_dict
+
+
+
+
+
+    ####################################################################################################################
     def placer_metadata(self):
 
         obj = self.mobject

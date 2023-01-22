@@ -49,12 +49,18 @@ importlib.reload(armature_module_IO)
 ArmatureModuleDataIO = armature_module_IO.ArmatureModuleDataIO
 
 import Snowman3.riggers.IO.placer_IO as placers_IO
-importlib.reload(placers_IO)
-PlacerDataIO = placers_IO.PlacerDataIO
-
+import Snowman3.riggers.IO.placerConnectors_IO as placerConnectors_IO
 import Snowman3.riggers.IO.controls_IO as controls_IO
+importlib.reload(placers_IO)
+importlib.reload(placerConnectors_IO)
 importlib.reload(controls_IO)
+PlacerDataIO = placers_IO.PlacerDataIO
+PlacerConnectorsDataIO = placerConnectors_IO.PlacerConnectorsDataIO
 ControlsDataIO = controls_IO.ControlsDataIO
+
+import Snowman3.riggers.utilities.classes.class_PlacerConnector as classPlacerConnector
+importlib.reload(classPlacerConnector)
+PlacerConnector = classPlacerConnector.PlacerConnector
 ###########################
 ###########################
 
@@ -272,7 +278,7 @@ class ArmatureModule:
 
         self.create_module_ctrl_in_scene()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build\rig_modules'
+        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
         dirpath = os.path.join(dirpath, self.module_key)
         placers_IO = PlacerDataIO(module_key=self.module_key, placers=self.placer_data, dirpath=dirpath)
         placers_IO.save()
@@ -558,34 +564,35 @@ class ArmatureModule:
     ####################################################################################################################
     def draw_module_connections(self, parent=None):
 
+        if not parent:
+            parent = self.rig_subGrps["connector_curves"]
 
         if self.draw_connections:
 
             #...Create an attribute to keep track of these extra drawn connections
             pm.addAttr(self.rig_root_grp, longName="ExtraDrawnConnections", dataType="string", keyable=0)
 
+        connectors = []
 
         for key in self.draw_connections:
 
             for placer_info in self.draw_connections[key]:
 
-                end_1_node = self.placers[key].mobject
+                connector = PlacerConnector(
+                    source_placer_key = key,
+                    destination_module_key = placer_info[0],
+                    destination_placer_key = placer_info[1],
+                    parent = parent,
+                    source_module = self)
 
-                target_module_key = placer_info[0]
-                target_module_ctrl = self.get_other_module(name=target_module_key, return_module_ctrl=True)
+                connectors.append(connector)
 
-                end_2_node = pm.listConnections(f'{target_module_ctrl}.PlacerNodes.{placer_info[1]}', source=1)[0]
+        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
+        dirpath = os.path.join(dirpath, self.module_key)
+        placers_IO = PlacerConnectorsDataIO(module_key=self.module_key, placer_connectors=connectors, dirpath=dirpath)
+        placers_IO.save()
 
-
-                parent_obj = parent if parent else self.rig_subGrps["connector_curves"]
-
-                connector = rig_utils.connector_curve(
-                    name=key, line_width=1.5, end_driver_1=end_1_node, end_driver_2=end_2_node,
-                    override_display_type=2, parent=parent_obj, inheritsTransform=False)[0]
-
-                #...Connect curve to module attribute
-                pm.addAttr(connector, longName="Module", dataType="string", keyable=0)
-                pm.connectAttr(f'{self.rig_root_grp}.ExtraDrawnConnections', f'{connector}.Module')
+        [connector.create_connector() for connector in connectors]
 
 
 
@@ -621,7 +628,7 @@ class ArmatureModule:
 
         parent = parent if parent else self.rig_subGrps["prelim_ctrls"]
 
-        dirpath = r'C:\Users\61451\Desktop\test_build\rig_modules'
+        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
         dirpath = os.path.join(dirpath, self.module_key)
         ctrls_IO = ControlsDataIO(module_key=self.module_key, ctrls=self.ctrl_data, dirpath=dirpath)
         ctrls_IO.save()
@@ -750,3 +757,29 @@ class ArmatureModule:
                            orienter_data = p_dict["orienterData"],
                            connect_targets = p_dict["connectorTargets"])
                 )'''
+
+
+
+
+
+
+    ####################################################################################################################
+    def get_data_dictionary(self):
+
+        data_dict = {}
+
+        # ...
+        IO_data_fields = (('rig_module_type', self.rig_module_type),
+                          ('name', self.name),
+                          ('side', self.side),
+                          ('is_driven_side', self.is_driven_side),
+                          ('drive_target', self.drive_target),
+                          ('position', self.position),
+                          ('rotation', self.rotation),
+                          ('scale', self.scale),
+                          ('color', self.ctrl_color))
+
+        for IO_key, input_attr in IO_data_fields:
+            data_dict[IO_key] = input_attr
+
+        return data_dict
