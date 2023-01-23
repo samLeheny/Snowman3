@@ -105,7 +105,7 @@ def execute(modules):
 
 
     # Delete setup rig and the horse it road in on! --------------------------------------------------------------------
-    #pm.namespace(removeNamespace=nom.setupRigNamespace, deleteNamespaceContent=True)
+    pm.namespace(removeNamespace=nom.setupRigNamespace, deleteNamespaceContent=True)
 
 
 

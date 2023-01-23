@@ -26,6 +26,10 @@ importlib.reload(get_armature_data)
 import Snowman3.riggers.utilities.classes.class_RigModule as class_RigModules
 importlib.reload(class_RigModules)
 RigModule = class_RigModules.RigModule
+
+import Snowman3.riggers.IO.attr_handoffs_IO as attrHandoffs_IO
+importlib.reload(attrHandoffs_IO)
+AttrHandoffsDataIO = attrHandoffs_IO.AttrHandoffsDataIO
 ###########################
 ###########################
 
@@ -149,15 +153,14 @@ class Rig:
     ####################################################################################################################
     def perform_module_attr_handoffs(self):
 
-        attr_exceptions = ("LockAttrData", "LockAttrDataT", "LockAttrDataR", "LockAttrDataS", "LockAttrDataV")
-
         self.attr_handoffs = get_armature_data.attr_handoffs(self.rig_prefab_type, self.modules)
 
-        for old_attr_node, new_attr_node, delete_old_node in self.attr_handoffs:
-            attrs = pm.listAttr(old_attr_node, userDefined=1)
-            [attrs.remove(a) if a in attrs else None for a in attr_exceptions]
-            [gen_utils.migrate_attr(old_attr_node, new_attr_node, a) for a in attrs]
-            pm.delete(old_attr_node) if delete_old_node else None
+        dirpath = r'C:\Users\User\Desktop\test_build'
+        attr_handoffs_IO = AttrHandoffsDataIO(attr_handoffs=self.attr_handoffs, dirpath=dirpath)
+        attr_handoffs_IO.save()
+
+        for handoff in self.attr_handoffs:
+            handoff.perform_attr_handoff()
 
 
 

@@ -45,8 +45,10 @@ importlib.reload(ikFoot)
 #def build(rig_module, rig_parent=None, settings_ctrl=None, foot_roll_ctrl=None):
 def build(rig_module, rig_parent=None):
 
-    rig_module.foot_attr_loc = pm.spaceLocator()
-    rig_module.leg_attr_loc = pm.spaceLocator()
+    side_prefix = f'{rig_module.side}_' if rig_module.side else ''
+
+    rig_module.foot_attr_loc = pm.spaceLocator(name=f'{side_prefix}foot_attr_LOC')
+    rig_module.leg_attr_loc = pm.spaceLocator(name=f'{side_prefix}leg_attr_LOC')
 
     # ...Create controls -----------------------------------------------------------------------------------------------
     anim_ctrl_data, ctrls = {}, {}

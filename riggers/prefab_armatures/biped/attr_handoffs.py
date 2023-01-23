@@ -7,7 +7,10 @@
 
 ###########################
 ##### Import Commands #####
-
+import importlib
+import Snowman3.riggers.utilities.classes.class_AttrHandoff as classAttrHandoff
+importlib.reload(classAttrHandoff)
+AttrHandoff = classAttrHandoff.AttrHandoff
 ###########################
 ###########################
 
@@ -24,18 +27,44 @@
 
 def create_handoffs(modules):
 
-    hand_offs = {
+    hand_offs = (
 
-        (modules['spine'].ctrls['settings'], modules['root'].ctrls['COG'], True),
+        AttrHandoff(
+            old_attr_node = modules['spine'].ctrls['settings'],
+            new_attr_node = modules['root'].ctrls['COG'],
+            delete_old_node = True
+        ),
 
-        (modules['neck'].ctrls['settings'], modules['neck'].ctrls['neck'], True),
+        AttrHandoff(
+            old_attr_node = modules['neck'].ctrls['settings'],
+            new_attr_node = modules['neck'].ctrls['neck'],
+            delete_old_node = True
+        ),
 
-        (modules['L_foot'].foot_attr_loc, modules['L_leg'].ctrls['ik_foot'], True),
-        (modules['L_foot'].leg_attr_loc, modules['L_leg'].ctrls['hip_pin'], True),
+        AttrHandoff(
+            old_attr_node = modules['L_foot'].foot_attr_loc,
+            new_attr_node = modules['L_leg'].ctrls['ik_foot'],
+            delete_old_node = True
+        ),
 
-        (modules['R_foot'].foot_attr_loc, modules['R_leg'].ctrls['ik_foot'], True),
-        (modules['R_foot'].leg_attr_loc, modules['R_leg'].ctrls['hip_pin'], True),
+        AttrHandoff(
+            old_attr_node = modules['L_foot'].leg_attr_loc,
+            new_attr_node = modules['L_leg'].ctrls['hip_pin'],
+            delete_old_node = True
+        ),
 
-    }
+        AttrHandoff(
+            old_attr_node = modules['R_foot'].foot_attr_loc,
+            new_attr_node = modules['R_leg'].ctrls['ik_foot'],
+            delete_old_node = True
+        ),
+
+        AttrHandoff(
+            old_attr_node = modules['R_foot'].leg_attr_loc,
+            new_attr_node = modules['R_leg'].ctrls['hip_pin'],
+            delete_old_node = True
+        )
+
+    )
 
     return hand_offs

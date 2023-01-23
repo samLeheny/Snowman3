@@ -562,50 +562,10 @@ class ArmatureModule:
 
 
     ####################################################################################################################
-    def draw_module_connections(self, parent=None):
-
-        if not parent:
-            parent = self.rig_subGrps["connector_curves"]
-
-        if self.draw_connections:
-
-            #...Create an attribute to keep track of these extra drawn connections
-            pm.addAttr(self.rig_root_grp, longName="ExtraDrawnConnections", dataType="string", keyable=0)
-
-        connectors = []
-
-        for key in self.draw_connections:
-
-            for placer_info in self.draw_connections[key]:
-
-                connector = PlacerConnector(
-                    source_placer_key = key,
-                    destination_module_key = placer_info[0],
-                    destination_placer_key = placer_info[1],
-                    parent = parent,
-                    source_module = self)
-
-                connectors.append(connector)
-
-        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
-        dirpath = os.path.join(dirpath, self.module_key)
-        placers_IO = PlacerConnectorsDataIO(module_key=self.module_key, placer_connectors=connectors, dirpath=dirpath)
-        placers_IO.save()
-
-        [connector.create_connector() for connector in connectors]
-
-
-
-
-
-    ####################################################################################################################
     def connect_modules(self):
 
         if self.drive_target:
             self.drive_module()
-
-        if self.draw_connections:
-            self.draw_module_connections()
 
 
 

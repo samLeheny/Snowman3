@@ -348,7 +348,7 @@ class Armature:
         self.drive_module_attrs()
 
         #...Connect modules to each other as specified in each module ---------------------------------------------
-        #[module.connect_modules() for module in self.modules.values()]
+        [module.connect_modules() for module in self.modules.values()]
         self.draw_module_connectors(self.modules)
 
         #...Enact live symmetry if needed -------------------------------------------------------------------------
