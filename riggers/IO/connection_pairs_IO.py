@@ -1,4 +1,4 @@
-# Title: space_blends_IO.py
+# Title: connection_pairs_IO.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -26,18 +26,18 @@ import os
 
 
 ########################################################################################################################
-class SpaceBlendsDataIO(object):
+class ConnectionPairsDataIO(object):
 
     def __init__(
         self,
-        space_blends,
+        connection_pairs,
         dirpath
     ):
         self.dirpath = dirpath
-        self.space_blends = space_blends
-        self.space_blends_data = None
+        self.connection_pairs = connection_pairs
+        self.connection_pairs_data = None
         self.dirpath = dirpath
-        self.file = 'space_blends.json'
+        self.file = 'connection_pairs.json'
 
 
 
@@ -46,9 +46,9 @@ class SpaceBlendsDataIO(object):
     ####################################################################################################################
     def prep_data_for_export(self):
 
-        self.space_blends_data = []
-        for blend in self.space_blends:
-            self.space_blends_data.append(blend.get_data_list())
+        self.connection_pairs_data = []
+        for pair in self.connection_pairs:
+            self.connection_pairs_data.append(pair.get_data_list())
 
 
 
@@ -57,6 +57,6 @@ class SpaceBlendsDataIO(object):
     ####################################################################################################################
     def save(self):
 
-        self.prep_data_for_export() if not self.space_blends_data else None
+        self.prep_data_for_export() if not self.connection_pairs_data else None
         with open(f'{self.dirpath}/{self.file}', 'w') as fh:
-            json.dump(self.space_blends_data, fh, indent=5)
+            json.dump(self.connection_pairs_data, fh, indent=5)

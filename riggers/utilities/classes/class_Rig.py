@@ -29,10 +29,13 @@ RigModule = class_RigModules.RigModule
 
 import Snowman3.riggers.IO.attr_handoffs_IO as attrHandoffs_IO
 import Snowman3.riggers.IO.space_blends_IO as spaceBlends_IO
+import Snowman3.riggers.IO.connection_pairs_IO as connectionPairs_IO
 importlib.reload(attrHandoffs_IO)
 importlib.reload(spaceBlends_IO)
+importlib.reload(connectionPairs_IO)
 AttrHandoffsDataIO = attrHandoffs_IO.AttrHandoffsDataIO
 SpaceBlendsDataIO = spaceBlends_IO.SpaceBlendsDataIO
+ConnectionPairsDataIO = connectionPairs_IO.ConnectionPairsDataIO
 ###########################
 ###########################
 
@@ -67,6 +70,7 @@ class Rig:
         self.attr_handoffs = {}
         self.rig_prefab_type = self.get_rig_prefab_type()
         self.space_blends = None
+        self.connection_pairs = None
 
 
 
@@ -173,19 +177,12 @@ class Rig:
     ####################################################################################################################
     def attach_modules(self):
 
-        connection_pairs = get_armature_data.module_connections(self.rig_prefab_type, self.modules)
+        self.connection_pairs = get_armature_data.module_connections(self.rig_prefab_type, self.modules)
 
-        for pair in connection_pairs:
-            #...Create a locator to hold transforms
-            loc = pm.spaceLocator(name=f'{gen_utils.get_clean_name(pair[1])}_SPACE')
-            #...Match locator to rotate + scale of DRIVEN node (to account for modules in flipped space)
-            loc.setParent(pair[1])
-            gen_utils.zero_out(loc)
-            #...Match locator to translate of DRIVER node (so scaling the driver won't offset the pivot position)
-            loc.setParent(pair[0])
-            loc.translate.set(0, 0, 0)
-            #...Constraint DRIVEN node to locator (with offset!)
-            pm.parentConstraint(loc, pair[1], mo=1)
+        dirpath = r'C:\Users\User\Desktop\test_build'
+        connection_pairs_IO = ConnectionPairsDataIO(connection_pairs=self.connection_pairs, dirpath=dirpath)
+        connection_pairs_IO.save()
+        [pair.connect_sockets() for pair in self.connection_pairs]
 
 
 
