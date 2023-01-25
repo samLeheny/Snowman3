@@ -28,8 +28,11 @@ importlib.reload(class_RigModules)
 RigModule = class_RigModules.RigModule
 
 import Snowman3.riggers.IO.attr_handoffs_IO as attrHandoffs_IO
+import Snowman3.riggers.IO.space_blends_IO as spaceBlends_IO
 importlib.reload(attrHandoffs_IO)
+importlib.reload(spaceBlends_IO)
 AttrHandoffsDataIO = attrHandoffs_IO.AttrHandoffsDataIO
+SpaceBlendsDataIO = spaceBlends_IO.SpaceBlendsDataIO
 ###########################
 ###########################
 
@@ -63,6 +66,7 @@ class Rig:
         self.geo_grp = None
         self.attr_handoffs = {}
         self.rig_prefab_type = self.get_rig_prefab_type()
+        self.space_blends = None
 
 
 
@@ -190,7 +194,12 @@ class Rig:
     ####################################################################################################################
     def install_space_blends(self):
 
-        get_armature_data.space_blends(self.rig_prefab_type, self.modules)
+        self.space_blends = get_armature_data.space_blends(self.rig_prefab_type, self.modules)
+
+        dirpath = r'C:\Users\User\Desktop\test_build'
+        space_blends_IO = SpaceBlendsDataIO(space_blends=self.space_blends, dirpath=dirpath)
+        space_blends_IO.save()
+        [b.install_blend()for b in self.space_blends]
 
 
 

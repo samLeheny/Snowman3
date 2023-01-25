@@ -63,7 +63,7 @@ def module_connections(key, rig_modules):
 def space_blends(key, rig_modules):
     m = importlib.import_module(dir_string["space_blends"].format(key))
     importlib.reload(m)
-    return m.install_space_blends(rig_modules)
+    return m.create_space_blends(rig_modules)
 
 
 ########################################################################################################################

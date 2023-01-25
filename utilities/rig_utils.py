@@ -979,11 +979,12 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
 
 
 ########################################################################################################################
-def space_blender(target, source, source_name, name, attr_node, attr_name=None, default_value=10, reverse=False,
+def space_blender(target, source, source_name, name, attr_node, attr_name=None, default_value=None, reverse=False,
                   global_space_parent=None, side=None, translate=False, rotate=False, scale=False):
 
     side_tag = f'{side}_' if side else ''
     attr_name = attr_name if attr_name else 'Global'
+    default_value = default_value if default_value else 10
 
     #...Create attribute ----------------------------------------------------------------------------------------------
     pm.addAttr(attr_node, longName=attr_name, attributeType="float", minValue=0, maxValue=10,
