@@ -36,89 +36,90 @@ PrefabArmatureData = classPrefabArmatureData.PrefabArmatureData
 
 ###########################
 ######## Variables ########
-default_symmetry_arg = "Left drives Right"
-symmetry_info = gen_utils.symmetry_info(default_symmetry_arg)
-default_symmetry_mode = symmetry_info[0]
+
 ###########################
 ###########################
 
 
 
 
-
-########################################################################################################################
-def create_enter_namespace(namespace):
-    pm.namespace(add=namespace)
-    pm.namespace(set=namespace)
-
-
-
-########################################################################################################################
-def export_armature_data(armature_data):
-    armature_IO = ArmatureDataIO(armature=armature_data)
-    armature_IO.save()
-
-
-
-########################################################################################################################
-def build_armature(armature_data):
-    armature_data.populate_armature()
-    return armature_data
+class RigBuilder:
+    def __init__(
+        self,
+        asset_name,
+        prefab_key,
+        dirpath,
+        symmetry_mode = None
+    ):
+        self.prefab_key = prefab_key
+        self.symmetry_mode = symmetry_mode
+        self.asset_name = asset_name
+        self.dirpath = dirpath
+        self.armature_namespace = nom.setupRigNamespace
+        self.rig_namespace = nom.finalRigNamespace
+        self.armature_data = None
+        self.armature = None
+        self.rig = None
 
 
-
-########################################################################################################################
-def return_to_root_namespace():
-    pm.namespace(set=":")
-
-
-
-########################################################################################################################
-def build_armature_in_scene(armature_data):
-    create_enter_namespace(nom.setupRigNamespace)
-    export_armature_data(armature_data)
-    armature = build_armature(armature_data)
-    return_to_root_namespace()
-    return armature
+    ####################################################################################################################
+    def create_enter_namespace(self, namespace):
+        pm.namespace(add=namespace)
+        pm.namespace(set=namespace)
 
 
-
-########################################################################################################################
-def build_prefab_armature(prefab_tag, symmetry_mode=None):
-    armature_data = PrefabArmatureData(prefab_key=prefab_tag, symmetry_mode=symmetry_mode)
-    armature = build_armature_in_scene(armature_data.get_armature())
-    return armature
+    ####################################################################################################################
+    def export_armature_data(self):
+        armature_IO = ArmatureDataIO(armature=self.armature_data.get_armature())
+        armature_IO.save()
 
 
-
-########################################################################################################################
-def get_armature_data_from_file(dirpath):
-    armature_IO = ArmatureDataIO(dirpath)
-    armature_data = armature_IO.build_armature_data_from_file()
-    armature_data.modules_from_data()
-    return armature_data
+    ####################################################################################################################
+    def build_armature(self):
+        self.armature = self.armature_data.get_armature().populate_armature()
 
 
-
-########################################################################################################################
-def build_armature_from_file(dirpath):
-    armature = get_armature_data_from_file(dirpath)
-    build_armature_in_scene(armature)
-    return armature
-
-
-
-########################################################################################################################
-def build_rig(asset_name, armature):
-    rig = Rig(name=asset_name, armature=armature)
-    rig.populate_rig()
-    return rig
+    ####################################################################################################################
+    def build_armature_in_scene(self):
+        self.create_enter_namespace(self.armature_namespace)
+        self.export_armature_data()
+        self.build_armature()
+        self.return_to_root_namespace()
 
 
+    ####################################################################################################################
+    def build_prefab_armature(self):
+        self.armature_data = PrefabArmatureData(prefab_key=self.prefab_key, symmetry_mode=self.symmetry_mode)
+        self.build_armature_in_scene()
 
-########################################################################################################################
-def build_rig_in_scene(asset_name=None, armature=None):
-    create_enter_namespace(nom.finalRigNamespace)
-    rig = build_rig(asset_name, armature)
-    #...Put a bow on this puppy!
-    rigWrapup.execute(modules=rig.modules)
+
+    ####################################################################################################################
+    def get_armature_data_from_file(self):
+        armature_IO = ArmatureDataIO(self.dirpath)
+        self.armature_data = armature_IO.build_armature_data_from_file()
+        self.armature_data.modules_from_data()
+
+
+    ####################################################################################################################
+    def build_armature_from_file(self):
+        self.get_armature_data_from_file()
+        self.build_armature_in_scene()
+
+
+    ####################################################################################################################
+    def build_rig_in_scene(self, scene_armature):
+        self.create_enter_namespace(self.rig_namespace)
+        self.build_rig(scene_armature)
+        #...Put a bow on this puppy!
+        rigWrapup.execute(modules=self.rig.modules)
+
+
+    ####################################################################################################################
+    def build_rig(self, scene_armature):
+        self.rig = Rig(name=self.asset_name, armature=scene_armature)
+        self.rig.populate_rig()
+
+
+    ####################################################################################################################
+    def return_to_root_namespace(self):
+        pm.namespace(set=":")

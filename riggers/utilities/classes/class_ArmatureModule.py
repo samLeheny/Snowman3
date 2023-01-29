@@ -283,7 +283,7 @@ class ArmatureModule:
 
         self.create_module_ctrl_in_scene()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build\rig_modules'
+        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
         dirpath = os.path.join(dirpath, self.module_key)
         placers_IO = PlacerDataIO(module_key=self.module_key, placers=self.placer_data, dirpath=dirpath)
         placers_IO.save()
@@ -593,7 +593,7 @@ class ArmatureModule:
 
         parent = parent if parent else self.rig_subGrps["prelim_ctrls"]
 
-        dirpath = r'C:\Users\61451\Desktop\test_build\rig_modules'
+        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
         dirpath = os.path.join(dirpath, self.module_key)
         ctrls_IO = ControlsDataIO(module_key=self.module_key, ctrls=self.ctrl_data, dirpath=dirpath)
         ctrls_IO.save()

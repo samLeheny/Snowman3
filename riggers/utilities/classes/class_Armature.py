@@ -313,7 +313,7 @@ class Armature:
     ####################################################################################################################
     def draw_module_connectors(self, modules):
 
-        dirpath = r'C:\Users\61451\Desktop\test_build'
+        dirpath = r'C:\Users\User\Desktop\test_build'
 
         for connector in self.placer_connectors:
             connector.source_module = self.modules[connector.source_module_key]

@@ -165,7 +165,7 @@ class Rig:
 
         self.attr_handoffs = self.prefab_data.get_attr_handoffs()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build'
+        dirpath = r'C:\Users\User\Desktop\test_build'
         attr_handoffs_IO = AttrHandoffsDataIO(attr_handoffs=self.attr_handoffs, dirpath=dirpath)
         attr_handoffs_IO.save()
 
@@ -181,7 +181,7 @@ class Rig:
 
         self.connection_pairs = self.prefab_data.get_module_connections()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build'
+        dirpath = r'C:\Users\User\Desktop\test_build'
         connection_pairs_IO = ConnectionPairsDataIO(connection_pairs=self.connection_pairs, dirpath=dirpath)
         connection_pairs_IO.save()
         [pair.connect_sockets() for pair in self.connection_pairs]
@@ -195,7 +195,7 @@ class Rig:
 
         self.space_blends = self.prefab_data.get_space_blends()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build'
+        dirpath = r'C:\Users\User\Desktop\test_build'
         space_blends_IO = SpaceBlendsDataIO(space_blends=self.space_blends, dirpath=dirpath)
         space_blends_IO.save()
         [b.install_blend()for b in self.space_blends]
