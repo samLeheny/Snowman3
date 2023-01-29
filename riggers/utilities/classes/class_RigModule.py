@@ -35,8 +35,12 @@ import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
 importlib.reload(classPlacer)
 Placer = classPlacer.Placer
 
-import Snowman3.riggers.utilities.directories.get_module_data as get_module_data
-importlib.reload(get_module_data)
+'''import Snowman3.riggers.utilities.directories.get_module_data as get_module_data
+importlib.reload(get_module_data)'''
+
+import Snowman3.riggers.utilities.classes.class_PrefabModuleData as classPrefabModuleData
+importlib.reload(classPrefabModuleData)
+PrefabModuleData = classPrefabModuleData.PrefabModuleData
 ###########################
 ###########################
 
@@ -80,14 +84,18 @@ class RigModule:
         self.placer_color = ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
         self.is_driven_side = is_driven_side
         self.piece_keys = piece_keys
+        self.prefab_module_data = PrefabModuleData(
+            prefab_key=self.rig_module_type,
+            side=self.side,
+            is_driven_side=self.is_driven_side
+        )
 
         self.rig_module_grp = None
         self.no_transform_grp = None
         self.transform_grp = None
         self.bind_jnts = {}
         self.setup_module_ctrl = self.get_setup_module_ctrl()
-        self.ctrl_data = ctrl_data if ctrl_data else get_module_data.ctrl_data(
-            self.rig_module_type, side=side, is_driven_side=is_driven_side)
+        self.ctrl_data = ctrl_data if ctrl_data else self.prefab_module_data.ctrl_data
         self.placers = {}
         self.pv_placers = {}
         self.orienters = {}

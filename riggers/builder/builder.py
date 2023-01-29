@@ -26,12 +26,13 @@ nom = nameConventions.create_dict()
 import Snowman3.riggers.utilities.bodyRigWrapup as rigWrapup
 importlib.reload(rigWrapup)
 
-import Snowman3.riggers.utilities.directories.get_armature_data as get_armature_data
-importlib.reload(get_armature_data)
-
 import Snowman3.riggers.IO.armature_IO as IO
 importlib.reload(IO)
 ArmatureDataIO = IO.ArmatureDataIO
+
+import Snowman3.riggers.utilities.classes.class_PrefabArmatureData as classPrefabArmatureData
+importlib.reload(classPrefabArmatureData)
+PrefabArmatureData = classPrefabArmatureData.PrefabArmatureData
 ###########################
 ###########################
 
@@ -80,8 +81,8 @@ def build_armature_in_scene(armature_data):
 ########################################################################################################################
 def build_prefab_armature(prefab_tag, symmetry_mode=None):
 
-    armature_data = get_armature_data.armature(prefab_tag, symmetry_mode=symmetry_mode)
-    armature = build_armature_in_scene(armature_data)
+    armature_data = PrefabArmatureData(prefab_key=prefab_tag, symmetry_mode=symmetry_mode)
+    armature = build_armature_in_scene(armature_data.get_armature())
 
     return armature
 

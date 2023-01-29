@@ -20,9 +20,6 @@ importlib.reload(gen_utils)
 import Snowman3.riggers.utilities.armature_utils as amtr_utils
 importlib.reload(amtr_utils)
 
-import Snowman3.riggers.utilities.directories.get_armature_data as get_armature_data
-importlib.reload(get_armature_data)
-
 import Snowman3.riggers.utilities.classes.class_RigModule as class_RigModules
 importlib.reload(class_RigModules)
 RigModule = class_RigModules.RigModule
@@ -36,6 +33,10 @@ importlib.reload(connectionPairs_IO)
 AttrHandoffsDataIO = attrHandoffs_IO.AttrHandoffsDataIO
 SpaceBlendsDataIO = spaceBlends_IO.SpaceBlendsDataIO
 ConnectionPairsDataIO = connectionPairs_IO.ConnectionPairsDataIO
+
+import Snowman3.riggers.utilities.classes.class_PrefabArmatureData as classPrefabArmature
+importlib.reload(classPrefabArmature)
+PrefabArmature = classPrefabArmature.PrefabArmatureData
 ###########################
 ###########################
 
@@ -71,6 +72,7 @@ class Rig:
         self.rig_prefab_type = self.get_rig_prefab_type()
         self.space_blends = None
         self.connection_pairs = None
+        self.prefab_data = None
 
 
 
@@ -161,9 +163,9 @@ class Rig:
     ####################################################################################################################
     def perform_module_attr_handoffs(self):
 
-        self.attr_handoffs = get_armature_data.attr_handoffs(self.rig_prefab_type, self.modules)
+        self.attr_handoffs = self.prefab_data.get_attr_handoffs()
 
-        dirpath = r'C:\Users\User\Desktop\test_build'
+        dirpath = r'C:\Users\61451\Desktop\test_build'
         attr_handoffs_IO = AttrHandoffsDataIO(attr_handoffs=self.attr_handoffs, dirpath=dirpath)
         attr_handoffs_IO.save()
 
@@ -177,9 +179,9 @@ class Rig:
     ####################################################################################################################
     def attach_modules(self):
 
-        self.connection_pairs = get_armature_data.module_connections(self.rig_prefab_type, self.modules)
+        self.connection_pairs = self.prefab_data.get_module_connections()
 
-        dirpath = r'C:\Users\User\Desktop\test_build'
+        dirpath = r'C:\Users\61451\Desktop\test_build'
         connection_pairs_IO = ConnectionPairsDataIO(connection_pairs=self.connection_pairs, dirpath=dirpath)
         connection_pairs_IO.save()
         [pair.connect_sockets() for pair in self.connection_pairs]
@@ -191,9 +193,9 @@ class Rig:
     ####################################################################################################################
     def install_space_blends(self):
 
-        self.space_blends = get_armature_data.space_blends(self.rig_prefab_type, self.modules)
+        self.space_blends = self.prefab_data.get_space_blends()
 
-        dirpath = r'C:\Users\User\Desktop\test_build'
+        dirpath = r'C:\Users\61451\Desktop\test_build'
         space_blends_IO = SpaceBlendsDataIO(space_blends=self.space_blends, dirpath=dirpath)
         space_blends_IO.save()
         [b.install_blend()for b in self.space_blends]
@@ -228,6 +230,7 @@ class Rig:
             if module.side in (nom.leftSideTag, nom.rightSideTag):
                 self.sided_modules[module.side][key] = module
 
+        self.prefab_data = PrefabArmature(prefab_key=self.rig_prefab_type, rig_modules=self.modules)
 
         #...Transfer attributes between nodes in the rig as specified in the attr_handoffs data
         self.perform_module_attr_handoffs()
