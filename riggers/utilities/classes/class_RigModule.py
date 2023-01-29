@@ -14,12 +14,6 @@ import pymel.core as pm
 import Snowman3.utilities.general_utils as gen_utils
 importlib.reload(gen_utils)
 
-import Snowman3.utilities.node_utils as node_utils
-importlib.reload(node_utils)
-
-import Snowman3.utilities.rig_utils as rig_utils
-importlib.reload(rig_utils)
-
 import Snowman3.riggers.utilities.armature_utils as amtr_utils
 importlib.reload(amtr_utils)
 
@@ -30,13 +24,6 @@ nom = nameConventions.create_dict()
 import Snowman3.riggers.dictionaries.control_colors as control_colors
 importlib.reload(control_colors)
 ctrl_colors = control_colors.create_dict()
-
-import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
-importlib.reload(classPlacer)
-Placer = classPlacer.Placer
-
-'''import Snowman3.riggers.utilities.directories.get_module_data as get_module_data
-importlib.reload(get_module_data)'''
 
 import Snowman3.riggers.utilities.classes.class_PrefabModuleData as classPrefabModuleData
 importlib.reload(classPrefabModuleData)
@@ -137,8 +124,8 @@ class RigModule:
         self.rig_module_grp.setParent(parent) if parent else None
 
         if self.side == nom.rightSideTag:
-            gen_utils.flip(self.rig_module_grp)
-            gen_utils.flip(self.no_transform_grp)
+            grps_to_flip = (self.rig_module_grp, self.no_transform_grp)
+            [gen_utils.flip(grp) for grp in grps_to_flip]
 
 
         # --------------------------------------------------------------------------------------------------------------

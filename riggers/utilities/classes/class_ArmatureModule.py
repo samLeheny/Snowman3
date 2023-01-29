@@ -41,9 +41,6 @@ import Snowman3.riggers.utilities.classes.class_ArmatureModuleHandle as class_Ar
 importlib.reload(class_ArmatureModuleHandle)
 ArmatureModuleHandle = class_ArmatureModuleHandle.ArmatureModuleHandle
 
-'''import Snowman3.riggers.utilities.directories.get_module_data as get_module_data
-importlib.reload(get_module_data)'''
-
 import Snowman3.riggers.IO.armature_module_IO as armature_module_IO
 importlib.reload(armature_module_IO)
 ArmatureModuleDataIO = armature_module_IO.ArmatureModuleDataIO
@@ -659,7 +656,6 @@ class ArmatureModule:
 
         #...Run any required bespoke setup
         self.prefab_module_data.get_bespoke_setup_py().build(self)
-        '''get_module_data.bespokeSetup(self.rig_module_type).build(self)'''
 
 
 
@@ -687,45 +683,6 @@ class ArmatureModule:
 
         search = pm.ls("::*_ARMATURE", type="transform")
         self.armature_container = search[0] if search else None
-
-
-
-
-
-    ####################################################################################################################
-    '''def placers_from_data(self, data):
-
-        self.placer_data = []
-
-        #...Certain inputs needs to be converted from string representations of python expressions
-        for p_dict in data:
-            for key in ("vectorHandleData", "orienterData", "connectorTargets"):
-                v = p_dict[key]
-                if isinstance(v, str):
-                    p_dict[key] = ast.literal_eval(v)
-
-            if "ikDistance" in p_dict:
-                self.placer_data.append(
-                    PoleVectorPlacer(name=p_dict["name"],
-                                     side=p_dict["side"],
-                                     position=p_dict["position"],
-                                     size=p_dict["size"],
-                                     vector_handle_data=p_dict["vectorHandleData"],
-                                     orienter_data=p_dict["orienterData"],
-                                     connect_targets=p_dict["connectorTargets"],
-                                     pv_distance=p_dict["ikDistance"])
-                )
-
-            else:
-                self.placer_data.append(
-                    Placer(name = p_dict["name"],
-                           side = p_dict["side"],
-                           position = p_dict["position"],
-                           size = p_dict["size"],
-                           vector_handle_data = p_dict["vectorHandleData"],
-                           orienter_data = p_dict["orienterData"],
-                           connect_targets = p_dict["connectorTargets"])
-                )'''
 
 
 
