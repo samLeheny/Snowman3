@@ -13,9 +13,6 @@ import Snowman3.riggers.utilities.classes.class_Rig as classRig
 importlib.reload(classRig)
 Rig = classRig.Rig
 
-import Snowman3.utilities.general_utils as gen_utils
-importlib.reload(gen_utils)
-
 import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
@@ -41,6 +38,16 @@ PrefabArmatureData = classPrefabArmatureData.PrefabArmatureData
 ###########################
 
 
+###########################
+######## Functions ########
+def create_enter_namespace(namespace):
+    pm.namespace(add=namespace)
+    pm.namespace(set=namespace)
+
+def return_to_root_namespace():
+    pm.namespace(set=":")
+###########################
+###########################
 
 
 class RigBuilder:
@@ -63,14 +70,8 @@ class RigBuilder:
 
 
     ####################################################################################################################
-    def create_enter_namespace(self, namespace):
-        pm.namespace(add=namespace)
-        pm.namespace(set=namespace)
-
-
-    ####################################################################################################################
     def export_armature_data(self):
-        armature_IO = ArmatureDataIO(armature=self.armature_data.get_armature())
+        armature_IO = ArmatureDataIO(armature=self.armature_data.get_armature(), dirpath=f'{self.dirpath}/test_build')
         armature_IO.save()
 
 
@@ -81,10 +82,10 @@ class RigBuilder:
 
     ####################################################################################################################
     def build_armature_in_scene(self):
-        self.create_enter_namespace(self.armature_namespace)
+        create_enter_namespace(self.armature_namespace)
         self.export_armature_data()
         self.build_armature()
-        self.return_to_root_namespace()
+        return_to_root_namespace()
 
 
     ####################################################################################################################
@@ -108,7 +109,7 @@ class RigBuilder:
 
     ####################################################################################################################
     def build_rig_in_scene(self, scene_armature):
-        self.create_enter_namespace(self.rig_namespace)
+        create_enter_namespace(self.rig_namespace)
         self.build_rig(scene_armature)
         #...Put a bow on this puppy!
         rigWrapup.execute(modules=self.rig.modules)
@@ -118,8 +119,3 @@ class RigBuilder:
     def build_rig(self, scene_armature):
         self.rig = Rig(name=self.asset_name, armature=scene_armature)
         self.rig.populate_rig()
-
-
-    ####################################################################################################################
-    def return_to_root_namespace(self):
-        pm.namespace(set=":")

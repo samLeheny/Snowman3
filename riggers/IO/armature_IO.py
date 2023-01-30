@@ -7,21 +7,9 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
 import pymel.core as pm
-import maya.cmds as mc
 import json
 import os
-import Snowman3.riggers.utilities.armature_utils as amtr_utils
-import Snowman3.utilities.general_utils as gen_utils
-import Snowman3.utilities.general_utils as rig_utils
-importlib.reload(amtr_utils)
-importlib.reload(gen_utils)
-importlib.reload(rig_utils)
-
-'''import Snowman3.riggers.utilities.classes.class_Armature as classArmature
-importlib.reload(classArmature)
-Armature = classArmature.Armature'''
 ###########################
 ###########################
 
@@ -36,26 +24,18 @@ decimal_count = 9
 
 
 ########################################################################################################################
-
-
-dirpath = r'C:\Users\User\Desktop\test_build' #...For testing purposes
-
-
 class ArmatureDataIO(object):
 
     def __init__(
         self,
-        armature
+        armature = None,
+        dirpath = None,
     ):
-
         self.armature = armature
         self.armature_data = {}
-        '''self.module_data = {}'''
         self.dirpath = dirpath
         self.filepath = f'{self.dirpath}/test_armature_data.json'
-        '''self.scene_armature = None'''
-
-
+        self.scene_armature = None
 
 
 
@@ -67,12 +47,9 @@ class ArmatureDataIO(object):
 
 
 
-
-
     ####################################################################################################################
     def get_armature_data_from_scene(self):
 
-        #...Find armature container in scene
         self.find_armature_in_scene() if not self.scene_armature else None
 
         #...Fill in armature data based on values stored in hidden armature attributes
@@ -87,8 +64,6 @@ class ArmatureDataIO(object):
                 pm.error(f'Could not get armature data attr "{attr_name}" from scene armature root.'
                          f'Attribute not found.')
             self.armature_data[IO_key] = pm.getAttr(f'{self.scene_armature}.{attr_name}')
-
-
 
 
 
@@ -107,8 +82,6 @@ class ArmatureDataIO(object):
 
 
 
-
-
     ####################################################################################################################
     def save(self):
 
@@ -116,8 +89,6 @@ class ArmatureDataIO(object):
         self.get_armature_data_from_armature()
         with open(self.filepath, 'w') as fh:
             json.dump(self.armature_data, fh, indent=5)
-
-
 
 
 
@@ -137,16 +108,16 @@ class ArmatureDataIO(object):
 
 
 
-
-
     ####################################################################################################################
     def build_armature_data_from_file(self):
-
-        '''data = self.load()
+        pass
+    '''
+        data = self.load()
         armature = Armature(name=data['name'],
                             prefab_key=data['prefab_key'],
                             root_size=data['root_size'],
                             symmetry_mode=data['symmetry_mode'],
                             modules=data['modules'])
 
-        return armature'''
+        return armature
+    '''

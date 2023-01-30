@@ -36,5 +36,4 @@ def create_armature(symmetry_mode=None, modules=None, placer_connectors=None):
         modules = modules,
         placer_connectors = placer_connectors
     )
-
     return armature

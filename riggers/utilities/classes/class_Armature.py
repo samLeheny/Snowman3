@@ -60,7 +60,6 @@ class Armature:
         prefab_key: str = None,
         root_size: float = None,
         symmetry_mode: str = None,
-        driver_side: str = None,
         modules: dict = None,
         armature_scale: float = None,
         placer_connectors: dict = None
@@ -122,11 +121,9 @@ class Armature:
     def armature_scale_attr(self):
 
         attr_name = "ArmatureScale"
-
         pm.addAttr(self.root_handle.mobject, longName=attr_name, attributeType=float, minValue=0.001, defaultValue=1,
                    keyable=0)
         pm.setAttr(f'{self.root_handle.mobject}.{attr_name}', channelBox=1)
-
         for attr in ("sx", "sy", "sz"):
             pm.connectAttr(f'{self.root_handle.mobject}.{attr_name}', f'{self.root_handle.mobject}.{attr}')
             pm.setAttr(f'{self.root_handle.mobject}.{attr}', lock=1, keyable=0)
@@ -139,13 +136,15 @@ class Armature:
     def create_root_groups(self):
 
         #...Armature modules group
-        self.root_groups["modules"] = pm.group(name="modules", p=self.root_handle.mobject, em=1)
+        self.root_groups["modules"] = pm.group(name="modules", parent=self.root_handle.mobject, empty=True)
 
 
 
 
 
     ####################################################################################################################
+    #...[This needs to be somewhere else.
+    #...We shouldn't need to edit the class whenever the symmetry-setup method has changed]
     def setup_armature_realtime_symmetry(self, driver_side=None):
 
         #...If no driver side provided, get it from class attributes

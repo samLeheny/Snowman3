@@ -21,7 +21,6 @@ prefabs_dir = 'Snowman3.riggers.prefab_armatures'
 
 
 
-
 ########################################################################################################################
 class PrefabArmatureData:
     def __init__(
