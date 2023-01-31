@@ -101,8 +101,6 @@ class Placer:
     create_connector_curve
     make_benign
     create_orienter
-    explicit_position_vector_handle
-    constrain_vector_handle
     position_vector_handles
     aim_orienter
     input_placer_metadata
@@ -194,7 +192,7 @@ class Placer:
     ####################################################################################################################
     def symmetrize(self, reverse=False):
 
-        attrs_to_symmetrize = ("tx", "ty", "tz", "rx", "ry", "rz")
+        attrs_to_symmetrize = ('tx', 'ty', 'tz', 'rx', 'ry', 'rz')
 
         #...Get opposite placer
         opposite_placer = self.get_opposite_placer()
@@ -309,44 +307,17 @@ class Placer:
 
 
     ####################################################################################################################
-    def explicit_position_vector_handle(self, vector_handle, handle_data):
-
-        vector_handle.mobject.translate.set(handle_data['coord'])
-
-
-
-
-
-    ####################################################################################################################
-    def constrain_vector_handle(self, vector_handle, handle_data):
-
-        # ...Find constraint target placer
-        target_obj = None
-        get_placer_string = f'::{self.side_tag}{handle_data["obj"]}_{nom.placer}'
-        if pm.ls(get_placer_string):
-            target_obj = pm.ls(get_placer_string)[0]
-        else:
-            print(f'Unable to find placer: "{get_placer_string}"')
-
-        offset = gen_utils.buffer_obj(vector_handle.mobject, suffix='MOD')
-        pm.pointConstraint(target_obj, offset)
-
-
-
-
-
-    ####################################################################################################################
     def position_vector_handles(self):
 
-        for vector_string, vector_handle in (('aim', self.aim_vector_handle), ('up', self.up_vector_handle)):
+        for vector_string, vector_handle in (('aim', self.aim_vector_handle),
+                                             ('up', self.up_vector_handle)):
 
             handle_data = self.vector_handle_data[vector_string]
 
             if 'obj' in handle_data:
-                self.constrain_vector_handle(vector_handle, handle_data)
+                vector_handle.constrain_handle(handle_data['obj'])
             else:
-                self.explicit_position_vector_handle(vector_handle, handle_data)
-
+                vector_handle.place_handle(handle_data['coord'])
 
 
 
@@ -359,7 +330,6 @@ class Placer:
             return
 
         self.position_vector_handles()
-
         self.orienter.aim_orienter()
 
 
