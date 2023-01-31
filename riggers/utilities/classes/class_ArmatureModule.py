@@ -55,10 +55,6 @@ PlacerDataIO = placers_IO.PlacerDataIO
 PlacerConnectorsDataIO = placerConnectors_IO.PlacerConnectorsDataIO
 ControlsDataIO = controls_IO.ControlsDataIO
 
-import Snowman3.riggers.utilities.classes.class_PlacerConnector as classPlacerConnector
-importlib.reload(classPlacerConnector)
-PlacerConnector = classPlacerConnector.PlacerConnector
-
 import Snowman3.riggers.utilities.classes.class_PrefabModuleData as classPrefabModuleData
 importlib.reload(classPrefabModuleData)
 PrefabModuleData = classPrefabModuleData.PrefabModuleData

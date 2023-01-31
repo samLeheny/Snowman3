@@ -310,14 +310,13 @@ class Armature:
 
 
     ####################################################################################################################
-    def draw_module_connectors(self, modules):
+    def draw_module_connectors(self):
 
         dirpath = r'C:\Users\User\Desktop\test_build'
 
         for connector in self.placer_connectors:
-            connector.source_module = self.modules[connector.source_module_key]
-            connector.parent = self.modules[connector.source_module_key].rig_subGrps["connector_curves"]
-            connector.create_connector()
+            connector.create_connector(source_module=self.modules[connector.source_module_key],
+                                       parent=self.modules[connector.source_module_key].rig_subGrps["connector_curves"])
 
         connectors_IO = PlacerConnectorsDataIO(placer_connectors=self.placer_connectors, dirpath=dirpath)
         connectors_IO.save()
@@ -348,7 +347,7 @@ class Armature:
 
         #...Connect modules to each other as specified in each module ---------------------------------------------
         [module.connect_modules() for module in self.modules.values()]
-        self.draw_module_connectors(self.modules)
+        self.draw_module_connectors()
 
         #...Enact live symmetry if needed -------------------------------------------------------------------------
         if self.symmetry_mode in ('Left drives Right', 'Right drives Left'):
