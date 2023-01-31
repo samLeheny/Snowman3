@@ -161,14 +161,12 @@ class Placer:
     def create_vector_handles(self):
 
         #...A group to house vector handles
-        self.vector_handle_grp = pm.group(name="vectorHandlesVis", em=1, p=self.mobject)
+        self.vector_handle_grp = pm.group(name='vectorHandlesVis', em=1, p=self.mobject)
         #...Create handles for Aim vector and Up vector
-        self.aim_vector_handle = VectorHandle(name="{}{}".format(self.side_tag, self.name), vector="aim",
-                                              side=self.side, parent=self.vector_handle_grp, color=self.color,
-                                              placer=self)
-        self.up_vector_handle = VectorHandle(name="{}{}".format(self.side_tag, self.name), vector="up",
-                                             side=self.side, parent=self.vector_handle_grp, color=self.color,
-                                             placer=self)
+        self.aim_vector_handle = VectorHandle(name=f'{self.side_tag}{self.name}', vector='aim', side=self.side,
+                                              parent=self.vector_handle_grp, color=self.color, placer=self)
+        self.up_vector_handle = VectorHandle(name=f'{self.side_tag}{self.name}', vector='up', side=self.side,
+                                             parent=self.vector_handle_grp, color=self.color, placer=self)
 
 
 

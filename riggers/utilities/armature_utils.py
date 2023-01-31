@@ -11,6 +11,10 @@ import importlib
 import pymel.core as pm
 import Snowman3.utilities.general_utils as gen_utils
 importlib.reload(gen_utils)
+
+import Snowman3.dictionaries.nameConventions as nameConventions
+importlib.reload(nameConventions)
+nom = nameConventions.create_dict()
 ###########################
 ###########################
 
