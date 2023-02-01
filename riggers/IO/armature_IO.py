@@ -70,22 +70,18 @@ class ArmatureDataIO(object):
     ####################################################################################################################
     def get_armature_data_from_armature(self):
 
-        #...
-        IO_data_fields = (('name', self.armature.name),
-                          ('prefab_key', self.armature.prefab_key),
-                          ('symmetry_mode', self.armature.symmetry_mode),
-                          ('driver_side', self.armature.driver_side),
-                          ('root_size', self.armature.root_size),
-                          ('armature_scale', self.armature.armature_scale))
-        for IO_key, input_attr in IO_data_fields:
-            self.armature_data[IO_key] = input_attr
+        self.armature_data = {'name': self.armature.name,
+                              'prefab_key': self.armature.prefab_key,
+                              'symmetry_mode': self.armature.symmetry_mode,
+                              'driver_side': self.armature.driver_side,
+                              'root_size': self.armature.root_size,
+                              'armature_scale': self.armature.armature_scale}
 
 
 
     ####################################################################################################################
     def save(self):
 
-        #self.get_armature_data_from_scene() if not self.armature_data else None
         self.get_armature_data_from_armature()
         with open(self.filepath, 'w') as fh:
             json.dump(self.armature_data, fh, indent=5)
