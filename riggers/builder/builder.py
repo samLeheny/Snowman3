@@ -20,6 +20,10 @@ nom = nameConventions.create_dict()
 import Snowman3.riggers.utilities.bodyRigWrapup as rigWrapup
 importlib.reload(rigWrapup)
 
+import Snowman3.riggers.utilities.classes.class_Armature as classArmature
+importlib.reload(classArmature)
+Armature = classArmature.Armature
+
 import Snowman3.riggers.IO.armature_IO as iO
 importlib.reload(iO)
 ArmatureDataIO = iO.ArmatureDataIO
@@ -61,7 +65,7 @@ class RigBuilder:
         self.prefab_key = prefab_key
         self.symmetry_mode = symmetry_mode
         self.asset_name = asset_name
-        self.dirpath = dirpath
+        self.dirpath = f'{dirpath}/test_build'
         self.armature_namespace = nom.setupRigNamespace
         self.rig_namespace = nom.finalRigNamespace
         self.armature_data = None
@@ -71,20 +75,20 @@ class RigBuilder:
 
     ####################################################################################################################
     def export_armature_data(self):
-        armature_IO = ArmatureDataIO(armature=self.armature_data.get_armature(), dirpath=f'{self.dirpath}/test_build')
+        armature_IO = ArmatureDataIO(armature=self.armature_data.get_armature(), dirpath=self.dirpath)
         armature_IO.save()
 
 
     ####################################################################################################################
-    def build_armature(self):
-        self.armature = self.armature_data.get_armature().populate_armature()
+    def build_armature(self, armature_data):
+        self.armature = armature_data.get_armature().populate_armature()
 
 
     ####################################################################################################################
     def build_armature_in_scene(self):
         create_enter_namespace(self.armature_namespace)
         self.export_armature_data()
-        self.build_armature()
+        self.build_armature(self.armature_data)
         return_to_root_namespace()
 
 
@@ -96,15 +100,22 @@ class RigBuilder:
 
     ####################################################################################################################
     def get_armature_data_from_file(self):
-        armature_IO = ArmatureDataIO(self.dirpath)
-        self.armature_data = armature_IO.build_armature_data_from_file()
-        self.armature_data.modules_from_data()
+        armature_IO = ArmatureDataIO(dirpath=self.dirpath)
+        self.armature_data = data = armature_IO.build_armature_data_from_file()
+        self.armature = Armature(
+            name = data['name'],
+            prefab_key = data['prefab_key'],
+            symmetry_mode = data['symmetry_mode'],
+            root_size = data['root_size'],
+            armature_scale = data['armature_scale']
+        )
+        #self.armature_data.modules_from_data()
 
 
     ####################################################################################################################
     def build_armature_from_file(self):
         self.get_armature_data_from_file()
-        self.build_armature_in_scene()
+        #self.build_armature_in_scene()
 
 
     ####################################################################################################################

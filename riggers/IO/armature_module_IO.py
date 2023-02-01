@@ -295,3 +295,30 @@ class ArmatureModuleDataIO(object):
         with open(f'{filepath}/{self.file}', 'w') as fh:
             json.dump(self.module_data, fh, indent=5)
 
+
+
+    ####################################################################################################################
+    def load(self):
+
+        #...
+        filepath = os.path.join(self.dirpath, self.folder)
+        if not os.path.exists(filepath):
+            print('ERROR: Provided file path not found on disk.')
+            return False
+
+        #...Read data
+        with open(filepath, 'r') as fh:
+            data = json.load(fh)
+
+        return data
+
+
+
+    ####################################################################################################################
+    def build_module_data_from_file(self):
+
+        data = self.load()
+        print('-'*150)
+        print(data)
+        print('-'*150)
+

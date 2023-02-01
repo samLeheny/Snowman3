@@ -23,12 +23,12 @@ rig_builder = RigBuilder(
     symmetry_mode = 'Left drives Right')
 
 # ...Build armature
-rig_builder.build_prefab_armature()
+'''rig_builder.build_prefab_armature()
     
 # ...Build rig
 rig_builder.build_rig_in_scene(
     scene_armature=pm.ls("::biped_ARMATURE",
-    type="transform")[0])
+    type="transform")[0])'''
 
 # ...Build armature from data file
 mc.file(new=True, f=True)

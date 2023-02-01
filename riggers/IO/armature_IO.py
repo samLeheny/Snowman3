@@ -73,7 +73,6 @@ class ArmatureDataIO(object):
         self.armature_data = {'name': self.armature.name,
                               'prefab_key': self.armature.prefab_key,
                               'symmetry_mode': self.armature.symmetry_mode,
-                              'driver_side': self.armature.driver_side,
                               'root_size': self.armature.root_size,
                               'armature_scale': self.armature.armature_scale}
 
@@ -106,14 +105,10 @@ class ArmatureDataIO(object):
 
     ####################################################################################################################
     def build_armature_data_from_file(self):
-        pass
-    '''
-        data = self.load()
-        armature = Armature(name=data['name'],
-                            prefab_key=data['prefab_key'],
-                            root_size=data['root_size'],
-                            symmetry_mode=data['symmetry_mode'],
-                            modules=data['modules'])
 
-        return armature
-    '''
+        data = self.load()
+        fields = ('name', 'prefab_key', 'symmetry_mode', 'root_size', 'armature_scale')
+        for name in fields:
+            self.armature_data[name] = data[name]
+
+        return self.armature_data

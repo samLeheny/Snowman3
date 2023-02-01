@@ -56,13 +56,14 @@ PlacerConnector = classPlacerConnector.PlacerConnector
 class Armature:
     def __init__(
         self,
-        name: str,
+        name: str = None,
         prefab_key: str = None,
         root_size: float = None,
         symmetry_mode: str = None,
         modules: dict = None,
         armature_scale: float = None,
-        placer_connectors: dict = None
+        placer_connectors: dict = None,
+        data: dict = None
     ):
         self.name = name
         self.prefab_key = prefab_key if prefab_key else 'None'
@@ -76,6 +77,7 @@ class Armature:
         self.root_handle = ArmatureRootHandle(name=self.name, root_size=self.root_size)
         self.metadata_fields = self.compose_metadata_fields()
         self.placer_connectors = placer_connectors
+        self.data = data
 
 
 
