@@ -37,7 +37,7 @@ class PrefabBlueprint:
         self.armature = self.get_armature()
         self.rig_modules = self.get_rig_modules()
         self.attr_handoffs = self.get_attr_handoffs()
-        self.module_connections = self.get_module_connections()
+        self.module_connectors = self.get_module_connections()
         self.space_blends = self.get_space_blends()
         self.placer_connectors = self.get_placer_connectors()
 

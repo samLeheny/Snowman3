@@ -42,13 +42,12 @@ class RigModuleDataIO(object):
     def __init__(
         self,
         module_key,
-        armature_module
+        rig_module
     ):
 
-        self.armature_module = armature_module
+        self.rig_module = rig_module
         self.dirpath = dirpath
         self.module_key = module_key
-        self.armature_module = armature_module
         self.file = f'{self.module_key}_module.json'
         self.folder = 'rig_modules'
         self.module_data = None
@@ -60,7 +59,7 @@ class RigModuleDataIO(object):
     ####################################################################################################################
     def get_data_from_module_in_scene(self):
 
-        module_node = amtr_utils.get_modules_in_armature(self.armature_module.armature_container)[self.module_key]
+        module_node = amtr_utils.get_modules_in_armature(self.rig_module.armature_container)[self.module_key]
 
         module_ctrl = pm.listConnections(f'{module_node}.ModuleRootCtrl', s=1, d=0)[0]
 
@@ -90,21 +89,21 @@ class RigModuleDataIO(object):
     def prep_data_for_export(self):
 
         self.module_data = {}
-        data_dict = self.armature_module.get_data_dictionary()
+        data_dict = self.rig_module.get_data_dictionary()
         self.module_data[self.module_key] = data_dict
 
         '''self.module_data = {}
 
         #...
-        IO_data_fields = (('rig_module_type', self.armature_module.rig_module_type),
-                          ('name', self.armature_module.name),
-                          ('side', self.armature_module.side),
-                          ('is_driven_side', self.armature_module.is_driven_side),
-                          ('drive_target', self.armature_module.drive_target),
-                          ('position', self.armature_module.position),
-                          ('rotation', self.armature_module.rotation),
-                          ('scale', self.armature_module.scale),
-                          ('color', self.armature_module.ctrl_color))
+        IO_data_fields = (('rig_module_type', self.rig_module.rig_module_type),
+                          ('name', self.rig_module.name),
+                          ('side', self.rig_module.side),
+                          ('is_driven_side', self.rig_module.is_driven_side),
+                          ('drive_target', self.rig_module.drive_target),
+                          ('position', self.rig_module.position),
+                          ('rotation', self.rig_module.rotation),
+                          ('scale', self.rig_module.scale),
+                          ('color', self.rig_module.ctrl_color))
         for IO_key, input_attr in IO_data_fields:
             self.module_data[IO_key] = input_attr'''
 

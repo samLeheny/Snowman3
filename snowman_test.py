@@ -13,6 +13,10 @@ import Snowman3.riggers.utilities.classes.class_PrefabBlueprint as class_prefabB
 importlib.reload(class_prefabBlueprint)
 PrefabBlueprint = class_prefabBlueprint.PrefabBlueprint
 
+import Snowman3.riggers.IO.blueprint_IO as class_blueprint_IO
+importlib.reload(class_blueprint_IO)
+BlueprintDataIO = class_blueprint_IO.BlueprintDataIO
+
 # ...File directory path
 dirpath = r'C:\Users\User\Desktop'
 #dirpath = r'C:\Users\61451\Desktop'
@@ -23,7 +27,12 @@ mc.file(new=True, f=True)
 blueprint = PrefabBlueprint(
     prefab_key = 'biped',
     symmetry_mode = None)
-print(blueprint.attr_handoffs.items())
+blueprint_IO = BlueprintDataIO(
+    blueprint = blueprint,
+    dirpath = dirpath
+)
+blueprint_IO.save()
+
 
 rig_builder = RigBuilder(
     asset_name = 'test',
