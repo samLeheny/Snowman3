@@ -27,9 +27,9 @@ import Snowman3.riggers.utilities.armature_utils as amtr_utils
 importlib.reload(gen_utils)
 importlib.reload(amtr_utils)
 
-import Snowman3.riggers.IO.armature_module_IO as armatureModule_IO
+import Snowman3.riggers.IO.rig_module_IO as armatureModule_IO
 importlib.reload(armatureModule_IO)
-ArmatureModuleDataIO = armatureModule_IO.ArmatureModuleDataIO
+RigModuleDataIO = armatureModule_IO.RigModuleDataIO
 
 import Snowman3.riggers.IO.placerConnectors_IO as placerConnectors_IO
 importlib.reload(placerConnectors_IO)
@@ -314,7 +314,7 @@ class Armature:
     ####################################################################################################################
     def draw_module_connectors(self):
 
-        dirpath = r'C:\Users\61451\Desktop\test_build'
+        dirpath = r'C:\Users\User\Desktop\test_build'
 
         for connector in self.placer_connectors:
             connector.create_connector(source_module=self.modules[connector.source_module_key],
@@ -334,7 +334,7 @@ class Armature:
         self.create_root_handle_in_scene()
 
         for key, module in self.modules.items():
-            module_IO = ArmatureModuleDataIO(module_key=key, armature_module=module)
+            module_IO = RigModuleDataIO(module_key=key, armature_module=module)
             module_IO.save()
             module.modules_parent = self.root_groups['modules']
             module.populate_module(key)

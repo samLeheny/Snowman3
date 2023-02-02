@@ -14,7 +14,7 @@ import importlib
 
 ###########################
 ######## Variables ########
-prefabs_dir = 'Snowman3.riggers.prefab_armatures'
+prefabs_dir = 'Snowman3.riggers.prefab_blueprints'
 ###########################
 ###########################
 

@@ -41,10 +41,6 @@ import Snowman3.riggers.utilities.classes.class_ArmatureModuleHandle as class_Ar
 importlib.reload(class_ArmatureModuleHandle)
 ArmatureModuleHandle = class_ArmatureModuleHandle.ArmatureModuleHandle
 
-import Snowman3.riggers.IO.armature_module_IO as armature_module_IO
-importlib.reload(armature_module_IO)
-ArmatureModuleDataIO = armature_module_IO.ArmatureModuleDataIO
-
 import Snowman3.riggers.IO.placer_IO as placers_IO
 import Snowman3.riggers.IO.placerConnectors_IO as placerConnectors_IO
 import Snowman3.riggers.IO.controls_IO as controls_IO
@@ -279,7 +275,7 @@ class ArmatureModule:
 
         self.create_module_ctrl_in_scene()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build\rig_modules'
+        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
         dirpath = os.path.join(dirpath, self.module_key)
         placers_IO = PlacerDataIO(module_key=self.module_key, placers=self.placer_data, dirpath=dirpath)
         placers_IO.save()
@@ -589,7 +585,7 @@ class ArmatureModule:
 
         parent = parent if parent else self.rig_subGrps["prelim_ctrls"]
 
-        dirpath = r'C:\Users\61451\Desktop\test_build\rig_modules'
+        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
         dirpath = os.path.join(dirpath, self.module_key)
         ctrls_IO = ControlsDataIO(module_key=self.module_key, ctrls=self.ctrl_data, dirpath=dirpath)
         ctrls_IO.save()

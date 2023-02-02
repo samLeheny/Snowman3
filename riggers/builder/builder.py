@@ -94,6 +94,9 @@ class RigBuilder:
 
     ####################################################################################################################
     def build_prefab_armature(self):
+        # ...Populate asset directory with prefab data
+
+
         self.armature_data = PrefabArmatureData(prefab_key=self.prefab_key, symmetry_mode=self.symmetry_mode)
         self.build_armature_in_scene()
 

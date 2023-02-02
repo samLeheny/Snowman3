@@ -51,7 +51,7 @@ class PlacerDataIO(object):
         self.placer_data = None
         self.module_key = module_key
         self.dirpath = dirpath
-        self.file = f'{self.module_key}_placers.json'
+        self.file = 'placers.json'
 
 
 
