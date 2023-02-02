@@ -33,20 +33,20 @@ SpaceBlend = classSpaceBlend.SpaceBlend
 
 
 
-def create_space_blends(modules):
+def create_space_blends():
 
         space_blends = [
 
             #...Neck
             SpaceBlend(
                 type='blend',
-                target=modules['neck'].ctrls['neck'].getParent(),
-                source=modules['spine'].ctrls['ik_chest'],
+                target="modules['neck'].ctrls['neck'].getParent()",
+                source="modules['spine'].ctrls['ik_chest']",
                 source_name='global',
                 name='neck',
-                attr_node=modules['neck'].ctrls['neck'],
+                attr_node="modules['neck'].ctrls['neck']",
                 attr_name='GlobalSpace',
-                global_space_parent=modules['root'].ctrls['subRoot'],
+                global_space_parent="modules['root'].ctrls['subRoot']",
                 translate=False,
                 rotate=True,
                 scale=False
@@ -61,27 +61,27 @@ def create_space_blends(modules):
                 # ...Arms
                 SpaceBlend(
                     type='switch',
-                    target=modules[f'{side}_arm'].ctrls['fk_upperarm'].getParent(),
-                    source=(modules['spine'].ctrls['ik_chest'],
-                            modules[f'{side}_clavicle'].ctrls['clavicle'],
-                            modules['root'].ctrls['COG'],),
+                    target="modules[f'{side}_arm'].ctrls['fk_upperarm'].getParent()",
+                    source=("modules['spine'].ctrls['ik_chest']",
+                            "modules[f'{side}_clavicle'].ctrls['clavicle']",
+                            "modules['root'].ctrls['COG']"),
                     source_name=('Chest', 'Clavicle', 'COG'),
                     name='shoulder',
-                    attr_node=modules[f'{side}_arm'].ctrls['fk_upperarm'],
+                    attr_node="modules[f'{side}_arm'].ctrls['fk_upperarm']",
                     attr_name='ShoulderSpace',
-                    global_space_parent=modules['root'].ctrls['subRoot'],
+                    global_space_parent="modules['root'].ctrls['subRoot']",
                     side=side,
                     translate=False, rotate=True, scale=False
                 ),
                 SpaceBlend(
                     type='blend',
-                    target=modules[f'{side}_arm'].ctrls['ik_hand'].getParent(),
-                    source=(modules[f'{side}_arm'].ctrls['ik_hand_follow']),
+                    target="modules[f'{side}_arm'].ctrls['ik_hand'].getParent()",
+                    source=("modules[f'{side}_arm'].ctrls['ik_hand_follow']"),
                     source_name='global',
                     name='ik_hand',
-                    attr_node=modules[f'{side}_arm'].ctrls['ik_hand'],
+                    attr_node="modules[f'{side}_arm'].ctrls['ik_hand']",
                     attr_name='FollowSpace',
-                    global_space_parent=modules['root'].ctrls['subRoot'],
+                    global_space_parent="modules['root'].ctrls['subRoot']",
                     translate=True,
                     rotate=True,
                     scale=True,
@@ -90,13 +90,13 @@ def create_space_blends(modules):
                 ),
                 SpaceBlend(
                     type='blend',
-                    target=modules[f'{side}_arm'].ctrls['ik_elbow'].getParent(),
-                    source=(modules[f'{side}_arm'].ctrls['ik_hand']),
+                    target="modules[f'{side}_arm'].ctrls['ik_elbow'].getParent()",
+                    source=("modules[f'{side}_arm'].ctrls['ik_hand']",),
                     source_name='global',
                     name='ik_elbow',
-                    attr_node=modules[f'{side}_arm'].ctrls['ik_elbow'],
+                    attr_node="modules[f'{side}_arm'].ctrls['ik_elbow']",
                     attr_name='GlobalSpace',
-                    global_space_parent=modules['root'].ctrls['subRoot'],
+                    global_space_parent="modules['root'].ctrls['subRoot']",
                     translate=True,
                     rotate=True,
                     scale=False
@@ -105,26 +105,26 @@ def create_space_blends(modules):
                 # ...Legs
                 SpaceBlend(
                     type='switch',
-                    target=modules[f'{side}_leg'].ctrls['fk_thigh'].getParent(),
-                    source=(modules['spine'].ctrls['ik_pelvis'],
-                            modules['root'].ctrls['COG'],),
+                    target="modules[f'{side}_leg'].ctrls['fk_thigh'].getParent()",
+                    source=("modules['spine'].ctrls['ik_pelvis']",
+                            "modules['root'].ctrls['COG']"),
                     source_name=('Pelvis', 'COG'),
                     name='hip',
-                    attr_node=modules[f'{side}_leg'].ctrls['fk_thigh'],
+                    attr_node="modules[f'{side}_leg'].ctrls['fk_thigh']",
                     attr_name='HipSpace',
-                    global_space_parent=modules['root'].ctrls['subRoot'],
+                    global_space_parent="modules['root'].ctrls['subRoot']",
                     side=side,
                     translate=False, rotate=True, scale=False
                 ),
                 SpaceBlend(
                     type='blend',
-                    target=modules[f'{side}_leg'].ctrls['ik_foot'].getParent(),
-                    source=(modules[f'{side}_leg'].ctrls['ik_foot_follow']),
+                    target="modules[f'{side}_leg'].ctrls['ik_foot'].getParent()",
+                    source=("modules[f'{side}_leg'].ctrls['ik_foot_follow']",),
                     source_name='global',
                     name='ik_foot',
-                    attr_node=modules[f'{side}_leg'].ctrls['ik_foot'],
+                    attr_node="modules[f'{side}_leg'].ctrls['ik_foot']",
                     attr_name='FollowSpace',
-                    global_space_parent=modules['root'].ctrls['subRoot'],
+                    global_space_parent="modules['root'].ctrls['subRoot']",
                     translate=True,
                     rotate=True,
                     scale=True,
@@ -133,13 +133,13 @@ def create_space_blends(modules):
                 ),
                 SpaceBlend(
                     type='blend',
-                    target=modules[f'{side}_leg'].ctrls['ik_knee'].getParent(),
-                    source=(modules[f'{side}_leg'].ctrls['ik_foot']),
+                    target="modules[f'{side}_leg'].ctrls['ik_knee'].getParent()",
+                    source=("modules[f'{side}_leg'].ctrls['ik_foot']",),
                     source_name='global',
                     name='ik_knee',
-                    attr_node=modules[f'{side}_leg'].ctrls['ik_knee'],
+                    attr_node="modules[f'{side}_leg'].ctrls['ik_knee']",
                     attr_name='GlobalSpace',
-                    global_space_parent=modules['root'].ctrls['subRoot'],
+                    global_space_parent="modules['root'].ctrls['subRoot']",
                     translate=True,
                     rotate=True,
                     scale=False

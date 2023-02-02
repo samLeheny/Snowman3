@@ -9,12 +9,21 @@ import Snowman3.riggers.builder.builder as builder
 importlib.reload(builder)
 RigBuilder = builder.RigBuilder
 
+import Snowman3.riggers.utilities.classes.class_PrefabBlueprint as class_prefabBlueprint
+importlib.reload(class_prefabBlueprint)
+PrefabBlueprint = class_prefabBlueprint.PrefabBlueprint
+
 # ...File directory path
 dirpath = r'C:\Users\User\Desktop'
 #dirpath = r'C:\Users\61451\Desktop'
 
 # ...New scene
 mc.file(new=True, f=True)
+
+blueprint = PrefabBlueprint(
+    prefab_key = 'biped',
+    symmetry_mode = None)
+print(blueprint.attr_handoffs.items())
 
 rig_builder = RigBuilder(
     asset_name = 'test',
