@@ -39,7 +39,8 @@ class ArmatureDataIO(object):
         self.armature = armature
         self.input_data = {}
         self.dirpath = dirpath
-        self.filepath = f'{self.dirpath}/armature_data.json'
+        self.filepaths = {'armature': f'{self.dirpath}/armature_data.json',
+                          'modules': f'{self.dirpath}/rig_modules'}
         self.scene_armature = None
 
 
@@ -55,14 +56,38 @@ class ArmatureDataIO(object):
     ####################################################################################################################
     def get_data_from_file(self):
 
-        if not os.path.exists(self.filepath):
-            print('ERROR: Provided file path not found on disk.')
+        self.input_data = self.get_armature_data_from_file()
+        self.input_data['modules'] = self.get_modules_data_from_file()
+        return self.input_data
+
+
+
+    ####################################################################################################################
+    def get_armature_data_from_file(self):
+
+        filepath = self.filepaths['armature']
+
+        if not os.path.exists(filepath):
+            print(f'ERROR: Provided file "{filepath}" path not found on disk.')
             return False
 
-        with open(self.filepath, 'r') as fh:
-            self.info_data = json.load(fh)
+        with open(self.filepaths['armature'], 'r') as fh:
+            self.input_data = json.load(fh)
 
-        return self.info_data
+        return self.input_data
+
+
+
+    ####################################################################################################################
+    def get_modules_data_from_file(self):
+
+        filepath = self.filepaths['modules']
+
+        if not os.path.exists(filepath):
+            print(f'ERROR: Provided file "{filepath}" path not found on disk.')
+            return False
+
+        return "placeholder"
 
 
 
@@ -101,7 +126,7 @@ class ArmatureDataIO(object):
     def save(self):
 
         self.get_armature_data_from_armature()
-        with open(self.filepath, 'w') as fh:
+        with open(self.filepaths['armature'], 'w') as fh:
             json.dump(self.input_data, fh, indent=5)
 
 
@@ -110,27 +135,15 @@ class ArmatureDataIO(object):
     def load(self):
 
         #...
-        if not os.path.exists(self.filepath):
+        if not os.path.exists(self.filepaths['armature']):
             print('ERROR: Provided file path not found on disk.')
             return False
 
         #...Read data
-        with open(self.filepath, 'r') as fh:
+        with open(self.filepaths['armature'], 'r') as fh:
             data = json.load(fh)
 
         return data
-
-
-
-    ####################################################################################################################
-    def build_armature_data_from_file(self):
-
-        data = self.load()
-        fields = ('name', 'prefab_key', 'symmetry_mode', 'root_size', 'armature_scale')
-        for name in fields:
-            self.input_data[name] = data[name]
-
-        return self.input_data
 
 
 
@@ -142,7 +155,8 @@ class ArmatureDataIO(object):
             prefab_key = data['prefab_key'],
             root_size = data['root_size'],
             symmetry_mode = data['symmetry_mode'],
-            armature_scale = data['armature_scale']
+            armature_scale = data['armature_scale'],
+            modules = data['modules']
         )
 
         return armature

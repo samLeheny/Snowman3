@@ -131,6 +131,7 @@ class RigBuilder:
         blueprint_IO.get_blueprint_data_from_file()
         self.blueprint = blueprint_IO.create_blueprint_from_data()
         self.armature = self.blueprint.armature
+        print(self.armature.modules)
         #self.armature_data.modules_from_data()
 
 
