@@ -424,8 +424,12 @@ def get_deformers_for_shape(item):
 	# Get deformed shape of item
 	shape = get_deform_shape(item)
 
+	shape_sets = None
 	if shape:
 		shape_sets = pm.ls(pm.listConnections(str(shape)), type="objectSet")
+
+	if not shape_sets:
+		return
 
 	for deformer in geometry_filters:
 		def_set = pm.ls(pm.listConnections(deformer), type="objectSet")[0]

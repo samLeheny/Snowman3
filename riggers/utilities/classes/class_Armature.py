@@ -334,7 +334,7 @@ class Armature:
         self.create_root_handle_in_scene()
 
         for key, module in self.modules.items():
-            module_IO = RigModuleDataIO(module_key=key, armature_module=module)
+            module_IO = RigModuleDataIO(module_key=key, rig_module=module)
             module_IO.save()
             module.modules_parent = self.root_groups['modules']
             module.populate_module(key)

@@ -9,10 +9,6 @@ import Snowman3.riggers.builder.builder as builder
 importlib.reload(builder)
 RigBuilder = builder.RigBuilder
 
-import Snowman3.riggers.utilities.classes.class_PrefabBlueprint as class_prefabBlueprint
-importlib.reload(class_prefabBlueprint)
-PrefabBlueprint = class_prefabBlueprint.PrefabBlueprint
-
 import Snowman3.riggers.IO.blueprint_IO as class_blueprint_IO
 importlib.reload(class_blueprint_IO)
 BlueprintDataIO = class_blueprint_IO.BlueprintDataIO
@@ -24,24 +20,18 @@ dirpath = r'C:\Users\User\Desktop'
 # ...New scene
 mc.file(new=True, f=True)
 
-blueprint = PrefabBlueprint(
-    prefab_key = 'biped',
-    symmetry_mode = None)
-blueprint_IO = BlueprintDataIO(
-    blueprint = blueprint,
+rig_builder = RigBuilder(
     dirpath = dirpath
 )
-blueprint_IO.save()
+rig_builder.build_armature_from_file()
 
-
-rig_builder = RigBuilder(
+'''rig_builder = RigBuilder(
     asset_name = 'test',
     prefab_key = 'biped',
     dirpath = dirpath,
     symmetry_mode = 'Left drives Right')
-
 # ...Build armature
-rig_builder.build_prefab_armature()
+rig_builder.build_prefab_armature(dirpath=dirpath)'''
     
 # ...Build rig
 '''rig_builder.build_rig_in_scene(

@@ -7,15 +7,20 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 import json
 import os
+
+import Snowman3.riggers.utilities.classes.class_Armature as class_armature
+importlib.reload(class_armature)
+Armature = class_armature.Armature
 ###########################
 ###########################
 
 ###########################
 ######## Variables ########
-decimal_count = 9
+
 ###########################
 ###########################
 
@@ -32,9 +37,9 @@ class ArmatureDataIO(object):
         dirpath = None,
     ):
         self.armature = armature
-        self.armature_data = {}
+        self.input_data = {}
         self.dirpath = dirpath
-        self.filepath = f'{self.dirpath}/test_armature_data.json'
+        self.filepath = f'{self.dirpath}/armature_data.json'
         self.scene_armature = None
 
 
@@ -44,6 +49,20 @@ class ArmatureDataIO(object):
 
         found_armatures = pm.ls("::*_ARMATURE", type="transform")
         self.scene_armature = found_armatures[0] if found_armatures else None
+
+
+
+    ####################################################################################################################
+    def get_data_from_file(self):
+
+        if not os.path.exists(self.filepath):
+            print('ERROR: Provided file path not found on disk.')
+            return False
+
+        with open(self.filepath, 'r') as fh:
+            self.info_data = json.load(fh)
+
+        return self.info_data
 
 
 
@@ -63,18 +82,18 @@ class ArmatureDataIO(object):
             if not pm.attributeQuery(attr_name, node=self.scene_armature, exists=1):
                 pm.error(f'Could not get armature data attr "{attr_name}" from scene armature root.'
                          f'Attribute not found.')
-            self.armature_data[IO_key] = pm.getAttr(f'{self.scene_armature}.{attr_name}')
+            self.input_data[IO_key] = pm.getAttr(f'{self.scene_armature}.{attr_name}')
 
 
 
     ####################################################################################################################
     def get_armature_data_from_armature(self):
 
-        self.armature_data = {'name': self.armature.name,
-                              'prefab_key': self.armature.prefab_key,
-                              'symmetry_mode': self.armature.symmetry_mode,
-                              'root_size': self.armature.root_size,
-                              'armature_scale': self.armature.armature_scale}
+        self.input_data = {'name': self.armature.name,
+                           'prefab_key': self.armature.prefab_key,
+                           'symmetry_mode': self.armature.symmetry_mode,
+                           'root_size': self.armature.root_size,
+                           'armature_scale': self.armature.armature_scale}
 
 
 
@@ -83,7 +102,7 @@ class ArmatureDataIO(object):
 
         self.get_armature_data_from_armature()
         with open(self.filepath, 'w') as fh:
-            json.dump(self.armature_data, fh, indent=5)
+            json.dump(self.input_data, fh, indent=5)
 
 
 
@@ -109,6 +128,21 @@ class ArmatureDataIO(object):
         data = self.load()
         fields = ('name', 'prefab_key', 'symmetry_mode', 'root_size', 'armature_scale')
         for name in fields:
-            self.armature_data[name] = data[name]
+            self.input_data[name] = data[name]
 
-        return self.armature_data
+        return self.input_data
+
+
+
+    ####################################################################################################################
+    def create_armature_from_data(self, data):
+
+        armature = Armature(
+            name = data['name'],
+            prefab_key = data['prefab_key'],
+            root_size = data['root_size'],
+            symmetry_mode = data['symmetry_mode'],
+            armature_scale = data['armature_scale']
+        )
+
+        return armature

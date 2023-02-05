@@ -41,16 +41,6 @@ import Snowman3.riggers.utilities.classes.class_ArmatureModuleHandle as class_Ar
 importlib.reload(class_ArmatureModuleHandle)
 ArmatureModuleHandle = class_ArmatureModuleHandle.ArmatureModuleHandle
 
-import Snowman3.riggers.IO.placer_IO as placers_IO
-import Snowman3.riggers.IO.placerConnectors_IO as placerConnectors_IO
-import Snowman3.riggers.IO.controls_IO as controls_IO
-importlib.reload(placers_IO)
-importlib.reload(placerConnectors_IO)
-importlib.reload(controls_IO)
-PlacerDataIO = placers_IO.PlacerDataIO
-PlacerConnectorsDataIO = placerConnectors_IO.PlacerConnectorsDataIO
-ControlsDataIO = controls_IO.ControlsDataIO
-
 import Snowman3.riggers.utilities.classes.class_PrefabModuleData as classPrefabModuleData
 importlib.reload(classPrefabModuleData)
 PrefabModuleData = classPrefabModuleData.PrefabModuleData
@@ -274,11 +264,6 @@ class ArmatureModule:
     def create_module_placers(self):
 
         self.create_module_ctrl_in_scene()
-
-        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
-        dirpath = os.path.join(dirpath, self.module_key)
-        placers_IO = PlacerDataIO(module_key=self.module_key, placers=self.placer_data, dirpath=dirpath)
-        placers_IO.save()
 
         #...Add placer hooks to module control
         pm.addAttr(self.module_ctrl.mobject, longName=placers_attr_string, attributeType="compound", keyable=0,
@@ -584,11 +569,6 @@ class ArmatureModule:
     def create_prelim_ctrls(self, parent=None):
 
         parent = parent if parent else self.rig_subGrps["prelim_ctrls"]
-
-        dirpath = r'C:\Users\User\Desktop\test_build\rig_modules'
-        dirpath = os.path.join(dirpath, self.module_key)
-        ctrls_IO = ControlsDataIO(module_key=self.module_key, ctrls=self.ctrl_data, dirpath=dirpath)
-        ctrls_IO.save()
 
         #...Operate on each control in dictionary
         for key in self.ctrl_data:

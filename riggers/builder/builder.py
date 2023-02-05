@@ -7,6 +7,7 @@
 
 ###########################
 ##### Import Commands #####
+import os
 import importlib
 import pymel.core as pm
 import Snowman3.riggers.utilities.classes.class_Rig as classRig
@@ -31,6 +32,18 @@ ArmatureDataIO = iO.ArmatureDataIO
 import Snowman3.riggers.utilities.classes.class_PrefabArmatureData as classPrefabArmatureData
 importlib.reload(classPrefabArmatureData)
 PrefabArmatureData = classPrefabArmatureData.PrefabArmatureData
+
+import Snowman3.riggers.utilities.classes.class_Blueprint as class_Blueprint
+importlib.reload(class_Blueprint)
+Blueprint = class_Blueprint.Blueprint
+
+import Snowman3.riggers.utilities.classes.class_PrefabBlueprint as class_prefabBlueprint
+importlib.reload(class_prefabBlueprint)
+PrefabBlueprint = class_prefabBlueprint.PrefabBlueprint
+
+import Snowman3.riggers.IO.blueprint_IO as class_blueprint_IO
+importlib.reload(class_blueprint_IO)
+BlueprintDataIO = class_blueprint_IO.BlueprintDataIO
 ###########################
 ###########################
 
@@ -57,9 +70,9 @@ def return_to_root_namespace():
 class RigBuilder:
     def __init__(
         self,
-        asset_name,
-        prefab_key,
-        dirpath,
+        asset_name = None,
+        prefab_key = None,
+        dirpath = None,
         symmetry_mode = None
     ):
         self.prefab_key = prefab_key
@@ -68,7 +81,7 @@ class RigBuilder:
         self.dirpath = f'{dirpath}/test_build'
         self.armature_namespace = nom.setupRigNamespace
         self.rig_namespace = nom.finalRigNamespace
-        self.armature_data = None
+        self.blueprint = None
         self.armature = None
         self.rig = None
 
@@ -93,9 +106,20 @@ class RigBuilder:
 
 
     ####################################################################################################################
-    def build_prefab_armature(self):
+    def build_prefab_armature(self, dirpath):
         # ...Populate asset directory with prefab data
+        blueprint = PrefabBlueprint(
+            prefab_key='biped',
+            symmetry_mode=None)
 
+        blueprint_IO = BlueprintDataIO(
+            blueprint=blueprint,
+            dirpath=dirpath
+        )
+        blueprint_IO.save()
+
+        # ...Create blueprint from files on disk
+        blueprint = Blueprint(dirpath=os.path.join(dirpath, 'test_build'))
 
         self.armature_data = PrefabArmatureData(prefab_key=self.prefab_key, symmetry_mode=self.symmetry_mode)
         self.build_armature_in_scene()
@@ -103,15 +127,10 @@ class RigBuilder:
 
     ####################################################################################################################
     def get_armature_data_from_file(self):
-        armature_IO = ArmatureDataIO(dirpath=self.dirpath)
-        self.armature_data = data = armature_IO.build_armature_data_from_file()
-        self.armature = Armature(
-            name = data['name'],
-            prefab_key = data['prefab_key'],
-            symmetry_mode = data['symmetry_mode'],
-            root_size = data['root_size'],
-            armature_scale = data['armature_scale']
-        )
+        blueprint_IO = BlueprintDataIO(dirpath=self.dirpath)
+        blueprint_IO.get_blueprint_data_from_file()
+        self.blueprint = blueprint_IO.create_blueprint_from_data()
+        self.armature = self.blueprint.armature
         #self.armature_data.modules_from_data()
 
 
