@@ -18,6 +18,18 @@ import Snowman3.utilities.general_utils as rig_utils
 importlib.reload(amtr_utils)
 importlib.reload(gen_utils)
 importlib.reload(rig_utils)
+
+import Snowman3.riggers.utilities.classes.class_PrefabModuleData as class_prefabModuleData
+importlib.reload(class_prefabModuleData)
+PrefabModuleData = class_prefabModuleData.PrefabModuleData
+
+import Snowman3.riggers.IO.placer_IO as placer_IO
+importlib.reload(placer_IO)
+PlacerDataIO = placer_IO.PlacerDataIO
+
+import Snowman3.riggers.IO.controls_IO as controls_IO
+importlib.reload(controls_IO)
+ControlsDataIO = controls_IO.ControlsDataIO
 ###########################
 ###########################
 
@@ -34,22 +46,28 @@ decimal_count = 9
 ########################################################################################################################
 
 
-dirpath = r'C:\Users\User\Desktop\test_build' #...For testing purposes
+default_dirpath = r'C:\Users\61451\Desktop\test_build' #...For testing purposes
 
 
 class RigModuleDataIO(object):
 
     def __init__(
         self,
-        module_key,
-        rig_module
+        dirpath = None,
+        module_key = None,
+        rig_module = None
     ):
 
         self.rig_module = rig_module
-        self.dirpath = dirpath
+        self.dirpath = dirpath if dirpath else default_dirpath
         self.module_key = module_key
         self.file = f'{self.module_key}_module.json'
         self.folder = 'rig_modules'
+        self.prefab_module_data = PrefabModuleData(
+            prefab_key=self.rig_module.rig_module_type,
+            side=self.rig_module.side,
+            is_driven_side=self.rig_module.is_driven_side
+        )
         self.module_data = None
 
 
@@ -273,13 +291,11 @@ class RigModuleDataIO(object):
 
 
 
-
-
-
     ####################################################################################################################
     def save(self):
 
         filepath = os.path.join(self.dirpath, self.folder)
+
         path_exists = os.path.exists(filepath)
         if not path_exists:
             os.mkdir(filepath)
@@ -289,10 +305,37 @@ class RigModuleDataIO(object):
         if not path_exists:
             os.mkdir(filepath)
 
-        #self.get_data_from_module() if not self.module_data else None
+        self.export_module_data(filepath=filepath)
+        self.export_placers_data(filepath=filepath)
+        self.export_ctrls_data(filepath=filepath)
+
+
+
+    ####################################################################################################################
+    def export_module_data(self, filepath):
+
+        # self.get_data_from_module() if not self.module_data else None
         self.prep_data_for_export() if not self.module_data else None
         with open(f'{filepath}/{self.file}', 'w') as fh:
             json.dump(self.module_data, fh, indent=5)
+
+
+
+    ####################################################################################################################
+    def export_placers_data(self, filepath):
+
+        placers = self.prefab_module_data.get_placers()
+        placers_IO = PlacerDataIO(placers=placers, dirpath=filepath)
+        placers_IO.save()
+
+
+
+    ####################################################################################################################
+    def export_ctrls_data(self, filepath):
+
+        ctrls = self.prefab_module_data.get_ctrl_data()
+        ctrls_IO = ControlsDataIO(ctrls=ctrls, dirpath=filepath)
+        ctrls_IO.save()
 
 
 

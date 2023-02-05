@@ -41,7 +41,6 @@ class ControlsDataIO(object):
 
     def __init__(
         self,
-        module_key,
         ctrls,
         dirpath
     ):
@@ -49,9 +48,8 @@ class ControlsDataIO(object):
         self.dirpath = dirpath
         self.ctrls = ctrls
         self.ctrls_data = None
-        self.module_key = module_key
         self.dirpath = dirpath
-        self.file = f'{self.module_key}_controls.json'
+        self.file = 'controls.json'
 
 
 

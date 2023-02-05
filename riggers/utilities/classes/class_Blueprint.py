@@ -36,7 +36,7 @@ class Blueprint:
         space_blends = None
 
     ):
-        self.dirpath = dirpath
+        self.dirpath = f'{dirpath}/test_build'
         self.armature = armature
         self.attr_handoffs = attr_handoffs
         self.module_connections = module_connections

@@ -1,4 +1,4 @@
-# Title: armature_module_IO.py
+# Title: placer_IO.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -41,7 +41,6 @@ class PlacerDataIO(object):
 
     def __init__(
         self,
-        module_key,
         placers,
         dirpath
     ):
@@ -49,8 +48,6 @@ class PlacerDataIO(object):
         self.dirpath = dirpath
         self.placers = placers
         self.placer_data = None
-        self.module_key = module_key
-        self.dirpath = dirpath
         self.file = 'placers.json'
 
 

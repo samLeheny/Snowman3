@@ -108,18 +108,15 @@ class RigBuilder:
     ####################################################################################################################
     def build_prefab_armature(self, dirpath):
         # ...Populate asset directory with prefab data
-        blueprint = PrefabBlueprint(
-            prefab_key='biped',
-            symmetry_mode=None)
+        prefab_blueprint = PrefabBlueprint(prefab_key='biped',
+                                           symmetry_mode=None)
 
-        blueprint_IO = BlueprintDataIO(
-            blueprint=blueprint,
-            dirpath=dirpath
-        )
+        blueprint_IO = BlueprintDataIO(blueprint=prefab_blueprint,
+                                       dirpath=dirpath)
         blueprint_IO.save()
 
         # ...Create blueprint from files on disk
-        blueprint = Blueprint(dirpath=os.path.join(dirpath, 'test_build'))
+        blueprint = Blueprint(dirpath=dirpath)
 
         self.armature_data = PrefabArmatureData(prefab_key=self.prefab_key, symmetry_mode=self.symmetry_mode)
         self.build_armature_in_scene()

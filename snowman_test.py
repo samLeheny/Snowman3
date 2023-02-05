@@ -14,23 +14,26 @@ importlib.reload(class_blueprint_IO)
 BlueprintDataIO = class_blueprint_IO.BlueprintDataIO
 
 # ...File directory path
-dirpath = r'C:\Users\User\Desktop'
-#dirpath = r'C:\Users\61451\Desktop'
+#dirpath = r'C:\Users\User\Desktop'
+dirpath = r'C:\Users\61451\Desktop'
 
 # ...New scene
 mc.file(new=True, f=True)
 
+
+# ...Build armature from file
 rig_builder = RigBuilder(
     dirpath = dirpath
 )
 rig_builder.build_armature_from_file()
 
-'''rig_builder = RigBuilder(
+
+'''# ...Build prefab armature
+rig_builder = RigBuilder(
     asset_name = 'test',
     prefab_key = 'biped',
     dirpath = dirpath,
     symmetry_mode = 'Left drives Right')
-# ...Build armature
 rig_builder.build_prefab_armature(dirpath=dirpath)'''
     
 # ...Build rig

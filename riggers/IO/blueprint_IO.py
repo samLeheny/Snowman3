@@ -76,14 +76,14 @@ class BlueprintDataIO(object):
             'armature': ArmatureDataIO(armature=self.blueprint.armature, dirpath=self.dirpath),
             'attr_handoffs': AttrHandoffsDataIO(attr_handoffs=self.blueprint.attr_handoffs, dirpath=self.dirpath),
             'module_connectors': ModuleConnectionsDataIO(connection_pairs=self.blueprint.module_connectors,
-                                                      dirpath=self.dirpath),
+                                                         dirpath=self.dirpath),
             'space_blends': SpaceBlendsDataIO(space_blends=self.blueprint.space_blends, dirpath=self.dirpath),
             'placer_connectors': PlacerConnectorsDataIO(placer_connectors=self.blueprint.placer_connectors,
                                                         dirpath=self.dirpath)
         }
 
         for key, rig_module in self.blueprint.rig_modules.items():
-            IO = RigModuleDataIO(rig_module=rig_module, module_key=key)
+            IO = RigModuleDataIO(dirpath=self.dirpath ,rig_module=rig_module, module_key=key)
             data_IOs[f'{key}_rig_module'] = IO
 
         [IO.save() for IO in data_IOs.values()]
@@ -93,11 +93,11 @@ class BlueprintDataIO(object):
     ####################################################################################################################
     def get_blueprint_data_from_file(self):
 
-        for key, IO_type in(('armature', ArmatureDataIO),
-                            ('attr_handoffs', AttrHandoffsDataIO),
-                            ('module_connections', ModuleConnectionsDataIO),
-                            ('placer_connectors', PlacerConnectorsDataIO),
-                            ('space_blends', SpaceBlendsDataIO)):
+        for key, IO_type in (('armature', ArmatureDataIO),
+                             ('attr_handoffs', AttrHandoffsDataIO),
+                             ('module_connections', ModuleConnectionsDataIO),
+                             ('placer_connectors', PlacerConnectorsDataIO),
+                             ('space_blends', SpaceBlendsDataIO)):
             self.IOs[key] = IO_type(dirpath=self.dirpath)
             self.input_data[key] = self.IOs[key].get_data_from_file()
 

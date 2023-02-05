@@ -68,7 +68,7 @@ class ArmatureDataIO(object):
         filepath = self.filepaths['armature']
 
         if not os.path.exists(filepath):
-            print(f'ERROR: Provided file "{filepath}" path not found on disk.')
+            print(f'ERROR: Provided file path "{filepath}" not found on disk.')
             return False
 
         with open(self.filepaths['armature'], 'r') as fh:
@@ -84,7 +84,7 @@ class ArmatureDataIO(object):
         filepath = self.filepaths['modules']
 
         if not os.path.exists(filepath):
-            print(f'ERROR: Provided file "{filepath}" path not found on disk.')
+            print(f'ERROR: Provided file path "{filepath}" not found on disk.')
             return False
 
         return "placeholder"
@@ -134,13 +134,15 @@ class ArmatureDataIO(object):
     ####################################################################################################################
     def load(self):
 
+        filepath = self.filepaths['armature']
+
         #...
-        if not os.path.exists(self.filepaths['armature']):
-            print('ERROR: Provided file path not found on disk.')
+        if not os.path.exists(filepath):
+            print(f'ERROR: Provided file path "{filepath}" not found on disk.')
             return False
 
         #...Read data
-        with open(self.filepaths['armature'], 'r') as fh:
+        with open(filepath, 'r') as fh:
             data = json.load(fh)
 
         return data
