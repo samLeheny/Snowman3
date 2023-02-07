@@ -41,8 +41,8 @@ class ControlsDataIO(object):
 
     def __init__(
         self,
-        ctrls,
-        dirpath
+        ctrls = None,
+        dirpath = None
     ):
 
         self.dirpath = dirpath
@@ -57,7 +57,6 @@ class ControlsDataIO(object):
 
     ####################################################################################################################
     def prep_data_for_export(self):
-
         self.ctrls_data = {}
         for ctrl_key, ctrl in self.ctrls.items():
             ctrls_data_dict = ctrl.get_data_dictionary()
@@ -65,11 +64,16 @@ class ControlsDataIO(object):
 
 
 
-
-
     ####################################################################################################################
     def save(self):
-
         self.prep_data_for_export() if not self.ctrls_data else None
         with open(f'{self.dirpath}/{self.file}', 'w') as fh:
             json.dump(self.ctrls_data, fh, indent=5)
+
+
+
+    ####################################################################################################################
+    def load(self):
+        with open(f'{self.dirpath}/{self.file}', 'r') as fh:
+            self.ctrls_data = json.load(fh)
+        return self.ctrls_data

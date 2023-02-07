@@ -46,7 +46,7 @@ decimal_count = 9
 ########################################################################################################################
 
 
-default_dirpath = r'C:\Users\61451\Desktop\test_build' #...For testing purposes
+default_dirpath = r'C:\Users\User\Desktop\test_build' #...For testing purposes
 
 
 class RigModuleDataIO(object):
@@ -61,16 +61,28 @@ class RigModuleDataIO(object):
         self.rig_module = rig_module
         self.dirpath = dirpath if dirpath else default_dirpath
         self.module_key = module_key
-        self.file = f'{self.module_key}_module.json'
+        self.file = 'module.json'
         self.folder = 'rig_modules'
+        self.prefab_module_data = None
+        '''self.prefab_module_data = PrefabModuleData(
+            prefab_key=self.rig_module.rig_module_type,
+            side=self.rig_module.side,
+            is_driven_side=self.rig_module.is_driven_side
+        )'''
+        self.module_data = None
+        self.placers_data = None
+        self.ctrls_data = None
+
+
+
+    ####################################################################################################################
+    def get_prefab_module_data(self):
+
         self.prefab_module_data = PrefabModuleData(
             prefab_key=self.rig_module.rig_module_type,
             side=self.rig_module.side,
             is_driven_side=self.rig_module.is_driven_side
         )
-        self.module_data = None
-
-
 
 
 
@@ -313,7 +325,6 @@ class RigModuleDataIO(object):
 
     ####################################################################################################################
     def export_module_data(self, filepath):
-
         # self.get_data_from_module() if not self.module_data else None
         self.prep_data_for_export() if not self.module_data else None
         with open(f'{filepath}/{self.file}', 'w') as fh:
@@ -323,7 +334,6 @@ class RigModuleDataIO(object):
 
     ####################################################################################################################
     def export_placers_data(self, filepath):
-
         placers = self.prefab_module_data.get_placers()
         placers_IO = PlacerDataIO(placers=placers, dirpath=filepath)
         placers_IO.save()
@@ -332,7 +342,6 @@ class RigModuleDataIO(object):
 
     ####################################################################################################################
     def export_ctrls_data(self, filepath):
-
         ctrls = self.prefab_module_data.get_ctrl_data()
         ctrls_IO = ControlsDataIO(ctrls=ctrls, dirpath=filepath)
         ctrls_IO.save()
@@ -340,27 +349,31 @@ class RigModuleDataIO(object):
 
 
     ####################################################################################################################
-    def load(self):
+    def get_module_data_from_file(self):
 
-        #...
-        filepath = os.path.join(self.dirpath, self.folder)
-        if not os.path.exists(filepath):
-            print('ERROR: Provided file path not found on disk.')
-            return False
+        self.import_module_data(self.dirpath)
+        self.import_placers_data(self.dirpath)
+        self.import_ctrls_data(self.dirpath)
 
-        #...Read data
-        with open(filepath, 'r') as fh:
-            data = json.load(fh)
-
-        return data
+        return self.module_data, self.placers_data, self.ctrls_data
 
 
 
     ####################################################################################################################
-    def build_module_data_from_file(self):
+    def import_module_data(self, filepath):
+        with open(f'{filepath}/{self.file}', 'r') as fh:
+            self.module_data = json.load(fh)
 
-        data = self.load()
-        print('-'*150)
-        print(data)
-        print('-'*150)
 
+
+    ####################################################################################################################
+    def import_placers_data(self, filepath):
+        placers_IO = PlacerDataIO(dirpath=filepath)
+        self.placers_data = placers_IO.load()
+
+
+
+    ####################################################################################################################
+    def import_ctrls_data(self, filepath):
+        ctrls_IO = ControlsDataIO(dirpath=filepath)
+        self.ctrls_data = ctrls_IO.load()

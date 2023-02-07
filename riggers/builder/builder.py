@@ -82,64 +82,54 @@ class RigBuilder:
         self.armature_namespace = nom.setupRigNamespace
         self.rig_namespace = nom.finalRigNamespace
         self.blueprint = None
-        self.armature = None
+        self.scene_armature = None
+        self.armature_data = None
         self.rig = None
 
 
     ####################################################################################################################
-    def export_armature_data(self):
-        armature_IO = ArmatureDataIO(armature=self.armature_data.get_armature(), dirpath=self.dirpath)
-        armature_IO.save()
-
-
-    ####################################################################################################################
-    def build_armature(self, armature_data):
-        self.armature = armature_data.get_armature().populate_armature()
-
-
-    ####################################################################################################################
-    def build_armature_in_scene(self):
+    def build_armature_in_scene(self, armature_data):
         create_enter_namespace(self.armature_namespace)
-        self.export_armature_data()
-        self.build_armature(self.armature_data)
+        self.scene_armature = armature_data.populate_armature()
         return_to_root_namespace()
 
 
     ####################################################################################################################
-    def build_prefab_armature(self, dirpath):
-        # ...Populate asset directory with prefab data
-        prefab_blueprint = PrefabBlueprint(prefab_key='biped',
-                                           symmetry_mode=None)
-
-        blueprint_IO = BlueprintDataIO(blueprint=prefab_blueprint,
-                                       dirpath=dirpath)
-        blueprint_IO.save()
-
-        # ...Create blueprint from files on disk
-        blueprint = Blueprint(dirpath=dirpath)
-
-        self.armature_data = PrefabArmatureData(prefab_key=self.prefab_key, symmetry_mode=self.symmetry_mode)
-        self.build_armature_in_scene()
+    def gather_prefab_blueprint_data(self):
+        prefab_blueprint = PrefabBlueprint(prefab_key=self.prefab_key, symmetry_mode=None)
+        return prefab_blueprint
 
 
     ####################################################################################################################
-    def get_armature_data_from_file(self):
+    def export_prefab_blueprint_data(self, prefab_blueprint):
+        blueprint_IO = BlueprintDataIO(blueprint=prefab_blueprint, dirpath=self.dirpath)
+        blueprint_IO.save()
+
+
+    ####################################################################################################################
+    def gather_and_export_prefab_blueprint_data(self):
+        prefab_blueprint = self.gather_prefab_blueprint_data()
+        self.export_prefab_blueprint_data(prefab_blueprint)
+
+
+    ####################################################################################################################
+    def build_blueprint_from_file(self):
         blueprint_IO = BlueprintDataIO(dirpath=self.dirpath)
         blueprint_IO.get_blueprint_data_from_file()
         self.blueprint = blueprint_IO.create_blueprint_from_data()
-        self.armature = self.blueprint.armature
-        print(self.armature.modules)
+
+
+    ####################################################################################################################
+    def build_prefab_armature(self):
+        self.gather_and_export_prefab_blueprint_data()
+        self.build_blueprint_from_file()
+        self.armature_data = self.blueprint.armature
         #self.armature_data.modules_from_data()
+        self.build_armature_in_scene(self.armature_data)
 
 
     ####################################################################################################################
-    def build_armature_from_file(self):
-        self.get_armature_data_from_file()
-        #self.build_armature_in_scene()
-
-
-    ####################################################################################################################
-    def build_rig_in_scene(self, scene_armature):
+    '''def build_rig_in_scene(self, scene_armature):
         create_enter_namespace(self.rig_namespace)
         self.build_rig(scene_armature)
         #...Put a bow on this puppy!
@@ -150,3 +140,9 @@ class RigBuilder:
     def build_rig(self, scene_armature):
         self.rig = Rig(name=self.asset_name, armature=scene_armature)
         self.rig.populate_rig()
+
+
+    ####################################################################################################################
+    def export_armature_data(self):
+        armature_IO = ArmatureDataIO(armature=self.armature_data, dirpath=self.dirpath)
+        armature_IO.save()'''

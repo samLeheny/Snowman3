@@ -41,8 +41,8 @@ class PlacerDataIO(object):
 
     def __init__(
         self,
-        placers,
-        dirpath
+        placers = None,
+        dirpath = None
     ):
 
         self.dirpath = dirpath
@@ -56,7 +56,6 @@ class PlacerDataIO(object):
 
     ####################################################################################################################
     def prep_data_for_export(self):
-
         self.placer_data = {}
         for placer in self.placers:
             placer_data_dict = placer.get_data_dictionary()
@@ -64,12 +63,17 @@ class PlacerDataIO(object):
 
 
 
+    ####################################################################################################################
+    def save(self):
+        self.prep_data_for_export() if not self.placer_data else None
+        with open(f'{self.dirpath}/{self.file}', 'w') as fh:
+            json.dump(self.placer_data, fh, indent=5)
 
 
 
     ####################################################################################################################
-    def save(self):
+    def load(self):
+        with open(f'{self.dirpath}/{self.file}', 'r') as fh:
+            self.placer_data = json.load(fh)
 
-        self.prep_data_for_export() if not self.placer_data else None
-        with open(f'{self.dirpath}/{self.file}', 'w') as fh:
-            json.dump(self.placer_data, fh, indent=5)
+        return self.placer_data

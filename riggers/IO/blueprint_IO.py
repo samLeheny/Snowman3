@@ -70,7 +70,11 @@ class BlueprintDataIO(object):
 
 
     ####################################################################################################################
-    def save(self):
+    ################################################### OUTPUT #########################################################
+    ####################################################################################################################
+
+    ####################################################################################################################
+    def export_armature_data(self):
 
         data_IOs = {
             'armature': ArmatureDataIO(armature=self.blueprint.armature, dirpath=self.dirpath),
@@ -81,14 +85,50 @@ class BlueprintDataIO(object):
             'placer_connectors': PlacerConnectorsDataIO(placer_connectors=self.blueprint.placer_connectors,
                                                         dirpath=self.dirpath)
         }
-
-        for key, rig_module in self.blueprint.rig_modules.items():
-            IO = RigModuleDataIO(dirpath=self.dirpath ,rig_module=rig_module, module_key=key)
-            data_IOs[f'{key}_rig_module'] = IO
-
         [IO.save() for IO in data_IOs.values()]
 
+        print("\nCollected data packages:")  # _
+        print(" - Armature data")  # _
+        print(data_IOs['armature'])  # _
+        print(" - Attr Handoffs data")  # _
+        print(data_IOs['attr_handoffs'])  # _
+        print(" - Module Connections data")  # _
+        print(data_IOs['module_connectors'])  # _
+        print(" - Space Blends data")  # _
+        print(data_IOs['space_blends'])  # _
+        print(" - Placer Connectors data")  # _
+        print(data_IOs['placer_connectors'])  # _
 
+
+
+    ####################################################################################################################
+    def export_modules_data(self):
+
+        module_data_IOs = {}
+        for key, rig_module in self.blueprint.rig_modules.items():
+            print(f"{key}  -  {rig_module}")  # _
+            IO = RigModuleDataIO(dirpath=self.dirpath, rig_module=rig_module, module_key=key)
+            IO.get_prefab_module_data()
+            module_data_IOs[f'{key}_rig_module'] = IO
+        [IO.save() for IO in module_data_IOs.values()]
+
+        print("\nBlueprint data export complete!")#_
+
+
+
+    ####################################################################################################################
+    def save(self):
+
+        print('\nExporting blueprint data to external file...')#_
+        self.export_armature_data()
+        print("\nExporting module data...")#_
+        self.export_modules_data()
+
+
+
+    ####################################################################################################################
+    ################################################### INPUT ##########################################################
+    ####################################################################################################################
 
     ####################################################################################################################
     def get_blueprint_data_from_file(self):
@@ -101,17 +141,41 @@ class BlueprintDataIO(object):
             self.IOs[key] = IO_type(dirpath=self.dirpath)
             self.input_data[key] = self.IOs[key].get_data_from_file()
 
+        self.get_modules_data_from_file()
+
+
+
+    ####################################################################################################################
+    def get_modules_data_from_file(self):
+
+        self.input_data['modules'] = {}
+        module_dir_names = list(os.walk(f'{self.dirpath}/rig_modules'))[0][1]
+        for dir_name in module_dir_names:
+            module_dir = f'{self.dirpath}/rig_modules/{dir_name}'
+            module_IO = RigModuleDataIO(dirpath=module_dir)
+
+            all_module_data = module_IO.get_module_data_from_file()
+            module_data = all_module_data[0]
+            module_key = list(module_data)[0]
+            self.input_data['modules'][module_key] = module_data[module_key]
+
 
 
     ####################################################################################################################
     def create_blueprint_from_data(self):
 
-        armature = self.IOs['armature'].create_armature_from_data(self.input_data['armature'])
+        armature_data = self.input_data['armature']
+        armature_data['modules'] = self.input_data['modules']
+        armature = self.IOs['armature'].create_armature_from_data(armature_data)
+
         attr_handoffs = self.IOs['attr_handoffs'].create_handoffs_from_data(self.input_data['attr_handoffs'])
+
         module_connections = self.IOs['module_connections'].create_connection_pairs_from_data(
             self.input_data['module_connections'])
+
         placer_connectors = self.IOs['placer_connectors'].create_connectors_from_data(
             self.input_data['placer_connectors'])
+
         space_blends = self.IOs['space_blends'].create_blends_from_data(self.input_data['space_blends'])
 
         blueprint = Blueprint(armature = armature,

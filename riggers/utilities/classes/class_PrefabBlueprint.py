@@ -14,7 +14,7 @@ import importlib
 
 ###########################
 ######## Variables ########
-prefabs_dir = 'Snowman3.riggers.prefab_blueprints'
+default_prefabs_dir = 'Snowman3.riggers.prefab_blueprints'
 ###########################
 ###########################
 
@@ -27,11 +27,11 @@ class PrefabBlueprint:
     def __init__(
         self,
         prefab_key,
-        prefab_dir = prefabs_dir,
+        prefab_dir = None,
         symmetry_mode = None
     ):
         self.prefab_key = prefab_key
-        self.prefab_dir = prefab_dir
+        self.prefab_dir = prefab_dir if prefab_dir else default_prefabs_dir
         self.symmetry_mode = symmetry_mode
 
         self.armature = self.get_armature()

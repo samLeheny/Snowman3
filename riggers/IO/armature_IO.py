@@ -57,7 +57,7 @@ class ArmatureDataIO(object):
     def get_data_from_file(self):
 
         self.input_data = self.get_armature_data_from_file()
-        self.input_data['modules'] = self.get_modules_data_from_file()
+        #self.input_data['modules'] = self.get_modules_data_from_file()
         return self.input_data
 
 
