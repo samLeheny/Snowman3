@@ -352,10 +352,12 @@ class RigModuleDataIO(object):
     def get_module_data_from_file(self):
 
         self.import_module_data(self.dirpath)
-        self.import_placers_data(self.dirpath)
-        self.import_ctrls_data(self.dirpath)
 
-        return self.module_data, self.placers_data, self.ctrls_data
+        module_key = list(self.module_data)[0]
+        self.module_data[module_key]['placers'] = self.import_placers_data(self.dirpath)
+        self.module_data[module_key]['ctrls'] = self.import_ctrls_data(self.dirpath)
+
+        return self.module_data
 
 
 
@@ -369,11 +371,11 @@ class RigModuleDataIO(object):
     ####################################################################################################################
     def import_placers_data(self, filepath):
         placers_IO = PlacerDataIO(dirpath=filepath)
-        self.placers_data = placers_IO.load()
+        return placers_IO.load()
 
 
 
     ####################################################################################################################
     def import_ctrls_data(self, filepath):
         ctrls_IO = ControlsDataIO(dirpath=filepath)
-        self.ctrls_data = ctrls_IO.load()
+        return ctrls_IO.load()

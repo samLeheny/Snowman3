@@ -28,6 +28,9 @@ rig_builder = RigBuilder(
     symmetry_mode = 'Left drives Right')
 rig_builder.build_prefab_armature()
 
+
+
+
 # ...Build armature from file
 '''rig_builder = RigBuilder(
     dirpath = dirpath
@@ -39,5 +42,5 @@ rig_builder.build_armature_from_file()'''
     type="transform")[0])'''
 
 # ...Build armature from data file
-mc.file(new=True, f=True)
-rig = rig_builder.build_armature_from_file()
+'''mc.file(new=True, f=True)
+rig = rig_builder.build_armature_from_file()'''

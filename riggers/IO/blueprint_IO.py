@@ -154,8 +154,7 @@ class BlueprintDataIO(object):
             module_dir = f'{self.dirpath}/rig_modules/{dir_name}'
             module_IO = RigModuleDataIO(dirpath=module_dir)
 
-            all_module_data = module_IO.get_module_data_from_file()
-            module_data = all_module_data[0]
+            module_data = module_IO.get_module_data_from_file()
             module_key = list(module_data)[0]
             self.input_data['modules'][module_key] = module_data[module_key]
 

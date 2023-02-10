@@ -87,11 +87,39 @@ class RigBuilder:
         self.rig = None
 
 
+
+    ####################################################################################################################
+    def build_prefab_armature(self):
+        self.gather_and_export_prefab_blueprint_data()
+        self.build_armature_from_file()
+
+
+    ####################################################################################################################
+    def build_armature_from_file(self):
+        self.build_blueprint_from_file()
+        self.armature_data = self.blueprint.armature
+        self.armature_data.modules_from_data()
+        self.build_armature_in_scene(self.armature_data)
+
+
+    ####################################################################################################################
+    def build_blueprint_from_file(self):
+        blueprint_IO = BlueprintDataIO(dirpath=self.dirpath)
+        blueprint_IO.get_blueprint_data_from_file()
+        self.blueprint = blueprint_IO.create_blueprint_from_data()
+
+
     ####################################################################################################################
     def build_armature_in_scene(self, armature_data):
         create_enter_namespace(self.armature_namespace)
         self.scene_armature = armature_data.populate_armature()
         return_to_root_namespace()
+
+
+    ####################################################################################################################
+    def gather_and_export_prefab_blueprint_data(self):
+        prefab_blueprint = self.gather_prefab_blueprint_data()
+        self.export_prefab_blueprint_data(prefab_blueprint)
 
 
     ####################################################################################################################
@@ -104,28 +132,6 @@ class RigBuilder:
     def export_prefab_blueprint_data(self, prefab_blueprint):
         blueprint_IO = BlueprintDataIO(blueprint=prefab_blueprint, dirpath=self.dirpath)
         blueprint_IO.save()
-
-
-    ####################################################################################################################
-    def gather_and_export_prefab_blueprint_data(self):
-        prefab_blueprint = self.gather_prefab_blueprint_data()
-        self.export_prefab_blueprint_data(prefab_blueprint)
-
-
-    ####################################################################################################################
-    def build_blueprint_from_file(self):
-        blueprint_IO = BlueprintDataIO(dirpath=self.dirpath)
-        blueprint_IO.get_blueprint_data_from_file()
-        self.blueprint = blueprint_IO.create_blueprint_from_data()
-
-
-    ####################################################################################################################
-    def build_prefab_armature(self):
-        self.gather_and_export_prefab_blueprint_data()
-        self.build_blueprint_from_file()
-        self.armature_data = self.blueprint.armature
-        #self.armature_data.modules_from_data()
-        self.build_armature_in_scene(self.armature_data)
 
 
     ####################################################################################################################

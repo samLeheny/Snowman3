@@ -648,16 +648,11 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def get_scene_armature(self):
 
         search = pm.ls("::*_ARMATURE", type="transform")
         self.armature_container = search[0] if search else None
-
-
-
 
 
 

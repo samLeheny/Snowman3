@@ -27,9 +27,9 @@ import Snowman3.riggers.utilities.armature_utils as amtr_utils
 importlib.reload(gen_utils)
 importlib.reload(amtr_utils)
 
-import Snowman3.riggers.IO.rig_module_IO as armatureModule_IO
-importlib.reload(armatureModule_IO)
-RigModuleDataIO = armatureModule_IO.RigModuleDataIO
+import Snowman3.riggers.IO.rig_module_IO as rigModule_IO
+importlib.reload(rigModule_IO)
+RigModuleDataIO = rigModule_IO.RigModuleDataIO
 
 import Snowman3.riggers.IO.placerConnectors_IO as placerConnectors_IO
 importlib.reload(placerConnectors_IO)
@@ -62,7 +62,6 @@ class Armature:
         symmetry_mode: str = None,
         modules: dict = None,
         armature_scale: float = None,
-        placer_connectors: dict = None,
         data: dict = None
     ):
         self.name = name
@@ -76,7 +75,6 @@ class Armature:
         self.armature_scale = armature_scale if armature_scale else 1.0
         self.root_handle = ArmatureRootHandle(name=self.name, root_size=self.root_size)
         self.metadata_fields = self.compose_metadata_fields()
-        self.placer_connectors = placer_connectors
         self.data = data
 
 
@@ -241,6 +239,8 @@ class Armature:
 
         data = self.modules
 
+        armature_modules = {}
+
         #...Make Armature Modules out of module dictionaries in data
         for key in data:
             m_data = data[key]
@@ -250,7 +250,6 @@ class Armature:
                              "drive_target", "color", "draw_connections", "placers"):
                 if field not in m_data:
                     m_data[field] = None
-
 
             new_module = ArmatureModule(
                 rig_module_type = m_data["rig_module_type"],
@@ -264,12 +263,13 @@ class Armature:
                 draw_connections = m_data["draw_connections"],
                 color = m_data["color"]
             )
-            new_module.placers_from_data(m_data["placers"])
 
-            data[key] = new_module
+            armature_modules[key] = new_module
 
             if new_module.side in (nom.leftSideTag, nom.rightSideTag):
                 self.sided_modules[new_module.side][key] = new_module
+
+        self.modules = armature_modules
 
 
 
@@ -288,6 +288,7 @@ class Armature:
 
             if attr_type == 'string':
                 pm.addAttr(node, longName=attr_name, keyable=0, dataType=attr_type)
+                attr_value = attr_value if attr_value else 'None'
                 pm.setAttr(f'{node}.{attr_name}', attr_value, type=attr_type, lock=1)
             else:
                 pm.addAttr(node, longName=attr_name, keyable=0, attributeType=attr_type)
@@ -295,8 +296,7 @@ class Armature:
 
 
 
-
-
+    ####################################################################################################################
     def compose_metadata_fields(self):
 
         data_fields = [('name', 'ArmatureName', 'string', self.name),
@@ -312,19 +312,19 @@ class Armature:
 
 
     ####################################################################################################################
+    '''
     def draw_module_connectors(self):
 
-        dirpath = r'C:\Users\User\Desktop\test_build'
-
-        for connector in self.placer_connectors:
+        for connector_data in self.placer_connectors:
+            connector = PlacerConnector(
+                source_module_key = connector_data['source_module_key'],
+                source_placer_key = connector_data['source_placer_key'],
+                destination_module_key = connector_data['destination_module_key'],
+                destination_placer_key =connector_data['destination_placer_key']
+            )
             connector.create_connector(source_module=self.modules[connector.source_module_key],
                                        parent=self.modules[connector.source_module_key].rig_subGrps["connector_curves"])
-
-        connectors_IO = PlacerConnectorsDataIO(placer_connectors=self.placer_connectors, dirpath=dirpath)
-        connectors_IO.save()
-
-
-
+    '''
 
 
 
@@ -335,7 +335,6 @@ class Armature:
 
         for key, module in self.modules.items():
             module_IO = RigModuleDataIO(module_key=key, rig_module=module)
-            module_IO.save()
             module.modules_parent = self.root_groups['modules']
             module.populate_module(key)
 
@@ -348,8 +347,10 @@ class Armature:
         self.drive_module_attrs()
 
         #...Connect modules to each other as specified in each module ---------------------------------------------
+        '''
         [module.connect_modules() for module in self.modules.values()]
         self.draw_module_connectors()
+        '''
 
         #...Enact live symmetry if needed -------------------------------------------------------------------------
         if self.symmetry_mode in ('Left drives Right', 'Right drives Left'):
