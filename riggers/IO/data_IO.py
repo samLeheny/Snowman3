@@ -31,7 +31,6 @@ class DataIO:
     ):
         self.data = data
         self.dirpath = dirpath
-        self.input_data = None
         self.file_name = fileName
         self.filepath = f'{self.dirpath}/{self.file_name}'
 
@@ -48,20 +47,24 @@ class DataIO:
 
     ####################################################################################################################
     def get_data_from_file(self):
+
         if not self.validate_filepath():
             return False
 
         with open(self.filepath, 'r') as fh:
-            self.input_data = json.load(fh)
+            self.data = json.load(fh)
 
-        return self.input_data
+        return self.data
 
 
 
     ####################################################################################################################
-    def save_data_to_file(self):
+    def save_data_to_file(self, data=None):
+
+        if not data: data = self.data
+
         if not self.validate_filepath():
             return False
 
         with open(self.filepath, 'w') as fh:
-            json.dump(self.input_data, fh, indent=5)
+            json.dump(data, fh, indent=5)
