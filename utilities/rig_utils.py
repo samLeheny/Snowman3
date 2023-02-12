@@ -807,6 +807,7 @@ def limb_rollers(start_node, end_node, roller_name, world_up_obj, side=None, par
         return jnt, ctrl, mod, buffer
 
 
+
     start_jnt, start_ctrl, start_mod, start_buffer = bend_control(
         tag="start", match_node=start_node, rot_match_node=start_node)
 
@@ -819,7 +820,7 @@ def limb_rollers(start_node, end_node, roller_name, world_up_obj, side=None, par
     #...Exclude controls based on arguments
     for ctrl, param in zip((start_ctrl, mid_ctrl, end_ctrl), populate_ctrls):
         if param: continue
-        pm.rename(ctrl, str(ctrl).replace('_CTRL', '_handle'))
+        pm.rename(ctrl, str(gen_utils.get_clean_name(ctrl)).replace('_CTRL', '_handle'))
         [pm.delete(s) for s in ctrl.getShapes()]
 
     #...Roll locators

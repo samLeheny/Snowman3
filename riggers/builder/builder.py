@@ -135,7 +135,7 @@ class RigBuilder:
 
 
     ####################################################################################################################
-    '''def build_rig_in_scene(self, scene_armature):
+    def build_rig_in_scene(self, scene_armature):
         create_enter_namespace(self.rig_namespace)
         self.build_rig(scene_armature)
         #...Put a bow on this puppy!
@@ -149,6 +149,6 @@ class RigBuilder:
 
 
     ####################################################################################################################
-    def export_armature_data(self):
+    '''def export_armature_data(self):
         armature_IO = ArmatureDataIO(armature=self.armature_data, dirpath=self.dirpath)
         armature_IO.save()'''

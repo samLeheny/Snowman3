@@ -45,7 +45,6 @@ bend_ctrl_color = ctrl_colors[nom.midSideTag]
 ########################################################################################################################
 def build(rig_module, rig_parent=None):
 
-
     # ...Create controls -----------------------------------------------------------------------------------------------
     anim_ctrl_data, ctrls = {}, {}
     for key, data in rig_module.ctrl_data.items():
@@ -77,13 +76,11 @@ def build(rig_module, rig_parent=None):
 
 
 
-
     #...Bind joints ---------------------------------------------------------------------------------------------------
     jnts = {"head": rig_utils.joint(name="head", joint_type=nom.bindJnt, radius=1.25, side=rig_module.side)}
 
     jnts["head"].setParent(ctrls["head"])
     gen_utils.zero_out(jnts["head"])
-
 
 
     #...
@@ -92,7 +89,6 @@ def build(rig_module, rig_parent=None):
     pm.delete(pm.aimConstraint(ctrls["head"], temp_neck_aimer, worldUpType="object", worldUpObject=up_obj,
                                aimVector=(0, 1, 0), upVector=(0, 0, 1)))
     temp_nodes_to_delete.append(temp_neck_aimer)
-
 
 
 
@@ -107,11 +103,8 @@ def build(rig_module, rig_parent=None):
     pm.delete(pm.orientConstraint(temp_neck_aimer, stretch_out_socket))
 
 
-
-
     #...Roll joint system ---------------------------------------------------------------------------------------------
     pm.addAttr(ctrls["settings"], longName="NeckLen", attributeType="float", minValue=0.001, defaultValue=1, keyable=1)
-
     #...Rollers
     neck_length = gen_utils.distance_between(obj_1=rig_module.orienters['neck'], obj_2=rig_module.orienters['head'])
     bend_ctrl_size = neck_length * 0.5
@@ -126,7 +119,6 @@ def build(rig_module, rig_parent=None):
                                          ctrl_size = bend_ctrl_size,
                                          populate_ctrls = [0, 1, 0],
                                          world_up_obj = stretch_socket)
-
     #...Ribbon
     ribbon_up_vector = (0, 0, -1)
     if rig_module.side == nom.rightSideTag:

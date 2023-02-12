@@ -44,11 +44,6 @@ decimal_count = 9
 
 
 ########################################################################################################################
-
-
-default_dirpath = r'C:\Users\User\Desktop\test_build' #...For testing purposes
-
-
 class RigModuleDataIO:
 
     def __init__(
@@ -59,7 +54,7 @@ class RigModuleDataIO:
     ):
 
         self.rig_module = rig_module
-        self.dirpath = dirpath if dirpath else default_dirpath
+        self.dirpath = dirpath
         self.module_key = module_key
         self.file = 'module.json'
         self.folder = 'rig_modules'
