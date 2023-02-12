@@ -27,11 +27,11 @@ class DataIO:
         self,
         data = None,
         dirpath = None,
-        fileName = None,
+        file_name = None,
     ):
         self.data = data
         self.dirpath = dirpath
-        self.file_name = fileName
+        self.file_name = file_name
         self.filepath = f'{self.dirpath}/{self.file_name}'
 
 

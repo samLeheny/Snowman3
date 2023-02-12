@@ -8,20 +8,20 @@
 ###########################
 ##### Import Commands #####
 import importlib
-import pymel.core as pm
-import maya.cmds as mc
-import json
-import os
 
 import Snowman3.riggers.utilities.classes.class_SpaceBlend as class_spaceBlend
 importlib.reload(class_spaceBlend)
 SpaceBlend = class_spaceBlend.SpaceBlend
+
+import Snowman3.riggers.IO.data_IO as classDataIO
+importlib.reload(classDataIO)
+DataIO = classDataIO.DataIO
 ###########################
 ###########################
 
 ###########################
 ######## Variables ########
-
+default_file_name = 'space_blends.json'
 ###########################
 ###########################
 
@@ -30,53 +30,32 @@ SpaceBlend = class_spaceBlend.SpaceBlend
 
 
 ########################################################################################################################
-class SpaceBlendsDataIO(object):
-
+class SpaceBlendsDataIO( DataIO ):
     def __init__(
         self,
+        data = None,
         space_blends = None,
-        dirpath = None
+        dirpath = None,
+        file_name = default_file_name
     ):
-        self.dirpath = dirpath
+        super().__init__(data=data, dirpath=dirpath, file_name=file_name)
         self.space_blends = space_blends
-        self.input_data = None
-        self.dirpath = dirpath
-        self.file = 'space_blends.json'
-        self.filepath = f'{self.dirpath}/{self.file}'
-
-
 
 
 
     ####################################################################################################################
     def prep_data_for_export(self):
 
-        self.input_data = []
+        self.data = []
         for blend in self.space_blends:
-            self.input_data.append(blend.get_data_list())
-
-
-
-    ####################################################################################################################
-    def get_data_from_file(self):
-
-        if not os.path.exists(self.filepath):
-            print('ERROR: Provided file path not found on disk.')
-            return False
-
-        with open(self.filepath, 'r') as fh:
-            self.input_data = json.load(fh)
-
-        return self.input_data
+            self.data.append(blend.get_data_list())
 
 
 
     ####################################################################################################################
     def save(self):
-
-        self.prep_data_for_export() if not self.input_data else None
-        with open(f'{self.dirpath}/{self.file}', 'w') as fh:
-            json.dump(self.input_data, fh, indent=5)
+        self.prep_data_for_export() if not self.data else None
+        self.save_data_to_file(self.data)
 
 
 

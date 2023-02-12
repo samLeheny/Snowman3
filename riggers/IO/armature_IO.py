@@ -29,7 +29,7 @@ Armature = class_armature.Armature
 
 
 ########################################################################################################################
-class ArmatureDataIO(object):
+class ArmatureDataIO:
 
     def __init__(
         self,

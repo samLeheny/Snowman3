@@ -55,7 +55,7 @@ decimal_count = 9
 
 
 ########################################################################################################################
-class BlueprintDataIO(object):
+class BlueprintDataIO:
 
     def __init__(
         self,

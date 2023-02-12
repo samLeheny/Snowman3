@@ -151,7 +151,7 @@ def load_skin_weights(mesh, path=None, rebind=False):
 
 	path = path or get_good_weights_path(mesh)
 	with open(path, "r") as fp:
-		data = cPickle.load(fp)
+		data = cPickle.get_data_from_file(fp)
 
 	weights           = om2.MDoubleArray(data["weights"])
 	influence_count   = data["influence_count"]

@@ -8,20 +8,20 @@
 ###########################
 ##### Import Commands #####
 import importlib
-import pymel.core as pm
-import maya.cmds as mc
-import json
-import os
 
 import Snowman3.riggers.utilities.classes.class_ConnectionPair as class_moduleConnection
 importlib.reload(class_moduleConnection)
 ModuleConnection = class_moduleConnection.ConnectionPair
+
+import Snowman3.riggers.IO.data_IO as classDataIO
+importlib.reload(classDataIO)
+DataIO = classDataIO.DataIO
 ###########################
 ###########################
 
 ###########################
 ######## Variables ########
-
+default_file_name = 'connection_pairs.json'
 ###########################
 ###########################
 
@@ -30,55 +30,33 @@ ModuleConnection = class_moduleConnection.ConnectionPair
 
 
 ########################################################################################################################
-class ConnectionPairsDataIO(object):
-
+class ConnectionPairsDataIO( DataIO ):
     def __init__(
         self,
+        data = None,
         connection_pairs = None,
-        dirpath = None
+        dirpath = None,
+        file_name = default_file_name,
     ):
-        self.dirpath = dirpath
+        super().__init__(data=data, dirpath=dirpath, file_name=file_name)
         self.connection_pairs = connection_pairs
-        self.input_data = None
-        self.dirpath = dirpath
-        self.file = 'connection_pairs.json'
-        self.filepath = f'{self.dirpath}/{self.file}'
-
-
 
 
 
     ####################################################################################################################
     def prep_data_for_export(self):
 
-        self.input_data = []
+        self.data = []
         for pair in self.connection_pairs:
-            self.input_data.append(pair.get_data_list())
-
-
+            self.data.append(pair.get_data_list())
 
 
 
     ####################################################################################################################
     def save(self):
 
-        self.prep_data_for_export() if not self.input_data else None
-        with open(f'{self.dirpath}/{self.file}', 'w') as fh:
-            json.dump(self.input_data, fh, indent=5)
-
-
-
-    ####################################################################################################################
-    def get_data_from_file(self):
-
-        if not os.path.exists(self.filepath):
-            print('ERROR: Provided file path not found on disk.')
-            return False
-
-        with open(self.filepath, 'r') as fh:
-            self.input_data = json.load(fh)
-
-        return self.input_data
+        self.prep_data_for_export() if not self.data else None
+        self.save_data_to_file(self.data)
 
 
 

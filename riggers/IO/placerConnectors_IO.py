@@ -8,10 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
-import pymel.core as pm
-import maya.cmds as mc
-import json
-import os
+
 import Snowman3.riggers.utilities.armature_utils as amtr_utils
 import Snowman3.utilities.general_utils as gen_utils
 import Snowman3.utilities.general_utils as rig_utils
@@ -22,12 +19,16 @@ importlib.reload(rig_utils)
 import Snowman3.riggers.utilities.classes.class_PlacerConnector as class_placerConnector
 importlib.reload(class_placerConnector)
 PlacerConnector = class_placerConnector.PlacerConnector
+
+import Snowman3.riggers.IO.data_IO as classDataIO
+importlib.reload(classDataIO)
+DataIO = classDataIO.DataIO
 ###########################
 ###########################
 
 ###########################
 ######## Variables ########
-
+default_file_name = 'placer_connectors.json'
 ###########################
 ###########################
 
@@ -41,54 +42,32 @@ PlacerConnector = class_placerConnector.PlacerConnector
 
 
 
-class PlacerConnectorsDataIO(object):
-
+class PlacerConnectorsDataIO( DataIO ):
     def __init__(
         self,
+        data = None,
         placer_connectors = None,
-        dirpath = None
+        dirpath = None,
+        file_name = default_file_name
     ):
-
-        self.dirpath = dirpath
+        super().__init__(data=data, dirpath=dirpath, file_name=file_name)
         self.placer_connectors = placer_connectors
-        self.input_data = None
-        self.dirpath = dirpath
-        self.file = 'placer_connectors.json'
-        self.filepath = f'{self.dirpath}/{self.file}'
-
-
 
 
 
     ####################################################################################################################
     def prep_data_for_export(self):
 
-        self.input_data = []
+        self.data = []
         for connector in self.placer_connectors:
-            self.input_data.append(connector.get_data_list())
-
-
-
-    ####################################################################################################################
-    def get_data_from_file(self):
-
-        if not os.path.exists(self.filepath):
-            print('ERROR: Provided file path not found on disk.')
-            return False
-
-        with open(self.filepath, 'r') as fh:
-            self.input_data = json.load(fh)
-
-        return self.input_data
+            self.data.append(connector.get_data_list())
 
 
 
     ####################################################################################################################
     def save(self):
-
-        self.prep_data_for_export() if not self.input_data else None
-        with open(f'{self.dirpath}/{self.file}', 'w') as fh:
-            json.dump(self.input_data, fh, indent=5)
+        self.prep_data_for_export() if not self.data else None
+        self.save_data_to_file(self.data)
 
 
 

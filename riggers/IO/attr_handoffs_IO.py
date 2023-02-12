@@ -8,19 +8,20 @@
 ###########################
 ##### Import Commands #####
 import importlib
-import pymel.core as pm
-import json
-import os
 
 import Snowman3.riggers.utilities.classes.class_AttrHandoff as class_attr_handoff
 importlib.reload(class_attr_handoff)
 AttrHandoff = class_attr_handoff.AttrHandoff
+
+import Snowman3.riggers.IO.data_IO as classDataIO
+importlib.reload(classDataIO)
+DataIO = classDataIO.DataIO
 ###########################
 ###########################
 
 ###########################
 ######## Variables ########
-
+default_file_name = 'attr_handoffs.json'
 ###########################
 ###########################
 
@@ -29,53 +30,33 @@ AttrHandoff = class_attr_handoff.AttrHandoff
 
 
 ########################################################################################################################
-class AttrHandoffsDataIO(object):
-
+class AttrHandoffsDataIO( DataIO ):
     def __init__(
         self,
+        data = None,
         attr_handoffs = None,
-        dirpath = None
+        dirpath = None,
+        file_name = default_file_name
     ):
-        self.dirpath = dirpath
+        super().__init__(data=data, dirpath=dirpath, file_name=file_name)
         self.attr_handoffs = attr_handoffs
-        self.input_data = None
-        self.dirpath = dirpath
-        self.file = 'attr_handoffs.json'
-        self.filepath = f'{self.dirpath}/{self.file}'
-
-
 
 
 
     ####################################################################################################################
     def prep_data_for_export(self):
 
-        self.input_data = []
+        self.data = []
         for handoff in self.attr_handoffs:
-            self.input_data.append(handoff.get_data_list())
-
-
-
-    ####################################################################################################################
-    def get_data_from_file(self):
-
-        if not os.path.exists(self.filepath):
-            print('ERROR: Provided file path not found on disk.')
-            return False
-
-        with open(self.filepath, 'r') as fh:
-            self.input_data = json.load(fh)
-
-        return self.input_data
+            self.data.append(handoff.get_data_list())
 
 
 
     ####################################################################################################################
     def save(self):
 
-        self.prep_data_for_export() if not self.input_data else None
-        with open(f'{self.dirpath}/{self.file}', 'w') as fh:
-            json.dump(self.input_data, fh, indent=5)
+        self.prep_data_for_export() if not self.data else None
+        self.save_data_to_file(self.data)
 
 
 

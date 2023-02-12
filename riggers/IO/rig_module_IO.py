@@ -49,7 +49,7 @@ decimal_count = 9
 default_dirpath = r'C:\Users\User\Desktop\test_build' #...For testing purposes
 
 
-class RigModuleDataIO(object):
+class RigModuleDataIO:
 
     def __init__(
         self,
@@ -371,11 +371,11 @@ class RigModuleDataIO(object):
     ####################################################################################################################
     def import_placers_data(self, filepath):
         placers_IO = PlacerDataIO(dirpath=filepath)
-        return placers_IO.load()
+        return placers_IO.get_data_from_file()
 
 
 
     ####################################################################################################################
     def import_ctrls_data(self, filepath):
         ctrls_IO = ControlsDataIO(dirpath=filepath)
-        return ctrls_IO.load()
+        return ctrls_IO.get_data_from_file()
