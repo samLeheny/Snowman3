@@ -128,16 +128,12 @@ class Rig:
 
 
 
-
-
     ####################################################################################################################
     def create_root_groups(self):
 
         self.character_grp = pm.group(name=f'{self.name}CHAR', world=1, empty=1)
         self.rig_grp = pm.group(name='rig', parent=self.character_grp, empty=1)
         self.geo_grp = pm.group(name='geo', parent=self.character_grp, empty=1)
-
-
 
 
 
@@ -148,15 +144,10 @@ class Rig:
 
 
 
-
-
     ####################################################################################################################
     def get_module_types(self):
-
         for key in self.armature_modules:
             self.module_types[key] = amtr_utils.get_module_type(self.armature_modules[key])
-
-
 
 
 
@@ -165,14 +156,12 @@ class Rig:
 
         self.attr_handoffs = self.prefab_data.get_attr_handoffs()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build'
         attr_handoffs_IO = AttrHandoffsDataIO(attr_handoffs=self.attr_handoffs, dirpath=dirpath)
         attr_handoffs_IO.save()
 
         for handoff in self.attr_handoffs:
+            print(handoff.old_attr_node)
             handoff.perform_attr_handoff()
-
-
 
 
 
@@ -181,12 +170,9 @@ class Rig:
 
         self.connection_pairs = self.prefab_data.get_module_connections()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build'
         connection_pairs_IO = ConnectionPairsDataIO(connection_pairs=self.connection_pairs, dirpath=dirpath)
         connection_pairs_IO.save()
         [pair.connect_sockets() for pair in self.connection_pairs]
-
-
 
 
 
@@ -195,17 +181,17 @@ class Rig:
 
         self.space_blends = self.prefab_data.get_space_blends()
 
-        dirpath = r'C:\Users\61451\Desktop\test_build'
         space_blends_IO = SpaceBlendsDataIO(space_blends=self.space_blends, dirpath=dirpath)
         space_blends_IO.save()
         [b.install_blend()for b in self.space_blends]
 
 
 
-
-
     ####################################################################################################################
     def populate_rig(self):
+
+        print(f"\n{'-' * 100}")
+        print(f"Building rig modules...\n")
 
         #...Get information from armature
         self.create_root_groups()
@@ -231,10 +217,11 @@ class Rig:
                 self.sided_modules[module.side][key] = module
 
         self.prefab_data = PrefabArmature(prefab_key=self.rig_prefab_type, rig_modules=self.modules)
-
+        '''
         #...Transfer attributes between nodes in the rig as specified in the attr_handoffs data
         self.perform_module_attr_handoffs()
         #...Attach modules to each other in accordance with prefab's connection pairs data
         self.attach_modules()
         #...Install space blends
         self.install_space_blends()
+        '''

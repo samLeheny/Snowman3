@@ -66,7 +66,7 @@ class PrefabArmatureData:
     ####################################################################################################################
     def get_attr_handoffs(self):
         m = self.find_py_module('attr_handoffs')
-        self.attr_handoffs = m.create_handoffs(self.rig_modules)
+        self.attr_handoffs = m.create_handoffs()
         return self.attr_handoffs
 
 
