@@ -131,7 +131,6 @@ class ArmatureModule:
     aim_module_orienters
     create_connector_curves
     create_module_ctrl_mobject
-    aim_ctrl_at_placers
     flip_module
     position_module
     drive_module
@@ -156,9 +155,7 @@ class ArmatureModule:
     def create_module_grps(self):
 
         #...
-        self.rig_root_grp = pm.group(name=f'{self.side_tag}{self.name}_MODULE', w=1, em=1)
-
-        self.rig_root_grp.setParent(self.modules_parent)
+        self.rig_root_grp = pm.group(name=f'{self.side_tag}{self.name}_MODULE', parent=self.modules_parent, empty=1)
 
         self.assign_module_metadata()
 
@@ -166,14 +163,10 @@ class ArmatureModule:
         self.rig_subGrps = {
             "placers": pm.group(name="placers", p=self.rig_root_grp, em=1),
             "prelim_ctrls": pm.group(name="prelimCtrls", p=self.rig_root_grp, em=1),
-            "armature_ctrls": pm.group(name="armatureCtrls", p=self.rig_root_grp, em=1),
             "extra_systems": pm.group(name="extraSystems", p=self.rig_root_grp, em=1),
             "connector_curves": pm.group(name="connectorCrvs", p=self.rig_root_grp, em=1),
         }
-
         self.rig_subGrps["extra_systems"].visibility.set(0, lock=1)
-
-
 
 
 
@@ -204,9 +197,7 @@ class ArmatureModule:
         pm.addAttr(target_obj, longName="IsDrivenSide", keyable=0, attributeType="bool")
         enter_value = self.is_driven_side if self.is_driven_side else False
         pm.setAttr(f'{target_obj}.IsDrivenSide', enter_value, lock=1)
-    
-    
-    
+
     
     
     ####################################################################################################################
@@ -226,8 +217,6 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def create_placer(self, placer):
 
@@ -242,11 +231,8 @@ class ArmatureModule:
         attrs_to_lock = gen_utils.rotate_attrs + gen_utils.scale_attrs + gen_utils.vis_attrs
         [pm.setAttr(f'{placer.mobject}.{attr}', lock=1, keyable=0) for attr in attrs_to_lock]
 
-        #...Lock lateral placer translation if this is a center body module and symmetry is on
-        placer.mobject.tx.set(lock=1, keyable=0) if self.symmetry else None
-
         #...Add placer hook to module control
-        pm.connectAttr(placer.mobject.message, f'{self.module_ctrl.mobject}.{placers_attr_string}.{placer.name}')
+        #pm.connectAttr(placer.mobject.message, f'{self.module_ctrl.mobject}.{placers_attr_string}.{placer.name}') #####################
 
         pm.select(clear=1)
 
@@ -258,19 +244,17 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def create_module_placers(self):
 
         self.create_module_ctrl_in_scene()
 
         #...Add placer hooks to module control
-        pm.addAttr(self.module_ctrl.mobject, longName=placers_attr_string, attributeType="compound", keyable=0,
+        '''pm.addAttr(self.module_ctrl.mobject, longName=placers_attr_string, attributeType="compound", keyable=0,
                    numberOfChildren=len(self.placer_data))
         for placer in self.placer_data:
             pm.addAttr(self.module_ctrl.mobject, longName=placer.name, keyable=0, dataType="string",
-                       parent=placers_attr_string)
+                       parent=placers_attr_string)''' ###################################################################################
 
         for placer in self.placer_data:
             self.create_placer(placer)
@@ -369,7 +353,7 @@ class ArmatureModule:
 
 
         #...Hook module control to root group
-        hook_string = 'ModuleRootCtrl'
+        '''hook_string = 'ModuleRootCtrl'
         pm.addAttr(self.rig_root_grp, longName=hook_string, dataType='string', keyable=0)
         pm.connectAttr(self.module_ctrl.mobject.message, f'{self.rig_root_grp}.{hook_string}')
 
@@ -377,44 +361,7 @@ class ArmatureModule:
         attr_prefix = 'Module_'
         attr_name = f'{attr_prefix}{self.side_tag}{self.name}'
         pm.addAttr(self.armature_container, longName=attr_name, keyable=0, dataType='string')
-        pm.connectAttr(self.rig_root_grp.message, f'{self.armature_container}.{attr_name}')
-
-
-
-
-
-    ####################################################################################################################
-    def aim_ctrl_at_placers(self):
-
-        snapped_vector = [0, 1, 0]
-
-        #...Get positions of all placers in modules
-        placer_positions = []
-        for placer in self.placers.values():
-            placer_positions.append(np.array(placer.position))
-
-        average_placer_position = list(np.average(placer_positions, axis=0))
-
-        if average_placer_position == [0, 0, 0]:
-            return snapped_vector
-
-        normalized_vector = gen_utils.normalize_vector(average_placer_position)
-
-        vector_lengths = (abs(normalized_vector[0]), abs(normalized_vector[1]), abs(normalized_vector[2]))
-        longest_place = vector_lengths.index(max(vector_lengths))
-
-        snapped_vector = [0, 0, 0]
-        if average_placer_position[longest_place] > 0:
-            snapped_vector[longest_place] = 1
-        elif average_placer_position[longest_place] < 0:
-            snapped_vector[longest_place] = -1
-        else:
-            snapped_vector[longest_place] = 0
-
-
-        return snapped_vector
-
-
+        pm.connectAttr(self.rig_root_grp.message, f'{self.armature_container}.{attr_name}')''' #####################################
 
 
 
@@ -437,8 +384,6 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def position_module(self):
 
@@ -448,8 +393,6 @@ class ArmatureModule:
         self.module_ctrl.mobject.translate.set(self.position)
         self.module_ctrl.mobject.rotate.set(self.rotation)
         pm.setAttr(f'{self.module_ctrl.mobject}.ModuleScale', self.scale)
-
-
 
 
 
@@ -535,9 +478,8 @@ class ArmatureModule:
         for shape in obj.getShapes():
             shape.visibility.set(lock=0)
             shape.visibility.set(0, lock=1)
-            [pm.setAttr(f'{obj}.{attr}', lock=1, keyable=0) for attr in ("tx", "ty", "tz",
-                                                                         "rx", "ry", "rz",
-                                                                         "sx", "sy", "sz")]
+            [pm.setAttr(f'{obj}.{attr}', lock=1, keyable=0) for attr in (
+                "tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz")]
 
 
 
@@ -613,19 +555,11 @@ class ArmatureModule:
     ####################################################################################################################
     def populate_module(self, key):
 
-        #...Get scene armature
         self.get_scene_armature()
-        #...Structural groups
         self.create_module_grps()
-        #...Placers
         self.create_module_placers()
-        #...Connector curves
         self.create_connector_curves()
-        #...Orienters
         self.aim_module_orienters()
-
-
-
         #...Run any required bespoke setup
         self.prefab_module_data.get_bespoke_setup_py().build(self)
 
@@ -635,8 +569,6 @@ class ArmatureModule:
 
     ####################################################################################################################
     def get_other_module(self, name, return_module_ctrl):
-
-        return_node = None
 
         target_module = return_node = pm.listConnections(
             f'{self.armature_container}.Module_{name}', source=1)[0]
