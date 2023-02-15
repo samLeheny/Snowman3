@@ -33,7 +33,8 @@ class Blueprint:
         attr_handoffs = None,
         module_connections = None,
         placer_connectors = None,
-        space_blends = None
+        space_blends = None,
+        rig_modules_roster = None,
 
     ):
         self.dirpath = f'{dirpath}/test_build'
@@ -42,3 +43,4 @@ class Blueprint:
         self.module_connections = module_connections
         self.placer_connectors = placer_connectors
         self.space_blends = space_blends
+        self.rig_modules_roster = rig_modules_roster

@@ -46,6 +46,15 @@ class DataIO:
 
 
     ####################################################################################################################
+    def validate_dirpath(self):
+        if not os.path.exists(self.dirpath):
+            print(f'ERROR: Provided file path "{self.dirpath}" not found on disk.')
+            return False
+        return True
+
+
+
+    ####################################################################################################################
     def get_data_from_file(self):
 
         if not self.validate_filepath():
@@ -63,7 +72,7 @@ class DataIO:
 
         if not data: data = self.data
 
-        if not self.validate_filepath():
+        if not self.validate_dirpath():
             return False
 
         with open(self.filepath, 'w') as fh:

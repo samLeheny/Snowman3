@@ -36,6 +36,7 @@ class PrefabBlueprint:
 
         self.armature = self.get_armature()
         self.rig_modules = self.get_rig_modules()
+        self.rig_modules_roster = self.get_rig_modules_roster()
         self.attr_handoffs = self.get_attr_handoffs()
         self.module_connectors = self.get_module_connections()
         self.space_blends = self.get_space_blends()
@@ -58,6 +59,11 @@ class PrefabBlueprint:
     def get_rig_modules(self):
         m = self.find_py_module('modules')
         return m.create_modules(symmetry_mode=self.symmetry_mode)
+
+
+    ####################################################################################################################
+    def get_rig_modules_roster(self):
+        return [key for key in self.rig_modules]
 
 
     ####################################################################################################################

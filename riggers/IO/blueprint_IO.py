@@ -39,6 +39,10 @@ RigModuleDataIO = rigModule_IO.RigModuleDataIO
 import Snowman3.riggers.utilities.classes.class_Blueprint as class_blueprint
 importlib.reload(class_blueprint)
 Blueprint = class_blueprint.Blueprint
+
+import Snowman3.riggers.IO.module_roster_IO as module_roster_IO
+importlib.reload(module_roster_IO)
+ModuleRosterDataIO = module_roster_IO.ModuleRosterDataIO
 ###########################
 ###########################
 
@@ -83,7 +87,8 @@ class BlueprintDataIO:
                                                          dirpath=self.dirpath),
             'space_blends': SpaceBlendsDataIO(space_blends=self.blueprint.space_blends, dirpath=self.dirpath),
             'placer_connectors': PlacerConnectorsDataIO(placer_connectors=self.blueprint.placer_connectors,
-                                                        dirpath=self.dirpath)
+                                                        dirpath=self.dirpath),
+            'module_roster': ModuleRosterDataIO(module_names=self.blueprint.rig_modules_roster, dirpath=self.dirpath)
         }
         [IO.save() for IO in data_IOs.values()]
 
@@ -98,6 +103,8 @@ class BlueprintDataIO:
         print(data_IOs['space_blends'])  # _
         print(" - Placer Connectors data")  # _
         print(data_IOs['placer_connectors'])  # _
+        print(" - Module Roster data")  # _
+        print(data_IOs['module_roster'])  # _
 
 
 
@@ -137,7 +144,8 @@ class BlueprintDataIO:
                              ('attr_handoffs', AttrHandoffsDataIO),
                              ('module_connections', ModuleConnectionsDataIO),
                              ('placer_connectors', PlacerConnectorsDataIO),
-                             ('space_blends', SpaceBlendsDataIO)):
+                             ('space_blends', SpaceBlendsDataIO),
+                             ('rig_modules_roster', ModuleRosterDataIO)):
             self.IOs[key] = IO_type(dirpath=self.dirpath)
             self.input_data[key] = self.IOs[key].get_data_from_file()
 
@@ -177,10 +185,14 @@ class BlueprintDataIO:
 
         space_blends = self.IOs['space_blends'].create_blends_from_data(self.input_data['space_blends'])
 
+        rig_modules_roster = self.IOs['rig_modules_roster'].create_module_roster_from_data(
+            self.input_data['rig_modules_roster'])
+
         blueprint = Blueprint(armature = armature,
                               attr_handoffs = attr_handoffs,
                               module_connections = module_connections,
                               placer_connectors = placer_connectors,
-                              space_blends = space_blends)
+                              space_blends = space_blends,
+                              rig_modules_roster = rig_modules_roster)
 
         return blueprint
