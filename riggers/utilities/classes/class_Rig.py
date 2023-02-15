@@ -199,6 +199,9 @@ class Rig:
         self.get_module_types()
 
         #...Get modules data from armature
+        print('#'*200)
+        print(self.armature_modules)
+        print('#'*200)
         for module_key in self.armature_modules:
             armature_module = self.get_armature_module_mObj(module_key=module_key)
             self.modules[module_key] = RigModule(
