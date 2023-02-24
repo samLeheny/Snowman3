@@ -7,6 +7,8 @@
 
 ###########################
 ##### Import Commands #####
+import os
+import json
 import importlib
 import pymel.core as pm
 
@@ -37,6 +39,10 @@ ConnectionPairsDataIO = connectionPairs_IO.ConnectionPairsDataIO
 import Snowman3.riggers.utilities.classes.class_PrefabArmatureData as classPrefabArmature
 importlib.reload(classPrefabArmature)
 PrefabArmature = classPrefabArmature.PrefabArmatureData
+
+import Snowman3.riggers.IO.rig_module_IO as rigModule_IO
+importlib.reload(rigModule_IO)
+RigModuleIO = rigModule_IO.RigModuleDataIO
 ###########################
 ###########################
 
@@ -138,9 +144,26 @@ class Rig:
 
 
     ####################################################################################################################
-    def get_armature_modules(self):
+    def get_armature_modules(self, dirpath):
 
-        self.armature_modules = amtr_utils.get_modules_in_armature(self.armature)
+        filepath = dirpath+'/module_roster.json'
+
+        # ...
+        if not os.path.exists(filepath):
+            print(f'ERROR: Provided file path "{filepath}" not found on disk.')
+            return False
+
+        # ...Read data
+        with open(filepath, 'r') as fh:
+            module_roster = json.load(fh)
+
+        self.armature_modules = {}
+        for module_name in module_roster:
+            io = RigModuleIO(dirpath=dirpath+'/rig_modules/'+module_name)
+            module = io.get_module_data_from_file()
+            self.armature_modules[list(module.keys())[0]] = list(module.values())[0]
+
+        ###self.armature_modules = amtr_utils.get_modules_in_armature(self.armature)
 
 
 
@@ -188,38 +211,38 @@ class Rig:
 
 
     ####################################################################################################################
-    def populate_rig(self):
+    def populate_rig(self, dirpath):
 
         print('*'*120)
         print(f"Building rig modules...\n")
 
         #...Get information from armature
         self.create_root_groups()
-        self.get_armature_modules()
-        self.get_module_types()
+        self.get_armature_modules(dirpath)
+        ###self.get_module_types()
 
         #...Get modules data from armature
-        print('#'*200)
-        print(self.armature_modules)
-        print('#'*200)
         for module_key in self.armature_modules:
-            armature_module = self.get_armature_module_mObj(module_key=module_key)
+            print(f"CREATE MODULE: {module_key}")
+
+            '''armature_module = self.get_armature_module_mObj(module_key=module_key)
             self.modules[module_key] = RigModule(
                 name = pm.getAttr(f'{armature_module}.ModuleNameParticle'),
                 rig_module_type = self.module_types[module_key],
                 armature_module = armature_module,
                 side = pm.getAttr(f'{armature_module}.Side'),
-                piece_keys = amtr_utils.get_piece_keys_from_module(armature_module))
+                piece_keys = amtr_utils.get_piece_keys_from_module(armature_module))'''
 
         #...Build modules in scene
-        [module.populate_rig_module(rig_parent=self.rig_grp) for module in self.modules.values()]
+        '''[module.populate_rig_module(rig_parent=self.rig_grp) for module in self.modules.values()]'''
 
         #...Compose dictionary of sided modules (left and right)
-        for key, module in self.modules.items():
+        '''for key, module in self.modules.items():
             if module.side in (nom.leftSideTag, nom.rightSideTag):
-                self.sided_modules[module.side][key] = module
+                self.sided_modules[module.side][key] = module'''
 
-        self.prefab_data = PrefabArmature(prefab_key=self.rig_prefab_type, rig_modules=self.modules)
+        '''self.prefab_data = PrefabArmature(prefab_key=self.rig_prefab_type, rig_modules=self.modules)'''
+
         '''
         #...Transfer attributes between nodes in the rig as specified in the attr_handoffs data
         self.perform_module_attr_handoffs()

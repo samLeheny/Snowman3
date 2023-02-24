@@ -146,7 +146,7 @@ class RigBuilder:
     def build_rig(self, scene_armature):
         print(f"{'-'*120}\nBuilding rig from armature...")
         self.rig = Rig(name=self.asset_name, armature=scene_armature)
-        self.rig.populate_rig()
+        self.rig.populate_rig(dirpath=self.dirpath)
 
 
     ####################################################################################################################
