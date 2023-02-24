@@ -190,7 +190,7 @@ class Rig:
     ####################################################################################################################
     def populate_rig(self):
 
-        print(f"\n{'-' * 100}")
+        print('*'*120)
         print(f"Building rig modules...\n")
 
         #...Get information from armature

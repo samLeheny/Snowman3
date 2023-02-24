@@ -164,7 +164,7 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
     pm.select(clear=1)
 
     # Variables
-    default_suffix = "buffer"
+    default_suffix = 'buffer'
     child_name = get_clean_name(str(child))
 
 
@@ -174,9 +174,8 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
             suffix = default_suffix
 
         # If suffix came with its own underscore, remove it
-        if suffix[0] == "_":
-            suffix = suffix.split("_")[1]
-
+        if suffix[0] == '_':
+            suffix = suffix.split('_')[1]
 
 
     # Check if child's transforms are free to be cleaned (not receiving connections)
@@ -184,21 +183,20 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
 
     for attr in all_transform_attrs:
 
-        incoming_connection = pm.listConnections(child + "." + attr, source=1, destination=0, plugs=1)
+        incoming_connection = pm.listConnections(f'{child}.{attr}', source=1, destination=0, plugs=1)
 
         if incoming_connection:
-            connected_attrs.append("{0}.{1}".format(child_name, attr))
+            connected_attrs.append(f'{child_name}.{attr}')
 
     if connected_attrs:
 
-        error_string = ""
+        error_string = ''
 
         for attr in connected_attrs:
-            error_string += ("{0}\n".format(attr))
+            error_string += f'{attr}\n'
 
         pm.error("\nCould not clean child object transforms - The following transforms have incoming connections:"
-                 "\n{0}\n".format(error_string))
-
+                 f"\n{error_string}\n")
 
 
     # Check for locked attributes. If any are found, remember them, then unlock them for the duration of this function
@@ -212,7 +210,6 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
             pm.setAttr(child + "." + attr, lock=0)
 
 
-
     # Get child obj's parent
     world_is_original_parent = False
 
@@ -223,44 +220,39 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
         world_is_original_parent = True
 
 
-
     # Compose buffer obj name
     if name:
         buffer_name = name
 
     else:
-        buffer_name = "{0}_{1}".format(child_name, suffix)
-
+        buffer_name = f'{child_name}_{suffix}'
 
 
     # Create buffer obj
-    buffer_node = pm.shadingNode("transform", name=buffer_name, au=1)
-
+    buffer_node = pm.shadingNode('transform', name=buffer_name, au=1)
 
 
     # Match buffer obj to child's transforms
     buffer_node.setParent(child)
 
-    for attr in ("translate", "rotate", "shear"):
-        pm.setAttr(buffer_node + "." + attr, 0, 0, 0)
-
-    buffer_node.scale.set(1, 1, 1)
+    for attr in ('translate', 'rotate', 'shear'):
+        pm.setAttr(f'{buffer_node}.{attr}', 0, 0, 0)
+        buffer_node.scale.set(1, 1, 1)
+    if child.nodeType == 'joint':
+        child.jointOrient.set(0, 0, 0)
 
     buffer_node.setParent(world=1)
-
 
 
     # Parent child to buffer
     child.setParent(buffer_node)
 
 
-
     # Clean child's transforms
-    for attr in ("translate", "rotate", "shear"):
-        pm.setAttr(child + "." + attr, 0, 0, 0)
+    for attr in ('translate', 'rotate', 'shear'):
+        pm.setAttr(f'{child}.{attr}', 0, 0, 0)
 
     child.scale.set(1, 1, 1)
-
 
 
     # Parent buffer obj
@@ -268,13 +260,10 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
         buffer_node.setParent(parent)
 
 
-
     # Re-lock any attributes on child obj that were locked previously
     if lock_memory:
-
         for attr in lock_memory:
-            pm.setAttr(child + "." + attr, lock=1)
-
+            pm.setAttr(f'{child}.{attr}', lock=1)
 
 
     pm.select(clear=1)
@@ -301,15 +290,11 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
             unlock (bool): If True, any attributes unlocked throughout function will remain unlocked.
     """
 
-
-
     # Determine which transform attributes to target
-    transforms = {
-        "translate" : True,
-        "rotate" : True,
-        "scale" : True,
-        "shear" : True,
-    }
+    transforms = {'translate' : True,
+                  'rotate' : True,
+                  'scale' : True,
+                  'shear' : True}
 
     transform_attrs = all_transform_attrs
 
@@ -319,22 +304,22 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
 
     else:
 
-        transforms["translate"] = translate
-        transforms["rotate"] = rotate
-        transforms["scale"] = scale
-        transforms["shear"] = shear
+        transforms['translate'] = translate
+        transforms['rotate'] = rotate
+        transforms['scale'] = scale
+        transforms['shear'] = shear
 
         transform_attrs = []
-        if transforms["translate"]:
+        if transforms['translate']:
             for attr in all_translate_attrs:
                 transform_attrs.append(attr)
-        if transforms["rotate"]:
+        if transforms['rotate']:
             for attr in all_rotate_attrs:
                 transform_attrs.append(attr)
-        if transforms["scale"]:
+        if transforms['scale']:
             for attr in all_scale_attrs:
                 transform_attrs.append(attr)
-        if transforms["shear"]:
+        if transforms['shear']:
             for attr in all_shear_attrs:
                 transform_attrs.append(attr)
 
@@ -344,10 +329,10 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
 
     for attr in transform_attrs:
 
-        incoming_connection = pm.listConnections(obj + "." + attr, source=1, destination=0, plugs=1)
+        incoming_connection = pm.listConnections(f'{obj}.{attr}', source=1, destination=0, plugs=1)
 
         if incoming_connection:
-            connected_attrs.append("{0}.{1}".format(obj, attr))
+            connected_attrs.append(f'{obj}.{attr}')
 
     if connected_attrs:
 
@@ -356,8 +341,8 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
         for attr in connected_attrs:
             error_string += ("{0}\n".format(attr))
 
-        pm.error("\nCould not clean object ({0}) transforms - The following transforms have incoming connections:"
-                 "\n{1}\n".format(obj, error_string))
+        pm.error(f"\nCould not clean object ({obj}) transforms - The following transforms have incoming connections:"
+                 f"\n{error_string}\n")
 
 
     # Check for locked attributes. If any are found, remember them, then unlock them for the duration of this function

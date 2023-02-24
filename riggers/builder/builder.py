@@ -88,6 +88,7 @@ class RigBuilder:
 
     ####################################################################################################################
     def build_prefab_armature(self):
+        print(f"Building prefab armature: '{self.prefab_key}'")
         self.gather_and_export_prefab_blueprint_data()
         self.build_armature_from_file()
 
@@ -122,6 +123,7 @@ class RigBuilder:
 
     ####################################################################################################################
     def gather_prefab_blueprint_data(self):
+        print('Gathering prefab blueprint data...')
         prefab_blueprint = PrefabBlueprint(prefab_key=self.prefab_key)
         return prefab_blueprint
 
@@ -142,6 +144,7 @@ class RigBuilder:
 
     ####################################################################################################################
     def build_rig(self, scene_armature):
+        print(f"{'-'*120}\nBuilding rig from armature...")
         self.rig = Rig(name=self.asset_name, armature=scene_armature)
         self.rig.populate_rig()
 
