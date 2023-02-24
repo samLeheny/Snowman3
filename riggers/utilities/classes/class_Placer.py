@@ -97,7 +97,6 @@ class Placer:
     dull_color
     position_placer
     get_opposite_placer
-    symmetrize
     create_connector_curve
     make_benign
     create_orienter
@@ -184,29 +183,6 @@ class Placer:
             return None
 
         return opposite_placer
-
-
-
-
-
-    ####################################################################################################################
-    def symmetrize(self, reverse=False):
-
-        attrs_to_symmetrize = ('tx', 'ty', 'tz', 'rx', 'ry', 'rz')
-
-        #...Get opposite placer
-        opposite_placer = self.get_opposite_placer()
-        if not opposite_placer:
-            print(f"No opposite placer found. Cannot setup live symmetry for placer '{self.mobject}'")
-            return None
-
-        # Determine - based on reverse_relationship arg - if THIS placer leads, or follows
-        driver, follower = opposite_placer, self.mobject
-        if reverse:
-            driver, follower = self.mobject, opposite_placer
-
-        gen_utils.drive_attr(driver, follower, attrs_to_symmetrize)
-        self.dull_color(follower)
 
 
 

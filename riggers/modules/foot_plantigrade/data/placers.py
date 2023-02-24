@@ -25,7 +25,7 @@ Placer = classPlacer.Placer
 
 
 
-def create_placers(side=None, is_driven_side=None, placer_size=1.25, ground_coord=-10):
+def create_placers(side=None, placer_size=1.25, ground_coord=-10):
 
     placers = (
 

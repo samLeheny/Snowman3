@@ -93,7 +93,6 @@ get_shape_data_from_obj
 matrix_to_list
 list_to_matrix
 get_obj_matrix
-symmetry_info
 add_attr
 get_attr_data
 migrate_attr
@@ -2379,36 +2378,6 @@ def get_obj_matrix(obj):
 
     m_xform = pm.xform(obj, worldSpace=True, m=1, q=1)
     return list_to_matrix(m_xform)
-
-
-
-
-
-########################################################################################################################
-def symmetry_info(symmetry_mode):
-    """
-    Given symmetry info, logically derives other side/symmetry-related information
-    Args:
-        symmetry_mode (string): Acceptable inputs: "Left drives Right", "Right drives Left", None
-    Returns:
-        (tuple): symmetry mode (str),
-                 driver_side (str),
-                 driven_side(str),
-                 symmetry on/off(str)
-    """
-
-    is_symmetry_on, driver_side, driven_side = False, None, None
-
-    if symmetry_mode:
-        is_symmetry_on = True
-        if symmetry_mode == "Left drives Right":
-            driver_side = nom.leftSideTag
-            driven_side = nom.rightSideTag
-        elif symmetry_mode == "Right drives Left":
-            driver_side = nom.rightSideTag
-            driven_side = nom.leftSideTag
-
-    return symmetry_mode, driver_side, driven_side, is_symmetry_on
 
 
 

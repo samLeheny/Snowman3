@@ -27,7 +27,7 @@ y["3"] = y["1"] + (( (y["4"] - y["1"]) / 3 ) * 2)
 
 
 
-def create_placers(side=None, is_driven_side=None):
+def create_placers(side=None):
 
     placers = (
 

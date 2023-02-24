@@ -59,7 +59,6 @@ class Armature:
         name: str = None,
         prefab_key: str = None,
         root_size: float = None,
-        symmetry_mode: str = None,
         modules: dict = None,
         armature_scale: float = None,
         data: dict = None
@@ -68,10 +67,8 @@ class Armature:
         self.prefab_key = prefab_key if prefab_key else 'None'
         self.root_size = root_size if root_size else 55.0
         self.modules = modules if modules else {}
-        self.symmetry_mode = symmetry_mode
         self.sided_modules = {'L': {}, 'R': {}}
         self.root_groups = {}
-        self.driver_side = gen_utils.symmetry_info(self.symmetry_mode)[1]
         self.armature_scale = armature_scale if armature_scale else 1.0
         self.root_handle = ArmatureRootHandle(name=self.name, root_size=self.root_size)
         self.metadata_fields = self.compose_metadata_fields()
@@ -86,9 +83,6 @@ class Armature:
     --------------------------------------------------------------------------------------------------------------------
     create_root_handle_in_scene
     create_root_groups
-    setup_armature_realtime_symmetry
-    placer_symmetry
-    module_handle_symmetry
     drive_module_attrs
     build_armature_from_data
     assign_armature_metadata
@@ -140,75 +134,6 @@ class Armature:
 
 
 
-
-
-    ####################################################################################################################
-    #...[This needs to be somewhere else.
-    #...We shouldn't need to edit the class whenever the symmetry-setup method has changed]
-    def setup_armature_realtime_symmetry(self, driver_side=None):
-
-        #...If no driver side provided, get it from class attributes
-        if not driver_side: driver_side = self.driver_side
-
-        #...Determine the following side as opposite to the driver side
-        following_side = nom.rightSideTag
-        if driver_side == nom.rightSideTag:
-            following_side = nom.leftSideTag
-
-        #...Make symmetry connections in each pair of sided modules in the rig
-        for module in self.sided_modules[driver_side].values():
-            self.placer_symmetry(module)
-            self.module_handle_symmetry(module)
-
-        #...Visual indication of following side
-        for module in self.sided_modules[following_side].values():
-            if module.placers:
-                for placer in module.placers.values():
-                    placer.make_benign(hide=False)
-            if module.module_handles:
-                for setup_ctrl in module.module_handles.values():
-                    setup_ctrl.make_benign(hide=True)
-
-
-
-
-
-    ####################################################################################################################
-    def placer_symmetry(self, module):
-
-        #...For placers...
-        if module.placers:
-
-            for placer in module.placers.values():
-                amtr_utils.connect_pair(placer.mobject, attrs=("tx", "ty", "tz"))
-
-                #...Get placer's vector handles (if any)
-                handles = []
-                if placer.up_vector_handle:
-                    handles.append(placer.up_vector_handle.mobject)
-                if placer.aim_vector_handle:
-                    handles.append(placer.aim_vector_handle.mobject)
-
-                #...Determine driver and follower handles in handle pairs
-                for handle in handles:
-                    amtr_utils.connect_pair(handle, attrs=("tx", "ty", "tz"))
-
-
-
-
-
-    ####################################################################################################################
-    def module_handle_symmetry(self, module):
-
-        #...For setup controls...
-        if module.module_handles:
-            for setup_ctrl in module.module_handles.values():
-                setup_ctrl.setup_symmetry()
-
-
-
-
-
     ####################################################################################################################
     def drive_module_attrs(self):
 
@@ -246,7 +171,7 @@ class Armature:
             m_data = data[key]
 
             #...Fill in any missing properties with None values
-            for field in ("rig_module_type", "name", "side", "is_driven_side", "position", "rotation", "scale",
+            for field in ("rig_module_type", "name", "side", "position", "rotation", "scale",
                              "drive_target", "color", "draw_connections", "placers"):
                 if field not in m_data:
                     m_data[field] = None
@@ -255,7 +180,6 @@ class Armature:
                 rig_module_type = m_data["rig_module_type"],
                 name = m_data["name"],
                 side = m_data["side"],
-                is_driven_side = m_data["is_driven_side"],
                 position = m_data["position"],
                 rotation = m_data["rotation"],
                 scale = m_data["scale"],
@@ -301,8 +225,6 @@ class Armature:
 
         data_fields = [('name', 'ArmatureName', 'string', self.name),
                        ('prefab_key', 'ArmaturePrefabKey', 'string', self.prefab_key),
-                       ('symmetry_mode', 'SymmetryMode', 'string', self.symmetry_mode),
-                       ('driver_side', 'DriverSide', 'string', self.driver_side),
                        ('root_size', 'RootSize', 'float', self.root_size)]
                        #('armature_scale', 'ArmatureScale', 'float', None)]
         return data_fields
@@ -351,7 +273,3 @@ class Armature:
         [module.connect_modules() for module in self.modules.values()]
         self.draw_module_connectors()
         '''
-
-        #...Enact live symmetry if needed -------------------------------------------------------------------------
-        if self.symmetry_mode in ('Left drives Right', 'Right drives Left'):
-            self.setup_armature_realtime_symmetry(driver_side=self.driver_side)

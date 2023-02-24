@@ -99,8 +99,6 @@ class ArmatureDataIO:
         #...Fill in armature data based on values stored in hidden armature attributes
         IO_data_fields = (('name', 'ArmatureName'),
                           ('prefab_key', 'ArmaturePrefabKey'),
-                          ('symmetry_mode', 'SymmetryMode'),
-                          ('driver_side', 'DriverSide'),
                           ('root_size', 'RootSize'),
                           ('armature_scale', 'ArmatureScale'))
         for IO_key, attr_name in IO_data_fields:
@@ -116,7 +114,6 @@ class ArmatureDataIO:
 
         self.input_data = {'name': self.armature.name,
                            'prefab_key': self.armature.prefab_key,
-                           'symmetry_mode': self.armature.symmetry_mode,
                            'root_size': self.armature.root_size,
                            'armature_scale': self.armature.armature_scale}
 
@@ -156,7 +153,6 @@ class ArmatureDataIO:
             name = data['name'],
             prefab_key = data['prefab_key'],
             root_size = data['root_size'],
-            symmetry_mode = data['symmetry_mode'],
             armature_scale = data['armature_scale'],
             modules = data['modules']
         )

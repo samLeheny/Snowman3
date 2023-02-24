@@ -49,7 +49,6 @@ class PrelimControl:
         forward_direction = None,
         up_direction = None,
         side = None,
-        is_driven_side = None,
         body_module = None
     ):
         self.name = name
@@ -65,7 +64,6 @@ class PrelimControl:
         self.up_direction = up_direction if up_direction else [0, 1, 0]
         self.side = side
         self.side_tag = f'{self.side}_' if self.side else ''
-        self.is_driven_side = is_driven_side
         self.body_module = body_module
 
         self.ctrl_obj = None

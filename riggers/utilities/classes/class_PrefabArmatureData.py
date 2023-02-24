@@ -27,12 +27,10 @@ class PrefabArmatureData:
         self,
         prefab_key,
         prefab_armature_dir = prefabs_dir,
-        symmetry_mode = None,
         rig_modules = None
     ):
         self.prefab_dir = prefab_armature_dir
         self.prefab_key = prefab_key
-        self.symmetry_mode = symmetry_mode
         self.rig_modules = rig_modules
         self.armature = None
         self.modules = None
@@ -51,7 +49,7 @@ class PrefabArmatureData:
     ####################################################################################################################
     def get_armature(self):
         m = self.find_py_module('armature')
-        self.armature = m.create_armature(symmetry_mode=self.symmetry_mode, modules=self.get_rig_modules(),
+        self.armature = m.create_armature(modules=self.get_rig_modules(),
                                           placer_connectors=self.get_placer_connectors())
         return self.armature
 
@@ -59,7 +57,7 @@ class PrefabArmatureData:
     ####################################################################################################################
     def get_rig_modules(self):
         m = self.find_py_module('modules')
-        self.modules = m.create_modules(symmetry_mode=self.symmetry_mode)
+        self.modules = m.create_modules()
         return self.modules
 
 

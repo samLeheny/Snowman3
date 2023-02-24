@@ -70,8 +70,6 @@ class ArmatureModule:
         placer_data = None,
         ctrl_data = None,
         side = None,
-        symmetry = None,
-        is_driven_side = None,
         color = None,
         rig_module_type = None,
         position = None,
@@ -85,8 +83,6 @@ class ArmatureModule:
         self.side = side
         self.side_tag = f'{self.side}_' if self.side else ""
         self.name_tag = f'{self.side_tag}{self.name}'
-        self.symmetry = symmetry
-        self.is_driven_side = is_driven_side
         self.ordered_placer_keys = []
         self.rig_module_type = rig_module_type if rig_module_type else "-"
         self.position = position if position else (0, 0, 0)
@@ -97,8 +93,7 @@ class ArmatureModule:
         self.modules_parent = modules_parent
         self.prefab_module_data = PrefabModuleData(
             prefab_key=self.rig_module_type,
-            side=self.side,
-            is_driven_side=self.is_driven_side
+            side=self.side
         )
 
         self.prelim_ctrls = {}
@@ -193,11 +188,6 @@ class ArmatureModule:
         pm.addAttr(target_obj, longName="ModuleName", keyable=0, dataType="string")
         pm.setAttr(f'{target_obj}.ModuleName', self.name_tag, type="string", lock=1)
 
-        #...Is Driven Side.............................................................................................
-        pm.addAttr(target_obj, longName="IsDrivenSide", keyable=0, attributeType="bool")
-        enter_value = self.is_driven_side if self.is_driven_side else False
-        pm.setAttr(f'{target_obj}.IsDrivenSide', enter_value, lock=1)
-
     
     
     ####################################################################################################################
@@ -230,10 +220,6 @@ class ArmatureModule:
         #...Lock and hide rotate, scale, and visibility. Placers only need translation
         attrs_to_lock = gen_utils.rotate_attrs + gen_utils.scale_attrs + gen_utils.vis_attrs
         [pm.setAttr(f'{placer.mobject}.{attr}', lock=1, keyable=0) for attr in attrs_to_lock]
-
-        #...Add placer hook to module control
-        #pm.connectAttr(placer.mobject.message, f'{self.module_ctrl.mobject}.{placers_attr_string}.{placer.name}') #####################
-
         pm.select(clear=1)
 
         #...Drive placer scale with module root control attributes
@@ -246,22 +232,10 @@ class ArmatureModule:
 
     ####################################################################################################################
     def create_module_placers(self):
-
         self.create_module_ctrl_in_scene()
-
-        #...Add placer hooks to module control
-        '''pm.addAttr(self.module_ctrl.mobject, longName=placers_attr_string, attributeType="compound", keyable=0,
-                   numberOfChildren=len(self.placer_data))
-        for placer in self.placer_data:
-            pm.addAttr(self.module_ctrl.mobject, longName=placer.name, keyable=0, dataType="string",
-                       parent=placers_attr_string)''' ###################################################################################
-
         for placer in self.placer_data:
             self.create_placer(placer)
-
         self.drive_vis_attrs_from_module_ctrl()
-
-
 
 
 
@@ -279,8 +253,6 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def create_connector_curves(self, parent=None):
 
@@ -295,8 +267,6 @@ class ArmatureModule:
 
             for target in placer.connect_targets:
                 placer.create_connector_curve(target=self.placers[target], parent=parent_obj)
-
-
 
 
 
@@ -352,18 +322,6 @@ class ArmatureModule:
             [shape.visibility.set(0, lock=1) for shape in self.module_ctrl.mobject.getShapes()]
 
 
-        #...Hook module control to root group
-        '''hook_string = 'ModuleRootCtrl'
-        pm.addAttr(self.rig_root_grp, longName=hook_string, dataType='string', keyable=0)
-        pm.connectAttr(self.module_ctrl.mobject.message, f'{self.rig_root_grp}.{hook_string}')
-
-        #...Hook root group to parent Armature
-        attr_prefix = 'Module_'
-        attr_name = f'{attr_prefix}{self.side_tag}{self.name}'
-        pm.addAttr(self.armature_container, longName=attr_name, keyable=0, dataType='string')
-        pm.connectAttr(self.rig_root_grp.message, f'{self.armature_container}.{attr_name}')''' #####################################
-
-
 
     ####################################################################################################################
     def flip_module(self):
@@ -386,8 +344,6 @@ class ArmatureModule:
 
     ####################################################################################################################
     def position_module(self):
-
-        #...Flip module if this is on the right
         self.flip_module() if self.side == nom.rightSideTag else None
         #...Position module
         self.module_ctrl.mobject.translate.set(self.position)
@@ -458,23 +414,16 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def get_placer_from_tag(self, module_tag, placer_tag):
-
         target_module_ctrl = self.get_other_module(name=module_tag, return_module_ctrl=True)
         target_node = pm.listConnections(f'{target_module_ctrl}.PlacerNodes.{placer_tag}', s=1, d=0)[0]
-
         return target_node
-
-
 
 
 
     ####################################################################################################################
     def make_obj_benign(self, obj):
-
         for shape in obj.getShapes():
             shape.visibility.set(lock=0)
             shape.visibility.set(0, lock=1)
@@ -483,27 +432,19 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def connect_modules(self):
-
         if self.drive_target:
             self.drive_module()
 
 
 
-
-
     ####################################################################################################################
     def drive_module_handles_vis(self, drive_plug):
-
         for ctrl in self.module_handles.values():
             ctrl.visibility.set(lock=0)
             pm.connectAttr(drive_plug, ctrl.visibility)
             ctrl.visibility.set(lock=1, keyable=0, channelBox=0)
-
-
 
 
 
@@ -530,8 +471,6 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def drive_vis_attrs_from_module_ctrl(self):
 
@@ -550,11 +489,8 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def populate_module(self, key):
-
         self.get_scene_armature()
         self.create_module_grps()
         self.create_module_placers()
@@ -565,24 +501,18 @@ class ArmatureModule:
 
 
 
-
-
     ####################################################################################################################
     def get_other_module(self, name, return_module_ctrl):
-
         target_module = return_node = pm.listConnections(
             f'{self.armature_container}.Module_{name}', source=1)[0]
-
         if return_module_ctrl:
             return_node = pm.listConnections(f'{target_module}.ModuleRootCtrl', source=1)[0]
-
         return return_node
 
 
 
     ####################################################################################################################
     def get_scene_armature(self):
-
         search = pm.ls("::*_ARMATURE", type="transform")
         self.armature_container = search[0] if search else None
 
@@ -590,21 +520,15 @@ class ArmatureModule:
 
     ####################################################################################################################
     def get_data_dictionary(self):
-
         data_dict = {}
-
-        # ...
         IO_data_fields = (('rig_module_type', self.rig_module_type),
                           ('name', self.name),
                           ('side', self.side),
-                          ('is_driven_side', self.is_driven_side),
                           ('drive_target', self.drive_target),
                           ('position', self.position),
                           ('rotation', self.rotation),
                           ('scale', self.scale),
                           ('color', self.ctrl_color))
-
         for IO_key, input_attr in IO_data_fields:
             data_dict[IO_key] = input_attr
-
         return data_dict

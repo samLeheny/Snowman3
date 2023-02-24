@@ -35,7 +35,7 @@ def build(armature_module):
 
 
     #...Ribbon system -------------------------------------------------------------------------------------------------
-    ribbon_sys = waist_ribbon.install(spine_module=armature_module, symmetry=armature_module.symmetry)
+    ribbon_sys = waist_ribbon.install(spine_module=armature_module)
     ribbon_sys["nurbsPlane"].setParent(armature_module.module_ctrl.mobject)
     ribbon_sys["nurbsPlane"].visibility.set(0, lock=1)
     ribbon_sys["nurbsPlane"].inheritsTransform.set(0, lock=1)
@@ -54,9 +54,7 @@ def build(armature_module):
 
 
     #...Preliminary controls ------------------------------------------------------------------------------------------
-    armature_module.ctrl_data = prelimCtrls.create_ctrl_data(
-        side=armature_module.side,
-        is_driven_side=armature_module.is_driven_side)
+    armature_module.ctrl_data = prelimCtrls.create_ctrl_data(side=armature_module.side)
     armature_module.create_prelim_ctrls()
 
     #... Pin ctrls to ribbon

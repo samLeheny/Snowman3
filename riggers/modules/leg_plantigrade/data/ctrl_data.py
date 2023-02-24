@@ -38,7 +38,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None):
+def create_ctrl_data(side=None):
 
     ctrl_data = {
 
@@ -55,7 +55,6 @@ def create_ctrl_data(side=None, is_driven_side=None):
             orientation = {"match_to": "thigh"},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
             match_transform = "thigh"
         ),
 
@@ -72,7 +71,6 @@ def create_ctrl_data(side=None, is_driven_side=None):
             orientation={"match_to": "calf"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
             match_transform = "calf"
         ),
 
@@ -89,7 +87,6 @@ def create_ctrl_data(side=None, is_driven_side=None):
             orientation={"match_to": "calf_end"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
             match_transform = "calf_end"
         ),
 
@@ -106,7 +103,6 @@ def create_ctrl_data(side=None, is_driven_side=None):
             orientation={"match_to": "calf_end"},
             locks={"v":1},
             side=side,
-            is_driven_side=is_driven_side
         ),
 
 
@@ -118,8 +114,7 @@ def create_ctrl_data(side=None, is_driven_side=None):
             position=("ik_knee",),
             orientation={"match_to": "module_ctrl"},
             locks={"r":[1, 1, 1], "s":[1, 1, 1], "v":1},
-            side=side,
-            is_driven_side=is_driven_side
+            side=side
         ),
 
 
@@ -133,7 +128,6 @@ def create_ctrl_data(side=None, is_driven_side=None):
             orientation={"match_to": "module_ctrl"},
             locks={"v": 1},
             side=side,
-            is_driven_side=is_driven_side,
             match_transform="center to prelim"
         ),
 
@@ -150,7 +144,6 @@ def create_ctrl_data(side=None, is_driven_side=None):
             orientation = {"match_to": "module_ctrl"},
             locks={"r": [1, 1, 1], "s": [1, 1, 1], "v": 1},
             side=side,
-            is_driven_side=is_driven_side,
             match_transform = "thigh"
         ),
 

@@ -57,7 +57,6 @@ class RigModule:
         body_pieces = None,
         ctrl_data = None,
         side = None,
-        is_driven_side = None,
         piece_keys = None,
         rig_module_type = None,
     ):
@@ -69,12 +68,10 @@ class RigModule:
         self.side_tag = f'{self.side}_' if self.side else ''
         self.module_tag = module_tag if module_tag else self.side_tag+self.name
         self.placer_color = ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
-        self.is_driven_side = is_driven_side
         self.piece_keys = piece_keys
         self.prefab_module_data = PrefabModuleData(
             prefab_key=self.rig_module_type,
-            side=self.side,
-            is_driven_side=self.is_driven_side
+            side=self.side
         )
 
         self.rig_module_grp = None

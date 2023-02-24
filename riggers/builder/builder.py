@@ -73,10 +73,8 @@ class RigBuilder:
         asset_name = None,
         prefab_key = None,
         dirpath = None,
-        symmetry_mode = None
     ):
         self.prefab_key = prefab_key
-        self.symmetry_mode = symmetry_mode
         self.asset_name = asset_name
         self.dirpath = f'{dirpath}/test_build'
         self.armature_namespace = nom.setupRigNamespace
@@ -124,7 +122,7 @@ class RigBuilder:
 
     ####################################################################################################################
     def gather_prefab_blueprint_data(self):
-        prefab_blueprint = PrefabBlueprint(prefab_key=self.prefab_key, symmetry_mode=None)
+        prefab_blueprint = PrefabBlueprint(prefab_key=self.prefab_key)
         return prefab_blueprint
 
 

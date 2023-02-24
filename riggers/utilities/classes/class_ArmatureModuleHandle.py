@@ -64,7 +64,6 @@ class ArmatureModuleHandle:
     create
     dull_color
     make_benign
-    setup_symmetry
     --------------------------------------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
     """
@@ -115,14 +114,3 @@ class ArmatureModuleHandle:
 
         #...Dull ctrl color
         self.dull_color()
-
-
-
-
-
-    ####################################################################################################################
-    def setup_symmetry(self):
-
-        amtr_utils.connect_pair(self.mobject, attrs=("tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz",
-                                                     "ModuleScale"))
-

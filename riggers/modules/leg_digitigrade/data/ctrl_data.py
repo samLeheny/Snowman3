@@ -37,7 +37,7 @@ PrelimControl = class_PrelimControl.PrelimControl
 
 
 
-def create_prelim_ctrls(side=None, is_driven_side=None):
+def create_prelim_ctrls(side=None):
 
     prelim_ctrls = {
 
@@ -53,8 +53,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             position = ("thigh", "calf"),
             orientation = {"match_to": "thigh"},
             locks = {"v": 1},
-            side = side,
-            is_driven_side = is_driven_side
+            side = side
         ),
 
 
@@ -69,8 +68,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             position=("calf", "calf_end"),
             orientation={"match_to": "calf"},
             locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
+            side=side
         ),
 
 
@@ -85,8 +83,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             position=("calf_end",),
             orientation={"match_to": "calf_end"},
             locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
+            side=side
         ),
 
 
@@ -102,7 +99,6 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             orientation={"match_to": "calf_end"},
             locks={"v":1},
             side=side,
-            is_driven_side=is_driven_side
         ),
 
 
@@ -115,8 +111,7 @@ def create_prelim_ctrls(side=None, is_driven_side=None):
             position=("thigh",),
             orientation={"match_to": "module_ctrl"},
             locks={"v": 1},
-            side=side,
-            is_driven_side=is_driven_side
+            side=side
         ),
 
 

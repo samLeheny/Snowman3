@@ -27,12 +27,10 @@ class PrefabBlueprint:
     def __init__(
         self,
         prefab_key,
-        prefab_dir = None,
-        symmetry_mode = None
+        prefab_dir = None
     ):
         self.prefab_key = prefab_key
         self.prefab_dir = prefab_dir if prefab_dir else default_prefabs_dir
-        self.symmetry_mode = symmetry_mode
 
         self.armature = self.get_armature()
         self.rig_modules = self.get_rig_modules()
@@ -52,13 +50,13 @@ class PrefabBlueprint:
     ####################################################################################################################
     def get_armature(self):
         m = self.find_py_module('armature')
-        return m.create_armature(symmetry_mode=self.symmetry_mode)
+        return m.create_armature()
 
 
     ####################################################################################################################
     def get_rig_modules(self):
         m = self.find_py_module('modules')
-        return m.create_modules(symmetry_mode=self.symmetry_mode)
+        return m.create_modules()
 
 
     ####################################################################################################################

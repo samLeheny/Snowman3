@@ -37,7 +37,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None):
+def create_ctrl_data(side=None):
 
     ctrl_data = {
 
@@ -50,8 +50,7 @@ def create_ctrl_data(side=None, is_driven_side=None):
             position = ("neck",),
             orientation = {"match_to": "neck"},
             locks = {"v": 1},
-            side = side,
-            is_driven_side = is_driven_side
+            side = side
         ),
 
 
@@ -64,8 +63,7 @@ def create_ctrl_data(side=None, is_driven_side=None):
             position = ("head",),
             orientation = {"match_to": "head"},
             locks = {"v": 1},
-            side = side,
-            is_driven_side = is_driven_side
+            side = side
         ),
 
 
@@ -77,8 +75,7 @@ def create_ctrl_data(side=None, is_driven_side=None):
             shape_offset = [8, 2, 0],
             color =ctrl_colors["settings"],
             locks = {"v": 1, "t": [1, 1, 1], "r": [1, 1, 1], "s": [1, 1, 1]},
-            side = side,
-            is_driven_side = is_driven_side
+            side = side
         )
 
     }

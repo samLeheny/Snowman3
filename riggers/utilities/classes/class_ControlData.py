@@ -45,7 +45,6 @@ class ControlData:
         locks = None,
         forward_direction = None,
         up_direction = None,
-        is_driven_side = None,
         body_module = None,
         match_transform = None,
         side = None,
@@ -61,7 +60,6 @@ class ControlData:
         self.locks = locks if locks else {'v': 1}
         self.forward_direction = forward_direction if forward_direction else [0, 0, 1]
         self.up_direction = up_direction if up_direction else [0, 1, 0]
-        self.is_driven_side = is_driven_side
         self.body_module = body_module
         self.match_transform = match_transform
         self.side = side
@@ -90,7 +88,6 @@ class ControlData:
                           ('locks', self.locks),
                           ('forward_direction', self.forward_direction),
                           ('up_direction', self.up_direction),
-                          ('is_driven_side', self.is_driven_side),
                           ('body_module', self.body_module),
                           ('match_transform', self.match_transform),
                           ('side', self.side))
@@ -120,8 +117,7 @@ class ControlData:
             orientation = self.orientation,
             locks = self.locks,
             body_module = self.body_module,
-            side = self.side,
-            is_driven_side = self.is_driven_side
+            side = self.side
         )
 
         return ctrl

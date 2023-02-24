@@ -32,9 +32,7 @@ def build(armature_module):
     armature_module.position_module()
 
     #...Preliminary controls ------------------------------------------------------------------------------------------
-    armature_module.ctrl_data = prelimCtrls.create_ctrl_data(
-        side=armature_module.side,
-        is_driven_side=armature_module.is_driven_side)
+    armature_module.ctrl_data = prelimCtrls.create_ctrl_data(side=armature_module.side)
     armature_module.create_prelim_ctrls()
 
 

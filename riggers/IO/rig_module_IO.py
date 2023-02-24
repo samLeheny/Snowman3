@@ -61,8 +61,7 @@ class RigModuleDataIO:
         self.prefab_module_data = None
         '''self.prefab_module_data = PrefabModuleData(
             prefab_key=self.rig_module.rig_module_type,
-            side=self.rig_module.side,
-            is_driven_side=self.rig_module.is_driven_side
+            side=self.rig_module.side
         )'''
         self.module_data = None
         self.placers_data = None
@@ -75,8 +74,7 @@ class RigModuleDataIO:
 
         self.prefab_module_data = PrefabModuleData(
             prefab_key=self.rig_module.rig_module_type,
-            side=self.rig_module.side,
-            is_driven_side=self.rig_module.is_driven_side
+            side=self.rig_module.side
         )
 
 
@@ -92,7 +90,6 @@ class RigModuleDataIO:
             'rig_module_type': pm.getAttr(f'{module_node}.ModuleType'),
             'name': pm.getAttr(f'{module_node}.ModuleNameParticle'),
             'side': pm.getAttr(f'{module_node}.Side'),
-            'is_driven_side': pm.getAttr(f'{module_node}.IsDrivenSide'),
             'drive_target': self.get_driver_placers_in_module(module_node),
             'draw_connections': self.get_drawn_connections(module_node),
             'position': [round(i, decimal_count) for i in mc.getAttr(f'{module_ctrl}.translate')[0]],
@@ -123,7 +120,6 @@ class RigModuleDataIO:
         IO_data_fields = (('rig_module_type', self.rig_module.rig_module_type),
                           ('name', self.rig_module.name),
                           ('side', self.rig_module.side),
-                          ('is_driven_side', self.rig_module.is_driven_side),
                           ('drive_target', self.rig_module.drive_target),
                           ('position', self.rig_module.position),
                           ('rotation', self.rig_module.rotation),

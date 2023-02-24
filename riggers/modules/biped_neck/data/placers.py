@@ -25,7 +25,7 @@ Placer = classPlacer.Placer
 
 
 
-def create_placers(side=None, is_driven_side=None):
+def create_placers(side=None):
 
 
     placers = (

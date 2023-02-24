@@ -36,7 +36,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None):
+def create_ctrl_data(side=None):
 
     ctrl_data = {
         'ik_chest': ControlData(

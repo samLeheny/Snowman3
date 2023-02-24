@@ -38,7 +38,7 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 
 
 
-def create_ctrl_data(side=None, is_driven_side=None):
+def create_ctrl_data(side=None):
 
     ctrl_data = {
 
@@ -52,7 +52,6 @@ def create_ctrl_data(side=None, is_driven_side=None):
             orientation = {'match_to': 'module_ctrl'},
             locks = {"v": 1},
             side = side,
-            is_driven_side = is_driven_side,
             match_transform = 'clavicle'
         ),
 

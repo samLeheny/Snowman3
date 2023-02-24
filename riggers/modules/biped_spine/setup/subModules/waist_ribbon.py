@@ -36,7 +36,7 @@ nom = nameConventions.create_dict()
 
 
 ########################################################################################################################
-def install(spine_module, symmetry):
+def install(spine_module):
 
     spine_placers = spine_module.placers
 

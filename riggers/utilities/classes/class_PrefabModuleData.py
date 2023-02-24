@@ -28,13 +28,11 @@ class PrefabModuleData:
         self,
         prefab_key,
         prefab_module_dir = prefabs_dir,
-        side = None,
-        is_driven_side = False
+        side = None
     ):
         self.prefab_dir = prefab_module_dir
         self.prefab_key = prefab_key
         self.side = side
-        self.is_driven_side = is_driven_side
         self.bespoke_setup = None
         self.placers = None
         self.ctrl_data = None
@@ -60,12 +58,12 @@ class PrefabModuleData:
     ####################################################################################################################
     def get_placers(self):
         m = self.find_py_module('data.placers')
-        self.placers = m.create_placers(side=self.side, is_driven_side=self.is_driven_side)
+        self.placers = m.create_placers(side=self.side)
         return self.placers
 
 
     ####################################################################################################################
     def get_ctrl_data(self):
         m = self.find_py_module('data.ctrl_data')
-        self.ctrl_data = m.create_ctrl_data(side=self.side, is_driven_side=self.is_driven_side)
+        self.ctrl_data = m.create_ctrl_data(side=self.side)
         return self.ctrl_data
