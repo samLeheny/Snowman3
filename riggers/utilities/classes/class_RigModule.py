@@ -52,16 +52,15 @@ class RigModule:
     def __init__(
         self,
         name = None,
-        armature_module = None,
         module_tag = None,
         body_pieces = None,
         ctrl_data = None,
         side = None,
         piece_keys = None,
         rig_module_type = None,
+        placer_data = None,
     ):
         self.name = gen_utils.get_clean_name(name)
-        self.armature_module = armature_module
         self.body_pieces = body_pieces
         self.rig_module_type = rig_module_type
         self.side = side
@@ -86,6 +85,7 @@ class RigModule:
         self.settings_ctrl = None
         self.mConstruct = None
         self.socket = {}
+        self.placer_data = placer_data
 
 
 
@@ -96,7 +96,7 @@ class RigModule:
     --------------------------------------------------------------------------------------------------------------------
     create_rig_module_grp
     get_armature_placers
-    get_armature_orienters
+    create_orienters
     get_setup_module_ctrl
     populate_rig_module
     --------------------------------------------------------------------------------------------------------------------
@@ -134,13 +134,29 @@ class RigModule:
 
 
     ####################################################################################################################
-    def get_armature_orienters(self):
+    def create_orienters(self):
 
-        armature_placers = amtr_utils.get_placers_in_module(self.armature_module)
+        orienters = []
+        placers = {}
+
+        class Placer:
+            def __init__(self, name, position, side=None):
+                name=name,
+                side=side,
+                position=position
+
+        for placer_key, data in self.placer_data.items():
+            placers[placer_key] = Placer(name=data['name'], side=data['side'], position=data['position'])
+
+        for p in placers.items():
+            print(p)
+
+
+        '''armature_placers = amtr_utils.get_placers_in_module(self.armature_module)
 
         for placer in armature_placers.values():
             key = pm.getAttr(f'{placer}.PlacerTag')
-            self.orienters[key] = pm.listConnections(f'{placer}.OrienterNode', s=1, d=0)[0]
+            self.orienters[key] = pm.listConnections(f'{placer}.OrienterNode', s=1, d=0)[0]'''
 
 
 
@@ -168,15 +184,14 @@ class RigModule:
         build_script = importlib.import_module(dir_string['module_build'].format(self.rig_module_type))
         importlib.reload(build_script)
 
-        exception_types = ['root']
-        if self.module_tag not in exception_types:
+        '''exception_types = ['root']
+        if self.module_tag not in exception_types:'''
 
-            #...Create biped_spine rig group
-            self.create_rig_module_grp(parent=rig_parent)
-            #...Get orienters from armature
-            self.get_armature_orienters()
-
-            self.get_setup_module_ctrl()
+        #...Create rig group
+        self.create_rig_module_grp(parent=rig_parent)
+        #...Get orienters from armature
+        self.create_orienters()
+        '''self.get_setup_module_ctrl()'''
 
         self.mConstruct = build_script.build(rig_module=self, rig_parent=rig_parent)
 

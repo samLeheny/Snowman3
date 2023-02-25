@@ -161,7 +161,8 @@ class Rig:
         for module_name in module_roster:
             io = RigModuleIO(dirpath=dirpath+'/rig_modules/'+module_name)
             module = io.get_module_data_from_file()
-            self.armature_modules[list(module.keys())[0]] = list(module.values())[0]
+            module_key, module_data = list(module.keys())[0], list(module.values())[0]
+            self.armature_modules[module_key] = module_data
 
         ###self.armature_modules = amtr_utils.get_modules_in_armature(self.armature)
 
@@ -213,28 +214,24 @@ class Rig:
     ####################################################################################################################
     def populate_rig(self, dirpath):
 
-        print('*'*120)
-        print(f"Building rig modules...\n")
+        print(f"{'*'*120}\nBuilding rig modules...\n")
 
         #...Get information from armature
         self.create_root_groups()
         self.get_armature_modules(dirpath)
-        ###self.get_module_types()
 
-        #...Get modules data from armature
+        #...Get modules data from file
         for module_key in self.armature_modules:
-            print(f"CREATE MODULE: {module_key}")
-
-            '''armature_module = self.get_armature_module_mObj(module_key=module_key)
+            module = self.armature_modules[module_key]
             self.modules[module_key] = RigModule(
-                name = pm.getAttr(f'{armature_module}.ModuleNameParticle'),
-                rig_module_type = self.module_types[module_key],
-                armature_module = armature_module,
-                side = pm.getAttr(f'{armature_module}.Side'),
-                piece_keys = amtr_utils.get_piece_keys_from_module(armature_module))'''
+                name = module['name'],
+                rig_module_type = module['rig_module_type'],
+                side = module['side'],
+                placer_data = module['placers'])
+
 
         #...Build modules in scene
-        '''[module.populate_rig_module(rig_parent=self.rig_grp) for module in self.modules.values()]'''
+        [module.populate_rig_module(rig_parent=self.rig_grp) for module in self.modules.values()]
 
         #...Compose dictionary of sided modules (left and right)
         '''for key, module in self.modules.items():
