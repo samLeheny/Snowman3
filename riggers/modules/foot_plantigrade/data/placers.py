@@ -60,6 +60,8 @@ def create_placers(side=None, placer_size=1.25, ground_coord=-10):
             side = side,
             position = (0, -7.5, 16.73),
             size = placer_size,
+            vector_handle_data={"aim": {"coord": (0, 0, 1)},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data = {"match_to" : "ball"},
             connect_targets = ("ball",)
         ),
@@ -70,6 +72,8 @@ def create_placers(side=None, placer_size=1.25, ground_coord=-10):
             side = side,
             position = (0, ground_coord, 11.8),
             size = placer_size * 0.55,
+            vector_handle_data={"aim": {"coord": (0, 0, 1)},
+                                "up": {"coord": (0, 1, 0)}},
         ),
 
 
@@ -78,6 +82,8 @@ def create_placers(side=None, placer_size=1.25, ground_coord=-10):
             side = side,
             position = (0, ground_coord, 19),
             size = placer_size * 0.55,
+            vector_handle_data={"aim": {"coord": (0, 0, 1)},
+                                "up": {"coord": (0, 1, 0)}},
         ),
 
 
@@ -86,6 +92,8 @@ def create_placers(side=None, placer_size=1.25, ground_coord=-10):
             side = side,
             position = (-4.5, ground_coord, 11.8),
             size = placer_size * 0.55,
+            vector_handle_data={"aim": {"coord": (0, 0, 1)},
+                                "up": {"coord": (0, 1, 0)}},
         ),
 
 
@@ -94,6 +102,8 @@ def create_placers(side=None, placer_size=1.25, ground_coord=-10):
             side = side,
             position = (4.5, ground_coord, 11.8),
             size = placer_size * 0.55,
+            vector_handle_data={"aim": {"coord": (0, 0, 1)},
+                                "up": {"coord": (0, 1, 0)}},
         ),
 
 
@@ -102,6 +112,8 @@ def create_placers(side=None, placer_size=1.25, ground_coord=-10):
             side = side,
             position = (0, ground_coord, -4),
             size = placer_size * 0.55,
+            vector_handle_data={"aim": {"coord": (0, 0, 1)},
+                                "up": {"coord": (0, 1, 0)}},
         )
 
     )

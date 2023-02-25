@@ -48,6 +48,8 @@ def create_placers(side=None):
             position = (12, 0, 0),
             size = 1.25,
             orienter_data = {"match_to" : "clavicle"},
+            vector_handle_data={"aim": {"coord": (0, 0, 5)},
+                                "up": {"coord": (0, 5, 0)}},
             connect_targets=("clavicle",)
         )
 
