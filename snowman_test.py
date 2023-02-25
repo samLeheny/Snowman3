@@ -14,8 +14,8 @@ importlib.reload(class_blueprint_IO)
 BlueprintDataIO = class_blueprint_IO.BlueprintDataIO
 
 # ...File directory path
-dirpath = r'C:\Users\User\Desktop'
-#dirpath = r'C:\Users\61451\Desktop'
+#dirpath = r'C:\Users\User\Desktop'
+dirpath = r'C:\Users\61451\Desktop'
 
 # ...New scene
 mc.file(new=True, f=True)

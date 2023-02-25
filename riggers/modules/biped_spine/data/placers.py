@@ -95,7 +95,10 @@ def create_placers(side=None):
             name = "spine_6",
             position = (0, 49, 0),
             size = 1.25,
-            orienter_data = {"match_to" : "spine_5"},
+            vector_handle_data={"aim": {"coord": (0, 5, 0)},
+                                "up": {"coord": (5, 0, 0)}},
+            orienter_data = {"aim_vector" : (0, 1 ,0),
+                             "up_vector" : (1, 0, 0)},
             connect_targets = ("spine_5",)
         ),
 
