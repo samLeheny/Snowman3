@@ -76,6 +76,8 @@ def create_placers(side=None):
             side = side,
             position = (0, -101, 0),
             size = 1,
+            vector_handle_data={"aim": {"coord": (0, 0, 1)},
+                                "up": {"coord": (0, 1, 0)}},
             orienter_data = {"match_to" : "calf_end"},
             connect_targets=("calf_end",)
         ),
@@ -86,6 +88,8 @@ def create_placers(side=None):
             side = side,
             pv_distance = 50,
             size = 1.25,
+            vector_handle_data={"aim": {"coord": (0, 0, 1)},
+                                "up": {"coord": (0, 1, 0)}},
         )
 
     )
