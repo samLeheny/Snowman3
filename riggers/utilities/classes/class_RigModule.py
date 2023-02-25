@@ -141,15 +141,29 @@ class RigModule:
 
         class Placer:
             def __init__(self, name, position, side=None):
-                name=name,
-                side=side,
-                position=position
+                self.name = name
+                self.side = side
+                self.position = position
+                self.aim_vector = None
+                self.up_vector = None
+
+            def get_orienter(self):
+                side_tag = f'{self.side}_' if self.side else ''
+                placer = pm.PyNode(f'::{side_tag}{self.name}_PLC')
+                aim_handle = pm.PyNode(f'::{side_tag}{self.name}_AIM')
+                up_handle = pm.PyNode(f'::{side_tag}{self.name}_UP')
+                placer_position = pm.xform(placer, q=1, rotatePivot=1, worldSpace=1)
+                aim_position = pm.xform(aim_handle, q=1, rotatePivot=1, worldSpace=1)
+                up_position = pm.xform(up_handle, q=1, rotatePivot=1, worldSpace=1)
+                self.aim_vector = [aim_position[i]-placer_position[i] for i in range(3)]
+                self.up_vector = [up_position[i]-placer_position[i] for i in range(3)]
 
         for placer_key, data in self.placer_data.items():
             placers[placer_key] = Placer(name=data['name'], side=data['side'], position=data['position'])
+            placers[placer_key].get_orienter()
 
         for p in placers.items():
-            print(p)
+            print(p[1].aim_vector)
 
 
         '''armature_placers = amtr_utils.get_placers_in_module(self.armature_module)
