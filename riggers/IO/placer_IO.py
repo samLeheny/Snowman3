@@ -8,10 +8,15 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import pymel.core as pm
 
 import Snowman3.riggers.IO.data_IO as classDataIO
 importlib.reload(classDataIO)
 DataIO = classDataIO.DataIO
+
+import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
+importlib.reload(classPlacer)
+Placer = classPlacer.Placer
 ###########################
 ###########################
 
@@ -36,6 +41,23 @@ class PlacerDataIO( DataIO ):
     ):
         super().__init__(data=data, dirpath=dirpath, file_name=file_name)
         self.placers = placers
+
+
+    ####################################################################################################################
+    def get_placers_from_data(self):
+        self.placers = []
+        for key, data in self.data.items():
+            placer = Placer(
+                name = data['name'],
+                side = data['side'],
+                position = data['position'],
+                size = data['size'],
+                vector_handle_data = data['vector_handle_data'],
+                orienter_data = data['orienter_data'],
+                connect_targets = data['connect_targets']
+            )
+            self.placers.append(placer)
+        return self.placers
 
 
 

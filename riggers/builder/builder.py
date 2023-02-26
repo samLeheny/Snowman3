@@ -169,24 +169,14 @@ class RigBuilder:
         with open(self.dirpath+'/module_roster.json', 'r') as fh:
             module_roster = json.load(fh)
         for module_key in module_roster:
-            module_placers = []
             module_directory = self.dirpath + '/rig_modules/' + module_key
             with open(module_directory + '/placers.json', 'r') as fh:
                 placers_data = json.load(fh)
-            for key, data in placers_data.items():
-                placer = Placer(
-                    name = data['name'],
-                    side = data['side'],
-                    position = data['position'],
-                    size = data['size'],
-                    vector_handle_data = data['vector_handle_data'],
-                    orienter_data = data['orienter_data'],
-                    connect_targets = data['connect_targets']
-                )
-                side_tag = f"{placer.side}_" if placer.side else ''
-                placer_string = f"::{side_tag}{placer.name}_PLC"
-                scene_placer = pm.PyNode(placer_string)
-                placer.position = list(scene_placer.translate.get())
-                module_placers.append(placer)
+                placers_IO = PlacerDataIO(data=placers_data)
+                module_placers = placers_IO.get_placers_from_data()
+
+            for i, p in enumerate(module_placers):
+                module_placers[i].get_scene_placer()
+                module_placers[i].update_data_from_scene()
             placers_IO = PlacerDataIO(placers=module_placers, dirpath=module_directory)
             placers_IO.save()

@@ -262,3 +262,29 @@ class Placer:
                            default_value=str(self.connect_targets))
 
         pm.addAttr(self.mobject, longName="ReceivedConnectors", dataType="string", keyable=0)
+
+
+
+    ####################################################################################################################
+    def get_scene_placer(self):
+        placer_string = f"::{self.side_tag}{self.name}_PLC"
+        self.mobject = pm.PyNode(placer_string)
+
+
+
+    ####################################################################################################################
+    def update_data_from_scene(self):
+        self.update_position_from_scene()
+        self.update_size_from_scene()
+
+
+
+    ####################################################################################################################
+    def update_position_from_scene(self):
+        self.position = list(self.mobject.translate.get())
+
+
+
+    ####################################################################################################################
+    def update_size_from_scene(self):
+        self.size = pm.getAttr(f'{self.mobject}.Size')
