@@ -34,26 +34,28 @@ LimbRig = class_LimbRig.LimbRig
 #def build(rig_module, rig_parent=None, rig_space_connector=None, settings_ctrl_parent=None):
 def build(rig_module, rig_parent=None):
 
-    orienters = rig_module.orienters
+    placers = rig_module.placers
     side_tag = rig_module.side_tag
 
 
     #...Create limb rig -----------------------------------------------------------------------------------------------
-    limb_rig = LimbRig(limb_name = rig_module.name,
-                       side = rig_module.side,
-                       prefab = 'plantigrade',
-                       segment_names = ['upperarm', 'lowerarm', 'hand'],
-                       socket_name = 'shoulder',
-                       pv_name = 'elbow',
-                       jnt_positions = [pm.xform(orienters[n], q=1, ws=1, rp=1) for n in
-                                        ('upperarm', 'lowerarm', 'lowerarm_end', 'wrist_end')],
-                       pv_position = pm.xform(orienters['ik_elbow'], q=1, ws=1, rp=1)
-                       )
+    limb_rig = LimbRig(
+        limb_name = rig_module.name,
+        side = rig_module.side,
+        prefab = 'plantigrade',
+        segment_names = ['upperarm', 'lowerarm', 'hand'],
+        socket_name = 'shoulder',
+        pv_name = 'elbow',
+        jnt_positions = [placers[p].world_position for p in ('upperarm', 'lowerarm', 'lowerarm_end', 'wrist_end')],
+        pv_position = placers['ik_elbow'].world_position
+    )
 
     #...Conform LimbRig's PV ctrl orientation to that of PV orienter
     pv_ctrl_buffer = limb_rig.ctrls['ik_pv'].getParent()
-    pm.delete(pm.orientConstraint(orienters['ik_elbow'], pv_ctrl_buffer))
-    pm.delete(pm.scaleConstraint(orienters['ik_elbow'], pv_ctrl_buffer))
+    world_pos = placers['ik_elbow'].world_position
+    pv_ctrl_buffer.rotate.set(placers['ik_elbow'].orientation)
+    ###pm.delete(pm.orientConstraint(placers['ik_elbow'], pv_ctrl_buffer))
+    ###pm.delete(pm.scaleConstraint(placers['ik_elbow'], pv_ctrl_buffer))
 
     #...Move contents of limb rig into biped_arm rig module's groups
     [child.setParent(rig_module.transform_grp) for child in limb_rig.grps['transform'].getChildren()]

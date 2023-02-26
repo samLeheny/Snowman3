@@ -80,7 +80,7 @@ def build(rig_module, rig_parent=None):
     ik_ctrls_grp = pm.group(name="ik_spine_ctrls", em=1, p=rig_module.no_transform_grp)
 
     #...FK
-    fk_ribbon = build_fk_ribbon.build(rig_module.transform_grp, ctrls, rig_module.orienters, ribbon_parent=ribbons_grp)
+    fk_ribbon = build_fk_ribbon.build(rig_module.transform_grp, ctrls, rig_module.placers, ribbon_parent=ribbons_grp)
     #...IK Translate
     ik_translate_ribbon = build_ik_translate_ribbon.build(ctrls, fk_ribbon["nurbsPlane"], ribbon_parent=ribbons_grp,
                                                           ik_parent=ik_ctrls_grp)

@@ -42,10 +42,10 @@ importlib.reload(ikFoot)
 
 
 ########################################################################################################################
-#def build(rig_module, rig_parent=None, settings_ctrl=None, foot_roll_ctrl=None):
 def build(rig_module, rig_parent=None):
 
     side_prefix = f'{rig_module.side}_' if rig_module.side else ''
+    placers = rig_module.placers
 
     rig_module.foot_attr_loc = pm.spaceLocator(name=f'{side_prefix}foot_attr_LOC')
     rig_module.leg_attr_loc = pm.spaceLocator(name=f'{side_prefix}leg_attr_LOC')
@@ -94,15 +94,16 @@ def build(rig_module, rig_parent=None):
 
     for i in range(len(bind_jnt_keys)):
         key = bind_jnt_keys[i]
+        world_pos = placers[key].world_position
         if i == 0:
-            pm.matchTransform(bind_chain_buffer, rig_module.orienters[key])
+            pm.move(world_pos[0], world_pos[1], world_pos[2], bind_chain_buffer)
         else:
-            pm.matchTransform(bind_jnts[key], rig_module.orienters[key])
+            pm.move(world_pos[0], world_pos[1], world_pos[2], bind_jnts[key])
 
 
     #...IK rig
     ik_foot_rig = ikFoot.build(side=rig_module.side, parent=rig_module.transform_grp, bind_jnt_keys=bind_jnt_keys,
-                               orienters=rig_module.orienters, ctrls=ctrls, foot_roll_ctrl=rig_module.foot_attr_loc)
+                               placers=rig_module.placers, ctrls=ctrls, foot_roll_ctrl=rig_module.foot_attr_loc)
     rig_module.ik_connector = ik_foot_rig["ik_connector"]
     ###rig_module.ik_chain_connector = ik_foot_rig["ik_chain_connector"]
     ik_jnts = rig_module.ik_jnts = ik_foot_rig["ik_jnts"]
@@ -112,7 +113,7 @@ def build(rig_module, rig_parent=None):
 
     #...FK rig
     fk_foot_rig = fkFoot.build(side=rig_module.side, parent=rig_module.transform_grp,
-                               ankle_orienter=rig_module.orienters["foot"], fk_toe_ctrl=ctrls["fk_toe"])
+                               ankle_placer=placers["foot"], fk_toe_ctrl=ctrls["fk_toe"])
     ### rig_module.fk_root_input = fk_foot_rig["fk_root_input"]
 
 

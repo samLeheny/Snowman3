@@ -37,7 +37,7 @@ body_module_type = "foot_plantigrade"
 
 
 ########################################################################################################################
-def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None, foot_roll_ctrl=None):
+def build(side=None, parent=None, bind_jnt_keys=None, placers=None, ctrls=None, foot_roll_ctrl=None):
 
 
     side_tag = f'{side}_' if side else ''
@@ -47,7 +47,8 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     #...IK joints -----------------------------------------------------------------------------------------------------
     ik_connector = pm.group(name=f'{side_tag}ikConnector', em=1, p=parent)
     gen_utils.zero_out(ik_connector)
-    pm.delete(pm.pointConstraint(orienters['foot'], ik_connector))
+    foot_pos = placers['foot'].world_position
+    pm.move(foot_pos[0], foot_pos[1], foot_pos[2], ik_connector)
 
     ik_jnts = {}
     ik_chain_buffer = None
@@ -61,10 +62,11 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     gen_utils.zero_out(ik_chain_buffer)
 
     for i, key in enumerate(bind_jnt_keys):
+        pos = placers[key].world_position
         if i == 0:
-            pm.matchTransform(ik_chain_buffer, orienters[key])
+            pm.move(pos[0], pos[1], pos[2], ik_chain_buffer)
         else:
-            pm.matchTransform(ik_jnts[key], orienters[key])
+            pm.move(pos[0], pos[1], pos[2], ik_jnts[key])
             rig_utils.joint_rot_to_ori(ik_jnts[key])
 
 
@@ -88,7 +90,8 @@ def build(side=None, parent=None, bind_jnt_keys=None, orienters=None, ctrls=None
     foot_roll_placer_keys = ("sole_heel", "sole_toe", "sole_outer", "sole_inner", "sole_toe_end", "ball", "foot")
 
     for placer_key, roll_key in zip(foot_roll_placer_keys, foot_roll_keys):
-        pm.delete(pm.pointConstraint(orienters[placer_key], foot_roll_jnts[roll_key]))
+        pos = placers[placer_key].world_position
+        pm.move(pos[0], pos[1], pos[2], foot_roll_jnts[roll_key])
 
     ctrls["ik_toe"].setParent(foot_roll_jnts["toeTip"])
 

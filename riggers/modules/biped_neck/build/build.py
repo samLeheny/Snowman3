@@ -10,8 +10,8 @@
 import importlib
 import pymel.core as pm
 
-import Snowman3.utilities.general_utils as gen_utils
-importlib.reload(gen_utils)
+import Snowman3.utilities.general_utils as gen
+importlib.reload(gen)
 
 import Snowman3.utilities.node_utils as node_utils
 importlib.reload(node_utils)
@@ -60,18 +60,18 @@ def build(rig_module, rig_parent=None):
     ctrls['settings'].setParent(rig_module.transform_grp)
 
     ctrls['neck'].setParent(rig_module.transform_grp)
-    gen_utils.buffer_obj(ctrls['neck'])
+    gen.buffer_obj(ctrls['neck'])
 
     up_obj = pm.spaceLocator(name=f'neckRibbon_up_{nom.locator}')
     up_obj.setParent(ctrls['neck'])
-    gen_utils.zero_out(up_obj)
-    up_obj.tz.set(gen_utils.distance_between(obj_1=ctrls['neck'], obj_2=ctrls['head']))
+    gen.zero_out(up_obj)
+    up_obj.tz.set(gen.distance_between(obj_1=ctrls['neck'], obj_2=ctrls['head']))
     up_obj.setParent(rig_module.transform_grp)
     temp_nodes_to_delete.append(up_obj)
 
 
     ctrls['head'].setParent(ctrls['neck'])
-    gen_utils.buffer_obj(ctrls['head'])
+    gen.buffer_obj(ctrls['head'])
 
 
 
@@ -80,7 +80,7 @@ def build(rig_module, rig_parent=None):
     jnts = {"head": rig_utils.joint(name="head", joint_type=nom.bindJnt, radius=1.25, side=rig_module.side)}
 
     jnts["head"].setParent(ctrls["head"])
-    gen_utils.zero_out(jnts["head"])
+    gen.zero_out(jnts["head"])
 
 
     #...
@@ -94,19 +94,20 @@ def build(rig_module, rig_parent=None):
 
     stretch_socket = pm.shadingNode("transform", name="stretch_socket_start", au=1)
     stretch_socket.setParent(temp_neck_aimer)
-    gen_utils.zero_out(stretch_socket)
+    gen.zero_out(stretch_socket)
     stretch_socket.setParent(ctrls["neck"])
 
     stretch_out_socket = pm.shadingNode("transform", name="stretch_socket_end", au=1)
     stretch_out_socket.setParent(ctrls["head"])
-    gen_utils.zero_out(stretch_out_socket)
+    gen.zero_out(stretch_out_socket)
     pm.delete(pm.orientConstraint(temp_neck_aimer, stretch_out_socket))
 
 
     #...Roll joint system ---------------------------------------------------------------------------------------------
     pm.addAttr(ctrls["settings"], longName="NeckLen", attributeType="float", minValue=0.001, defaultValue=1, keyable=1)
     #...Rollers
-    neck_length = gen_utils.distance_between(obj_1=rig_module.orienters['neck'], obj_2=rig_module.orienters['head'])
+    neck_length = gen.distance_between(position_1=rig_module.placers['neck'].world_position,
+                                       position_2=rig_module.placers['head'].world_position)
     bend_ctrl_size = neck_length * 0.5
     neck_roller = rig_utils.limb_rollers(start_node = stretch_socket,
                                          end_node = stretch_out_socket,
@@ -140,8 +141,7 @@ def build(rig_module, rig_parent=None):
 
     #...Tweak ctrls
     neck_length = node_utils.multDoubleLinear(input1=ctrls["settings"] + "." + "NeckLen",
-                                              input2= gen_utils.distance_between(obj_1=ctrls["neck"],
-                                                                                 obj_2=ctrls["head"]))
+                                              input2= gen.distance_between(obj_1=ctrls["neck"], obj_2=ctrls["head"]))
 
 
 
@@ -187,15 +187,15 @@ def build(rig_module, rig_parent=None):
         ctrl_data[key].finalize_anim_ctrl(delete_existing_shapes=True)'''
 
 
-    [gen_utils.zero_offsetParentMatrix(ctrl) for ctrl in ctrls.values()]
+    [gen.zero_offsetParentMatrix(ctrl) for ctrl in ctrls.values()]
 
 
 
 
     #...Attach neck rig to greater rig --------------------------------------------------------------------------------
     '''if rig_space_connector:
-        gen_utils.matrix_constraint(objs=[rig_space_connector, rig_connector], decompose=True,
-                                    translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
+        gen.matrix_constraint(objs=[rig_space_connector, rig_connector], decompose=True,
+                              translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
 
 
 

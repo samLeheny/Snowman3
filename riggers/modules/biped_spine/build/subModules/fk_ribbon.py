@@ -37,13 +37,13 @@ nom = nameConventions.create_dict()
 
 
 ########################################################################################################################
-def build(parent, ctrls, orienters, ribbon_parent):
+def build(parent, ctrls, placers, ribbon_parent):
 
 
     # FK nurbs plane ------------------------------------------------------------------------------------------------------
-    setup_ribbon = pm.PyNode("{}:spineRibbon_SURF".format(nom.setupRigNamespace))
+    setup_ribbon = pm.PyNode(f'{nom.setupRigNamespace}:spineRibbon_SURF')
 
-    fk_ribbon = pm.duplicate(setup_ribbon, name="spineRibbon_FK_SURF")[0]
+    fk_ribbon = pm.duplicate(setup_ribbon, name='spineRibbon_FK_SURF')[0]
     for attr in gen_utils.all_transform_attrs:
         pm.setAttr(f'{fk_ribbon}.{attr}', lock=0)
     fk_ribbon.setParent(world=1)
@@ -109,7 +109,9 @@ def build(parent, ctrls, orienters, ribbon_parent):
     fk_4_jnt.setParent(ctrls["fk_spine_3"])
 
     fk_4_inv_jnt = rig_utils.joint(name="FK_4_inv", joint_type=nom.nonBindJnt, radius=1)
-    pm.delete(pm.pointConstraint(orienters["spine_6"], fk_4_inv_jnt))
+    world_pos = placers['spine_6'].world_position
+    pm.move(world_pos[0], world_pos[1], world_pos[2], fk_4_inv_jnt)
+    ###pm.delete(pm.pointConstraint(placers["spine_6"], fk_4_inv_jnt))
     fk_4_inv_jnt.setParent(ctrls["fk_spine_3"])
 
     buffer = gen_utils.buffer_obj(ctrls["fk_spine_3"])

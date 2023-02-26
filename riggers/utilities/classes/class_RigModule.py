@@ -134,36 +134,34 @@ class RigModule:
 
 
     ####################################################################################################################
-    def create_orienters(self):
-
-        orienters = []
-        placers = {}
+    def create_placers(self):
 
         class Placer:
             def __init__(self, name, position, side=None):
                 self.name = name
                 self.side = side
                 self.position = position
+                self.world_position = None
                 self.aim_vector = None
                 self.up_vector = None
+                self.orientation = None
 
-            def get_orienter(self):
+            def get_orientation(self):
                 side_tag = f'{self.side}_' if self.side else ''
                 placer = pm.PyNode(f'::{side_tag}{self.name}_PLC')
                 aim_handle = pm.PyNode(f'::{side_tag}{self.name}_AIM')
                 up_handle = pm.PyNode(f'::{side_tag}{self.name}_UP')
-                placer_position = pm.xform(placer, q=1, rotatePivot=1, worldSpace=1)
+                self.world_position = pm.xform(placer, q=1, rotatePivot=1, worldSpace=1)
                 aim_position = pm.xform(aim_handle, q=1, rotatePivot=1, worldSpace=1)
                 up_position = pm.xform(up_handle, q=1, rotatePivot=1, worldSpace=1)
-                self.aim_vector = [aim_position[i]-placer_position[i] for i in range(3)]
-                self.up_vector = [up_position[i]-placer_position[i] for i in range(3)]
+                self.aim_vector = [aim_position[i]-self.world_position[i] for i in range(3)]
+                self.up_vector = [up_position[i]-self.world_position[i] for i in range(3)]
+                self.orientation = gen_utils.vectors_to_euler(aim_vector=self.aim_vector, up_vector=self.up_vector,
+                                                              aim_axis=(0, 0, 1), up_axis=(0, 1, 0), rotation_order=0)
 
         for placer_key, data in self.placer_data.items():
-            placers[placer_key] = Placer(name=data['name'], side=data['side'], position=data['position'])
-            placers[placer_key].get_orienter()
-
-        for p in placers.items():
-            print(p[1].aim_vector)
+            self.placers[placer_key] = Placer(name=data['name'], side=data['side'], position=data['position'])
+            self.placers[placer_key].get_orientation()
 
 
         '''armature_placers = amtr_utils.get_placers_in_module(self.armature_module)
@@ -203,9 +201,9 @@ class RigModule:
 
         #...Create rig group
         self.create_rig_module_grp(parent=rig_parent)
-        #...Get orienters from armature
-        self.create_orienters()
-        '''self.get_setup_module_ctrl()'''
+        #...Create placers
+        self.create_placers()
+        self.get_setup_module_ctrl()
 
         self.mConstruct = build_script.build(rig_module=self, rig_parent=rig_parent)
 

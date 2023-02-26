@@ -41,25 +41,26 @@ importlib.reload(foot_world_orientation)
 #def build(rig_module=None, rig_parent=None, rig_space_connector=None, ctrl_parent=None, include_fk_foot_rot=False):
 def build(rig_module, rig_parent=None):
 
-    orienters = rig_module.orienters
+    placers = rig_module.placers
 
 
     #...Create limb rig -----------------------------------------------------------------------------------------------
-    limb_rig = LimbRig(limb_name=rig_module.name,
-                       side=rig_module.side,
-                       prefab='plantigrade',
-                       segment_names=['thigh', 'calf', 'foot'],
-                       socket_name='hip',
-                       pv_name='knee',
-                       jnt_positions=[pm.xform(orienters[n], q=1, ws=1, rp=1) for n in
-                                      ('thigh', 'calf', 'calf_end', 'ankle_end')],
-                       pv_position=pm.xform(orienters['ik_knee'], q=1, ws=1, rp=1)
-                       )
+    limb_rig = LimbRig(
+        limb_name=rig_module.name,
+        side=rig_module.side,
+        prefab='plantigrade',
+        segment_names=['thigh', 'calf', 'foot'],
+        socket_name='hip',
+        pv_name='knee',
+        jnt_positions=[placers[p].world_position for p in ('thigh', 'calf', 'calf_end', 'ankle_end')],
+        pv_position=placers['ik_knee'].world_position
+    )
 
     #...Conform LimbRig's PV ctrl orientation to that of PV orienter
     pv_ctrl_buffer = limb_rig.ctrls['ik_pv'].getParent()
-    pm.delete(pm.orientConstraint(orienters['ik_knee'], pv_ctrl_buffer))
-    pm.delete(pm.scaleConstraint(orienters['ik_knee'], pv_ctrl_buffer))
+    pv_ctrl_buffer.rotate.set(placers['ik_knee'].orientation)
+    ###pm.delete(pm.orientConstraint(placers['ik_knee'], pv_ctrl_buffer))
+    ###pm.delete(pm.scaleConstraint(placers['ik_knee'], pv_ctrl_buffer))
 
     #...Move contents of limb rig into biped_leg rig module's groups
     [child.setParent(rig_module.transform_grp) for child in limb_rig.grps['transform'].getChildren()]

@@ -27,7 +27,7 @@ importlib.reload(gen_utils)
 
 
 ########################################################################################################################
-def build(side=None, parent=None, ankle_orienter=None, fk_toe_ctrl=None):
+def build(side=None, parent=None, ankle_placer=None, fk_toe_ctrl=None):
 
 
     side_tag = f'{side}_' if side else ''
@@ -35,7 +35,8 @@ def build(side=None, parent=None, ankle_orienter=None, fk_toe_ctrl=None):
 
     fk_foot_space = pm.shadingNode('transform', name=f'{side_tag}fkFoot_space', au=1)
     fk_foot_space.setParent(parent)
-    pm.matchTransform(fk_foot_space, ankle_orienter)
+    world_pos = ankle_placer.world_position
+    pm.move(world_pos[0], world_pos[1], world_pos[2], fk_foot_space)
 
     fk_toe_ctrl.setParent(fk_foot_space)
 
