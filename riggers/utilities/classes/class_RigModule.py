@@ -34,11 +34,6 @@ PrefabModuleData = classPrefabModuleData.PrefabModuleData
 
 ###########################
 ######## Variables ########
-vis_switch_enum_strings = {
-    "placers" : "PlacersVis",
-    "orienters" : "OrientersVis",
-    "controls" : "ControlsVis"
-}
 dir_string = {"module_build": "Snowman3.riggers.modules.{}.build.build"}
 ###########################
 ###########################
@@ -52,26 +47,17 @@ class RigModule:
     def __init__(
         self,
         name = None,
-        module_tag = None,
-        body_pieces = None,
         ctrl_data = None,
         side = None,
-        piece_keys = None,
         rig_module_type = None,
         placer_data = None,
     ):
         self.name = gen_utils.get_clean_name(name)
-        self.body_pieces = body_pieces
         self.rig_module_type = rig_module_type
         self.side = side
         self.side_tag = f'{self.side}_' if self.side else ''
-        self.module_tag = module_tag if module_tag else self.side_tag+self.name
         self.placer_color = ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
-        self.piece_keys = piece_keys
-        self.prefab_module_data = PrefabModuleData(
-            prefab_key=self.rig_module_type,
-            side=self.side
-        )
+        self.prefab_module_data = PrefabModuleData(prefab_key=self.rig_module_type, side=self.side)
 
         self.rig_module_grp = None
         self.no_transform_grp = None
@@ -80,14 +66,8 @@ class RigModule:
         self.setup_module_ctrl = self.get_setup_module_ctrl()
         self.ctrl_data = ctrl_data if ctrl_data else self.prefab_module_data.ctrl_data
         self.placers = {}
-        self.pv_placers = {}
-        self.orienters = {}
-        self.settings_ctrl = None
         self.mConstruct = None
-        self.socket = {}
         self.placer_data = placer_data
-
-
 
 
 
@@ -95,15 +75,12 @@ class RigModule:
     --------- METHODS --------------------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
     create_rig_module_grp
-    get_armature_placers
-    create_orienters
+    create_placers
     get_setup_module_ctrl
     populate_rig_module
     --------------------------------------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
     """
-
-
 
 
 
@@ -128,8 +105,6 @@ class RigModule:
         # --------------------------------------------------------------------------------------------------------------
         pm.select(clear=1)
         return self.rig_module_grp
-
-
 
 
 
@@ -164,29 +139,15 @@ class RigModule:
             self.placers[placer_key].get_orientation()
 
 
-        '''armature_placers = amtr_utils.get_placers_in_module(self.armature_module)
-
-        for placer in armature_placers.values():
-            key = pm.getAttr(f'{placer}.PlacerTag')
-            self.orienters[key] = pm.listConnections(f'{placer}.OrienterNode', s=1, d=0)[0]'''
-
-
-
-
 
     ####################################################################################################################
     def get_setup_module_ctrl(self):
-
         search_string = f'::{self.side_tag}{self.name}_{nom.setupCtrl}'
-
         if pm.ls(search_string):
             self.setup_module_ctrl = pm.ls(search_string)[0]
         else:
             self.setup_module_ctrl = None
-
         return self.setup_module_ctrl
-
-
 
 
 
@@ -196,15 +157,9 @@ class RigModule:
         build_script = importlib.import_module(dir_string['module_build'].format(self.rig_module_type))
         importlib.reload(build_script)
 
-        '''exception_types = ['root']
-        if self.module_tag not in exception_types:'''
-
-        #...Create rig group
         self.create_rig_module_grp(parent=rig_parent)
-        #...Create placers
         self.create_placers()
         self.get_setup_module_ctrl()
-
         self.mConstruct = build_script.build(rig_module=self, rig_parent=rig_parent)
 
         return self.mConstruct

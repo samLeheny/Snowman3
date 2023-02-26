@@ -96,9 +96,7 @@ class Placer:
     create_vector_handles
     dull_color
     position_placer
-    get_opposite_placer
     create_connector_curve
-    make_benign
     create_orienter
     position_vector_handles
     aim_orienter
@@ -112,7 +110,6 @@ class Placer:
 
     ####################################################################################################################
     def create_placer_in_scene(self):
-
         self.create_mobject()
         self.input_placer_metadata()
         self.create_vector_handles() if self.vector_handle_data else None
@@ -126,10 +123,9 @@ class Placer:
 
     ####################################################################################################################
     def create_mobject(self):
-
         placer_name = f'{self.side_tag}{self.name}_{nom.placer}'
-        self.mobject = gen_utils.prefab_curve_construct(prefab=self.shape_type, name=placer_name, color=self.color,
-                                                        scale=self.size, side=self.side)
+        self.mobject = gen_utils.prefab_curve_construct(
+            prefab=self.shape_type, name=placer_name, color=self.color, scale=self.size, side=self.side)
         self.mobject.setParent(self.parent) if self.parent else None
 
 
@@ -138,9 +134,7 @@ class Placer:
 
     ####################################################################################################################
     def create_vector_handles(self):
-
         self.vector_handle_grp = pm.group(name='vectorHandlesVis', em=1, p=self.mobject)
-
         self.aim_vector_handle = VectorHandle(name=f'{self.side_tag}{self.name}', vector='aim', side=self.side,
                                               parent=self.vector_handle_grp, color=self.color, placer=self)
         self.up_vector_handle = VectorHandle(name=f'{self.side_tag}{self.name}', vector='up', side=self.side,
@@ -152,7 +146,6 @@ class Placer:
 
     ####################################################################################################################
     def dull_color(self, hide=False):
-
         for shape in self.mobject.getShapes():
             shape.overrideEnabled.set(1)
             shape.overrideDisplayType.set(1)
@@ -164,25 +157,8 @@ class Placer:
 
     ####################################################################################################################
     def position_placer(self):
-
         self.mobject.translate.set(self.position)
 
-
-
-
-
-    ####################################################################################################################
-    def get_opposite_placer(self):
-
-        if self.side not in (nom.leftSideTag, nom.rightSideTag):
-            return
-
-        opposite_placer = gen_utils.get_opposite_side_obj(self.mobject)
-        if not opposite_placer:
-            print(f"Unable to find opposite placer for placer: '{self.mobject}'")
-            return None
-
-        return opposite_placer
 
 
 
@@ -206,34 +182,6 @@ class Placer:
         dest_attr_name = 'DestinationPlacer'
         pm.addAttr(self.connector_curve, longName=dest_attr_name, dataType='string', keyable=0)
         pm.connectAttr(f'{target.mobject}.ReceivedConnectors', f'{self.connector_curve}.{dest_attr_name}', lock=1)
-
-
-
-
-
-    ####################################################################################################################
-    def make_benign(self, hide=True):
-
-        if hide:
-            #...Hide placer shape
-            for shape in self.mobject.getShapes():
-                shape.visibility.set(0, lock=1) if shape.visibility.get(lock=0) else None
-
-        #...Lock attributes
-        [pm.setAttr(f'{self.mobject}.{attr}', lock=1, keyable=0) for attr in gen_utils.keyable_attrs]
-
-        self.dull_color()
-
-        handles = []
-        handles.append(self.up_vector_handle) if self.up_vector_handle else None
-        handles.append(self.aim_vector_handle) if self.aim_vector_handle else None
-
-        for handle in handles:
-            handle.connector_crv.getShape().visibility.set(0)
-            for shape in handle.mobject.getShapes():
-                shape.overrideEnabled.set(1)
-                shape.overrideDisplayType.set(1)
-                shape.visibility.set(0)
 
 
 
@@ -301,10 +249,8 @@ class Placer:
 
     ####################################################################################################################
     def aim_orienter(self):
-
         if not self.vector_handle_data:
             return
-
         self.position_vector_handles()
         self.orienter.aim_orienter()
 
@@ -314,7 +260,6 @@ class Placer:
 
     ####################################################################################################################
     def get_data_dictionary(self):
-
         data_dict = {'name': self.name,
                      'position': self.position,
                      'size': self.size,
@@ -325,7 +270,6 @@ class Placer:
                      'vector_handle_data': self.vector_handle_data,
                      'orienter_data': self.orienter_data,
                      'connect_targets': self.connect_targets}
-
         return data_dict
 
 

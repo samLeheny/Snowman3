@@ -77,8 +77,6 @@ class RigBuilder:
         self.prefab_key = prefab_key
         self.asset_name = asset_name
         self.dirpath = f'{dirpath}/test_build'
-        self.armature_namespace = nom.setupRigNamespace
-        self.rig_namespace = nom.finalRigNamespace
         self.blueprint = None
         self.scene_armature = None
         self.armature_data = None
@@ -110,7 +108,7 @@ class RigBuilder:
 
     ####################################################################################################################
     def build_armature_in_scene(self, armature_data):
-        create_enter_namespace(self.armature_namespace)
+        create_enter_namespace(nom.setupRigNamespace)
         self.scene_armature = armature_data.populate_armature()
         return_to_root_namespace()
 
@@ -136,7 +134,7 @@ class RigBuilder:
 
     ####################################################################################################################
     def build_rig_in_scene(self, scene_armature):
-        create_enter_namespace(self.rig_namespace)
+        create_enter_namespace(nom.finalRigNamespace)
         self.build_rig(scene_armature)
         #...Put a bow on this puppy!
         rigWrapup.execute(modules=self.rig.modules)
