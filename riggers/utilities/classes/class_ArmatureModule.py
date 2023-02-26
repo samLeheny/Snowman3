@@ -214,8 +214,7 @@ class ArmatureModule:
         self.ordered_placer_keys.append(placer.name)
 
         placer.color = self.ctrl_color
-        placer.parent = self.rig_subGrps['placers']
-        placer.create_placer_in_scene()
+        placer.create_placer_in_scene(parent=self.rig_subGrps['placers'])
 
         #...Lock and hide rotate, scale, and visibility. Placers only need translation
         attrs_to_lock = gen_utils.rotate_attrs + gen_utils.scale_attrs + gen_utils.vis_attrs

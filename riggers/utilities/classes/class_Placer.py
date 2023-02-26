@@ -42,7 +42,6 @@ ctrl_colors = ctrl_colors_dict.create_dict()
 ######## Variables ########
 attr_strings = {"vector_handles_vis": "VectorHandlesVis",
                 "orienter_vis": "OrienterVis"}
-default_placer_shape_type = "sphere_placer"
 ###########################
 ###########################
 
@@ -57,10 +56,7 @@ class Placer:
         name: str,
         position = None,
         size = None,
-        shape_type = None,
         side = None,
-        color = None,
-        parent = None,
         vector_handle_data = None,
         orienter_data = None,
         connect_targets = None,
@@ -68,11 +64,9 @@ class Placer:
         self.name = name
         self.position = position if position else (0, 0, 0)
         self.size = size if size else 1.0
-        self.shape_type = shape_type if shape_type else default_placer_shape_type
         self.side = side
         self.side_tag = f'{self.side}_' if self.side else ''
-        self.color = color if color else ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
-        self.parent = parent
+        self.color = ctrl_colors[self.side] if self.side else ctrl_colors[nom.midSideTag]
         self.up_vector_handle = None
         self.aim_vector_handle = None
         self.vector_handle_grp = None
@@ -83,7 +77,6 @@ class Placer:
         self.orienter = None
         self.connect_targets = connect_targets
         self.mobject = None
-
 
 
 
@@ -106,11 +99,9 @@ class Placer:
     """
 
 
-
-
     ####################################################################################################################
-    def create_placer_in_scene(self):
-        self.create_mobject()
+    def create_placer_in_scene(self, parent=None):
+        self.create_mobject(parent=parent)
         self.input_placer_metadata()
         self.create_vector_handles() if self.vector_handle_data else None
         self.buffer_node = gen_utils.buffer_obj(self.mobject)
@@ -119,16 +110,12 @@ class Placer:
 
 
 
-
-
     ####################################################################################################################
-    def create_mobject(self):
+    def create_mobject(self, parent=None):
         placer_name = f'{self.side_tag}{self.name}_{nom.placer}'
         self.mobject = gen_utils.prefab_curve_construct(
-            prefab=self.shape_type, name=placer_name, color=self.color, scale=self.size, side=self.side)
-        self.mobject.setParent(self.parent) if self.parent else None
-
-
+            prefab='sphere_placer', name=placer_name, color=self.color, scale=self.size, side=self.side)
+        self.mobject.setParent(parent) if parent else None
 
 
 
@@ -142,8 +129,6 @@ class Placer:
 
 
 
-
-
     ####################################################################################################################
     def dull_color(self, hide=False):
         for shape in self.mobject.getShapes():
@@ -153,14 +138,9 @@ class Placer:
 
 
 
-
-
     ####################################################################################################################
     def position_placer(self):
         self.mobject.translate.set(self.position)
-
-
-
 
 
 
@@ -185,20 +165,14 @@ class Placer:
 
 
 
-
-
     ####################################################################################################################
     def fill_out_orienter_data(self):
-
         if not self.orienter_data:
             self.orienter_data = {'world_up_type': None, 'aim_vector': None, 'up_vector': None, 'match_to': None}
-
         else:
             for key in ('world_up_type', 'aim_vector', 'up_vector', 'match_to'):
                 if key not in self.orienter_data:
                     self.orienter_data[key] = None
-
-
 
 
 
@@ -228,8 +202,6 @@ class Placer:
 
 
 
-
-
     ####################################################################################################################
     def position_vector_handles(self):
 
@@ -245,8 +217,6 @@ class Placer:
 
 
 
-
-
     ####################################################################################################################
     def aim_orienter(self):
         if not self.vector_handle_data:
@@ -256,17 +226,12 @@ class Placer:
 
 
 
-
-
     ####################################################################################################################
     def get_data_dictionary(self):
         data_dict = {'name': self.name,
+                     'side': self.side,
                      'position': self.position,
                      'size': self.size,
-                     'shape_type': self.shape_type,
-                     'side': self.side,
-                     'color': self.color,
-                     'parent': self.parent,
                      'vector_handle_data': self.vector_handle_data,
                      'orienter_data': self.orienter_data,
                      'connect_targets': self.connect_targets}
@@ -274,59 +239,26 @@ class Placer:
 
 
 
-
-
     ####################################################################################################################
     def input_placer_metadata(self):
 
         #...Placer tag
-        self.metadata_PlacerTag()
-        #...Side
-        self.metadata_Side()
-        #...Size
-        self.metadata_Size()
-        #...Vector handle data
-        self.metadata_VectorHandleData()
-        #...Orienter data
-        self.metadata_OrienterData()
-        #...Connect targets
-        self.metadata_ConnectorTargets()
-
-        pm.addAttr(self.mobject, longName="ReceivedConnectors", dataType="string", keyable=0)
-
-
-
-    ####################################################################################################################
-    def metadata_PlacerTag(self):
-
         gen_utils.add_attr(self.mobject, long_name="PlacerTag", attribute_type="string", keyable=0,
                            default_value=self.name)
-
-    ####################################################################################################################
-    def metadata_Side(self):
-
+        #...Side
         attr_input = self.side if self.side else "None"
         gen_utils.add_attr(self.mobject, long_name="Side", attribute_type="string", keyable=0, default_value=attr_input)
-
-    ####################################################################################################################
-    def metadata_Size(self):
+        #...Size
         gen_utils.add_attr(self.mobject, long_name="Size", attribute_type="float", keyable=0,
                            default_value=float(self.size))
-
-    ####################################################################################################################
-    def metadata_VectorHandleData(self):
-
+        #...Vector handle data
         gen_utils.add_attr(self.mobject, long_name="VectorHandleData", attribute_type="string", keyable=0,
                            default_value=str(self.vector_handle_data))
-
-    ####################################################################################################################
-    def metadata_OrienterData(self):
-
+        #...Orienter data
         gen_utils.add_attr(self.mobject, long_name="OrienterData", attribute_type="string", keyable=0,
                            default_value=str(self.orienter_data))
-
-    ####################################################################################################################
-    def metadata_ConnectorTargets(self):
-
+        #...Connect targets
         gen_utils.add_attr(self.mobject, long_name="ConnectorData", attribute_type="string", keyable=0,
                            default_value=str(self.connect_targets))
+
+        pm.addAttr(self.mobject, longName="ReceivedConnectors", dataType="string", keyable=0)
