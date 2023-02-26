@@ -70,7 +70,6 @@ class VectorHandle:
 
     ####################################################################################################################
     def create_in_scene(self):
-
         self.create_mobject()
         self.mobject.setParent(self.parent) if self.parent else None
         self.set_position()
@@ -104,11 +103,9 @@ class VectorHandle:
 
     ####################################################################################################################
     def drive_handle_visibility(self):
-
         if not pm.attributeQuery('VectorHandlesVis', node=self.placer.mobject, exists=1):
             pm.addAttr(self.placer.mobject, longName='VectorHandlesVis', attributeType="bool", defaultValue=0)
             pm.setAttr(f'{self.placer.mobject}.VectorHandlesVis', channelBox=1)
-
         for obj in (self.mobject, self.connector_crv):
             pm.connectAttr(f'{self.placer.mobject}.VectorHandlesVis', obj.visibility)
 
@@ -118,7 +115,6 @@ class VectorHandle:
 
     ####################################################################################################################
     def create_connector_curve(self):
-
         self.connector_crv = rig_utils.connector_curve(name=f'{self.side_tag}{self.name}_{self.vector}',
                                                        end_driver_1=self.parent, end_driver_2=self.mobject,
                                                        parent=self.mobject, override_display_type=1,
@@ -130,7 +126,6 @@ class VectorHandle:
 
     ####################################################################################################################
     def set_position(self, convert_offset=False):
-
 
         dist_mult = 2
         init_placement_vector = (0, 0, 0)
@@ -152,10 +147,8 @@ class VectorHandle:
 
     ####################################################################################################################
     def connect_to_placer_metadata(self):
-
         obj = self.placer.mobject
         attr_name = {'aim': 'AimVectorNode', 'up': 'UpVectorNode'}
-
         pm.addAttr(obj, longName=attr_name[self.vector], dataType='string', keyable=0)
         self.mobject.message.connect(f'{obj}.{attr_name[self.vector]}')
 
@@ -165,7 +158,6 @@ class VectorHandle:
 
     ####################################################################################################################
     def place_handle(self, coordinate):
-
         self.mobject.translate.set(coordinate)
 
 
@@ -174,7 +166,6 @@ class VectorHandle:
 
     ####################################################################################################################
     def constrain_handle(self, placer_tag):
-
         # ...Find constraint target placer
         target_obj = None
         get_placer_string = f'::{self.side_tag}{placer_tag}_{nom.placer}'
@@ -182,6 +173,4 @@ class VectorHandle:
             target_obj = pm.ls(get_placer_string)[0]
         else:
             print(f"Unable to find placer: '{get_placer_string}'")
-
-        offset = gen_utils.buffer_obj(self.mobject, suffix='MOD')
-        pm.pointConstraint(target_obj, offset)
+        pm.pointConstraint(target_obj, self.mobject)
