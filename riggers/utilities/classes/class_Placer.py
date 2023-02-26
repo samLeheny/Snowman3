@@ -273,9 +273,19 @@ class Placer:
 
 
     ####################################################################################################################
+    def get_scene_vector_handle(self, tag):
+        tags = {'aim': 'AIM', 'up': 'UP'}
+        handle_string = f'::{self.side_tag}{self.name}_{tags[tag]}'
+        handle = pm.PyNode(handle_string)
+        return handle
+
+
+
+    ####################################################################################################################
     def update_data_from_scene(self):
         self.update_position_from_scene()
         self.update_size_from_scene()
+        self.update_orienter_data_from_scene()
 
 
 
@@ -288,3 +298,14 @@ class Placer:
     ####################################################################################################################
     def update_size_from_scene(self):
         self.size = pm.getAttr(f'{self.mobject}.Size')
+
+
+
+    ####################################################################################################################
+    def update_orienter_data_from_scene(self):
+        aim_handle = self.get_scene_vector_handle('aim')
+        up_handle = self.get_scene_vector_handle('up')
+        self.orienter_data = {
+            'aim_vector': list(aim_handle.translate.get()),
+            'up_vector': list(up_handle.translate.get())
+        }
