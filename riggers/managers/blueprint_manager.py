@@ -29,7 +29,7 @@ version_padding = 4
 ###########################
 
 
-class RigBuilder:
+class BlueprintManager:
     def __init__(
         self,
         asset_name = None,
