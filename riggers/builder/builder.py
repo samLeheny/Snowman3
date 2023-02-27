@@ -1,81 +1,30 @@
-# Title: build_biped.py
+# Title: builder.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
-# Description: Class to handle the building of biped armature and final rig.
+# Description:
 
 
 ###########################
 ##### Import Commands #####
 import os
 import importlib
-import json
-import pymel.core as pm
-import Snowman3.riggers.utilities.classes.class_Rig as classRig
-importlib.reload(classRig)
-Rig = classRig.Rig
-
-import Snowman3.dictionaries.nameConventions as nameConventions
-importlib.reload(nameConventions)
-nom = nameConventions.create_dict()
-
-import Snowman3.riggers.utilities.bodyRigWrapup as rigWrapup
-importlib.reload(rigWrapup)
-
-import Snowman3.riggers.utilities.classes.class_Armature as classArmature
-importlib.reload(classArmature)
-Armature = classArmature.Armature
-
-import Snowman3.riggers.IO.armature_IO as iO
-importlib.reload(iO)
-ArmatureDataIO = iO.ArmatureDataIO
-
-import Snowman3.riggers.utilities.classes.class_PrefabArmatureData as classPrefabArmatureData
-importlib.reload(classPrefabArmatureData)
-PrefabArmatureData = classPrefabArmatureData.PrefabArmatureData
 
 import Snowman3.riggers.utilities.classes.class_Blueprint as class_Blueprint
 importlib.reload(class_Blueprint)
 Blueprint = class_Blueprint.Blueprint
 
-import Snowman3.riggers.utilities.classes.class_PrefabBlueprint as class_prefabBlueprint
-importlib.reload(class_prefabBlueprint)
-PrefabBlueprint = class_prefabBlueprint.PrefabBlueprint
-
-import Snowman3.riggers.IO.blueprint_IO as class_blueprint_IO
-importlib.reload(class_blueprint_IO)
-BlueprintDataIO = class_blueprint_IO.BlueprintDataIO
-
-import Snowman3.riggers.IO.placer_IO as placerIO
-importlib.reload(placerIO)
-PlacerDataIO = placerIO.PlacerDataIO
-
-import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
-importlib.reload(classPlacer)
-Placer = classPlacer.Placer
-
-import Snowman3.riggers.IO.rig_module_IO as rigModuleIO
-importlib.reload(rigModuleIO)
-RigModuleDataIO = rigModuleIO.RigModuleDataIO
+import Snowman3.riggers.IO.blueprint_IO as class_BlueprintIO
+importlib.reload(class_BlueprintIO)
+BlueprintIO = class_BlueprintIO.BlueprintIO
 ###########################
 ###########################
-
 
 ###########################
 ######## Variables ########
-
-###########################
-###########################
-
-
-###########################
-######## Functions ########
-def create_enter_namespace(namespace):
-    pm.namespace(add=namespace)
-    pm.namespace(set=namespace)
-
-def return_to_root_namespace():
-    pm.namespace(set=":")
+temp_files_dir = 'working'
+versions_dir = 'versions'
+version_padding = 4
 ###########################
 ###########################
 
@@ -85,140 +34,88 @@ class RigBuilder:
         self,
         asset_name = None,
         prefab_key = None,
-        dirpath = None,
+        dirpath = None
     ):
-        self.prefab_key = prefab_key
         self.asset_name = asset_name
-        self.dirpath = f'{dirpath}/test_build'
-        self.blueprint = None
-        self.scene_armature = None
-        self.armature_data = None
-        self.rig = None
-
-
-
-    ####################################################################################################################
-    def build_prefab_armature(self):
-        print(f"Building prefab armature: '{self.prefab_key}'")
-        self.gather_and_export_prefab_blueprint_data()
-        self.build_armature_from_file()
+        self.prefab_key = prefab_key
+        self.dirpath = f'{dirpath}'
+        self.tempdir = f'{self.dirpath}/{temp_files_dir}'
+        self.versions_dir = f'{self.dirpath}/{versions_dir}'
 
 
     ####################################################################################################################
-    def build_armature_from_file(self):
-        self.build_blueprint_from_file()
-        self.armature_data = self.blueprint.armature
-        self.armature_data.modules_from_data()
-        self.build_armature_in_scene(self.armature_data)
+    def create_new_blueprint(self):
+        print('Creating new blueprint...')
+        blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.dirpath)
+        self.create_working_dir()
+        self.create_versions_dir()
+        self.save_blueprint_to_tempdisk(blueprint)
 
 
     ####################################################################################################################
-    def build_blueprint_from_file(self):
-        blueprint_IO = BlueprintDataIO(dirpath=self.dirpath)
-        blueprint_IO.get_blueprint_data_from_file()
-        self.blueprint = blueprint_IO.create_blueprint_from_data()
+    def save_blueprint_to_tempdisk(self, blueprint):
+        blueprint_io = BlueprintIO(blueprint=blueprint)
+        blueprint_io.save(self.tempdir)
 
 
     ####################################################################################################################
-    def build_armature_in_scene(self, armature_data):
-        create_enter_namespace(nom.setupRigNamespace)
-        self.scene_armature = armature_data.populate_armature()
-        return_to_root_namespace()
+    def create_working_dir(self):
+        if not os.path.exists(self.tempdir):
+            os.mkdir(self.tempdir)
 
 
     ####################################################################################################################
-    def gather_and_export_prefab_blueprint_data(self):
-        prefab_blueprint = self.gather_prefab_blueprint_data()
-        self.export_prefab_blueprint_data(prefab_blueprint)
+    def create_versions_dir(self):
+        if not os.path.exists(self.versions_dir):
+            os.mkdir(self.versions_dir)
 
 
     ####################################################################################################################
-    def gather_prefab_blueprint_data(self):
-        print('Gathering prefab blueprint data...')
-        prefab_blueprint = PrefabBlueprint(prefab_key=self.prefab_key)
-        return prefab_blueprint
+    def save_work(self):
+        print('Saving work...')
+        working_blueprint = self.get_blueprint_from_working_dir()
+        updated_working_blueprint = self.update_blueprint_from_scene(working_blueprint)
+        self.save_blueprint_to_disk(updated_working_blueprint)
+        self.save_blueprint_to_tempdisk(updated_working_blueprint)
 
 
     ####################################################################################################################
-    def export_prefab_blueprint_data(self, prefab_blueprint):
-        blueprint_IO = BlueprintDataIO(blueprint=prefab_blueprint, dirpath=self.dirpath)
-        blueprint_IO.save()
+    def get_blueprint_from_working_dir(self):
+        print("Fetching current working blueprint...")
+        blueprint_io = BlueprintIO()
+        blueprint = blueprint_io.load(self.tempdir)
+        return blueprint
 
 
     ####################################################################################################################
-    def build_rig_in_scene(self, scene_armature):
-        self.update_blueprint_from_scene()
-        return
-        create_enter_namespace(nom.finalRigNamespace)
-        self.build_rig(scene_armature)
-        #...Put a bow on this puppy!
-        rigWrapup.execute(modules=self.rig.modules)
+    def update_blueprint_from_scene(self, blueprint):
+        print("Updating working blueprint with scene data...")
+        return blueprint
 
 
     ####################################################################################################################
-    def build_rig(self, scene_armature):
-        print(f"{'-'*120}\nBuilding rig from armature...")
-        self.rig = Rig(name=self.asset_name, armature=scene_armature)
-        self.rig.populate_rig(dirpath=self.dirpath)
+    def save_blueprint_to_disk(self, blueprint):
+        print("Saving work to disk...")
+        asset_name = blueprint.asset_name
+        new_save_dir = self.create_new_numbered_directory(asset_name)
+        blueprint_io = BlueprintIO(blueprint=blueprint)
+        blueprint_io.save(new_save_dir)
 
 
     ####################################################################################################################
-    '''def export_armature_data(self):
-        armature_IO = ArmatureDataIO(armature=self.armature_data, dirpath=self.dirpath)
-        armature_IO.save()'''
+    def create_new_numbered_directory(self, asset_name, version_padding=version_padding):
+        version_dirs = [p[0] for p in os.walk(self.versions_dir)]
+        version_subdirs = [version_dirs[i] for i in range(1, len(version_dirs))]
+        subdir_names = [os.path.basename(os.path.normpath(p)) for p in version_subdirs]
+        if not version_subdirs:
+            bulked_num = str(1).rjust(version_padding, '0')
+            new_dir_string = f'{asset_name}-v{bulked_num}'
+        else:
+            nums = [name.split('-v')[1] for name in subdir_names]
+            next_num = int(max(nums)) + 1
+            bulked_num = str(next_num).rjust(version_padding, '0')
+            new_dir_string = f'{asset_name}-v{bulked_num}'
+        new_dir = f'{self.versions_dir}/{new_dir_string}'
+        os.mkdir(new_dir)
+        return new_dir
 
-
-    ####################################################################################################################
-    def update_blueprint_from_scene(self):
-        self.update_modules_from_scene()
-
-
-    ####################################################################################################################
-    def update_modules_from_scene(self):
-        self.update_module_handles_from_scene()
-        self.update_placers_from_scene()
-
-
-    ####################################################################################################################
-    def update_module_handles_from_scene(self):
-        rig_modules = {}
-        with open(self.dirpath+'/module_roster.json', 'r') as fh:
-            module_roster = json.load(fh)
-        for module_key in module_roster:
-            io = RigModuleDataIO(dirpath=f'{self.dirpath}/rig_modules/{module_key}', module_key=module_key)
-            data = io.get_module_data_from_file()
-            io = RigModuleDataIO(data=data)
-            rig_modules[module_key] = io.get_module_from_data()
-
-        for module in list(rig_modules.values()):
-            print(module)
-            print(type(module))
-            #module.update_data_from_scene()
-
-            '''module_directory = self.dirpath + '/rig_modules/' + module_key
-            with open(module_directory + '/module.json', 'r') as fh:
-                module_data = json.load(fh)
-            side_tag = f'{module_data.side}_' if module_data.side else ''
-            handle_string = f'::{side_tag}{module_data.name}_SetupCTRL'
-            if not pm.objExists(handle_string):
-                continue
-            module_handle = pm.PyNode(handle_string)
-            updated_position = [round(v, 6) for v in list(module_handle.translate.get())]'''
-
-
-    ####################################################################################################################
-    def update_placers_from_scene(self):
-        with open(self.dirpath+'/module_roster.json', 'r') as fh:
-            module_roster = json.load(fh)
-        for module_key in module_roster:
-            module_directory = self.dirpath + '/rig_modules/' + module_key
-            with open(module_directory + '/placers.json', 'r') as fh:
-                placers_data = json.load(fh)
-                placers_IO = PlacerDataIO(data=placers_data)
-                module_placers = placers_IO.get_placers_from_data()
-
-            for i, p in enumerate(module_placers):
-                module_placers[i].get_scene_placer()
-                module_placers[i].update_data_from_scene()
-            placers_IO = PlacerDataIO(placers=module_placers, dirpath=module_directory)
-            placers_IO.save()
