@@ -1,4 +1,4 @@
-# Title: builder.py
+# Title: blueprint_manager.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -17,6 +17,10 @@ Blueprint = class_Blueprint.Blueprint
 import Snowman3.riggers.IO.blueprint_IO as class_BlueprintIO
 importlib.reload(class_BlueprintIO)
 BlueprintIO = class_BlueprintIO.BlueprintIO
+
+import Snowman3.riggers.managers.placer_manager as class_PlacerManager
+importlib.reload(class_PlacerManager)
+PlacerManager = class_PlacerManager.PlacerManager
 ###########################
 ###########################
 
@@ -119,3 +123,17 @@ class BlueprintManager:
         os.mkdir(new_dir)
         return new_dir
 
+
+    ####################################################################################################################
+    def test(self):
+        import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
+        importlib.reload(classPlacer)
+        Placer = classPlacer.Placer
+
+        import Snowman3.riggers.modules.root.data.placers as placers
+        module_placers = placers.placers
+
+        manager = PlacerManager()
+
+        for placer in module_placers:
+            manager.create_scene_placer(placer=placer)
