@@ -30,6 +30,10 @@ PlacerDataIO = placer_IO.PlacerDataIO
 import Snowman3.riggers.IO.controls_IO as controls_IO
 importlib.reload(controls_IO)
 ControlsDataIO = controls_IO.ControlsDataIO
+
+import Snowman3.riggers.utilities.classes.class_RigModule as classRigModule
+importlib.reload(classRigModule)
+RigModule = classRigModule.RigModule
 ###########################
 ###########################
 
@@ -48,11 +52,13 @@ class RigModuleDataIO:
 
     def __init__(
         self,
+        data = None,
         dirpath = None,
         module_key = None,
         rig_module = None
     ):
 
+        self.data = data
         self.rig_module = rig_module
         self.dirpath = dirpath
         self.module_key = module_key
@@ -90,12 +96,10 @@ class RigModuleDataIO:
             'rig_module_type': pm.getAttr(f'{module_node}.ModuleType'),
             'name': pm.getAttr(f'{module_node}.ModuleNameParticle'),
             'side': pm.getAttr(f'{module_node}.Side'),
-            'drive_target': self.get_driver_placers_in_module(module_node),
             'draw_connections': self.get_drawn_connections(module_node),
             'position': [round(i, decimal_count) for i in mc.getAttr(f'{module_ctrl}.translate')[0]],
             'rotation': [round(i, decimal_count) for i in mc.getAttr(f'{module_ctrl}.rotate')[0]],
             'scale': round(mc.getAttr(f'{module_ctrl}.ModuleScale'), decimal_count),
-            'color': gen_utils.get_color(module_ctrl)
         }
 
         # ...Populate module's placers data
@@ -120,11 +124,9 @@ class RigModuleDataIO:
         IO_data_fields = (('rig_module_type', self.rig_module.rig_module_type),
                           ('name', self.rig_module.name),
                           ('side', self.rig_module.side),
-                          ('drive_target', self.rig_module.drive_target),
                           ('position', self.rig_module.position),
                           ('rotation', self.rig_module.rotation),
-                          ('scale', self.rig_module.scale),
-                          ('color', self.rig_module.ctrl_color))
+                          ('scale', self.rig_module.scale))
         for IO_key, input_attr in IO_data_fields:
             self.module_data[IO_key] = input_attr'''
 
@@ -349,6 +351,18 @@ class RigModuleDataIO:
         self.module_data[module_key]['ctrls'] = self.import_ctrls_data(self.dirpath)
 
         return self.module_data
+
+
+
+    ####################################################################################################################
+    def get_module_from_data(self):
+        data = list(self.data.values())[0]
+        module = RigModule(
+            name = data['name'],
+            side = data['side'],
+            rig_module_type = data['rig_module_type'],
+        )
+        return module
 
 
 

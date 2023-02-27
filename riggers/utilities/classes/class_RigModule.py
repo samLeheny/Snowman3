@@ -124,7 +124,10 @@ class RigModule:
             def get_orientation(self):
                 side_tag = f'{self.side}_' if self.side else ''
                 placer = pm.PyNode(f'::{side_tag}{self.name}_PLC')
-                aim_handle = pm.PyNode(f'::{side_tag}{self.name}_AIM')
+                aim_handle_string = f'::{side_tag}{self.name}_AIM'
+                if not pm.objExists(aim_handle_string):
+                    return
+                aim_handle = pm.PyNode(aim_handle_string)
                 up_handle = pm.PyNode(f'::{side_tag}{self.name}_UP')
                 self.world_position = pm.xform(placer, q=1, rotatePivot=1, worldSpace=1)
                 aim_position = pm.xform(aim_handle, q=1, rotatePivot=1, worldSpace=1)
@@ -163,3 +166,9 @@ class RigModule:
         self.mConstruct = build_script.build(rig_module=self, rig_parent=rig_parent)
 
         return self.mConstruct
+
+
+
+    ####################################################################################################################
+    def update_data_from_scene(self):
+        pass

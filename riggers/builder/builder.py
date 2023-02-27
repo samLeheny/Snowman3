@@ -53,6 +53,10 @@ PlacerDataIO = placerIO.PlacerDataIO
 import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
 importlib.reload(classPlacer)
 Placer = classPlacer.Placer
+
+import Snowman3.riggers.IO.rig_module_IO as rigModuleIO
+importlib.reload(rigModuleIO)
+RigModuleDataIO = rigModuleIO.RigModuleDataIO
 ###########################
 ###########################
 
@@ -143,7 +147,7 @@ class RigBuilder:
 
     ####################################################################################################################
     def build_rig_in_scene(self, scene_armature):
-        self.update_placer_positions()
+        self.update_blueprint_from_scene()
         return
         create_enter_namespace(nom.finalRigNamespace)
         self.build_rig(scene_armature)
@@ -165,7 +169,45 @@ class RigBuilder:
 
 
     ####################################################################################################################
-    def update_placer_positions(self):
+    def update_blueprint_from_scene(self):
+        self.update_modules_from_scene()
+
+
+    ####################################################################################################################
+    def update_modules_from_scene(self):
+        self.update_module_handles_from_scene()
+        self.update_placers_from_scene()
+
+
+    ####################################################################################################################
+    def update_module_handles_from_scene(self):
+        rig_modules = {}
+        with open(self.dirpath+'/module_roster.json', 'r') as fh:
+            module_roster = json.load(fh)
+        for module_key in module_roster:
+            io = RigModuleDataIO(dirpath=f'{self.dirpath}/rig_modules/{module_key}', module_key=module_key)
+            data = io.get_module_data_from_file()
+            io = RigModuleDataIO(data=data)
+            rig_modules[module_key] = io.get_module_from_data()
+
+        for module in list(rig_modules.values()):
+            print(module)
+            print(type(module))
+            #module.update_data_from_scene()
+
+            '''module_directory = self.dirpath + '/rig_modules/' + module_key
+            with open(module_directory + '/module.json', 'r') as fh:
+                module_data = json.load(fh)
+            side_tag = f'{module_data.side}_' if module_data.side else ''
+            handle_string = f'::{side_tag}{module_data.name}_SetupCTRL'
+            if not pm.objExists(handle_string):
+                continue
+            module_handle = pm.PyNode(handle_string)
+            updated_position = [round(v, 6) for v in list(module_handle.translate.get())]'''
+
+
+    ####################################################################################################################
+    def update_placers_from_scene(self):
         with open(self.dirpath+'/module_roster.json', 'r') as fh:
             module_roster = json.load(fh)
         for module_key in module_roster:

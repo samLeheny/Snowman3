@@ -172,7 +172,7 @@ class Armature:
 
             #...Fill in any missing properties with None values
             for field in ("rig_module_type", "name", "side", "position", "rotation", "scale",
-                             "drive_target", "color", "draw_connections", "placers"):
+                             "draw_connections", "placers"):
                 if field not in m_data:
                     m_data[field] = None
 
@@ -183,9 +183,7 @@ class Armature:
                 position = m_data["position"],
                 rotation = m_data["rotation"],
                 scale = m_data["scale"],
-                drive_target = m_data["drive_target"],
-                draw_connections = m_data["draw_connections"],
-                color = m_data["color"]
+                draw_connections = m_data["draw_connections"]
             )
 
             armature_modules[key] = new_module
@@ -267,9 +265,3 @@ class Armature:
 
         #...Drive all module vis switches from armature root ------------------------------------------------------
         self.drive_module_attrs()
-
-        #...Connect modules to each other as specified in each module ---------------------------------------------
-        '''
-        [module.connect_modules() for module in self.modules.values()]
-        self.draw_module_connectors()
-        '''

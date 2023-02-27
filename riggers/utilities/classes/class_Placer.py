@@ -291,7 +291,7 @@ class Placer:
 
     ####################################################################################################################
     def update_position_from_scene(self):
-        self.position = list(self.mobject.translate.get())
+        self.position = [round(v, 6) for v in list(self.mobject.translate.get())]
 
 
 
@@ -302,10 +302,22 @@ class Placer:
 
 
     ####################################################################################################################
+    def test_has_vector_handles(self):
+        aim_handle_string = f'::{self.side_tag}{self.name}_AIM'
+        if pm.objExists(aim_handle_string):
+            return True
+        return False
+
+
+
+    ####################################################################################################################
     def update_orienter_data_from_scene(self):
+        if not self.test_has_vector_handles():
+            self.orienter_data = None
+            return
         aim_handle = self.get_scene_vector_handle('aim')
         up_handle = self.get_scene_vector_handle('up')
         self.orienter_data = {
-            'aim_vector': list(aim_handle.translate.get()),
-            'up_vector': list(up_handle.translate.get())
+            'aim_vector': [round(v, 6) for v in list(aim_handle.translate.get())],
+            'up_vector': [round(v, 6) for v in list(up_handle.translate.get())]
         }

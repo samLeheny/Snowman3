@@ -51,10 +51,6 @@ def build(armature_module):
     armature_module.position_module()
 
 
-    #...Connect to another module if specified ------------------------------------------------------------------------
-    armature_module.connect_modules()
-
-
 
     #...Preliminary controls -------------------------------------------------------------------------------------------
     armature_module.ctrl_data = root_prelimControls.create_ctrl_data(side=armature_module.side)

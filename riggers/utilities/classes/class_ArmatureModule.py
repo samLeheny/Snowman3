@@ -75,7 +75,6 @@ class ArmatureModule:
         position = None,
         rotation = None,
         scale = None,
-        drive_target = None,
         draw_connections = None,
         modules_parent = None
     ):
@@ -88,7 +87,6 @@ class ArmatureModule:
         self.position = position if position else (0, 0, 0)
         self.rotation = rotation if rotation else (0, 0, 0)
         self.scale = scale if scale else 1
-        self.drive_target = drive_target
         self.draw_connections = draw_connections
         self.modules_parent = modules_parent
         self.prefab_module_data = PrefabModuleData(
@@ -352,68 +350,6 @@ class ArmatureModule:
 
 
     ####################################################################################################################
-    def drive_module(self, hide_target=True):
-        """
-        Drives position of a placer from one armature module with a placer from another armature module. Good for making
-            two modules act as if they're connected. e.g. Driving the end of an Arm armature module with the start of a
-            Hand armature module.
-        Args:
-            hide_target (bool): If true, hides target node.
-        Returns:
-            (bool): Success state.
-        """
-
-        if not self.drive_target:
-            return None
-
-        if not isinstance(self.drive_target, dict):
-            return None
-
-        for key in self.drive_target:
-
-            compare_keys = [pair[1] for pair in self.drive_target[key]]
-
-            #...Get source nodes
-            source_placer = self.placers[key].mobject
-
-            for target_key in self.drive_target[key]:
-
-                #...Get target placer from target key
-                target_node = self.get_placer_from_tag(module_tag=target_key[0], placer_tag=target_key[1])
-
-                #...Constrain target nodes to source nodes
-                [pm.setAttr(f'{target_node}.{attr}', lock=0) for attr in gen_utils.keyable_attrs]
-                pm.parentConstraint(source_placer, target_node, mo=1)
-
-                #...Hide and disconnect target_node
-                if not hide_target:
-                    continue
-
-                #...Hide shape
-                self.make_obj_benign(target_node)
-                #...Hide any connectors relating to placer
-                if not pm.attributeQuery("Connectors", node=target_node, exists=1):
-                    continue
-
-                connectors = pm.listConnections(f'{target_node}.Connectors', d=1, s=0)
-                for obj in connectors:
-                    dest_placer = pm.listConnections(f'{obj}.DestinationPlacer', s=1, d=0)[0]
-                    dest_placer_tag = pm.getAttr(f'{dest_placer}.PlacerTag')
-
-                    if dest_placer_tag not in compare_keys:
-                        continue
-
-                    if obj.getShape().visibility.get() == 1:
-                        obj.getShape().visibility.set(0, lock=1)
-
-
-                #...NOTE: If target_node is a placer, does something more need to be done with its orienter and
-                #    vector handles?
-        return True
-
-
-
-    ####################################################################################################################
     def get_placer_from_tag(self, module_tag, placer_tag):
         target_module_ctrl = self.get_other_module(name=module_tag, return_module_ctrl=True)
         target_node = pm.listConnections(f'{target_module_ctrl}.PlacerNodes.{placer_tag}', s=1, d=0)[0]
@@ -428,13 +364,6 @@ class ArmatureModule:
             shape.visibility.set(0, lock=1)
             [pm.setAttr(f'{obj}.{attr}', lock=1, keyable=0) for attr in (
                 "tx", "ty", "tz", "rx", "ry", "rz", "sx", "sy", "sz")]
-
-
-
-    ####################################################################################################################
-    def connect_modules(self):
-        if self.drive_target:
-            self.drive_module()
 
 
 
@@ -523,11 +452,9 @@ class ArmatureModule:
         IO_data_fields = (('rig_module_type', self.rig_module_type),
                           ('name', self.name),
                           ('side', self.side),
-                          ('drive_target', self.drive_target),
                           ('position', self.position),
                           ('rotation', self.rotation),
-                          ('scale', self.scale),
-                          ('color', self.ctrl_color))
+                          ('scale', self.scale))
         for IO_key, input_attr in IO_data_fields:
             data_dict[IO_key] = input_attr
         return data_dict

@@ -87,9 +87,7 @@ def create_placers(side=None):
             name = "ik_elbow",
             side = side,
             pv_distance = 40,
-            size = 1.25,
-            vector_handle_data = {"aim": {"coord": (0, 0, 1)},
-                                  "up": {"coord": (0, 1, 0)}},
+            size = 1.25
         )
 
     )

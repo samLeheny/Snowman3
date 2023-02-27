@@ -51,7 +51,6 @@ def create_modules():
                 rig_module_type = 'biped_neck',
                 name = 'neck',
                 position = (0, 150, 0.39),
-                drive_target = {'neck': (('spine', 'spine_6'),)}
             ),
 
 
@@ -81,7 +80,6 @@ def create_modules():
                 name = 'arm',
                 side = 'L',
                 position = (15, 146.88, 0.39),
-                drive_target = {'upperarm': (('L_clavicle', 'clavicle_end'),)}
             ),
 
 
@@ -91,7 +89,6 @@ def create_modules():
                 name = 'arm',
                 side = 'R',
                 position = (15, 146.88, 0.39),
-                drive_target = {'upperarm': (('R_clavicle', 'clavicle_end'),)}
             ),
 
 
@@ -101,8 +98,6 @@ def create_modules():
                 name = 'hand',
                 side = 'L',
                 position = (67.64, 146.88, 0.39),
-                drive_target = {'hand': (('L_arm', 'lowerarm_end'),
-                                         ('L_arm', 'wrist_end'))}
             ),
 
 
@@ -112,8 +107,6 @@ def create_modules():
                 name = 'hand',
                 side = 'R',
                 position = (67.64, 146.88, 0.39),
-                drive_target = {'hand': (('R_arm', 'lowerarm_end'),
-                                         ('R_arm', 'wrist_end'))}
             ),
 
 
@@ -143,8 +136,6 @@ def create_modules():
                 name = 'foot',
                 side = 'L',
                 position = (8.5, 10, 0.39),
-                drive_target = {'foot': (('L_leg', 'calf_end'),
-                                         ('L_leg', 'ankle_end'))}
             ),
 
 
@@ -154,7 +145,6 @@ def create_modules():
                 name = 'foot',
                 side = 'R',
                 position = (8.5, 10, 0.39),
-                drive_target = {'foot': (('R_leg', 'calf_end'), ('R_leg', 'ankle_end'))}
             )
 
     }
