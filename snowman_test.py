@@ -3,13 +3,9 @@ import importlib
 import pymel.core as pm
 import maya.cmds as mc
 
-import Snowman3.riggers.builder.builder as builder
-importlib.reload(builder)
-RigBuilder = builder.RigBuilder
-
-'''import Snowman3.riggers.IO.blueprint_IO as class_blueprint_IO
-importlib.reload(class_blueprint_IO)
-BlueprintDataIO = class_blueprint_IO.BlueprintDataIO'''
+import Snowman3.riggers.managers.blueprint_manager as blueprint_manager
+importlib.reload(blueprint_manager)
+BlueprintManager = blueprint_manager.BlueprintManager
 
 # ...File directory path
 dirpath = r'C:\Users\User\Desktop\test_build'
@@ -20,10 +16,12 @@ mc.file(new=True, f=True)
 
 # ...Build prefab armature
 print('-'*120)
-rig_builder = RigBuilder(asset_name='test', dirpath=dirpath)
-rig_builder.create_new_blueprint()
+manager =BlueprintManager(asset_name='test', dirpath=dirpath)
+manager.create_new_blueprint()
 
-rig_builder.save_work()
+manager.save_work()
+
+manager.test()
 
 
 
