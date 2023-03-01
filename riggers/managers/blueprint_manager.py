@@ -18,7 +18,7 @@ import Snowman3.riggers.IO.blueprint_IO as class_BlueprintIO
 importlib.reload(class_BlueprintIO)
 BlueprintIO = class_BlueprintIO.BlueprintIO
 
-import Snowman3.riggers.utilities.classes.placer_utils as placer_utils
+import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 ###########################

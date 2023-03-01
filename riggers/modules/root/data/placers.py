@@ -9,7 +9,7 @@
 ##### Import Commands #####
 import importlib
 
-import Snowman3.riggers.utilities.classes.placer_utils as placer_utils
+import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 ###########################
