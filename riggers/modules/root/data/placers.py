@@ -9,9 +9,9 @@
 ##### Import Commands #####
 import importlib
 
-import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
-importlib.reload(classPlacer)
-Placer = classPlacer.Placer
+import Snowman3.riggers.utilities.classes.placer_utils as placer_utils
+importlib.reload(placer_utils)
+Placer = placer_utils.Placer
 ###########################
 ###########################
 

@@ -18,9 +18,9 @@ import Snowman3.riggers.IO.blueprint_IO as class_BlueprintIO
 importlib.reload(class_BlueprintIO)
 BlueprintIO = class_BlueprintIO.BlueprintIO
 
-import Snowman3.riggers.managers.placer_manager as class_PlacerManager
-importlib.reload(class_PlacerManager)
-PlacerManager = class_PlacerManager.PlacerManager
+import Snowman3.riggers.utilities.classes.placer_utils as placer_utils
+importlib.reload(placer_utils)
+Placer = placer_utils.Placer
 ###########################
 ###########################
 
@@ -31,6 +31,7 @@ versions_dir = 'versions'
 version_padding = 4
 ###########################
 ###########################
+
 
 
 class BlueprintManager:
@@ -47,6 +48,7 @@ class BlueprintManager:
         self.versions_dir = f'{self.dirpath}/{versions_dir}'
 
 
+
     ####################################################################################################################
     def create_new_blueprint(self):
         print('Creating new blueprint...')
@@ -56,10 +58,12 @@ class BlueprintManager:
         self.save_blueprint_to_tempdisk(blueprint)
 
 
+
     ####################################################################################################################
     def save_blueprint_to_tempdisk(self, blueprint):
         blueprint_io = BlueprintIO(blueprint=blueprint)
         blueprint_io.save(self.tempdir)
+
 
 
     ####################################################################################################################
@@ -68,10 +72,12 @@ class BlueprintManager:
             os.mkdir(self.tempdir)
 
 
+
     ####################################################################################################################
     def create_versions_dir(self):
         if not os.path.exists(self.versions_dir):
             os.mkdir(self.versions_dir)
+
 
 
     ####################################################################################################################
@@ -83,6 +89,7 @@ class BlueprintManager:
         self.save_blueprint_to_tempdisk(updated_working_blueprint)
 
 
+
     ####################################################################################################################
     def get_blueprint_from_working_dir(self):
         print("Fetching current working blueprint...")
@@ -91,10 +98,12 @@ class BlueprintManager:
         return blueprint
 
 
+
     ####################################################################################################################
     def update_blueprint_from_scene(self, blueprint):
         print("Updating working blueprint with scene data...")
         return blueprint
+
 
 
     ####################################################################################################################
@@ -104,6 +113,7 @@ class BlueprintManager:
         new_save_dir = self.create_new_numbered_directory(asset_name)
         blueprint_io = BlueprintIO(blueprint=blueprint)
         blueprint_io.save(new_save_dir)
+
 
 
     ####################################################################################################################
@@ -124,16 +134,12 @@ class BlueprintManager:
         return new_dir
 
 
+
     ####################################################################################################################
     def test(self):
-        import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
-        importlib.reload(classPlacer)
-        Placer = classPlacer.Placer
 
         import Snowman3.riggers.modules.root.data.placers as placers
         module_placers = placers.placers
 
-        manager = PlacerManager()
-
         for placer in module_placers:
-            manager.create_scene_placer(placer=placer)
+            placer_utils.create_scene_placer(placer=placer)
