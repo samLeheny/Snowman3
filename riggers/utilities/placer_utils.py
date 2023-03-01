@@ -27,11 +27,11 @@ class Placer:
     def __init__(
         self,
         name: str,
-        side = None,
-        position = None,
-        size = None,
-        vector_handle_positions = None,
-        orientation = None
+        side: str = None,
+        position: tuple[float, float, float] = None,
+        size: float = None,
+        vector_handle_positions: tuple[tuple, tuple] = None,
+        orientation: tuple[tuple, tuple] = None
     ):
         self.name = name
         self.side = side

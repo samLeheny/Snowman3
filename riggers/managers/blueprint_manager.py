@@ -37,9 +37,9 @@ version_padding = 4
 class BlueprintManager:
     def __init__(
         self,
-        asset_name = None,
-        prefab_key = None,
-        dirpath = None
+        asset_name: str = None,
+        prefab_key: str = None,
+        dirpath: str = None
     ):
         self.asset_name = asset_name
         self.prefab_key = prefab_key
@@ -143,3 +143,13 @@ class BlueprintManager:
 
         for placer in module_placers:
             placer_utils.create_scene_placer(placer=placer)
+
+        '''import Snowman3.riggers.utilities.module_utils as module_utils
+        importlib.reload(module_utils)
+        Module = module_utils.Module
+
+        m1 = Module(name='arm', side='L')
+        m2 = Module(name='leg', side=None)
+
+        for module in (m1, m2):
+            module_utils.create_scene_module(module)'''
