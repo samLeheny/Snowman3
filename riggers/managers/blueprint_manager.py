@@ -136,13 +136,26 @@ class BlueprintManager:
 
 
     ####################################################################################################################
-    def test(self):
+    def test(self, num):
 
-        import Snowman3.riggers.modules.root.data.placers as placers
+        '''import Snowman3.riggers.modules.root.data.placers as placers
         module_placers = placers.placers
 
         for placer in module_placers:
-            placer_utils.create_scene_placer(placer=placer)
+            placer_utils.create_scene_placer(placer=placer)'''
+
+        import Snowman3.riggers.utilities.part_utils as part_utils
+        importlib.reload(part_utils)
+        Part = part_utils.Part
+        test_part = Part(name='test', side=None, handle_size=None)
+
+        if num == 1:
+            part_utils.create_scene_part(part=test_part)
+
+        if num == 2:
+            part_utils.remove_scene_part(part=test_part)
+
+
 
         '''import Snowman3.riggers.utilities.module_utils as module_utils
         importlib.reload(module_utils)

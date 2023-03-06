@@ -28,7 +28,9 @@ class Blueprint:
         self,
         asset_name,
         dirpath = None,
+        loose_parts = None
 
     ):
         self.asset_name = asset_name
         self.dirpath = dirpath
+        self.loose_parts = loose_parts if loose_parts else {}

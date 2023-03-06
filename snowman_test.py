@@ -8,8 +8,8 @@ importlib.reload(blueprint_manager)
 BlueprintManager = blueprint_manager.BlueprintManager
 
 # ...File directory path
-dirpath = r'C:\Users\User\Desktop\test_build'
-#dirpath = r'C:\Users\61451\Desktop\test_build'
+#dirpath = r'C:\Users\User\Desktop\test_build'
+dirpath = r'C:\Users\61451\Desktop\test_build'
 
 # ...New scene
 mc.file(new=True, f=True)
@@ -21,9 +21,7 @@ manager.create_new_blueprint()
 
 manager.save_work()
 
-manager.test()
-
-
+manager.test(1)
 
 # ...Build armature from file
 '''rig_builder = RigBuilder(

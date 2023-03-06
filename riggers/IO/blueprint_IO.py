@@ -50,7 +50,8 @@ class BlueprintIO:
     def data_from_blueprint(self):
         self.data = {
             'asset_name': self.blueprint.asset_name,
-            'dirpath': self.blueprint.dirpath
+            'dirpath': self.blueprint.dirpath,
+            'loose_parts': self.blueprint.loose_parts
         }
 
 
@@ -71,5 +72,13 @@ class BlueprintIO:
     def blueprint_from_data(self, data):
         self.blueprint = Blueprint(
             asset_name = data['asset_name'],
-            dirpath = data['dirpath']
+            dirpath = data['dirpath'],
+            loose_parts = data['loose_parts']
         )
+
+
+    ####################################################################################################################
+    def blueprint_from_file(self, dirpath):
+        self.data_from_file(dirpath)
+        self.blueprint_from_data(self.data)
+        return self.blueprint
