@@ -147,22 +147,30 @@ class BlueprintManager:
         import Snowman3.riggers.utilities.part_utils as part_utils
         importlib.reload(part_utils)
         Part = part_utils.Part
-        test_part = Part(name='test', side=None, handle_size=None)
 
-        if num == 1:
-            part_utils.create_scene_part(part=test_part)
-
-        if num == 2:
-            part_utils.remove_scene_part(part=test_part)
-
-
-
-        '''import Snowman3.riggers.utilities.module_utils as module_utils
+        import Snowman3.riggers.utilities.module_utils as module_utils
         importlib.reload(module_utils)
         Module = module_utils.Module
 
-        m1 = Module(name='arm', side='L')
-        m2 = Module(name='leg', side=None)
+        m1 = Module(name='spine', side=None)
+        m2 = Module(name='pelvis', side=None)
 
-        for module in (m1, m2):
-            module_utils.create_scene_module(module)'''
+        if num == 1:
+            for module in (m1, m2):
+                module_utils.create_scene_module(module)
+                L_test_part = Part(name='test', side='L', handle_size=None, position=[3, 0, 0])
+                R_test_part = Part(name='test', side='R', handle_size=None, position=[-3, 0, 0])
+                module_utils.add_part_to_module(L_test_part, module)
+                module_utils.add_part_to_module(R_test_part, module)
+
+        if num == 2:
+            IO = BlueprintIO(dirpath=self.tempdir)
+            blueprint = IO.blueprint_from_file(IO.dirpath)
+            for module in (m1, m2):
+                module_key = f'{module.side_tag}{module.name}'
+                IO.mirror_module(blueprint, module_key)
+
+        if num == 3:
+            IO = BlueprintIO(dirpath=self.tempdir)
+            blueprint = IO.blueprint_from_file(IO.dirpath)
+            IO.update_blueprint_from_scene(blueprint)
