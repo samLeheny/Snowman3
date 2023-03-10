@@ -16,12 +16,16 @@ mc.file(new=True, f=True)
 
 # ...Build prefab armature
 print('-'*120)
-manager =BlueprintManager(asset_name='test', dirpath=dirpath)
+manager = BlueprintManager(asset_name='test', dirpath=dirpath)
 manager.create_new_blueprint()
 
 manager.save_work()
 
 manager.test(1)
+
+manager.test(2)
+
+manager.test(3)
 
 # ...Build armature from file
 '''rig_builder = RigBuilder(

@@ -12,10 +12,6 @@ import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
-
-import Snowman3.riggers.IO.blueprint_IO as blueprintIO
-importlib.reload(blueprintIO)
-BlueprintIO = blueprintIO.BlueprintIO
 ###########################
 ###########################
 
@@ -66,14 +62,6 @@ def position_part(part):
 
 
 ########################################################################################################################
-def create_loose_scene_part(part, parent=None):
-    scene_part = create_scene_part(part, parent=parent)
-    add_part_to_blueprint(part)
-    return scene_part
-
-
-
-########################################################################################################################
 def check_for_part(part):
     part_name = get_part_name(part)
     if pm.objExists(part_name):
@@ -113,23 +101,6 @@ def add_part_metadata(part, scene_part):
 
 
 ########################################################################################################################
-def add_part_to_blueprint(part, check_for_clashes=True):
-    dirpath = r'C:\Users\61451\Desktop\test_build\working'
-    blueprint_IO = BlueprintIO(dirpath=dirpath)
-    working_blueprint = blueprint_IO.blueprint_from_file(blueprint_IO.dirpath)
-    part_key = f'{part.side_tag}{part.name}'
-    if check_for_clashes:
-        if part_key in working_blueprint.loose_parts:
-            print(f"Cannot add part '{part_key}' to blueprint - a part with this name already exists in blueprint.")
-            return False
-    working_blueprint.loose_parts[part_key] = data_from_part(part)
-    # ...Update disk
-    blueprint_IO = BlueprintIO(blueprint=working_blueprint)
-    blueprint_IO.save(dirpath=dirpath)
-
-
-
-########################################################################################################################
 def data_from_part(part):
     data = {}
     pairs = (
@@ -141,30 +112,6 @@ def data_from_part(part):
     for key, value in pairs:
         data[key] = value
     return data
-
-
-
-########################################################################################################################
-def remove_scene_part(part):
-    part_name = get_part_name(part)
-    if not pm.objExists(part_name):
-        print(f"Cannot delete part {''} - part not found in scene.")
-        return False
-    pm.delete(pm.PyNode(part_name))
-    remove_part_from_blueprint(part)
-    return True
-
-
-
-########################################################################################################################
-def remove_part_from_blueprint(part):
-    dirpath = r'C:\Users\61451\Desktop\test_build\working'
-    blueprint_IO = BlueprintIO(dirpath=dirpath)
-    working_blueprint = blueprint_IO.blueprint_from_file(blueprint_IO.dirpath)
-    working_blueprint.loose_parts.pop(f'{part.side_tag}{part.name}')
-    # ...Update disk
-    blueprint_IO = BlueprintIO(blueprint=working_blueprint)
-    blueprint_IO.save(dirpath=dirpath)
 
 
 
@@ -228,4 +175,3 @@ def get_opposite_part(part):
     if not get_part_handle(opposite_part):
         return False
     return opposite_part
-
