@@ -10,10 +10,9 @@
 import os
 import importlib
 
-import Snowman3.riggers.IO.blueprint_IO as class_BlueprintIO
-importlib.reload(class_BlueprintIO)
-BlueprintIO = class_BlueprintIO.BlueprintIO
-Blueprint = class_BlueprintIO.Blueprint
+import Snowman3.riggers.utilities.blueprint_utils as blueprint_utils
+importlib.reload(blueprint_utils)
+Blueprint = blueprint_utils.Blueprint
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
@@ -58,8 +57,7 @@ class BlueprintManager:
 
     ####################################################################################################################
     def save_blueprint_to_tempdisk(self, blueprint):
-        blueprint_io = BlueprintIO()
-        blueprint_io.save(dirpath=self.tempdir, blueprint=blueprint)
+        blueprint_utils.save(dirpath=self.tempdir, blueprint=blueprint)
 
 
 
@@ -90,8 +88,7 @@ class BlueprintManager:
     ####################################################################################################################
     def get_blueprint_from_working_dir(self):
         print("Fetching current working blueprint...")
-        blueprint_io = BlueprintIO()
-        blueprint = blueprint_io.load(self.tempdir)
+        blueprint = blueprint_utils.load(self.tempdir)
         return blueprint
 
 
@@ -108,8 +105,7 @@ class BlueprintManager:
         print("Saving work to disk...")
         asset_name = blueprint.asset_name
         new_save_dir = self.create_new_numbered_directory(asset_name)
-        blueprint_io = BlueprintIO()
-        blueprint_io.save(dirpath=new_save_dir, blueprint=blueprint)
+        blueprint_utils.save(dirpath=new_save_dir, blueprint=blueprint)
 
 
 
@@ -153,23 +149,20 @@ class BlueprintManager:
         m2 = Module(name='pelvis', side=None)
 
         if num == 1:
-            IO = BlueprintIO()
-            blueprint = IO.blueprint_from_file(self.tempdir)
+            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
             for module in (m1, m2):
                 module_utils.create_scene_module(module)
                 L_test_part = Part(name='test', side='L', handle_size=None, position=[3, 0, 0])
                 R_test_part = Part(name='test', side='R', handle_size=None, position=[-3, 0, 0])
-                IO.add_part_to_module(L_test_part, module)
-                IO.add_part_to_module(R_test_part, module)
+                blueprint_utils.add_part_to_module(L_test_part, module)
+                blueprint_utils.add_part_to_module(R_test_part, module)
 
         if num == 2:
-            IO = BlueprintIO()
-            blueprint = IO.blueprint_from_file(self.tempdir)
+            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
             for module in (m1, m2):
                 module_key = f'{module.side_tag}{module.name}'
-                IO.mirror_module(blueprint, module_key)
+                blueprint_utils.mirror_module(blueprint, module_key)
 
         if num == 3:
-            IO = BlueprintIO()
-            blueprint = IO.blueprint_from_file(self.tempdir)
-            IO.update_blueprint_from_scene(blueprint)
+            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
+            blueprint_utils.update_blueprint_from_scene(blueprint)
