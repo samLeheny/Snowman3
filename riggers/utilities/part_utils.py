@@ -30,21 +30,23 @@ class Part:
         name: str,
         side: str = None,
         handle_size: float = None,
-        position = None
+        position = None,
+        placers = None,
+        data_name: str = None,
+        scene_name: str = None,
     ):
         self.name = name
         self.side = side
-        self.side_tag = f'{side}_' if side else ''
         self.handle_size = handle_size if handle_size else 1.0
         self.position = position if position else [0, 0, 0]
-
+        self.placers = placers if placers else {}
+        self.data_name = data_name if data_name else f'{gen.side_tag(side)}{name}'
+        self.scene_name = scene_name
 
 
 ########################################################################################################################
 def create_scene_part(part, parent=None):
-    if check_for_part(part):
-        return False
-    scene_part = gen.prefab_curve_construct(prefab='cube', name=get_part_name(part), scale=part.handle_size,
+    scene_part = gen.prefab_curve_construct(prefab='cube', name=part.scene_name, scale=part.handle_size,
                                             side=part.side)
     position_part(part)
     scene_part.setParent(parent) if parent else None
@@ -53,35 +55,15 @@ def create_scene_part(part, parent=None):
     return scene_part
 
 
-
 ########################################################################################################################
 def position_part(part):
     handle = get_part_handle(part)
     handle.translate.set(tuple(part.position))
 
 
-
-########################################################################################################################
-def check_for_part(part):
-    part_name = get_part_name(part)
-    if pm.objExists(part_name):
-        part_conflict_action(part)
-        return True
-    return False
-
-
-
 ########################################################################################################################
 def part_conflict_action(part):
-    part_name = get_part_name(part)
-    print(f"Cannot create part '{part_name}' - a part with this name already exists in scene.")
-
-
-
-########################################################################################################################
-def get_part_name(part):
-    return f'{part.side_tag}{part.name}_{part_tag}'
-
+    print(f"Cannot create part '{part.scene_name}' - a part with this name already exists in scene.")
 
 
 ########################################################################################################################
@@ -99,42 +81,27 @@ def add_part_metadata(part, scene_part):
         pm.setAttr(f'{scene_part}.{a}', keyable=0)
 
 
-
 ########################################################################################################################
 def data_from_part(part):
     data = {}
-    pairs = (
-        ('name', part.name),
-        ('side', part.side),
-        ('handle_size', part.handle_size),
-        ('position', part.position)
-    )
-    for key, value in pairs:
-        data[key] = value
+    for param, value in vars(part).items():
+        data[param] = value
     return data
-
 
 
 ########################################################################################################################
 def get_part_handle(part):
-    part_name = get_part_name(part)
+    part_name = part.scene_name
     if not pm.objExists(part_name):
         return False
     part_handle = pm.PyNode(part_name)
     return part_handle
 
 
-
 ########################################################################################################################
 def part_from_data(data):
-    part = Part(
-        name=data['name'],
-        side=data['side'],
-        handle_size=data['handle_size'],
-        position=data['position']
-    )
+    part = Part(**data)
     return part
-
 
 
 ########################################################################################################################
@@ -146,7 +113,6 @@ def update_part_from_scene(part):
     part.handle_size = pm.getAttr(f'{part_handle}.HandleSize')
 
 
-
 ########################################################################################################################
 def mirror_part(part, driver_side='L', driven_side='R'):
     part_handle = get_part_handle(part)
@@ -156,22 +122,28 @@ def mirror_part(part, driver_side='L', driven_side='R'):
     opposite_part_handle = get_part_handle(opposite_part)
     # ...Mirror position
     pm.setAttr(f'{opposite_part_handle}.tx', pm.getAttr(f'{part_handle}.tx') * -1)
-    pm.setAttr(f'{opposite_part_handle}.ty', pm.getAttr(f'{part_handle}.ty'))
-    pm.setAttr(f'{opposite_part_handle}.tz', pm.getAttr(f'{part_handle}.tz'))
+    [pm.setAttr(f'{opposite_part_handle}.{a}', pm.getAttr(f'{part_handle}.{a}')) for a in ('ty', 'tz')]
     # ...Match handle size
     pm.setAttr(f'{opposite_part_handle}.HandleSize', pm.getAttr(f'{part_handle}.HandleSize'))
 
 
-
 ########################################################################################################################
 def get_opposite_part(part):
-    opposite_sides = {'L':'R', 'R':'L'}
-    opposite_part = Part(
-        name = part.name,
-        side = opposite_sides[part.side],
-        handle_size = part.handle_size,
-        position = part.position
-    )
+    opposite_part_args = get_opposite_side_part_args(part)
+    opposite_part = Part(**opposite_part_args)
     if not get_part_handle(opposite_part):
         return False
     return opposite_part
+
+
+########################################################################################################################
+def get_opposite_side_part_args(part):
+    opposite_part_args = vars(part)
+    opposite_part_args['side'] = gen.opposite_side(part.side)
+    return opposite_part_args
+
+
+########################################################################################################################
+def get_scene_part(part):
+    scene_part = pm.PyNode(part.scene_name)
+    return scene_part

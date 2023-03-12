@@ -10,6 +10,9 @@
 import os
 import importlib
 
+import Snowman3.utilities.general_utils as gen
+importlib.reload(gen)
+
 import Snowman3.riggers.utilities.blueprint_utils as blueprint_utils
 importlib.reload(blueprint_utils)
 Blueprint = blueprint_utils.Blueprint
@@ -57,7 +60,7 @@ class BlueprintManager:
 
     ####################################################################################################################
     def save_blueprint_to_tempdisk(self, blueprint):
-        blueprint_utils.save(dirpath=self.tempdir, blueprint=blueprint)
+        blueprint_utils.save_blueprint(dirpath=self.tempdir, blueprint=blueprint)
 
 
 
@@ -88,7 +91,7 @@ class BlueprintManager:
     ####################################################################################################################
     def get_blueprint_from_working_dir(self):
         print("Fetching current working blueprint...")
-        blueprint = blueprint_utils.load(self.tempdir)
+        blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
         return blueprint
 
 
@@ -105,7 +108,7 @@ class BlueprintManager:
         print("Saving work to disk...")
         asset_name = blueprint.asset_name
         new_save_dir = self.create_new_numbered_directory(asset_name)
-        blueprint_utils.save(dirpath=new_save_dir, blueprint=blueprint)
+        blueprint_utils.save_blueprint(dirpath=new_save_dir, blueprint=blueprint)
 
 
 
@@ -151,18 +154,30 @@ class BlueprintManager:
         if num == 1:
             blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
             for module in (m1, m2):
-                module_utils.create_scene_module(module)
-                L_test_part = Part(name='test', side='L', handle_size=None, position=[3, 0, 0])
-                R_test_part = Part(name='test', side='R', handle_size=None, position=[-3, 0, 0])
-                blueprint_utils.add_part_to_module(L_test_part, module)
-                blueprint_utils.add_part_to_module(R_test_part, module)
+                blueprint_utils.create_scene_module(module)
+                L_test_part = Part(name='arm', side='L', handle_size=None, position=[3, 0, 0])
+                R_test_part = Part(name='arm', side='R', handle_size=None, position=[-3, 0, 0])
+                blueprint_utils.create_part(L_test_part, module)
+                blueprint_utils.create_part(R_test_part, module)
+
+        '''if num == 2:
+            L_test_part = Part(name='arm', side='L', handle_size=None, position=[3, 0, 0],
+                               scene_name='L_spine_arm_PART')
+            blueprint_utils.remove_part_from_module(L_test_part, m1)'''
 
         if num == 2:
             blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
             for module in (m1, m2):
-                module_key = f'{module.side_tag}{module.name}'
+                module_key = f'{gen.side_tag(module.side)}{module.name}'
                 blueprint_utils.mirror_module(blueprint, module_key)
 
         if num == 3:
             blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
             blueprint_utils.update_blueprint_from_scene(blueprint)
+
+        if num == 4:
+            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
+            m = module_utils.module_from_data(blueprint.modules['spine'])
+            p = part_utils.part_from_data(m.parts['L_arm'])
+            L_x_placer = Placer(name='shoulder', side='L', position=(4, 5, 6), size=1.1)
+            blueprint_utils.create_placer(L_x_placer, p, m)

@@ -22,10 +22,9 @@ manager.create_new_blueprint()
 manager.save_work()
 
 manager.test(1)
-
 manager.test(2)
-
 manager.test(3)
+manager.test(4)
 
 # ...Build armature from file
 '''rig_builder = RigBuilder(

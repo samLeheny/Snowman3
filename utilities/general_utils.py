@@ -2533,10 +2533,8 @@ def migrate_connections(old_attr, new_attr):
 
 ########################################################################################################################
 def drive_attr(obj_1, obj_2, attr):
-
     if not isinstance(attr, (list, tuple)):
         attr = (attr,)
-
     for a in attr:
         if not pm.listConnections(f'{obj_2}.{a}', source=1):
             pm.connectAttr(f'{obj_1}.{a}', obj_2 + "." + a)
@@ -2548,10 +2546,23 @@ def drive_attr(obj_1, obj_2, attr):
 
 ########################################################################################################################
 def get_angle_convergence_between_two_vectors(vector_1, vector_2):
-
     v1, v2 = vector_1, vector_2
     vector_product = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
     squared_vector_product = (v1[0] ** 2 + v1[1] ** 2 + v1[2] ** 2) * (v2[0] ** 2 + v2[1] ** 2 + v2[2] ** 2)
     cos_angle = vector_product / math.sqrt(squared_vector_product)
-
     return cos_angle
+
+
+
+
+########################################################################################################################
+def side_tag(side):
+    side_tag = f'{side}_' if side else ''
+    return(side_tag)
+
+
+
+########################################################################################################################
+def opposite_side(side):
+    sides = {'L': 'R', 'R': 'L'}
+    return sides[side]

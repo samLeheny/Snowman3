@@ -11,6 +11,10 @@ import importlib
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
+
+import Snowman3.riggers.utilities.metadata_utils as metadata_utils
+importlib.reload(metadata_utils)
+MetaDataAttr = metadata_utils.MetaDataAttr
 ###########################
 ###########################
 
@@ -22,7 +26,6 @@ placer_tag = 'PLC'
 ###########################
 
 
-
 class Placer:
     def __init__(
         self,
@@ -31,16 +34,33 @@ class Placer:
         position: tuple[float, float, float] = None,
         size: float = None,
         vector_handle_positions: tuple[tuple, tuple] = None,
-        orientation: tuple[tuple, tuple] = None
+        orientation: tuple[tuple, tuple] = None,
+        data_name: str = None,
+        scene_name: str = None,
     ):
         self.name = name
         self.side = side
         self.position = position if position else (0, 0, 0)
         self.size = size if size else 1.0
-        self.vector_handle_positions = vector_handle_positions
-        self.orientation = orientation
-        self.has_vector_handles = True if vector_handle_positions else False
+        self.vector_handle_positions = vector_handle_positions if vector_handle_positions else ((0, 0, 1), (0, 1, 0))
+        self.orientation = orientation if orientation else ((0, 0, 1), (0, 1, 0))
+        self.data_name = data_name if data_name else f'{gen.side_tag(side)}{name}'
+        self.scene_name = scene_name
 
+
+metadata_attrs = (
+    MetaDataAttr(long_name='PlacerTag', attribute_type='string', keyable=0, default_value_attr_string='name'),
+    MetaDataAttr(long_name='Side', attribute_type='string', keyable=0, default_value_attr_string='side'),
+    MetaDataAttr(long_name='Size', attribute_type='string', keyable=0, default_value_attr_string='size'),
+    MetaDataAttr(long_name='VectorHandleData', attribute_type='string', keyable=0,
+                 default_value_attr_string='vector_handle_positions'),
+    MetaDataAttr(long_name='Orientation', attribute_type='string', keyable=0, default_value_attr_string='orientation')
+)
+
+
+########################################################################################################################
+def add_placer_metadata(module, scene_placer):
+    [attr.create(module, scene_placer) for attr in metadata_attrs]
 
 
 ####################################################################################################################
@@ -53,7 +73,6 @@ def create_scene_placer(placer, parent=None):
     return scene_placer
 
 
-
 ####################################################################################################################
 def get_placer_name(placer):
     side_tag = f'{placer.side}_' if placer.side else ''
@@ -61,26 +80,24 @@ def get_placer_name(placer):
     return placer_name
 
 
-
 ####################################################################################################################
 def position_placer(placer, scene_placer):
     scene_placer.translate.set(tuple(placer.position))
 
 
+########################################################################################################################
+def data_from_placer(placer):
+    data = {}
+    for param, value in vars(placer).items():
+        data[param] = value
+    return data
 
-####################################################################################################################
-def add_placer_metadata(placer, scene_placer):
-    # ...Placer tag
-    gen.add_attr(scene_placer, long_name="PlacerTag", attribute_type="string", keyable=0, default_value=placer.name)
-    # ...Side
-    side_attr_input = placer.side if placer.side else "None"
-    gen.add_attr(scene_placer, long_name="Side", attribute_type="string", keyable=0, default_value=side_attr_input)
-    # ...Size
-    gen.add_attr(scene_placer, long_name="Size", attribute_type="float", keyable=0,
-                 default_value=float(placer.size))
-    # ...Vector handle positions
-    gen.add_attr(scene_placer, long_name="VectorHandleData", attribute_type="string", keyable=0,
-                 default_value=str(placer.vector_handle_positions))
-    # ...Orientation
-    gen.add_attr(scene_placer, long_name="Orientation", attribute_type="string", keyable=0,
-                 default_value=str(placer.orientation))
+
+########################################################################################################################
+def placer_from_data(data):
+    placer = Placer(**data)
+    return placer
+
+
+########################################################################################################################
+def color_placer(placer, color=None):
