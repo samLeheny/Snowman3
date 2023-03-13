@@ -8,9 +8,10 @@
 ###########################
 ##### Import Commands #####
 import importlib
-import Snowman3.riggers.utilities.classes.class_Placer as classPlacer
-importlib.reload(classPlacer)
-Placer = classPlacer.Placer
+
+import Snowman3.riggers.utilities.placer_utils as placer_utils
+importlib.reload(placer_utils)
+Placer = placer_utils.Placer
 ###########################
 ###########################
 
@@ -23,38 +24,19 @@ Placer = classPlacer.Placer
 
 
 
-
-
-def create_placers(side=None):
-
-    placers = (
-
-
-        Placer(
-            name = "root",
-            side = side,
-            position = (0, 0, 0),
-            size = 1.75,
-            vector_handle_data={"aim": {"coord": (0, 0, 5)},
-                                "up": {"coord": (0, 5, 0)}},
-            orienter_data = {"aim_vector": (0, 0, 1),
-                             "up_vector": (0, 1, 0)},
-        ),
-
-
-        Placer(
-            name="COG",
-            side=side,
-            position=(0, 105, 0.39),
-            size=1.75,
-            vector_handle_data={"aim": {"coord": (0, 0, 5)},
-                                "up": {"coord": (0, 5, 0)}},
-            orienter_data={"aim_vector": (0, 0, 1),
-                           "up_vector": (0, 1, 0)},
-        ),
-
-
-    )
-
-
-    return placers
+placers = {
+    Placer(
+        name = "root",
+        position = (0, 0, 0),
+        size = 1.75,
+        vector_handle_positions = [[0, 0, 5], [0, 5, 0]],
+        orientation = [[0, 0, 1], [0, 1, 0]]
+    ),
+    Placer(
+        name = "COG",
+        position = (0, 105, 0.39),
+        size = 1.75,
+        vector_handle_positions = [[0, 0, 5], [0, 5, 0]],
+        orientation = [[0, 0, 1], [0, 1, 0]]
+    ),
+}

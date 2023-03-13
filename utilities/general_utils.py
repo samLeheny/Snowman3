@@ -15,7 +15,6 @@ import maya.OpenMaya as om
 import maya.api.OpenMaya as om2
 import math as math
 import numpy as np
-import time
 
 import Snowman3.dictionaries.nurbsCurvePrefabs as nurbsCurvePrefabs
 importlib.reload(nurbsCurvePrefabs)
@@ -24,9 +23,6 @@ curve_prefabs = nurbsCurvePrefabs.create_dict()
 import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
-
-import Snowman3.utilities.get_utils as get_utils
-importlib.reload(get_utils)
 ###########################
 ###########################
 
@@ -53,7 +49,6 @@ vis_attrs = ["visibility"]
 ############# ------------------------------    TABLE OF CONTENTS    ----------------------------------- ###############
 ########################################################################################################################
 '''
-get
 buffer_obj
 zero_out
 distance_between
@@ -102,46 +97,6 @@ drive_attr
 ########################################################################################################################
 ########################################################################################################################
 ########################################################################################################################
-
-
-
-
-########################################################################################################################
-def get(node):
-    """
-        An entry point function to fire one of various functions to find and get specific nodes in the scene.
-        Args:
-            node (string): The key to specify which 'get' function to be run inside this function (what node to
-                look for)
-        Return:
-            (mObject): The found node.
-    """
-
-
-    node_functions = {
-        "rootCtrl" : get_utils.root_ctrl,
-        "rootControl" : get_utils.root_ctrl,
-        "root" : get_utils.root_ctrl,
-        "root_ctrl" : get_utils.root_ctrl,
-
-        "setupRoot" : get_utils.setup_root_ctrl,
-        "setupRootCtrl" : get_utils.setup_root_ctrl,
-        "setup_root_ctrl" : get_utils.setup_root_ctrl,
-        "setup_root" : get_utils.setup_root_ctrl,
-    }
-
-    #...Check argument integrity
-    if node not in node_functions:
-        print("Invalid argument: {}".format(node))
-        return None
-
-    #...If valid arg provided, fire the corresponding 'get' function and return the node
-    node = node_functions[node]()
-
-
-    return node
-
-
 
 
 
@@ -2578,10 +2533,8 @@ def migrate_connections(old_attr, new_attr):
 
 ########################################################################################################################
 def drive_attr(obj_1, obj_2, attr):
-
     if not isinstance(attr, (list, tuple)):
         attr = (attr,)
-
     for a in attr:
         if not pm.listConnections(f'{obj_2}.{a}', source=1):
             pm.connectAttr(f'{obj_1}.{a}', obj_2 + "." + a)
@@ -2593,10 +2546,23 @@ def drive_attr(obj_1, obj_2, attr):
 
 ########################################################################################################################
 def get_angle_convergence_between_two_vectors(vector_1, vector_2):
-
     v1, v2 = vector_1, vector_2
     vector_product = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
     squared_vector_product = (v1[0] ** 2 + v1[1] ** 2 + v1[2] ** 2) * (v2[0] ** 2 + v2[1] ** 2 + v2[2] ** 2)
     cos_angle = vector_product / math.sqrt(squared_vector_product)
-
     return cos_angle
+
+
+
+
+########################################################################################################################
+def side_tag(side):
+    side_tag = f'{side}_' if side else ''
+    return(side_tag)
+
+
+
+########################################################################################################################
+def opposite_side(side):
+    sides = {'L': 'R', 'R': 'L'}
+    return sides[side]
