@@ -272,6 +272,8 @@ def update_placer_in_blueprint(placer, part, module):
 
 
 ########################################################################################################################
-def mirror_module(blueprint, module_key, driver_side='L'):
-    module = blueprint.modules[module_key]
-    module_utils.mirror_module(module, driver_side=driver_side)
+def mirror_blueprint(blueprint, driver_side='L'):
+    modules = blueprint.modules
+    for module in modules.values():
+        module_utils.mirror_module(module, driver_side=driver_side)
+

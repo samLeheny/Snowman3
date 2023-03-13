@@ -107,4 +107,4 @@ def mirror_module(module, driver_side='L'):
     for key, part_data in module['parts'].items():
         part = part_utils.part_from_data(part_data)
         if part.side == driver_side:
-            part_utils.mirror_part(part, driver_side=driver_side, driven_side=gen.opposite_side(driver_side))
+            part_utils.mirror_part(part)

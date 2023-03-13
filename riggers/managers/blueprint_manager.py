@@ -169,7 +169,7 @@ class BlueprintManager:
             blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
             for module in (m1, m2):
                 module_key = f'{gen.side_tag(module.side)}{module.name}'
-                blueprint_utils.mirror_module(blueprint, module_key)
+                blueprint_utils.mirror_blueprint(blueprint)
 
         if num == 3:
             blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
@@ -178,6 +178,14 @@ class BlueprintManager:
         if num == 4:
             blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
             m = module_utils.module_from_data(blueprint.modules['spine'])
-            p = part_utils.part_from_data(m.parts['L_arm'])
-            L_x_placer = Placer(name='shoulder', side='L', position=(4, 5, 6), size=1.1)
-            blueprint_utils.create_placer(L_x_placer, p, m)
+            pL = part_utils.part_from_data(m.parts['L_arm'])
+            pR = part_utils.part_from_data(m.parts['R_arm'])
+            L_x_placer = Placer(name='shoulder', side='L', position=(4, 5, 6), size=1.1, scene_name='L_spine_arm_shoulder')
+            R_x_placer = Placer(name='shoulder', side='R', position=(4, 5, 6), size=1.1, scene_name='R_spine_arm_shoulder')
+            blueprint_utils.create_placer(L_x_placer, pL, m)
+            blueprint_utils.create_placer(R_x_placer, pR, m)
+
+        if num == 5:
+            L_x_placer = Placer(name='shoulder', side='L', position=(4, 5, 6), size=1.1, scene_name='L_spine_arm_shoulder')
+            placer_utils.mirror_placer(L_x_placer)
+

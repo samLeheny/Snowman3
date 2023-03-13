@@ -8,6 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -15,6 +16,9 @@ importlib.reload(gen)
 import Snowman3.riggers.utilities.metadata_utils as metadata_utils
 importlib.reload(metadata_utils)
 MetaDataAttr = metadata_utils.MetaDataAttr
+
+import Snowman3.dictionaries.colorCode as color_code
+importlib.reload(color_code)
 ###########################
 ###########################
 
@@ -22,6 +26,7 @@ MetaDataAttr = metadata_utils.MetaDataAttr
 ###########################
 ######## Variables ########
 placer_tag = 'PLC'
+color_code = color_code.sided_ctrl_color
 ###########################
 ###########################
 
@@ -65,19 +70,13 @@ def add_placer_metadata(module, scene_placer):
 
 ####################################################################################################################
 def create_scene_placer(placer, parent=None):
-    scene_placer = gen.prefab_curve_construct(prefab='sphere_placer', name=get_placer_name(placer),
-                                              scale=placer.size, side=placer.side)
+    scene_placer = gen.prefab_curve_construct(prefab='sphere_placer', name=placer.scene_name, scale=placer.size,
+                                              side=placer.side)
     scene_placer.setParent(parent) if parent else None
     position_placer(placer, scene_placer)
     add_placer_metadata(placer, scene_placer)
+    color_placer(placer)
     return scene_placer
-
-
-####################################################################################################################
-def get_placer_name(placer):
-    side_tag = f'{placer.side}_' if placer.side else ''
-    placer_name = f'{side_tag}{placer.name}_{placer_tag}'
-    return placer_name
 
 
 ####################################################################################################################
@@ -100,4 +99,39 @@ def placer_from_data(data):
 
 
 ########################################################################################################################
+def get_scene_placer(placer):
+    if not pm.objExists(placer.scene_name):
+        print(f"Placer: '{placer.scene_name}' not found in scene")
+        return False
+    return pm.PyNode(placer.scene_name)
+
+
+########################################################################################################################
 def color_placer(placer, color=None):
+    if not color:
+        color = color_code[placer.side]
+    gen.set_color(get_scene_placer(placer), color)
+
+
+########################################################################################################################
+def mirror_placer(placer):
+    scene_placer = get_scene_placer(placer)
+    opposite_scene_placer = get_opposite_scene_placer(scene_placer)
+    # ...Mirror position
+    pm.setAttr(f'{opposite_scene_placer}.tx', pm.getAttr(f'{scene_placer}.tx') * -1)
+    [pm.setAttr(f'{opposite_scene_placer}.{a}', pm.getAttr(f'{scene_placer}.{a}')) for a in ('ty', 'tz')]
+    # ...Match handle size
+    pm.setAttr(f'{opposite_scene_placer}.Size', pm.getAttr(f'{scene_placer}.Size'))
+
+
+########################################################################################################################
+def get_opposite_scene_placer(scene_placer):
+    sided_prefixes = {'L_': 'R_', 'R_': 'L_'}
+    this_prefix = None
+    opposite_scene_placer = None
+    for prefix in sided_prefixes.keys():
+        if str(scene_placer).startswith(prefix):
+            this_prefix = prefix
+    if this_prefix:
+        opposite_scene_placer = pm.PyNode(str(scene_placer).replace(this_prefix, sided_prefixes[this_prefix]))
+    return opposite_scene_placer

@@ -12,6 +12,9 @@ import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
+
+import Snowman3.dictionaries.colorCode as color_code
+importlib.reload(color_code)
 ###########################
 ###########################
 
@@ -19,6 +22,7 @@ importlib.reload(gen)
 ###########################
 ######## Variables ########
 part_tag = 'PART'
+color_code = color_code.sided_ctrl_color
 ###########################
 ###########################
 
@@ -46,13 +50,19 @@ class Part:
 
 ########################################################################################################################
 def create_scene_part(part, parent=None):
-    scene_part = gen.prefab_curve_construct(prefab='cube', name=part.scene_name, scale=part.handle_size,
-                                            side=part.side)
+    scene_part = create_part_handle(part)
     position_part(part)
     scene_part.setParent(parent) if parent else None
     pm.select(clear=1)
     add_part_metadata(part, scene_part)
     return scene_part
+
+
+########################################################################################################################
+def create_part_handle(part):
+    handle = gen.prefab_curve_construct(prefab='cube', name=part.scene_name, scale=part.handle_size, side=part.side)
+    color_part_handle(part)
+    return handle
 
 
 ########################################################################################################################
@@ -91,10 +101,9 @@ def data_from_part(part):
 
 ########################################################################################################################
 def get_part_handle(part):
-    part_name = part.scene_name
-    if not pm.objExists(part_name):
+    if not pm.objExists(part.scene_name):
         return False
-    part_handle = pm.PyNode(part_name)
+    part_handle = pm.PyNode(part.scene_name)
     return part_handle
 
 
@@ -114,12 +123,9 @@ def update_part_from_scene(part):
 
 
 ########################################################################################################################
-def mirror_part(part, driver_side='L', driven_side='R'):
+def mirror_part(part):
     part_handle = get_part_handle(part)
-    opposite_part = get_opposite_part(part)
-    if not opposite_part:
-        return False
-    opposite_part_handle = get_part_handle(opposite_part)
+    opposite_part_handle = get_opposite_part_handle(part_handle)
     # ...Mirror position
     pm.setAttr(f'{opposite_part_handle}.tx', pm.getAttr(f'{part_handle}.tx') * -1)
     [pm.setAttr(f'{opposite_part_handle}.{a}', pm.getAttr(f'{part_handle}.{a}')) for a in ('ty', 'tz')]
@@ -128,22 +134,26 @@ def mirror_part(part, driver_side='L', driven_side='R'):
 
 
 ########################################################################################################################
-def get_opposite_part(part):
-    opposite_part_args = get_opposite_side_part_args(part)
-    opposite_part = Part(**opposite_part_args)
-    if not get_part_handle(opposite_part):
-        return False
-    return opposite_part
-
-
-########################################################################################################################
-def get_opposite_side_part_args(part):
-    opposite_part_args = vars(part)
-    opposite_part_args['side'] = gen.opposite_side(part.side)
-    return opposite_part_args
+def get_opposite_part_handle(part_handle):
+    sided_prefixes = {'L_': 'R_', 'R_': 'L_'}
+    this_prefix = None
+    opposite_part_handle = None
+    for prefix in sided_prefixes.keys():
+        if str(part_handle).startswith(prefix):
+            this_prefix = prefix
+    if this_prefix:
+        opposite_part_handle = pm.PyNode(str(part_handle).replace(this_prefix, sided_prefixes[this_prefix]))
+    return opposite_part_handle
 
 
 ########################################################################################################################
 def get_scene_part(part):
     scene_part = pm.PyNode(part.scene_name)
     return scene_part
+
+
+########################################################################################################################
+def color_part_handle(part, color=None):
+    if not color:
+        color = color_code[part.side]
+    gen.set_color(get_part_handle(part), color)
