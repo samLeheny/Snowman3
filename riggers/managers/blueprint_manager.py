@@ -49,6 +49,13 @@ class BlueprintManager:
 
 
     ####################################################################################################################
+    def create_blueprint_from_prefab(self):
+        print(f"Creating blueprint from prefab: '{self.prefab_key}'")
+        self.create_new_blueprint()
+
+
+
+    ####################################################################################################################
     def create_new_blueprint(self):
         print('Creating new blueprint...')
         blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.dirpath)

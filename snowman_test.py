@@ -9,15 +9,15 @@ BlueprintManager = blueprint_manager.BlueprintManager
 
 # ...File directory path
 #dirpath = r'C:\Users\User\Desktop\test_build'
-dirpath = r'C:\Users\61451\Desktop\test_build'
+dirpath = r'C:\Users\61451\Desktop\sam_build'
 
 # ...New scene
 mc.file(new=True, f=True)
 
 # ...Build prefab armature
 print('-'*120)
-manager = BlueprintManager(asset_name='test', dirpath=dirpath)
-manager.create_new_blueprint()
+manager = BlueprintManager(asset_name='sam', prefab_key='biped', dirpath=dirpath)
+manager.create_blueprint_from_prefab()
 
 manager.save_work()
 
