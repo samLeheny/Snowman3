@@ -51,7 +51,22 @@ class BlueprintManager:
     ####################################################################################################################
     def create_blueprint_from_prefab(self):
         print(f"Creating blueprint from prefab: '{self.prefab_key}'")
-        self.create_new_blueprint()
+        blueprint = self.create_new_blueprint()
+        self.populate_prefab_blueprint(blueprint)
+
+
+
+    ####################################################################################################################
+    def populate_prefab_blueprint(self, blueprint):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.modules'
+        prefab_modules = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_modules)
+        module_list = prefab_modules.modules.values()
+        for module in module_list:
+            blueprint.add_module(module)
+            module.populate_prefab_module()
+            #blueprint.populate_prefab_module(module)
+        blueprint.save_blueprint()
 
 
 
@@ -62,12 +77,13 @@ class BlueprintManager:
         self.create_working_dir()
         self.create_versions_dir()
         self.save_blueprint_to_tempdisk(blueprint)
+        return blueprint
 
 
 
     ####################################################################################################################
     def save_blueprint_to_tempdisk(self, blueprint):
-        blueprint_utils.save_blueprint(dirpath=self.tempdir, blueprint=blueprint)
+        blueprint.save_blueprint()
 
 
 
@@ -98,7 +114,8 @@ class BlueprintManager:
     ####################################################################################################################
     def get_blueprint_from_working_dir(self):
         print("Fetching current working blueprint...")
-        blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
+        blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
+        blueprint.blueprint_from_file()
         return blueprint
 
 
@@ -115,7 +132,7 @@ class BlueprintManager:
         print("Saving work to disk...")
         asset_name = blueprint.asset_name
         new_save_dir = self.create_new_numbered_directory(asset_name)
-        blueprint_utils.save_blueprint(dirpath=new_save_dir, blueprint=blueprint)
+        blueprint.save_blueprint(dirpath=new_save_dir)
 
 
 
