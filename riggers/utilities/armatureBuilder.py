@@ -18,6 +18,10 @@ import Snowman3.riggers.utilities.blueprint_utils as blueprint_utils
 importlib.reload(blueprint_utils)
 Blueprint = blueprint_utils.Blueprint
 
+import Snowman3.riggers.utilities.armature as armature
+importlib.reload(armature)
+Armature = armature.Armature
+
 import Snowman3.riggers.utilities.module_utils as module_utils
 importlib.reload(module_utils)
 Module = module_utils.Module
@@ -52,6 +56,23 @@ class ArmatureBuilder:
     ):
         self.armature = armature
         self.blueprint = blueprint
+
+
+    def build_armature_from_blueprint(self):
+        blueprint_data = self.blueprint.data_from_blueprint()
+        modules_data = blueprint_data['modules']
+        modules = {}
+        for data in modules_data.values():
+            modules[data['data_name']] = Module(**data)
+        self.armature = Armature(modules=modules)
+        self.populate_armature()
+
+
+    def populate_armature(self):
+        for module in self.armature.modules.values():
+            module.create_scene_module()
+
+
 
 
     def add_module(self, name, prefab_key=None, side=None):

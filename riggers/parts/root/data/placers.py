@@ -25,11 +25,12 @@ Placer = placer_utils.Placer
 
 
 placers = {
-    Placer(
-        name = "root",
-        position = (0, 0, 0),
-        size = 1.75,
-        vector_handle_positions = [[0, 0, 5], [0, 5, 0]],
-        orientation = [[0, 0, 1], [0, 1, 0]]
-    ),
+    'root':
+        Placer(
+            name = 'root',
+            position = (0, 0, 0),
+            size = 1.75,
+            vector_handle_positions = [[0, 0, 5], [0, 5, 0]],
+            orientation = [[0, 0, 1], [0, 1, 0]]
+        ),
 }

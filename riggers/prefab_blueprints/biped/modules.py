@@ -28,18 +28,21 @@ modules = {
         Module(
             prefab_key = 'root',
             name = 'root',
+            side = 'M',
         ),
 
     'spine':
         Module(
             prefab_key = 'biped_spine',
             name = 'spine',
+            side = 'M',
         ),
 
     'neck':
         Module(
             prefab_key = 'biped_neck',
             name = 'neck',
+            side = 'M',
         ),
 
     'L_clavicle':

@@ -53,6 +53,7 @@ class BlueprintManager:
         print(f"Creating blueprint from prefab: '{self.prefab_key}'")
         blueprint = self.create_new_blueprint()
         self.populate_prefab_blueprint(blueprint)
+        return blueprint
 
 
 
@@ -64,8 +65,6 @@ class BlueprintManager:
         module_list = prefab_modules.modules.values()
         for module in module_list:
             blueprint.add_module(module)
-            module.populate_prefab_module()
-            #blueprint.populate_prefab_module(module)
         blueprint.save_blueprint()
 
 
@@ -73,7 +72,7 @@ class BlueprintManager:
     ####################################################################################################################
     def create_new_blueprint(self):
         print('Creating new blueprint...')
-        blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.dirpath)
+        blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
         self.create_working_dir()
         self.create_versions_dir()
         self.save_blueprint_to_tempdisk(blueprint)

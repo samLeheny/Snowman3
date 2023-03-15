@@ -49,13 +49,34 @@ class Module:
         self.prefab_key = prefab_key
         self.parts = parts if parts else {}
 
+        self.get_parts_from_parts_data()
+
 
 
     def create_scene_module(self, parent=None):
         scene_module = pm.shadingNode('transform', name=self.scene_name, au=1)
         scene_module.setParent(parent) if parent else None
         self.add_module_metadata(scene_module)
+        self.populate_scene_module(parts_parent=scene_module)
         return scene_module
+
+
+    def populate_scene_module(self, parts_parent=None):
+        if not self.parts:
+            return False
+        for part in self.parts.values():
+            part.create_scene_part(parent=parts_parent)
+
+
+    def get_parts_from_parts_data(self):
+        if not self.parts:
+            return False
+        if not type(list(self.parts.values())[0]) == dict:
+            return False
+        parts = {}
+        for key, data in self.parts.items():
+            parts[key] = Part(**data)
+        self.parts = parts
 
 
     def get_scene_module(self):
@@ -72,11 +93,25 @@ class Module:
         [attr.create(self, scene_module) for attr in metadata_attrs]
 
 
-    def add_part(self, name, prefab_key=None, side=None):
-        part = Part(name=name, prefab_key=prefab_key, side=side)
-        self.parts[part.data_name] = part
-        part.create_scene_part(parent=self.get_scene_module())
+    def add_part(self, part):
+        if part.prefab_key:
+            self.add_prefab_part(part)
+        else:
+            self.add_empty_part(part)
         return part
+
+
+    def impose_module_side_on_part(self, part):
+        if not part.side:
+            part.edit_side(self.side)
+
+
+    def add_empty_part(self, part):
+        self.parts[part.data_name] = part.data_from_part()
+
+    def add_prefab_part(self, part):
+        part.populate_prefab()
+        self.parts[part.data_name] = part.data_from_part()
 
 
     def remove_part(self, part):
@@ -121,7 +156,11 @@ class Module:
                 part_utils.mirror_part(part)
 
 
-    def populate_prefab_module(self):
-        # ...Import list of prefab parts for this module
-        # ...For part in parts list, add part to module then populate part
-        print(self.prefab_key)
+    def populate_prefab(self):
+        dir_string = 'Snowman3.riggers.modules.{}.data.parts'
+        prefab_parts = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_parts)
+        part_list = prefab_parts.parts.values()
+        for part in part_list:
+            self.impose_module_side_on_part(part)
+            self.add_part(part)

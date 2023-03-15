@@ -42,6 +42,7 @@ class Placer:
         orientation: list[list, list] = None,
         data_name: str = None,
         scene_name: str = None,
+        parent_part_name: str = None,
     ):
         self.name = name
         self.side = side
@@ -50,7 +51,8 @@ class Placer:
         self.vector_handle_positions = vector_handle_positions if vector_handle_positions else ((0, 0, 1), (0, 1, 0))
         self.orientation = orientation if orientation else ((0, 0, 1), (0, 1, 0))
         self.data_name = data_name if data_name else f'{gen.side_tag(side)}{name}'
-        self.scene_name = scene_name
+        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{parent_part_name}_{name}_{placer_tag}'
+        self.parent_part_name = parent_part_name
 
 
 
@@ -129,3 +131,14 @@ class Placer:
         if this_prefix:
             opposite_scene_placer = pm.PyNode(str(scene_placer).replace(this_prefix, sided_prefixes[this_prefix]))
         return opposite_scene_placer
+
+
+    def edit_side(self, new_side):
+        self.side = new_side
+        self.data_name = f'{gen.side_tag(self.side)}{self.name}'
+        self.scene_name = f'{gen.side_tag(self.side)}{self.parent_part_name}_{self.name}_{placer_tag}'
+
+
+    def edit_parent_part_name(self, name):
+        self.parent_part_name = name
+        self.scene_name = f'{gen.side_tag(self.side)}{name}_{self.name}_{placer_tag}'

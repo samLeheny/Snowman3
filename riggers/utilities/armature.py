@@ -35,7 +35,7 @@ class Armature:
         modules = None,
 
     ):
-        self.modules = modules
+        self.modules = modules if modules else {}
 
 
 

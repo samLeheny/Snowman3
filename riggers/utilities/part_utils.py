@@ -50,8 +50,10 @@ class Part:
         self.position = position if position else [0, 0, 0]
         self.placers = placers if placers else {}
         self.data_name = data_name if data_name else f'{gen.side_tag(side)}{name}'
-        self.scene_name = scene_name
+        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{part_tag}'
         self.prefab_key = prefab_key
+
+        self.get_placers_from_placers_data()
 
 
 
@@ -62,22 +64,40 @@ class Part:
         return data
 
 
+    def get_placers_from_placers_data(self):
+        if not self.placers:
+            return False
+        if not type(list(self.placers.values())[0]) == dict:
+            return False
+        placers = {}
+        for key, data in self.placers.items():
+            placers[key] = Placer(**data)
+        self.placers = placers
+
+
     def create_scene_part(self, parent=None):
         scene_part = self.create_part_handle()
-        self.position_part()
+        self.position_part(scene_part)
         scene_part.setParent(parent) if parent else None
         self.add_part_metadata(scene_part)
+        self.populate_scene_part(scene_part)
         return scene_part
 
 
     def create_part_handle(self):
         handle = gen.prefab_curve_construct(prefab='cube', name=self.scene_name, scale=self.handle_size, side=self.side)
-        self.color_part_handle()
+        self.color_part_handle(handle)
         return handle
 
 
-    def position_part(self):
-        handle = self.get_part_handle()
+    def populate_scene_part(self, placers_parent=None):
+        if not self.placers:
+            return False
+        for placer in self.placers.values():
+            placer.create_scene_placer(parent=placers_parent)
+
+
+    def position_part(self, handle):
         handle.translate.set(tuple(self.position))
 
 
@@ -103,11 +123,14 @@ class Part:
         return part_handle
 
 
-    def add_placer(self, name, side=None):
-        placer = Placer(name=name, side=side)
-        self.placers[placer.data_name] = placer
-        placer.create_scene_placer(self.get_part_handle())
+    def add_placer(self, placer):
+        self.placers[placer.data_name] = placer.data_from_placer()
         return placer
+
+
+    def impose_part_side_on_placer(self, placer):
+        if not placer.side:
+            placer.edit_side(self.side)
 
 
     def remove_placer(self, placer):
@@ -155,10 +178,28 @@ class Part:
         return scene_part
 
 
-    def color_part_handle(self, color=None):
+    def color_part_handle(self, handle, color=None):
         if not color:
             if not self.side:
                 color = color_code['M']
             else:
                 color = color_code[self.side]
-        gen.set_color(self.get_part_handle(), color)
+        gen.set_color(handle, color)
+
+
+    def populate_prefab(self):
+        dir_string = 'Snowman3.riggers.parts.{}.data.placers'
+        prefab_placers = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_placers)
+        placers_list = prefab_placers.placers.values()
+        for placer in placers_list:
+            if not placer.parent_part_name:
+                placer.edit_parent_part_name(self.name)
+            self.impose_part_side_on_placer(placer)
+            self.add_placer(placer)
+
+
+    def edit_side(self, new_side):
+        self.side = new_side
+        self.data_name = f'{gen.side_tag(self.side)}{self.name}'
+        self.scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'

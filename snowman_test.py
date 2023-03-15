@@ -7,6 +7,10 @@ import Snowman3.riggers.managers.blueprint_manager as blueprint_manager
 importlib.reload(blueprint_manager)
 BlueprintManager = blueprint_manager.BlueprintManager
 
+import Snowman3.riggers.utilities.armatureBuilder as armature_builder
+importlib.reload(armature_builder)
+ArmatureBuilder = armature_builder.ArmatureBuilder
+
 # ...File directory path
 #dirpath = r'C:\Users\User\Desktop\test_build'
 dirpath = r'C:\Users\61451\Desktop\sam_build'
@@ -16,15 +20,19 @@ mc.file(new=True, f=True)
 
 # ...Build prefab armature
 print('-'*120)
-manager = BlueprintManager(asset_name='sam', prefab_key='biped', dirpath=dirpath)
-manager.create_blueprint_from_prefab()
+BPManager = BlueprintManager(asset_name='sam', prefab_key='biped', dirpath=dirpath)
+blueprint = BPManager.create_blueprint_from_prefab()
+armature_builder = ArmatureBuilder(blueprint=blueprint)
+armature_builder.build_armature_from_blueprint()
 
-manager.save_work()
+BPManager.save_work()
 
-manager.test(1)
-manager.test(2)
-manager.test(3)
-manager.test(4)
+
+
+BPManager.test(1)
+BPManager.test(2)
+BPManager.test(3)
+BPManager.test(4)
 
 # ...Build armature from file
 '''rig_builder = RigBuilder(

@@ -31,8 +31,6 @@ Placer = placer_utils.Placer
 ###########################
 ######## Variables ########
 core_data_filename = 'core_data'
-working_dir = 'working'
-test_path = r'C:\Users\61451\Desktop\sam_build'
 ###########################
 ###########################
 
@@ -44,7 +42,7 @@ class Blueprint:
         self,
         asset_name,
         dirpath = None,
-        modules = None
+        modules = None,
 
     ):
         self.asset_name = asset_name
@@ -53,51 +51,52 @@ class Blueprint:
 
 
     def add_module(self, module):
-        dirpath = f'{test_path}/{working_dir}'
+        if module.prefab_key:
+            self.add_prefab_module(module)
+        else:
+            self.add_empty_module(module)
+
+
+    def add_empty_module(self, module):
         self.modules[module.data_name] = module.data_from_module()
-        self.save_blueprint()
+
+
+    def add_prefab_module(self, module):
+        module.populate_prefab()
+        self.modules[module.data_name] = module.data_from_module()
 
 
     def remove_module(self, module):
-        dirpath = f'{test_path}/working'
-        working_blueprint = self.blueprint_from_file(dirpath)
+        working_blueprint = self.blueprint_from_file()
         working_blueprint.modules.pop(module.data_name)
-        self.save_blueprint()
 
 
     def add_part(self, part, module):
-        dirpath = f'{test_path}/working'
-        working_blueprint = self.blueprint_from_file(dirpath)
+        working_blueprint = self.blueprint_from_file()
         working_blueprint.modules[module.data_name].parts[part.data_name] = part.data_from_part()
-        self.save_blueprint()
 
 
     def remove_part(self, part, module):
-        dirpath = f'{test_path}/working'
-        working_blueprint = self.blueprint_from_file(dirpath)
+        working_blueprint = self.blueprint_from_file()
         working_blueprint.modules[module.data_name]['parts'].pop(part.data_name)
-        self.save_blueprint()
 
 
     def add_placer(self, placer, part, module):
-        dirpath = f'{test_path}/working'
-        working_blueprint = self.blueprint_from_file(dirpath)
+        working_blueprint = self.blueprint_from_file()
         working_blueprint.modules[module.data_name].parts[part.data_name].placers[placer.data_name] =\
             placer.data_from_placer()
-        self.save_blueprint()
 
 
     def remove_placer(self, placer, part, module):
-        dirpath = f'{test_path}/working'
-        working_blueprint = self.blueprint_from_file(dirpath)
+        working_blueprint = self.blueprint_from_file()
         working_blueprint.modules[module.data_name]['parts'][part.data_name]['placers'].pop(part.data_name)
-        self.save_blueprint()
 
 
     def blueprint_from_file(self):
         blueprint_data = self.data_from_file()
         for key, value in blueprint_data.items():
             setattr(self, key, value)
+
 
 
     def data_from_file(self):
@@ -120,10 +119,9 @@ class Blueprint:
 
     def save_blueprint(self, dirpath=None, filename=core_data_filename):
         if not dirpath:
-            dirpath = f'{self.dirpath}/{working_dir}'
+            dirpath = self.dirpath
         blueprint_data = self.data_from_blueprint()
         filepath = f'{dirpath}/{filename}.json'
-        print(f'\nExporting blueprint data to dir: {filepath}...')
         with open(filepath, 'w') as fh:
             json.dump(blueprint_data, fh, indent=5)
 
