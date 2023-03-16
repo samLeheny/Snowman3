@@ -23,14 +23,17 @@ Placer = placer_utils.Placer
 ###########################
 
 
-
-placers = {
-    'cog':
-        Placer(
-            name = 'cog',
-            position = (0, 105, 0.39),
-            size = 1.75,
-            vector_handle_positions = [[0, 0, 5], [0, 5, 0]],
-            orientation = [[0, 0, 1], [0, 1, 0]]
-        ),
-}
+def create_placers(side=None, parent_part_name=None):
+    placers = {
+        'cog':
+            Placer(
+                name = 'cog',
+                side = side,
+                parent_part_name = parent_part_name,
+                position = (0, 105, 0.39),
+                size = 1.75,
+                vector_handle_positions = [[0, 0, 5], [0, 5, 0]],
+                orientation = [[0, 0, 1], [0, 1, 0]]
+            ),
+    }
+    return placers

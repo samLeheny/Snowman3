@@ -191,8 +191,8 @@ class Part:
         dir_string = 'Snowman3.riggers.parts.{}.data.placers'
         prefab_placers = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_placers)
-        placers_list = prefab_placers.placers.values()
-        for placer in placers_list:
+        placers_dict = prefab_placers.create_placers(side=self.side, parent_part_name=self.name)
+        for key, placer in placers_dict.items():
             if not placer.parent_part_name:
                 placer.edit_parent_part_name(self.name)
             self.impose_part_side_on_placer(placer)

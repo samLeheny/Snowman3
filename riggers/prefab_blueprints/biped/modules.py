@@ -22,96 +22,27 @@ Module = module_utils.Module
 ###########################
 
 
-modules = {
+modules = {}
+module_inputs = [
+    ['root', 'root', 'M'],
+    ['spine', 'biped_spine', 'M'],
+    ['neck', 'biped_neck', 'M'],
+    ['clavicle', 'biped_clavicle', 'L'],
+    ['clavicle', 'biped_clavicle', 'R'],
+    ['arm', 'biped_arm', 'L'],
+    ['arm', 'biped_arm', 'R'],
+    ['hand', 'biped_hand', 'L'],
+    ['hand', 'biped_hand', 'R'],
+    ['leg_plantigrade', 'leg_plantigrade', 'L'],
+    ['leg_plantigrade', 'leg_plantigrade', 'R'],
+    ['foot_plantigrade', 'foot_plantigrade', 'L'],
+    ['foot_plantigrade', 'foot_plantigrade', 'R'],
+]
+for inputs in module_inputs:
+    name, prefab_key, side = inputs
 
-    'root':
-        Module(
-            prefab_key = 'root',
-            name = 'root',
-            side = 'M',
-        ),
+    dir_string = f'Snowman3.riggers.modules.{prefab_key}'
+    module_data = importlib.import_module(dir_string)
+    importlib.reload(module_data)
 
-    'spine':
-        Module(
-            prefab_key = 'biped_spine',
-            name = 'spine',
-            side = 'M',
-        ),
-
-    'neck':
-        Module(
-            prefab_key = 'biped_neck',
-            name = 'neck',
-            side = 'M',
-        ),
-
-    'L_clavicle':
-        Module(
-            prefab_key = 'biped_clavicle',
-            name = 'clavicle',
-            side = 'L',
-        ),
-
-    'R_clavicle':
-        Module(
-            prefab_key = 'biped_clavicle',
-            name = 'clavicle',
-            side = 'R',
-        ),
-
-    'L_arm':
-        Module(
-            prefab_key = 'biped_arm',
-            name = 'arm',
-            side = 'L',
-        ),
-
-    'R_arm':
-        Module(
-            prefab_key = 'biped_arm',
-            name = 'arm',
-            side = 'R',
-        ),
-
-    'L_hand':
-        Module(
-            prefab_key = 'biped_hand',
-            name = 'hand',
-            side = 'L',
-        ),
-
-    'R_hand':
-        Module(
-            prefab_key = 'biped_hand',
-            name = 'hand',
-            side = 'R',
-        ),
-
-    'L_leg':
-        Module(
-            prefab_key = 'leg_plantigrade',
-            name = 'leg',
-            side = 'L',
-        ),
-
-    'R_leg':
-        Module(
-            prefab_key = 'leg_plantigrade',
-            name = 'leg',
-            side = 'R',
-        ),
-
-    'L_foot':
-        Module(
-            prefab_key = 'foot_plantigrade',
-            name = 'foot',
-            side = 'L',
-        ),
-
-    'R_foot':
-        Module(
-            prefab_key = 'foot_plantigrade',
-            name = 'foot',
-            side = 'R',
-        )
-}
+    modules[f'{side}_{prefab_key}'] = module_data.create_module(name, side)

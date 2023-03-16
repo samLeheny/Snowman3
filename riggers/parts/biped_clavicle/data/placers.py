@@ -23,22 +23,27 @@ Placer = placer_utils.Placer
 ###########################
 
 
-
-placers = {
-    'clavicle':
-        Placer(
-            name = 'clavicle',
-            position = (0, 0, 0),
-            size = 1.25,
-            vector_handle_positions=[[5, 0, 0], [0, 5, 0]],
-            orientation=[[0, 0, 1], [0, 1, 0]]
-        ),
-    'clavicle_end':
-        Placer(
-            name = 'clavicle_end',
-            position = (12, 0, 0),
-            size = 1.25,
-            vector_handle_positions=[[5, 0, 0], [0, 5, 0]],
-            orientation=[[0, 0, 1], [0, 1, 0]]
-        )
-}
+def create_placers(side=None, parent_part_name=None):
+    placers = {
+        'clavicle':
+            Placer(
+                name = 'clavicle',
+                side = side,
+                parent_part_name = parent_part_name,
+                position = (0, 0, 0),
+                size = 1.25,
+                vector_handle_positions=[[5, 0, 0], [0, 5, 0]],
+                orientation=[[0, 0, 1], [0, 1, 0]]
+            ),
+        'clavicle_end':
+            Placer(
+                name = 'clavicle_end',
+                side = side,
+                parent_part_name = parent_part_name,
+                position = (12, 0, 0),
+                size = 1.25,
+                vector_handle_positions=[[5, 0, 0], [0, 5, 0]],
+                orientation=[[0, 0, 1], [0, 1, 0]]
+            )
+    }
+    return placers

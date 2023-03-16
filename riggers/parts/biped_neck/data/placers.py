@@ -23,21 +23,27 @@ Placer = placer_utils.Placer
 ###########################
 
 
-placers = {
-    'neck':
-        Placer(
-            name='neck',
-            position=(0, 0, 0),
-            size=1.25,
-            vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
-            orientation=[[0, 1, 0], [0, 0, 1]]
-        ),
-    'head':
-        Placer(
-            name='head',
-            position=(0, 12.5, 1.8),
-            size=1.25,
-            vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
-            orientation=[[0, 1, 0], [0, 0, 1]]
-        )
-}
+def create_placers(side=None, parent_part_name=None):
+    placers = {
+        'neck':
+            Placer(
+                name='neck',
+                side = side,
+                parent_part_name = parent_part_name,
+                position=(0, 0, 0),
+                size=1.25,
+                vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
+                orientation=[[0, 1, 0], [0, 0, 1]]
+            ),
+        'head':
+            Placer(
+                name='head',
+                side = side,
+                parent_part_name = parent_part_name,
+                position=(0, 12.5, 1.8),
+                size=1.25,
+                vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
+                orientation=[[0, 1, 0], [0, 0, 1]]
+            )
+    }
+    return placers

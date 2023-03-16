@@ -23,6 +23,7 @@ Placer = placer_utils.Placer
 ###########################
 
 
-
-placers = {
-}
+def create_placers(side=None, parent_part_name=None):
+    placers = {
+    }
+    return placers

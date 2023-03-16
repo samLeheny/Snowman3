@@ -62,8 +62,8 @@ class BlueprintManager:
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.modules'
         prefab_modules = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_modules)
-        module_list = prefab_modules.modules.values()
-        for module in module_list:
+        module_dict = prefab_modules.modules
+        for key, module in module_dict.items():
             blueprint.add_module(module)
         blueprint.save_blueprint()
 
