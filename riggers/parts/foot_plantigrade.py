@@ -1,4 +1,4 @@
-# Title: biped_arm.py
+# Title: foot_plantigrade.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
