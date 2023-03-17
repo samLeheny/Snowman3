@@ -28,19 +28,20 @@ Module = module_utils.Module
 
 
 def create_module(name, side=None):
+
+    def get_prefab_part(name, prefab_key, position):
+        dir_string = f'Snowman3.riggers.parts.{prefab_key}'
+        part_data = importlib.import_module(dir_string)
+        importlib.reload(part_data)
+        part = part_data.create_part(name, side, position)
+        return part
+
     module = Module(
-            name = name,
-            prefab_key = 'foot_plantigrade',
-            side = side,
-            parts = {
-                'foot':
-                    Part(
-                        name='foot',
-                        prefab_key='foot_plantigrade',
-                        side=side,
-                        position=(0, 0, 0),
-                        handle_size=1.0,
-                    ),
-            }
-        )
+        name = name,
+        prefab_key = 'foot_plantigrade',
+        side = side,
+        parts = {
+            'foot': get_prefab_part('foot', 'foot_plantigrade', (0, 0, 0))
+        }
+    )
     return module

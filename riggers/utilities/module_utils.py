@@ -157,10 +157,6 @@ class Module:
 
 
     def populate_prefab(self):
-        '''dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
-        prefab_parts = importlib.import_module(dir_string.format(self.prefab_key))
-        importlib.reload(prefab_parts)
-        part_dict = prefab_parts.create_parts(side=self.side)'''
         parts_holder = self.parts
         self.parts = {}
         for part in parts_holder.values():

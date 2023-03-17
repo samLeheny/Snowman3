@@ -33,10 +33,10 @@ module_inputs = [
     ['arm', 'biped_arm', 'R'],
     ['hand', 'biped_hand', 'L'],
     ['hand', 'biped_hand', 'R'],
-    ['leg_plantigrade', 'leg_plantigrade', 'L'],
-    ['leg_plantigrade', 'leg_plantigrade', 'R'],
-    ['foot_plantigrade', 'foot_plantigrade', 'L'],
-    ['foot_plantigrade', 'foot_plantigrade', 'R'],
+    ['leg', 'leg_plantigrade', 'L'],
+    ['leg', 'leg_plantigrade', 'R'],
+    ['foot', 'foot_plantigrade', 'L'],
+    ['foot', 'foot_plantigrade', 'R'],
 ]
 for inputs in module_inputs:
     name, prefab_key, side = inputs
@@ -45,4 +45,4 @@ for inputs in module_inputs:
     module_data = importlib.import_module(dir_string)
     importlib.reload(module_data)
 
-    modules[f'{side}_{prefab_key}'] = module_data.create_module(name, side)
+    module = modules[f'{side}_{prefab_key}'] = module_data.create_module(name, side)
