@@ -70,7 +70,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     name='sole_toe',
                     side=side,
                     parent_part_name=name,
-                    position=(0, 0, 11.8),
+                    position=(0, -10, 11.8),
                     size=0.65,
                     vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
                     orientation=[[0, 0, 1], [1, 0, 0]]
@@ -80,7 +80,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     name='sole_toe_end',
                     side=side,
                     parent_part_name=name,
-                    position=(0, 0, 19),
+                    position=(0, -10, 19),
                     size=0.65,
                     vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
                     orientation=[[0, 0, 1], [1, 0, 0]]
@@ -90,7 +90,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     name='sole_inner',
                     side=side,
                     parent_part_name=name,
-                    position=(-4.5, 0, 11.8),
+                    position=(-4.5, -10, 11.8),
                     size=0.65,
                     vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
                     orientation=[[0, 0, 1], [1, 0, 0]]
@@ -100,7 +100,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     name='sole_outer',
                     side=side,
                     parent_part_name=name,
-                    position=(4.5, 0, 11.8),
+                    position=(4.5, -10, 11.8),
                     size=0.65,
                     vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
                     orientation=[[0, 0, 1], [1, 0, 0]]
@@ -110,7 +110,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     name='sole_heel',
                     side=side,
                     parent_part_name=name,
-                    position=(0, 0, -4),
+                    position=(0, -10, -4),
                     size=0.65,
                     vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
                     orientation=[[0, 0, 1], [1, 0, 0]]
