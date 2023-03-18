@@ -37,7 +37,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
         placers={
             'foot':
                 Placer(
-                    name='foot',
+                    name='Foot',
                     side=side,
                     parent_part_name=name,
                     position=(0, 0, 0),
@@ -47,7 +47,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'ball':
                 Placer(
-                    name='ball',
+                    name='Ball',
                     side=side,
                     parent_part_name=name,
                     position=(0, -7.5, 11.8),
@@ -57,7 +57,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'ball_end':
                 Placer(
-                    name='ball_end',
+                    name='BallEnd',
                     side=side,
                     parent_part_name=name,
                     position=(0, -7.5, 16.73),
@@ -67,7 +67,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'sole_toe':
                 Placer(
-                    name='sole_toe',
+                    name='SoleToe',
                     side=side,
                     parent_part_name=name,
                     position=(0, -10, 11.8),
@@ -77,7 +77,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'sole_toe_end':
                 Placer(
-                    name='sole_toe_end',
+                    name='SoleToeEnd',
                     side=side,
                     parent_part_name=name,
                     position=(0, -10, 19),
@@ -87,7 +87,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'sole_inner':
                 Placer(
-                    name='sole_inner',
+                    name='SoleInner',
                     side=side,
                     parent_part_name=name,
                     position=(-4.5, -10, 11.8),
@@ -97,7 +97,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'sole_outer':
                 Placer(
-                    name='sole_outer',
+                    name='SoleOuter',
                     side=side,
                     parent_part_name=name,
                     position=(4.5, -10, 11.8),
@@ -107,7 +107,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'sole_heel':
                 Placer(
-                    name='sole_heel',
+                    name='SoleHeel',
                     side=side,
                     parent_part_name=name,
                     position=(0, -10, -4),

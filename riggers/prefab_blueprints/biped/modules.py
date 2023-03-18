@@ -26,19 +26,19 @@ ModuleData = rig_module_utils.ModuleData
 
 modules = {}
 module_inputs = [
-    ModuleData('root', 'root', 'M', (0, 0, 0)),
-    ModuleData('spine', 'biped_spine', 'M', (0, 101, 0.39)),
-    ModuleData('neck', 'biped_neck', 'M', (0, 150, 0.39)),
-    ModuleData('clavicle', 'biped_clavicle', 'L', (3, 146.88, 0.39)),
-    ModuleData('clavicle', 'biped_clavicle', 'R', (3, 146.88, 0.39)),
-    ModuleData('arm', 'biped_arm', 'L', (15, 146.88, 0.39)),
-    ModuleData('arm', 'biped_arm', 'R', (15, 146.88, 0.39)),
-    ModuleData('hand', 'biped_hand', 'L', (67.64, 146.88, 0.39)),
-    ModuleData('hand', 'biped_hand', 'R', (67.64, 146.88, 0.39)),
-    ModuleData('leg', 'leg_plantigrade', 'L', (8.5, 101, 0.39)),
-    ModuleData('leg', 'leg_plantigrade', 'R', (8.5, 101, 0.39)),
-    ModuleData('foot', 'foot_plantigrade', 'L', (8.5, 10, 0.39)),
-    ModuleData('foot', 'foot_plantigrade', 'R', (8.5, 10, 0.39)),
+    ModuleData('Root', 'root', 'M', (0, 0, 0)),
+    ModuleData('Spine', 'biped_spine', 'M', (0, 101, 0.39)),
+    ModuleData('Neck', 'biped_neck', 'M', (0, 150, 0.39)),
+    ModuleData('Clavicle', 'biped_clavicle', 'L', (3, 146.88, 0.39)),
+    ModuleData('Clavicle', 'biped_clavicle', 'R', (3, 146.88, 0.39)),
+    ModuleData('Arm', 'biped_arm', 'L', (15, 146.88, 0.39)),
+    ModuleData('Arm', 'biped_arm', 'R', (15, 146.88, 0.39)),
+    ModuleData('Hand', 'biped_hand', 'L', (67.64, 146.88, 0.39)),
+    ModuleData('Hand', 'biped_hand', 'R', (67.64, 146.88, 0.39)),
+    ModuleData('Leg', 'leg_plantigrade', 'L', (8.5, 101, 0.39)),
+    ModuleData('Leg', 'leg_plantigrade', 'R', (8.5, 101, 0.39)),
+    ModuleData('Foot', 'foot_plantigrade', 'L', (8.5, 10, 0.39)),
+    ModuleData('Foot', 'foot_plantigrade', 'R', (8.5, 10, 0.39)),
 ]
 
 for module_data in module_inputs:

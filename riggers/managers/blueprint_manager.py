@@ -9,6 +9,7 @@
 ##### Import Commands #####
 import os
 import importlib
+import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -122,7 +123,28 @@ class BlueprintManager:
     ####################################################################################################################
     def update_blueprint_from_scene(self, blueprint):
         print("Updating working blueprint with scene data...")
+        for key, data in blueprint.modules.items():
+            blueprint.modules[key] = self.update_module_from_scene(data)
+        self.save_blueprint_to_tempdisk(blueprint)
         return blueprint
+
+
+    def update_module_from_scene(self, module):
+        for key, data in module['parts'].items():
+            module['parts'][key] = self.update_part_from_scene(data)
+        return module
+
+
+    def update_part_from_scene(self, part):
+        for key, data in part['placers'].items():
+            part['placers'][key] = self.update_placer_from_scene(data)
+        return part
+
+
+    def update_placer_from_scene(self, placer):
+        scene_placer = pm.PyNode(placer['scene_name'])
+        placer['position'] = tuple(scene_placer.translate.get())
+        return placer
 
 
 

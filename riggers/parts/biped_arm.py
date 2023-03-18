@@ -37,7 +37,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
             placers={
                 'upperarm':
                     Placer(
-                        name="upperarm",
+                        name="UpperArm",
                         side=side,
                         parent_part_name=name,
                         position=(0, 0, 0),
@@ -47,7 +47,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     ),
                 'lowerarm':
                     Placer(
-                        name="lowerarm",
+                        name="LowerArm",
                         side=side,
                         parent_part_name=name,
                         position=(26.94, 0, -2.97),
@@ -57,7 +57,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     ),
                 'lowerarm_end':
                     Placer(
-                        name="lowerarm_end",
+                        name="LowerArmEnd",
                         side=side,
                         parent_part_name=name,
                         position=(52.64, 0, 0),
@@ -67,7 +67,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     ),
                 'wrist_end':
                     Placer(
-                        name="wrist_end",
+                        name="WristEnd",
                         side=side,
                         parent_part_name=name,
                         position=(59, 0, 0),
@@ -77,7 +77,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     ),
                 'ik_elbow':
                     Placer(
-                        name="ik_elbow",
+                        name="IkElbow",
                         side=side,
                         parent_part_name=name,
                         position=(26.94, 0, -35),

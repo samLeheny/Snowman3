@@ -128,11 +128,6 @@ class Part:
         return placer
 
 
-    def impose_part_side_on_placer(self, placer):
-        if not placer.side:
-            placer.edit_side(self.side)
-
-
     def remove_placer(self, placer):
         pm.delete(placer.get_scene_placer())
         self.placers.pop(placer.data_name)
@@ -193,7 +188,6 @@ class Part:
         for placer in placers_holder.values():
             if not placer.parent_part_name:
                 placer.edit_parent_part_name(self.name)
-            self.impose_part_side_on_placer(placer)
             self.add_placer(placer)
 
 

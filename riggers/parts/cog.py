@@ -37,7 +37,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
         placers={
             'cog':
                 Placer(
-                    name='cog',
+                    name='Cog',
                     side=side,
                     parent_part_name=name,
                     position=(0, 105, 0.39),

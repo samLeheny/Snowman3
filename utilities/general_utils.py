@@ -1390,7 +1390,6 @@ def get_opposite_side_obj(obj):
     key = None
     for key in side_tags:
         if this_obj_clean_name.startswith(side_tags[key]):
-
             opp_side_tag = opp_side_tags[key]
             break
 
@@ -1399,7 +1398,7 @@ def get_opposite_side_obj(obj):
         return None
 
     # Get expected name of opposite obj
-    opp_obj_check_string = this_obj_clean_name.replace( side_tags[key], opp_side_tag )
+    opp_obj_check_string = f'{opp_side_tag}{this_obj_clean_name[2:]}'
 
     # Check for an obj of this expected name
     search = pm.ls(f'::{opp_obj_check_string}')

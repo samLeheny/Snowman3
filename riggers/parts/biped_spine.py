@@ -37,7 +37,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
         placers={
             'spine_1':
                 Placer(
-                    name='spine_1',
+                    name='Spine1',
                     side=side,
                     parent_part_name=name,
                     position=(0, 0, 0),
@@ -47,7 +47,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'spine_2':
                 Placer(
-                    name='spine_2',
+                    name='Spine2',
                     side=side,
                     parent_part_name=name,
                     position=(0, 8.7, 0),
@@ -57,7 +57,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'spine_3':
                 Placer(
-                    name='spine_3',
+                    name='Spine3',
                     side=side,
                     parent_part_name=name,
                     position=(0, 20.2, 0),
@@ -67,7 +67,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'spine_4':
                 Placer(
-                    name='spine_4',
+                    name='Spine4',
                     side=side,
                     parent_part_name=name,
                     position=(0, 27.8, 0),
@@ -77,7 +77,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'spine_5':
                 Placer(
-                    name='spine_5',
+                    name='Spine5',
                     side=side,
                     parent_part_name=name,
                     position=(0, 42.3, 0),
@@ -87,7 +87,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                 ),
             'spine_6':
                 Placer(
-                    name='spine_6',
+                    name='Spine6',
                     side=side,
                     parent_part_name=name,
                     position=(0, 49, 0),

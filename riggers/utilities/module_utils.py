@@ -40,6 +40,7 @@ class Module:
         data_name: str = None,
         scene_name: str = None,
         prefab_key: str = None,
+        parts_prefix: str = None,
         parts = None
     ):
         self.name = name
@@ -48,6 +49,7 @@ class Module:
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_MODULE'
         self.prefab_key = prefab_key
         self.parts = parts if parts else {}
+        self.parts_prefix = parts_prefix if parts_prefix else ''
 
         self.get_parts_from_parts_data()
 
@@ -58,6 +60,8 @@ class Module:
         scene_module.setParent(parent) if parent else None
         self.add_module_metadata(scene_module)
         self.populate_scene_module(parts_parent=scene_module)
+        if self.side == 'R':
+            gen.flip(scene_module)
         return scene_module
 
 
@@ -99,11 +103,6 @@ class Module:
         else:
             self.add_empty_part(part)
         return part
-
-
-    def impose_module_side_on_part(self, part):
-        if not part.side:
-            part.edit_side(self.side)
 
 
     def add_empty_part(self, part):
@@ -160,5 +159,4 @@ class Module:
         parts_holder = self.parts
         self.parts = {}
         for part in parts_holder.values():
-            self.impose_module_side_on_part(part)
             self.add_part(part)

@@ -37,7 +37,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
             placers={
                 'clavicle':
                     Placer(
-                        name='clavicle',
+                        name='Clavicle',
                         side=side,
                         parent_part_name=name,
                         position=(0, 0, 0),
@@ -47,7 +47,7 @@ def create_part(name, side=None, position=(0, 0, 0)):
                     ),
                 'clavicle_end':
                     Placer(
-                        name='clavicle_end',
+                        name='ClavicleEnd',
                         side=side,
                         parent_part_name=name,
                         position=(12, 0, 0),
