@@ -160,3 +160,7 @@ class Module:
         self.parts = {}
         for part in parts_holder.values():
             self.add_part(part)
+
+
+    def initialize_prefab_parts(self):
+        print("Populating module with parts according to prefab.")

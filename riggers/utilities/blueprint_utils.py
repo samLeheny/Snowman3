@@ -50,53 +50,10 @@ class Blueprint:
         self.modules = modules if modules else {}
 
 
-    def add_module(self, module):
-        if module.prefab_key:
-            self.add_prefab_module(module)
-        else:
-            self.add_empty_module(module)
-
-
-    def add_empty_module(self, module):
-        self.modules[module.data_name] = module.data_from_module()
-
-
-    def add_prefab_module(self, module):
-        module.populate_prefab()
-        self.modules[module.data_name] = module.data_from_module()
-
-
-    def remove_module(self, module):
-        working_blueprint = self.blueprint_from_file()
-        working_blueprint.modules.pop(module.data_name)
-
-
-    def add_part(self, part, module):
-        working_blueprint = self.blueprint_from_file()
-        working_blueprint.modules[module.data_name].parts[part.data_name] = part.data_from_part()
-
-
-    def remove_part(self, part, module):
-        working_blueprint = self.blueprint_from_file()
-        working_blueprint.modules[module.data_name]['parts'].pop(part.data_name)
-
-
-    def add_placer(self, placer, part, module):
-        working_blueprint = self.blueprint_from_file()
-        working_blueprint.modules[module.data_name].parts[part.data_name].placers[placer.data_name] =\
-            placer.data_from_placer()
-
-
-    def remove_placer(self, placer, part, module):
-        working_blueprint = self.blueprint_from_file()
-        working_blueprint.modules[module.data_name]['parts'][part.data_name]['placers'].pop(part.data_name)
-
-
-    def blueprint_from_file(self):
+    '''def blueprint_from_file(self):
         blueprint_data = self.data_from_file()
         for key, value in blueprint_data.items():
             setattr(self, key, value)
-
 
 
     def data_from_file(self):
@@ -109,21 +66,7 @@ class Blueprint:
         data = {}
         for param, value in vars(self).items():
             data[param] = value
-        return data
-
-
-    def blueprint_from_data(self, data):
-        blueprint = Blueprint(**data)
-        return blueprint
-
-
-    def save_blueprint(self, dirpath=None, filename=core_data_filename):
-        if not dirpath:
-            dirpath = self.dirpath
-        blueprint_data = self.data_from_blueprint()
-        filepath = f'{dirpath}/{filename}.json'
-        with open(filepath, 'w') as fh:
-            json.dump(blueprint_data, fh, indent=5)
+        return data'''
 
 
 

@@ -18,6 +18,10 @@ import Snowman3.riggers.utilities.blueprint_utils as blueprint_utils
 importlib.reload(blueprint_utils)
 Blueprint = blueprint_utils.Blueprint
 
+import Snowman3.riggers.managers.blueprint_manager as blueprint_manager
+importlib.reload(blueprint_manager)
+BlueprintManager = blueprint_manager.BlueprintManager
+
 import Snowman3.riggers.utilities.armature as armature
 importlib.reload(armature)
 Armature = armature.Armature
@@ -51,15 +55,15 @@ class ArmatureBuilder:
     def __init__(
         self,
         armature = None,
-        blueprint = None
+        blueprint_manager = None
 
     ):
         self.armature = armature
-        self.blueprint = blueprint
+        self.blueprint_manager = blueprint_manager
 
 
     def build_armature_from_blueprint(self):
-        blueprint_data = self.blueprint.data_from_blueprint()
+        blueprint_data = self.blueprint_manager.data_from_blueprint()
         modules_data = blueprint_data['modules']
         modules = {}
         for data in modules_data.values():
@@ -77,29 +81,29 @@ class ArmatureBuilder:
 
     def add_module(self, name, prefab_key=None, side=None):
         module = self.armature.add_module(name=name, prefab_key=prefab_key, side=side)
-        self.blueprint.add_module(module)
+        self.blueprint_manager.add_module(module)
 
 
-    def remove_module(self, module):
+    '''def remove_module(self, module):
         self.armature.remove_module(module)
-        self.blueprint.remove_module(module)
+        self.blueprint.remove_module(module)'''
 
 
     def add_part(self, name, parent_module, prefab_key=None, side=None):
         part = self.armature.add_part(name=name, prefab_key=prefab_key, side=side, module=parent_module)
-        self.blueprint.add_part(part, parent_module)
+        self.blueprint_manager.add_part(part, parent_module)
 
 
     def remove_part(self, part, module):
         self.armature.remove_part(part, module)
-        self.blueprint.remove_part(part, module)
+        self.blueprint_manager.remove_part(part, module)
 
 
     def add_placer(self, name, parent_module, parent_part, side=None):
         placer = self.armature.add_placer_to_part(name=name, side=side, module=parent_module, part=parent_part)
-        self.blueprint.add_placer_to_part(placer, parent_part)
+        self.blueprint_manager.add_placer_to_part(placer, parent_part)
 
 
     def remove_placer(self, placer, part, module):
         self.armature.remove_placer(placer, part, module)
-        self.blueprint.remove_placer(placer, part, module)
+        self.blueprint_manager.remove_placer(placer, part, module)

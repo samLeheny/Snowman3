@@ -10,6 +10,7 @@
 import os
 import importlib
 import pymel.core as pm
+import json
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -28,6 +29,7 @@ Placer = placer_utils.Placer
 ######## Variables ########
 temp_files_dir = 'working'
 versions_dir = 'versions'
+core_data_filename = 'core_data'
 version_padding = 4
 ###########################
 ###########################
@@ -39,52 +41,52 @@ class BlueprintManager:
         self,
         asset_name: str = None,
         prefab_key: str = None,
-        dirpath: str = None
+        dirpath: str = None,
+        blueprint = None
     ):
         self.asset_name = asset_name
         self.prefab_key = prefab_key
         self.dirpath = f'{dirpath}'
         self.tempdir = f'{self.dirpath}/{temp_files_dir}'
         self.versions_dir = f'{self.dirpath}/{versions_dir}'
+        self.blueprint = blueprint
 
 
 
     ####################################################################################################################
     def create_blueprint_from_prefab(self):
         print(f"Creating blueprint from prefab: '{self.prefab_key}'")
-        blueprint = self.create_new_blueprint()
-        self.populate_prefab_blueprint(blueprint)
-        return blueprint
+        self.blueprint = self.create_new_blueprint()
+        self.populate_prefab_blueprint()
+        return self.blueprint
 
 
 
     ####################################################################################################################
-    def populate_prefab_blueprint(self, blueprint):
+    def populate_prefab_blueprint(self):
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.modules'
         prefab_modules = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_modules)
         module_dict = prefab_modules.modules
         for key, module in module_dict.items():
-            blueprint.add_module(module)
-        blueprint.save_blueprint()
+            self.add_module(module)
+        self.save_blueprint_to_tempdisk()
 
 
 
     ####################################################################################################################
     def create_new_blueprint(self):
         print('Creating new blueprint...')
-        blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
+        self.blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
         self.create_working_dir()
         self.create_versions_dir()
-        self.save_blueprint_to_tempdisk(blueprint)
-        return blueprint
-
+        self.save_blueprint_to_tempdisk()
+        return self.blueprint
 
 
     ####################################################################################################################
-    def save_blueprint_to_tempdisk(self, blueprint):
-        blueprint.save_blueprint()
-
+    def save_blueprint_to_tempdisk(self):
+        self.save_blueprint(self.tempdir)
 
 
     ####################################################################################################################
@@ -93,40 +95,38 @@ class BlueprintManager:
             os.mkdir(self.tempdir)
 
 
-
     ####################################################################################################################
     def create_versions_dir(self):
         if not os.path.exists(self.versions_dir):
             os.mkdir(self.versions_dir)
 
 
-
     ####################################################################################################################
     def save_work(self):
         print('Saving work...')
-        working_blueprint = self.get_blueprint_from_working_dir()
-        updated_working_blueprint = self.update_blueprint_from_scene(working_blueprint)
-        self.save_blueprint_to_disk(updated_working_blueprint)
-        self.save_blueprint_to_tempdisk(updated_working_blueprint)
-
+        self.blueprint = self.get_blueprint_from_working_dir()
+        self.update_blueprint_from_scene()
+        self.save_blueprint_to_disk()
+        self.save_blueprint_to_tempdisk()
 
 
     ####################################################################################################################
     def get_blueprint_from_working_dir(self):
         print("Fetching current working blueprint...")
-        blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
-        blueprint.blueprint_from_file()
-        return blueprint
+        '''blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
+        blueprint.blueprint_from_file()'''
+        self.blueprint = self.blueprint_from_file(f'{self.tempdir}/{core_data_filename}.json')
+        return self.blueprint
 
 
 
     ####################################################################################################################
-    def update_blueprint_from_scene(self, blueprint):
+    def update_blueprint_from_scene(self):
         print("Updating working blueprint with scene data...")
-        for key, data in blueprint.modules.items():
-            blueprint.modules[key] = self.update_module_from_scene(data)
-        self.save_blueprint_to_tempdisk(blueprint)
-        return blueprint
+        for key, data in self.blueprint.modules.items():
+            self.blueprint.modules[key] = self.update_module_from_scene(data)
+        self.save_blueprint_to_tempdisk()
+        return self.blueprint
 
 
     def update_module_from_scene(self, module):
@@ -136,6 +136,8 @@ class BlueprintManager:
 
 
     def update_part_from_scene(self, part):
+        scene_handle = pm.PyNode(part['scene_name'])
+        part['position'] = tuple(scene_handle.translate.get())
         for key, data in part['placers'].items():
             part['placers'][key] = self.update_placer_from_scene(data)
         return part
@@ -149,11 +151,11 @@ class BlueprintManager:
 
 
     ####################################################################################################################
-    def save_blueprint_to_disk(self, blueprint):
+    def save_blueprint_to_disk(self):
         print("Saving work to disk...")
-        asset_name = blueprint.asset_name
+        asset_name = self.blueprint.asset_name
         new_save_dir = self.create_new_numbered_directory(asset_name)
-        blueprint.save_blueprint(dirpath=new_save_dir)
+        self.save_blueprint(dirpath=new_save_dir)
 
 
 
@@ -175,62 +177,77 @@ class BlueprintManager:
         return new_dir
 
 
+    def blueprint_from_file(self, filepath):
+        blueprint_data = self.data_from_file(filepath)
+        self.blueprint = self.blueprint_from_data(blueprint_data)
+        return self.blueprint
 
-    ####################################################################################################################
-    def test(self, num):
 
-        '''import Snowman3.riggers.modules.root.data.placers as placers
-        module_placers = placers.placers
+    def data_from_file(self, filepath):
+        with open(filepath, 'r') as fh:
+            data = json.load(fh)
+        return data
 
-        for placer in module_placers:
-            placer_utils.create_scene_placer(placer=placer)'''
 
-        import Snowman3.riggers.utilities.part_utils as part_utils
-        importlib.reload(part_utils)
-        Part = part_utils.Part
+    def blueprint_from_data(self, data):
+        self.blueprint = Blueprint(**data)
+        # ...Get modules from data ---------------------------------------------------------------------------------------------------------------------------------------
+        return self.blueprint
 
-        import Snowman3.riggers.utilities.module_utils as module_utils
-        importlib.reload(module_utils)
-        Module = module_utils.Module
 
-        m1 = Module(name='spine', side=None)
-        m2 = Module(name='pelvis', side=None)
+    def data_from_blueprint(self):
+        data = {}
+        for param, value in vars(self.blueprint).items():
+            data[param] = value
+        return data
 
-        if num == 1:
-            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-            for module in (m1, m2):
-                blueprint_utils.create_scene_module(module)
-                L_test_part = Part(name='arm', side='L', handle_size=None, position=[3, 0, 0])
-                R_test_part = Part(name='arm', side='R', handle_size=None, position=[-3, 0, 0])
-                blueprint_utils.create_part(L_test_part, module)
-                blueprint_utils.create_part(R_test_part, module)
 
-        '''if num == 2:
-            L_test_part = Part(name='arm', side='L', handle_size=None, position=[3, 0, 0],
-                               scene_name='L_spine_arm_PART')
-            blueprint_utils.remove_part_from_module(L_test_part, m1)'''
+    def save_blueprint(self, dirpath=None):
+        if not dirpath:
+            dirpath = self.dirpath
+        blueprint_data = self.data_from_blueprint()
+        filepath = f'{dirpath}/{core_data_filename}.json'
+        with open(filepath, 'w') as fh:
+            json.dump(blueprint_data, fh, indent=5)
 
-        if num == 2:
-            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-            for module in (m1, m2):
-                module_key = f'{gen.side_tag(module.side)}{module.name}'
-                blueprint_utils.mirror_blueprint(blueprint)
 
-        if num == 3:
-            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-            blueprint_utils.update_blueprint_from_scene(blueprint)
+    def add_module(self, module):
+        if module.prefab_key:
+            self.add_prefab_module(module)
+        else:
+            self.add_empty_module(module)
 
-        if num == 4:
-            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-            m = module_utils.module_from_data(blueprint.modules['spine'])
-            pL = part_utils.part_from_data(m.parts['L_arm'])
-            pR = part_utils.part_from_data(m.parts['R_arm'])
-            L_x_placer = Placer(name='shoulder', side='L', position=(4, 5, 6), size=1.1, scene_name='L_spine_arm_shoulder')
-            R_x_placer = Placer(name='shoulder', side='R', position=(4, 5, 6), size=1.1, scene_name='R_spine_arm_shoulder')
-            blueprint_utils.create_placer(L_x_placer, pL, m)
-            blueprint_utils.create_placer(R_x_placer, pR, m)
 
-        if num == 5:
-            L_x_placer = Placer(name='shoulder', side='L', position=(4, 5, 6), size=1.1, scene_name='L_spine_arm_shoulder')
-            placer_utils.mirror_placer(L_x_placer)
+    def add_empty_module(self, module):
+        self.blueprint.modules[module.data_name] = module.data_from_module()
 
+
+    def add_prefab_module(self, module):
+        module.populate_prefab()
+        self.blueprint.modules[module.data_name] = module.data_from_module()
+
+
+    def remove_module(self, module):
+        self.blueprint = self.blueprint_from_file()
+        self.blueprint.modules.pop(module.data_name)
+
+
+    def add_part(self, part, module, filepath):
+        working_blueprint = self.blueprint_from_file(filepath)
+        self.blueprint.modules[module.data_name].parts[part.data_name] = part.data_from_part()
+
+
+    def remove_part(self, part, module):
+        working_blueprint = self.blueprint_from_file()
+        self.blueprint.modules[module.data_name]['parts'].pop(part.data_name)
+
+
+    def add_placer(self, placer, part, module):
+        working_blueprint = self.blueprint_from_file()
+        self.blueprint.modules[module.data_name].parts[part.data_name].placers[placer.data_name] =\
+            placer.data_from_placer()
+
+
+    def remove_placer(self, placer, part, module):
+        working_blueprint = self.blueprint_from_file()
+        self.blueprint.modules[module.data_name]['parts'][part.data_name]['placers'].pop(part.data_name)
