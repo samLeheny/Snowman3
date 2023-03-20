@@ -61,6 +61,9 @@ class Part:
         data = {}
         for param, value in vars(self).items():
             data[param] = value
+        data['placers'] = {}
+        for key, placer, in self.placers.items():
+            data['placers'][key] = placer.data_from_placer()
         return data
 
 
@@ -133,46 +136,6 @@ class Part:
         self.placers.pop(placer.data_name)
 
 
-    def part_from_data(self, data):
-        part = Part(**data)
-        return part
-
-
-    def update_part_from_scene(self):
-        part_handle = self.get_part_handle()
-        # ...Update position
-        self.position = list(part_handle.translate.get())
-        # ...Update handle size
-        self.handle_size = pm.getAttr(f'{part_handle}.HandleSize')
-
-
-    def mirror_part(self):
-        part_handle = self.get_part_handle()
-        opposite_part_handle = self.get_opposite_part_handle()
-        # ...Mirror position
-        pm.setAttr(f'{opposite_part_handle}.tx', pm.getAttr(f'{part_handle}.tx') * -1)
-        [pm.setAttr(f'{opposite_part_handle}.{a}', pm.getAttr(f'{part_handle}.{a}')) for a in ('ty', 'tz')]
-        # ...Match handle size
-        pm.setAttr(f'{opposite_part_handle}.HandleSize', pm.getAttr(f'{part_handle}.HandleSize'))
-
-
-    def get_opposite_part_handle(self, part_handle):
-        sided_prefixes = {'L_': 'R_', 'R_': 'L_'}
-        this_prefix = None
-        opposite_part_handle = None
-        for prefix in sided_prefixes.keys():
-            if str(part_handle).startswith(prefix):
-                this_prefix = prefix
-        if this_prefix:
-            opposite_part_handle = pm.PyNode(str(part_handle).replace(this_prefix, sided_prefixes[this_prefix]))
-        return opposite_part_handle
-
-
-    def get_scene_part(self):
-        scene_part = pm.PyNode(self.scene_name)
-        return scene_part
-
-
     def color_part_handle(self, handle, color=None):
         if not color:
             if not self.side:
@@ -189,9 +152,3 @@ class Part:
             if not placer.parent_part_name:
                 placer.edit_parent_part_name(self.name)
             self.add_placer(placer)
-
-
-    def edit_side(self, new_side):
-        self.side = new_side
-        self.data_name = f'{gen.side_tag(self.side)}{self.name}'
-        self.scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'

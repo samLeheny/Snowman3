@@ -43,4 +43,4 @@ module_inputs = [
 
 for module_data in module_inputs:
     module_creator = ModuleCreator(module_data)
-    modules[f'{module_data.side}_{module_data.prefab_key}'] = module_creator.create_module()
+    modules[f'{module_data.side}_{module_data.name}'] = module_creator.create_module()

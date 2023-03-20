@@ -54,17 +54,6 @@ class Module:
         self.get_parts_from_parts_data()
 
 
-
-    def create_scene_module(self, parent=None):
-        scene_module = pm.shadingNode('transform', name=self.scene_name, au=1)
-        scene_module.setParent(parent) if parent else None
-        self.add_module_metadata(scene_module)
-        self.populate_scene_module(parts_parent=scene_module)
-        if self.side == 'R':
-            gen.flip(scene_module)
-        return scene_module
-
-
     def populate_scene_module(self, parts_parent=None):
         if not self.parts:
             return False
@@ -131,36 +120,16 @@ class Module:
         data = {}
         for param, value in vars(self).items():
             data[param] = value
+
+        data['parts'] = {}
+        for key, part in self.parts.items():
+            data['parts'][key] = part.data_from_part()
         return data
 
 
-    def module_from_data(self, data):
-        module = Module(**data)
-        return module
-
-
-    def update_module_from_scene(self):
-        data = self.data_from_module()
-        # ...Update module parts
-        parts = data['parts']
-
-        # ...Finish
-        return True
-
-
-    def mirror_module(self, driver_side='L'):
-        for key, part_data in self.parts.items():
-            part = part_utils.part_from_data(part_data)
-            if part.side == driver_side:
-                part_utils.mirror_part(part)
-
-
     def populate_prefab(self):
+        print(self.parts)
         parts_holder = self.parts
         self.parts = {}
         for part in parts_holder.values():
             self.add_part(part)
-
-
-    def initialize_prefab_parts(self):
-        print("Populating module with parts according to prefab.")

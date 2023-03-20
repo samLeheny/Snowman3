@@ -39,14 +39,14 @@ class Armature:
 
 
 
-    def add_module(self, name, prefab_key=None, side=None):
+    '''def add_module(self, name, prefab_key=None, side=None):
         if prefab_key:
             module = self.add_prefab_module(name=name, prefab_key=prefab_key, side=side)
         else:
             module = self.add_empty_module(name=name, side=side)
         self.modules[module.data_name] = module
         module.create_scene_module(parent=None)
-        return module
+        return module'''
 
 
     def add_empty_module(self, name, side=None):

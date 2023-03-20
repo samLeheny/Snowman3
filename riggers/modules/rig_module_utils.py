@@ -33,7 +33,7 @@ class ModuleCreator:
         self.side = module_data.side
         self.part_offset = module_data.part_offset if module_data.part_offset else (0, 0, 0)
         self.prefab_key = module_data.prefab_key
-        self.parts_data = module_data.prefab_module_data.parts_data
+        self.parts_data = module_data.prefab_module_data.parts_data if module_data.prefab_module_data else {}
         self.parts = {}
         self.parts_prefix = module_data.parts_prefix
 
@@ -81,7 +81,7 @@ class ModuleData:
         self.prefab_key = prefab_key
         self.side = side
         self.part_offset = part_offset
-        self.prefab_module_data = prefab_module_inputs[prefab_key]
+        self.prefab_module_data = prefab_module_inputs[prefab_key] if prefab_key else None
         self.parts_prefix = parts_prefix
 
 
