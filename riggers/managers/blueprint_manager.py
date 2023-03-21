@@ -15,17 +15,14 @@ import json
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
-import Snowman3.riggers.utilities.blueprint_utils as blueprint_utils
-importlib.reload(blueprint_utils)
-Blueprint = blueprint_utils.Blueprint
-
 import Snowman3.riggers.utilities.module_utils as module_utils
 importlib.reload(module_utils)
 Module = module_utils.Module
 
-import Snowman3.riggers.utilities.placer_utils as placer_utils
-importlib.reload(placer_utils)
-Placer = placer_utils.Placer
+import Snowman3.riggers.modules.rig_module_utils as rig_module_utils
+importlib.reload(rig_module_utils)
+ModuleCreator = rig_module_utils.ModuleCreator
+ModuleData = rig_module_utils.ModuleData
 ###########################
 ###########################
 
@@ -34,12 +31,25 @@ Placer = placer_utils.Placer
 temp_files_dir = 'working'
 versions_dir = 'versions'
 core_data_filename = 'core_data'
-version_padding = 4
+default_version_padding = 4
 ###########################
 ###########################
 
 
+########################################################################################################################
+class Blueprint:
+    def __init__(
+        self,
+        asset_name,
+        dirpath = None,
+        modules = None
+    ):
+        self.asset_name = asset_name
+        self.dirpath = dirpath
+        self.modules = modules if modules else {}
 
+
+########################################################################################################################
 class BlueprintManager:
     def __init__(
         self,
@@ -106,13 +116,11 @@ class BlueprintManager:
 
 
     def get_blueprint_from_working_dir(self):
-        print("Fetching current working blueprint...")
         self.blueprint = self.blueprint_from_file(f'{self.tempdir}/{core_data_filename}.json')
         return self.blueprint
 
 
     def update_blueprint_from_scene(self):
-        print("Updating working blueprint with scene data...")
         for key, module in self.blueprint.modules.items():
             self.blueprint.modules[key] = self.update_module_from_scene(module)
         return self.blueprint
@@ -145,7 +153,7 @@ class BlueprintManager:
         self.save_blueprint(dirpath=new_save_dir)
 
 
-    def create_new_numbered_directory(self, asset_name, version_padding=version_padding):
+    def create_new_numbered_directory(self, asset_name, version_padding=default_version_padding):
         version_dirs = [p[0] for p in os.walk(self.versions_dir)]
         version_subdirs = [version_dirs[i] for i in range(1, len(version_dirs))]
         subdir_names = [os.path.basename(os.path.normpath(p)) for p in version_subdirs]
@@ -188,11 +196,9 @@ class BlueprintManager:
         data = {}
         for param, value in vars(self.blueprint).items():
             data[param] = value
-
         data['modules'] = {}
         for key, module in self.blueprint.modules.items():
             data['modules'][key] = module.data_from_module()
-
         return data
 
 
@@ -223,24 +229,43 @@ class BlueprintManager:
     def remove_module(self, module):
         self.blueprint = self.get_blueprint_from_working_dir()
         self.blueprint.modules.pop(module.data_name)
+        self.save_blueprint_to_tempdisk()
 
 
-    def add_part(self, part, module, filepath):
-        working_blueprint = self.blueprint_from_file(filepath)
-        self.blueprint.modules[module.data_name].parts[part.data_name] = part.data_from_part()
+    def add_part(self, part, module):
+        self.blueprint = self.get_blueprint_from_working_dir()
+        self.blueprint.modules[module.data_name].parts[part.data_name] = part
+        self.save_blueprint_to_tempdisk()
 
 
-    def remove_part(self, part, module):
-        working_blueprint = self.blueprint_from_file()
-        self.blueprint.modules[module.data_name]['parts'].pop(part.data_name)
+    def remove_part(self, part, parent_module):
+        self.blueprint = self.get_blueprint_from_working_dir()
+        self.blueprint.modules[parent_module.data_name].parts.pop(part.data_name)
+        self.save_blueprint_to_tempdisk()
 
 
     def add_placer(self, placer, part, module):
-        working_blueprint = self.blueprint_from_file()
+        self.blueprint = self.get_blueprint_from_working_dir()
         self.blueprint.modules[module.data_name].parts[part.data_name].placers[placer.data_name] =\
             placer.data_from_placer()
 
 
     def remove_placer(self, placer, part, module):
-        working_blueprint = self.blueprint_from_file()
-        self.blueprint.modules[module.data_name]['parts'][part.data_name]['placers'].pop(part.data_name)
+        self.blueprint = self.get_blueprint_from_working_dir()
+        self.blueprint.modules[module.data_name].parts[part.data_name].placers.pop(placer.data_name)
+
+
+    def opposite_module_data_name(self, module):
+        if module.side not in ('L', 'R'):
+            return None
+        opposite_side_tags = {'L': 'R_', 'R': 'L_'}
+        opposite_module_data_name = f'{opposite_side_tags[module.side]}{module.data_name[2:]}'
+        return opposite_module_data_name
+
+
+    def get_opposite_module(self, module):
+        expected_opposite_module_key = self.opposite_module_data_name(module)
+        if expected_opposite_module_key not in self.blueprint.modules:
+            return None
+        opposite_module = self.blueprint.modules[expected_opposite_module_key]
+        return opposite_module

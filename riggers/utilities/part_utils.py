@@ -49,7 +49,7 @@ class Part:
         self.handle_size = handle_size if handle_size else 1.0
         self.position = position if position else [0, 0, 0]
         self.placers = placers if placers else {}
-        self.data_name = data_name if data_name else f'{gen.side_tag(side)}{name}'
+        self.data_name = data_name if data_name else prefab_key
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{part_tag}'
         self.prefab_key = prefab_key
 
@@ -67,6 +67,7 @@ class Part:
         return data
 
 
+
     def get_placers_from_placers_data(self):
         if not self.placers:
             return False
@@ -78,6 +79,7 @@ class Part:
         self.placers = placers
 
 
+
     def create_scene_part(self, parent=None):
         scene_part = self.create_part_handle()
         self.position_part(scene_part)
@@ -87,10 +89,12 @@ class Part:
         return scene_part
 
 
+
     def create_part_handle(self):
         handle = gen.prefab_curve_construct(prefab='cube', name=self.scene_name, scale=self.handle_size, side=self.side)
         self.color_part_handle(handle)
         return handle
+
 
 
     def populate_scene_part(self, placers_parent=None):
@@ -100,8 +104,10 @@ class Part:
             placer.create_scene_placer(parent=placers_parent)
 
 
+
     def position_part(self, handle):
         handle.translate.set(tuple(self.position))
+
 
 
     def add_part_metadata(self, scene_part):
@@ -119,22 +125,6 @@ class Part:
             pm.setAttr(f'{scene_part}.{a}', keyable=0)
 
 
-    def get_part_handle(self):
-        if not pm.objExists(self.scene_name):
-            return False
-        part_handle = pm.PyNode(self.scene_name)
-        return part_handle
-
-
-    def add_placer(self, placer):
-        self.placers[placer.data_name] = placer.data_from_placer()
-        return placer
-
-
-    def remove_placer(self, placer):
-        pm.delete(placer.get_scene_placer())
-        self.placers.pop(placer.data_name)
-
 
     def color_part_handle(self, handle, color=None):
         if not color:
@@ -143,12 +133,3 @@ class Part:
             else:
                 color = color_code[self.side]
         gen.set_color(handle, color)
-
-
-    def populate_prefab(self):
-        placers_holder = self.placers
-        self.placers = {}
-        for placer in placers_holder.values():
-            if not placer.parent_part_name:
-                placer.edit_parent_part_name(self.name)
-            self.add_placer(placer)

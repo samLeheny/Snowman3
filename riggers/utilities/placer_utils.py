@@ -66,8 +66,10 @@ class Placer:
         return scene_placer
 
 
+
     def position_placer(self, scene_placer):
         scene_placer.translate.set(tuple(self.position))
+
 
 
     def add_placer_metadata(self, scene_placer):
@@ -83,6 +85,7 @@ class Placer:
         [attr.create(self, scene_placer) for attr in metadata_attrs]
 
 
+
     def color_placer(self, color=None):
         if not color:
             if not self.side:
@@ -92,6 +95,7 @@ class Placer:
         gen.set_color(self.get_scene_placer(), color)
 
 
+
     def get_scene_placer(self):
         if not pm.objExists(self.scene_name):
             print(f"Placer: '{self.scene_name}' not found in scene")
@@ -99,46 +103,9 @@ class Placer:
         return pm.PyNode(self.scene_name)
 
 
+
     def data_from_placer(self):
         data = {}
         for param, value in vars(self).items():
             data[param] = value
         return data
-
-
-    def placer_from_data(self, data):
-        placer = Placer(**data)
-        return placer
-
-
-    def mirror_placer(self):
-        scene_placer = self.get_scene_placer()
-        opposite_scene_placer = self.get_opposite_scene_placer(scene_placer)
-        # ...Mirror position
-        pm.setAttr(f'{opposite_scene_placer}.tx', pm.getAttr(f'{scene_placer}.tx') * -1)
-        [pm.setAttr(f'{opposite_scene_placer}.{a}', pm.getAttr(f'{scene_placer}.{a}')) for a in ('ty', 'tz')]
-        # ...Match handle size
-        pm.setAttr(f'{opposite_scene_placer}.Size', pm.getAttr(f'{scene_placer}.Size'))
-
-
-    def get_opposite_scene_placer(self, scene_placer):
-        sided_prefixes = {'L_': 'R_', 'R_': 'L_'}
-        this_prefix = None
-        opposite_scene_placer = None
-        for prefix in sided_prefixes.keys():
-            if str(scene_placer).startswith(prefix):
-                this_prefix = prefix
-        if this_prefix:
-            opposite_scene_placer = pm.PyNode(str(scene_placer).replace(this_prefix, sided_prefixes[this_prefix]))
-        return opposite_scene_placer
-
-
-    def edit_side(self, new_side):
-        self.side = new_side
-        self.data_name = f'{gen.side_tag(self.side)}{self.name}'
-        self.scene_name = f'{gen.side_tag(self.side)}{self.parent_part_name}_{self.name}_{placer_tag}'
-
-
-    def edit_parent_part_name(self, name):
-        self.parent_part_name = name
-        self.scene_name = f'{gen.side_tag(self.side)}{name}_{self.name}_{placer_tag}'
