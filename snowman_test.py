@@ -45,20 +45,20 @@ BPManager.update_blueprint_from_scene()
 interactor = SceneInteractor(blueprint_manager=BPManager, armature_manager=armature_manager)
 interactor.mirror_armature('L')
 
-# ...Add new (prefab) module
-interactor.add_module('ThirdArm', side='L', prefab_key='biped_arm', parts_prefix='Third')
-# ...Add new (empty) module
-interactor.add_module('Tail', side='M', prefab_key=None, parts_prefix=None)
-# ...Remove a module
-interactor.remove_module('R_Leg')
-# ...Add new part to existing module
+# ...Add new (prefab) container
+interactor.add_container('ThirdArm', side='L', prefab_key='biped_arm', parts_prefix='Third')
+# ...Add new (empty) container
+interactor.add_container('Tail', side='M', prefab_key=None, parts_prefix=None)
+# ...Remove a container
+interactor.remove_container('R_Leg')
+# ...Add new part to existing container
 interactor.add_part('NewPart', 'foot_plantigrade', 'L_Hand', side='L')
-# ...Remove a part from a module
+# ...Remove a part from a container
 interactor.remove_part('biped_arm', 'R_Arm')
 
 # ...Add mirrored part to existing part
 interactor.add_mirrored_part('biped_arm', 'L_Arm')
-# ...Add mirrored module to existing module
-interactor.add_mirrored_module('L_Leg')
+# ...Add mirrored container to existing container
+interactor.add_mirrored_container('L_Leg')
 
 interactor.save_work()

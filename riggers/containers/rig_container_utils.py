@@ -1,4 +1,4 @@
-# Title: rig_module_utils.py
+# Title: rig_container_utils.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -10,9 +10,9 @@
 import importlib
 import pymel.core as pm
 
-import Snowman3.riggers.utilities.module_utils as module_utils
-importlib.reload(module_utils)
-Module = module_utils.Module
+import Snowman3.riggers.utilities.container_utils as container_utils
+importlib.reload(container_utils)
+Container = container_utils.Container
 ###########################
 ###########################
 
@@ -24,18 +24,19 @@ Module = module_utils.Module
 ###########################
 
 
-class ModuleCreator:
+class ContainerCreator:
     def __init__(
         self,
-        module_data
+        container_data
     ):
-        self.name = module_data.name
-        self.side = module_data.side
-        self.part_offset = module_data.part_offset if module_data.part_offset else (0, 0, 0)
-        self.prefab_key = module_data.prefab_key
-        self.parts_data = module_data.prefab_module_data.parts_data if module_data.prefab_module_data else {}
+        self.name = container_data.name
+        self.side = container_data.side
+        self.part_offset = container_data.part_offset if container_data.part_offset else (0, 0, 0)
+        self.prefab_key = container_data.prefab_key
+        self.parts_data = container_data.prefab_container_data.parts_data if \
+            container_data.prefab_container_data else {}
         self.parts = {}
-        self.parts_prefix = module_data.parts_prefix
+        self.parts_prefix = container_data.parts_prefix
 
 
     def get_prefab_part(self, name, prefab_key, parts_prefix):
@@ -56,19 +57,19 @@ class ModuleCreator:
         return self.parts
 
 
-    def create_module(self):
-        module = Module(
+    def create_container(self):
+        container = Container(
             name=self.name,
             prefab_key=self.prefab_key,
             side=self.side,
             parts=self.assemble_parts(self.parts_data),
             parts_prefix = self.parts_prefix
         )
-        return module
+        return container
 
 
 
-class ModuleData:
+class ContainerData:
     def __init__(
         self,
         name: str,
@@ -81,12 +82,12 @@ class ModuleData:
         self.prefab_key = prefab_key
         self.side = side
         self.part_offset = part_offset
-        self.prefab_module_data = prefab_module_inputs[prefab_key] if prefab_key else None
+        self.prefab_container_data = prefab_container_inputs[prefab_key] if prefab_key else None
         self.parts_prefix = parts_prefix
 
 
 
-class PrefabModuleData:
+class PrefabContainerData:
     def __init__(
         self,
         parts_data,
@@ -95,31 +96,31 @@ class PrefabModuleData:
 
 
 
-prefab_module_inputs = {
+prefab_container_inputs = {
     'root':
-        PrefabModuleData(parts_data={'root': {'key': 'Root',
+        PrefabContainerData(parts_data={'root': {'key': 'Root',
                                               'prefab_key': 'root'},
                                      'cog': {'key': 'Cog',
                                              'prefab_key': 'cog'}}),
     'biped_spine':
-        PrefabModuleData(parts_data={'biped_spine': {'key': 'Spine',
+        PrefabContainerData(parts_data={'biped_spine': {'key': 'Spine',
                                                      'prefab_key': 'biped_spine'}}),
     'biped_neck':
-        PrefabModuleData(parts_data={'biped_neck': {'key': 'Neck',
+        PrefabContainerData(parts_data={'biped_neck': {'key': 'Neck',
                                                     'prefab_key': 'biped_neck'}}),
     'biped_clavicle':
-        PrefabModuleData(parts_data={'biped_clavicle': {'key': 'Clavicle',
+        PrefabContainerData(parts_data={'biped_clavicle': {'key': 'Clavicle',
                                                         'prefab_key': 'biped_clavicle'}}),
     'biped_arm':
-        PrefabModuleData(parts_data={'biped_arm': {'key': 'Arm',
+        PrefabContainerData(parts_data={'biped_arm': {'key': 'Arm',
                                                    'prefab_key': 'biped_arm'}}),
     'biped_hand':
-        PrefabModuleData(parts_data={'biped_hand': {'key': 'Hand',
+        PrefabContainerData(parts_data={'biped_hand': {'key': 'Hand',
                                                     'prefab_key': 'biped_hand'}}),
     'leg_plantigrade':
-        PrefabModuleData(parts_data={'leg_plantigrade': {'key': 'Leg',
+        PrefabContainerData(parts_data={'leg_plantigrade': {'key': 'Leg',
                                                          'prefab_key': 'leg_plantigrade'}}),
     'foot_plantigrade':
-        PrefabModuleData(parts_data={'foot_plantigrade': {'key': 'Root',
+        PrefabContainerData(parts_data={'foot_plantigrade': {'key': 'Root',
                                                           'prefab_key': 'foot_plantigrade'}}),
 }

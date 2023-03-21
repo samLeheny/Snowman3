@@ -15,14 +15,14 @@ import json
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
-import Snowman3.riggers.utilities.module_utils as module_utils
-importlib.reload(module_utils)
-Module = module_utils.Module
+import Snowman3.riggers.utilities.container_utils as container_utils
+importlib.reload(container_utils)
+Container = container_utils.Container
 
-import Snowman3.riggers.modules.rig_module_utils as rig_module_utils
-importlib.reload(rig_module_utils)
-ModuleCreator = rig_module_utils.ModuleCreator
-ModuleData = rig_module_utils.ModuleData
+import Snowman3.riggers.containers.rig_container_utils as rig_container_utils
+importlib.reload(rig_container_utils)
+ContainerCreator = rig_container_utils.ContainerCreator
+ContainerData = rig_container_utils.ContainerData
 ###########################
 ###########################
 
@@ -42,11 +42,11 @@ class Blueprint:
         self,
         asset_name,
         dirpath = None,
-        modules = None
+        containers = None
     ):
         self.asset_name = asset_name
         self.dirpath = dirpath
-        self.modules = modules if modules else {}
+        self.containers = containers if containers else {}
 
 
 ########################################################################################################################
@@ -75,10 +75,10 @@ class BlueprintManager:
 
 
     def populate_prefab_blueprint(self):
-        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.modules'
-        prefab_modules = importlib.import_module(dir_string.format(self.prefab_key))
-        importlib.reload(prefab_modules)
-        self.blueprint.modules = prefab_modules.modules
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.containers'
+        prefab_containers = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_containers)
+        self.blueprint.containers = prefab_containers.containers
         self.save_blueprint_to_tempdisk()
 
 
@@ -121,15 +121,15 @@ class BlueprintManager:
 
 
     def update_blueprint_from_scene(self):
-        for key, module in self.blueprint.modules.items():
-            self.blueprint.modules[key] = self.update_module_from_scene(module)
+        for key, container in self.blueprint.containers.items():
+            self.blueprint.containers[key] = self.update_container_from_scene(container)
         return self.blueprint
 
 
-    def update_module_from_scene(self, module):
-        for key, part in module.parts.items():
-            module.parts[key] = self.update_part_from_scene(part)
-        return module
+    def update_container_from_scene(self, container):
+        for key, part in container.parts.items():
+            container.parts[key] = self.update_part_from_scene(part)
+        return container
 
 
     def update_part_from_scene(self, part):
@@ -184,11 +184,11 @@ class BlueprintManager:
 
     def blueprint_from_data(self, data):
         self.blueprint = Blueprint(**data)
-        modules_data_holder = self.blueprint.modules
-        self.blueprint.modules = {}
-        for key, data in modules_data_holder.items():
-            new_module = Module(**data)
-            self.blueprint.modules[key] = new_module
+        containers_data_holder = self.blueprint.containers
+        self.blueprint.containers = {}
+        for key, data in containers_data_holder.items():
+            new_container = Container(**data)
+            self.blueprint.containers[key] = new_container
         return self.blueprint
 
 
@@ -196,9 +196,9 @@ class BlueprintManager:
         data = {}
         for param, value in vars(self.blueprint).items():
             data[param] = value
-        data['modules'] = {}
-        for key, module in self.blueprint.modules.items():
-            data['modules'][key] = module.data_from_module()
+        data['containers'] = {}
+        for key, container in self.blueprint.containers.items():
+            data['containers'][key] = container.data_from_container()
         return data
 
 
@@ -211,61 +211,61 @@ class BlueprintManager:
             json.dump(blueprint_data, fh, indent=5)
 
 
-    def add_module(self, module):
-        if module.prefab_key:
-            self.add_prefab_module(module)
+    def add_container(self, container):
+        if container.prefab_key:
+            self.add_prefab_container(container)
         else:
-            self.add_empty_module(module)
+            self.add_empty_container(container)
 
 
-    def add_empty_module(self, module):
-        self.blueprint.modules[module.data_name] = module
+    def add_empty_container(self, container):
+        self.blueprint.containers[container.data_name] = container
 
 
-    def add_prefab_module(self, module):
-        self.blueprint.modules[module.data_name] = module
+    def add_prefab_container(self, container):
+        self.blueprint.containers[container.data_name] = container
 
 
-    def remove_module(self, module):
+    def remove_container(self, container):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.modules.pop(module.data_name)
+        self.blueprint.containers.pop(container.data_name)
         self.save_blueprint_to_tempdisk()
 
 
-    def add_part(self, part, module):
+    def add_part(self, part, container):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.modules[module.data_name].parts[part.data_name] = part
+        self.blueprint.containers[container.data_name].parts[part.data_name] = part
         self.save_blueprint_to_tempdisk()
 
 
-    def remove_part(self, part, parent_module):
+    def remove_part(self, part, parent_container):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.modules[parent_module.data_name].parts.pop(part.data_name)
+        self.blueprint.containers[parent_container.data_name].parts.pop(part.data_name)
         self.save_blueprint_to_tempdisk()
 
 
-    def add_placer(self, placer, part, module):
+    def add_placer(self, placer, part, container):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.modules[module.data_name].parts[part.data_name].placers[placer.data_name] =\
+        self.blueprint.containers[container.data_name].parts[part.data_name].placers[placer.data_name] =\
             placer.data_from_placer()
 
 
-    def remove_placer(self, placer, part, module):
+    def remove_placer(self, placer, part, container):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.modules[module.data_name].parts[part.data_name].placers.pop(placer.data_name)
+        self.blueprint.containers[container.data_name].parts[part.data_name].placers.pop(placer.data_name)
 
 
-    def opposite_module_data_name(self, module):
-        if module.side not in ('L', 'R'):
+    def opposite_container_data_name(self, container):
+        if container.side not in ('L', 'R'):
             return None
         opposite_side_tags = {'L': 'R_', 'R': 'L_'}
-        opposite_module_data_name = f'{opposite_side_tags[module.side]}{module.data_name[2:]}'
-        return opposite_module_data_name
+        opposite_container_data_name = f'{opposite_side_tags[container.side]}{container.data_name[2:]}'
+        return opposite_container_data_name
 
 
-    def get_opposite_module(self, module):
-        expected_opposite_module_key = self.opposite_module_data_name(module)
-        if expected_opposite_module_key not in self.blueprint.modules:
+    def get_opposite_container(self, container):
+        expected_opposite_container_key = self.opposite_container_data_name(container)
+        if expected_opposite_container_key not in self.blueprint.containers:
             return None
-        opposite_module = self.blueprint.modules[expected_opposite_module_key]
-        return opposite_module
+        opposite_container = self.blueprint.containers[expected_opposite_container_key]
+        return opposite_container

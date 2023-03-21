@@ -19,14 +19,14 @@ import Snowman3.riggers.managers.blueprint_manager as blueprint_manager_util
 importlib.reload(blueprint_manager_util)
 BlueprintManager = blueprint_manager_util.BlueprintManager
 
-import Snowman3.riggers.modules.rig_module_utils as rig_module_utils
-importlib.reload(rig_module_utils)
-ModuleCreator = rig_module_utils.ModuleCreator
-ModuleData = rig_module_utils.ModuleData
+import Snowman3.riggers.containers.rig_container_utils as rig_container_utils
+importlib.reload(rig_container_utils)
+ContainerCreator = rig_container_utils.ContainerCreator
+ContainerData = rig_container_utils.ContainerData
 
-import Snowman3.riggers.utilities.module_utils as module_utils
-importlib.reload(module_utils)
-Module = module_utils.Module
+import Snowman3.riggers.utilities.container_utils as container_utils
+importlib.reload(container_utils)
+Container = container_utils.Container
 ###########################
 ###########################
 
@@ -49,110 +49,110 @@ class SceneInteractor:
 
 
     def mirror_armature(self, driver_side):
-        for key, module in self.blueprint_manager.blueprint.modules.items():
-            if module.side == driver_side:
-                self.armature_manager.mirror_module(key)
+        for key, container in self.blueprint_manager.blueprint.containers.items():
+            if container.side == driver_side:
+                self.armature_manager.mirror_container(key)
 
 
-    def add_module(self, name, side=None, prefab_key=None, parts_prefix=None):
-        module_creator = ModuleCreator(ModuleData(
+    def add_container(self, name, side=None, prefab_key=None, parts_prefix=None):
+        container_creator = ContainerCreator(ContainerData(
             name=name,
             prefab_key=prefab_key,
             side=side,
             part_offset=(0, 0, 0),
             parts_prefix=parts_prefix
         ))
-        module = module_creator.create_module()
-        self.blueprint_manager.add_module(module)
+        container = container_creator.create_container()
+        self.blueprint_manager.add_container(container)
         self.blueprint_manager.save_blueprint_to_tempdisk()
-        self.armature_manager.add_module(module)
+        self.armature_manager.add_container(container)
 
 
-    def remove_module(self, module_key):
-        module = self.blueprint_manager.blueprint.modules[module_key]
-        self.armature_manager.remove_module(module)
-        self.blueprint_manager.remove_module(module)
+    def remove_container(self, container_key):
+        container = self.blueprint_manager.blueprint.containers[container_key]
+        self.armature_manager.remove_container(container)
+        self.blueprint_manager.remove_container(container)
 
 
-    def add_part(self, name, prefab_key, parent_module_key, side=None):
-        parent_module = self.blueprint_manager.blueprint.modules[parent_module_key]
-        part = self.create_part(name, prefab_key, parent_module_key, side)
-        self.blueprint_manager.add_part(part, parent_module)
-        self.armature_manager.add_part(part, parent_module)
+    def add_part(self, name, prefab_key, parent_container_key, side=None):
+        parent_container = self.blueprint_manager.blueprint.containers[parent_container_key]
+        part = self.create_part(name, prefab_key, parent_container_key, side)
+        self.blueprint_manager.add_part(part, parent_container)
+        self.armature_manager.add_part(part, parent_container)
         return part
 
 
-    def create_part(self, name, prefab_key, parent_module_key, side=None):
-        parent_module = self.blueprint_manager.blueprint.modules[parent_module_key]
-        parent_module_parts_prefix = parent_module.parts_prefix
+    def create_part(self, name, prefab_key, parent_container_key, side=None):
+        parent_container = self.blueprint_manager.blueprint.containers[parent_container_key]
+        parent_container_parts_prefix = parent_container.parts_prefix
         dir_string = f'Snowman3.riggers.parts.{prefab_key}'
         part_data = importlib.import_module(dir_string)
         importlib.reload(part_data)
-        part = part_data.create_part(f'{parent_module_parts_prefix}{name}', side)
+        part = part_data.create_part(f'{parent_container_parts_prefix}{name}', side)
         return part
 
 
-    def remove_part(self, part_key, parent_module_key):
-        parent_module = self.blueprint_manager.blueprint.modules[parent_module_key]
-        part = parent_module.parts[part_key]
-        self.armature_manager.remove_part(part, parent_module)
-        self.blueprint_manager.remove_part(part, parent_module)
+    def remove_part(self, part_key, parent_container_key):
+        parent_container = self.blueprint_manager.blueprint.containers[parent_container_key]
+        part = parent_container.parts[part_key]
+        self.armature_manager.remove_part(part, parent_container)
+        self.blueprint_manager.remove_part(part, parent_container)
 
 
     def save_work(self):
         self.blueprint_manager.save_work()
 
 
-    def create_mirrored_part(self, existing_part_key, existing_module_key):
-        existing_module = self.blueprint_manager.blueprint.modules[existing_module_key]
-        existing_part = self.blueprint_manager.blueprint.modules[existing_module_key].parts[existing_part_key]
-        opposite_module = self.blueprint_manager.get_opposite_module(existing_module)
+    def create_mirrored_part(self, existing_part_key, existing_container_key):
+        existing_container = self.blueprint_manager.blueprint.containers[existing_container_key]
+        existing_part = self.blueprint_manager.blueprint.containers[existing_container_key].parts[existing_part_key]
+        opposite_container = self.blueprint_manager.get_opposite_container(existing_container)
         opposite_part_data = existing_part.data_from_part()
         opposite_part_data['side'] = gen.opposite_side(existing_part.side)
 
         dir_string = f"Snowman3.riggers.parts.{opposite_part_data['prefab_key']}"
         part_data = importlib.import_module(dir_string)
         importlib.reload(part_data)
-        new_opposing_part = part_data.create_part(f"{opposite_module.parts_prefix}{opposite_part_data['name']}",
+        new_opposing_part = part_data.create_part(f"{opposite_container.parts_prefix}{opposite_part_data['name']}",
                                                   opposite_part_data['side'])
         return new_opposing_part
 
 
-    def create_mirrored_module(self, existing_module_key):
-        existing_module = self.blueprint_manager.blueprint.modules[existing_module_key]
-        if self.blueprint_manager.get_opposite_module(existing_module):
+    def create_mirrored_container(self, existing_container_key):
+        existing_container = self.blueprint_manager.blueprint.containers[existing_container_key]
+        if self.blueprint_manager.get_opposite_container(existing_container):
             return False
-        opposite_module_data = existing_module.data_from_module()
-        opposite_module_data['side'] = gen.opposite_side(existing_module.side)
-        new_opposing_module_creator = ModuleCreator(
-            ModuleData(
-                name=opposite_module_data['name'],
-                prefab_key=opposite_module_data['prefab_key'],
-                side=opposite_module_data['side'],
+        opposite_container_data = existing_container.data_from_container()
+        opposite_container_data['side'] = gen.opposite_side(existing_container.side)
+        new_opposing_container_creator = ContainerCreator(
+            ContainerData(
+                name=opposite_container_data['name'],
+                prefab_key=opposite_container_data['prefab_key'],
+                side=opposite_container_data['side'],
                 part_offset=(0, 0, 0),
-                parts_prefix=existing_module.parts_prefix
+                parts_prefix=existing_container.parts_prefix
             )
         )
-        new_opposing_module = new_opposing_module_creator.create_module()
-        return new_opposing_module
+        new_opposing_container = new_opposing_container_creator.create_container()
+        return new_opposing_container
 
 
-    def add_mirrored_part(self, existing_part_key, existing_module_key):
-        existing_module = self.blueprint_manager.blueprint.modules[existing_module_key]
-        opposite_module = self.blueprint_manager.get_opposite_module(existing_module)
-        new_opposite_part = self.create_mirrored_part(existing_part_key, existing_module_key)
-        self.blueprint_manager.add_part(new_opposite_part, opposite_module)
-        self.armature_manager.add_part(new_opposite_part, opposite_module)
-        self.armature_manager.mirror_part(new_opposite_part.data_name, existing_module.data_name)
+    def add_mirrored_part(self, existing_part_key, existing_container_key):
+        existing_container = self.blueprint_manager.blueprint.containers[existing_container_key]
+        opposite_container = self.blueprint_manager.get_opposite_container(existing_container)
+        new_opposite_part = self.create_mirrored_part(existing_part_key, existing_container_key)
+        self.blueprint_manager.add_part(new_opposite_part, opposite_container)
+        self.armature_manager.add_part(new_opposite_part, opposite_container)
+        self.armature_manager.mirror_part(new_opposite_part.data_name, existing_container.data_name)
         self.blueprint_manager.update_blueprint_from_scene()
         self.blueprint_manager.save_blueprint_to_tempdisk()
 
 
-    def add_mirrored_module(self, existing_module_key):
-        existing_module = self.blueprint_manager.blueprint.modules[existing_module_key]
-        new_opposing_module = self.create_mirrored_module(existing_module_key)
-        self.blueprint_manager.add_module(new_opposing_module)
-        self.armature_manager.add_module(new_opposing_module)
-        self.armature_manager.mirror_module(existing_module.data_name)
+    def add_mirrored_container(self, existing_container_key):
+        existing_container = self.blueprint_manager.blueprint.containers[existing_container_key]
+        new_opposing_container = self.create_mirrored_container(existing_container_key)
+        self.blueprint_manager.add_container(new_opposing_container)
+        self.armature_manager.add_container(new_opposing_container)
+        self.armature_manager.mirror_container(existing_container.data_name)
         self.blueprint_manager.update_blueprint_from_scene()
         self.blueprint_manager.save_blueprint_to_tempdisk()

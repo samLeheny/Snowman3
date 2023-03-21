@@ -1,4 +1,4 @@
-# Title: module_utils.py
+# Title: container_utils.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -26,13 +26,13 @@ MetaDataAttr = metadata_utils.MetaDataAttr
 
 ###########################
 ######## Variables ########
-module_tag = 'MODULE'
+container_tag = 'CON'
 ###########################
 ###########################
 
 
 
-class Module:
+class Container:
     def __init__(
         self,
         name: str = None,
@@ -46,7 +46,7 @@ class Module:
         self.name = name
         self.side = side
         self.data_name = data_name if data_name else f'{gen.side_tag(side)}{name}'
-        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_MODULE'
+        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{container_tag}'
         self.prefab_key = prefab_key
         self.parts = parts if parts else {}
         self.parts_prefix = parts_prefix if parts_prefix else ''
@@ -55,7 +55,7 @@ class Module:
 
 
 
-    def populate_scene_module(self, parts_parent=None):
+    def populate_scene_container(self, parts_parent=None):
         if not self.parts:
             return False
         for part in self.parts.values():
@@ -75,16 +75,16 @@ class Module:
 
 
 
-    def add_module_metadata(self, scene_module):
+    def add_container_metadata(self, scene_container):
         metadata_attrs = (
-            MetaDataAttr(long_name='ModuleTag', attribute_type='string', keyable=0, default_value_attr_string='name'),
+            MetaDataAttr(long_name='ContainerTag', attribute_type='string', keyable=0, default_value_attr_string='name'),
             MetaDataAttr(long_name='Side', attribute_type='string', keyable=0, default_value_attr_string='side')
         )
-        [attr.create(self, scene_module) for attr in metadata_attrs]
+        [attr.create(self, scene_container) for attr in metadata_attrs]
 
 
 
-    def data_from_module(self):
+    def data_from_container(self):
         data = {}
         for param, value in vars(self).items():
             data[param] = value
