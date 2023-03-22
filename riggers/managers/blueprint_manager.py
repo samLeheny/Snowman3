@@ -18,6 +18,11 @@ importlib.reload(gen)
 import Snowman3.riggers.utilities.container_utils as container_utils
 importlib.reload(container_utils)
 Container = container_utils.Container
+ContainerManager = container_utils.ContainerManager
+
+import Snowman3.riggers.utilities.part_utils as part_utils
+importlib.reload(part_utils)
+PartManager = part_utils.PartManager
 
 import Snowman3.riggers.containers.rig_container_utils as rig_container_utils
 importlib.reload(rig_container_utils)
@@ -42,11 +47,11 @@ class Blueprint:
         self,
         asset_name,
         dirpath = None,
-        containers = None
+        containers = {}
     ):
         self.asset_name = asset_name
         self.dirpath = dirpath
-        self.containers = containers if containers else {}
+        self.containers = containers
 
 
 ########################################################################################################################
@@ -188,18 +193,31 @@ class BlueprintManager:
         self.blueprint.containers = {}
         for key, data in containers_data_holder.items():
             new_container = Container(**data)
-            self.blueprint.containers[key] = new_container
+            container_manager = ContainerManager(new_container)
+            container_manager.create_parts_from_data(new_container.parts)
+            self.blueprint.containers[key] = container_manager.container
         return self.blueprint
 
 
     def data_from_blueprint(self):
         data = {}
-        for param, value in vars(self.blueprint).items():
-            data[param] = value
+        for key, value in vars(self.blueprint).items():
+            data[key] = value
         data['containers'] = {}
         for key, container in self.blueprint.containers.items():
-            data['containers'][key] = container.data_from_container()
+            container_manager = ContainerManager(container)
+            data['containers'][key] = container_manager.data_from_container()
         return data
+
+
+    def data_from_container(self, container):
+        container_manager = ContainerManager(container)
+        return container_manager.data_from_container()
+
+
+    def data_from_part(self, part):
+        part_manager = PartManager(part)
+        return part_manager.data_from_part()
 
 
     def save_blueprint(self, dirpath=None):
@@ -212,18 +230,8 @@ class BlueprintManager:
 
 
     def add_container(self, container):
-        if container.prefab_key:
-            self.add_prefab_container(container)
-        else:
-            self.add_empty_container(container)
-
-
-    def add_empty_container(self, container):
         self.blueprint.containers[container.data_name] = container
-
-
-    def add_prefab_container(self, container):
-        self.blueprint.containers[container.data_name] = container
+        self.save_blueprint_to_tempdisk()
 
 
     def remove_container(self, container):
@@ -244,28 +252,20 @@ class BlueprintManager:
         self.save_blueprint_to_tempdisk()
 
 
-    def add_placer(self, placer, part, container):
-        self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.containers[container.data_name].parts[part.data_name].placers[placer.data_name] =\
-            placer.data_from_placer()
-
-
-    def remove_placer(self, placer, part, container):
-        self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.containers[container.data_name].parts[part.data_name].placers.pop(placer.data_name)
-
-
-    def opposite_container_data_name(self, container):
-        if container.side not in ('L', 'R'):
+    def get_opposite_container(self, container_key):
+        container = self.get_container(container_key)
+        container_manager = ContainerManager(container)
+        opposite_container_key = container_manager.opposite_container_data_name()
+        if opposite_container_key not in self.blueprint.containers:
             return None
-        opposite_side_tags = {'L': 'R_', 'R': 'L_'}
-        opposite_container_data_name = f'{opposite_side_tags[container.side]}{container.data_name[2:]}'
-        return opposite_container_data_name
-
-
-    def get_opposite_container(self, container):
-        expected_opposite_container_key = self.opposite_container_data_name(container)
-        if expected_opposite_container_key not in self.blueprint.containers:
-            return None
-        opposite_container = self.blueprint.containers[expected_opposite_container_key]
+        opposite_container = self.blueprint.containers[opposite_container_key]
         return opposite_container
+
+
+    def get_container(self, container_key):
+        return self.blueprint.containers[container_key]
+
+
+    def get_part(self, part_key, container_key):
+        container = self.get_container(container_key)
+        return container.parts[part_key]

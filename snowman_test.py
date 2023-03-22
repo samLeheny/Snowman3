@@ -16,7 +16,6 @@ importlib.reload(scene_interactor)
 SceneInteractor = scene_interactor.SceneInteractor
 
 # ...File directory path
-#dirpath = r'C:\Users\User\Desktop\test_build'
 dirpath = r'C:\Users\61451\Desktop\sam_build'
 
 # ...New scene

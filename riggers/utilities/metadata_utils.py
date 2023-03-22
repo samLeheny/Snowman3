@@ -28,12 +28,12 @@ class MetaDataAttr:
         long_name=None,
         attribute_type=None,
         keyable=None,
-        default_value_attr_string=None,
+        default_value_attr=None,
     ):
         self.long_name = long_name
         self.attribute_type = attribute_type
         self.keyable = keyable
-        self.default_value_attr_string = default_value_attr_string
+        self.default_value_attr = default_value_attr
 
 
     def create(self, obj, scene_obj):
@@ -43,4 +43,4 @@ class MetaDataAttr:
 
 
     def get_default_value(self, obj):
-        return getattr(obj, self.default_value_attr_string)
+        return getattr(obj, self.default_value_attr)

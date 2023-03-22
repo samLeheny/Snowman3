@@ -17,6 +17,14 @@ import Snowman3.riggers.managers.blueprint_manager as blueprint_manager_util
 importlib.reload(blueprint_manager_util)
 BlueprintManager = blueprint_manager_util.BlueprintManager
 
+import Snowman3.riggers.utilities.container_utils as container_utils
+importlib.reload(container_utils)
+SceneContainerManager = container_utils.SceneContainerManager
+
+import Snowman3.riggers.utilities.part_utils as part_utils
+importlib.reload(part_utils)
+ScenePartManager = part_utils.ScenePartManager
+
 import Snowman3.riggers.containers.rig_container_utils as rig_container_utils
 importlib.reload(rig_container_utils)
 ContainerCreator = rig_container_utils.ContainerCreator
@@ -47,12 +55,8 @@ class ArmatureManager:
 
 
     def add_container(self, container):
-        scene_container = pm.shadingNode('transform', name=container.scene_name, au=1)
-        container.add_container_metadata(scene_container)
-        container.populate_scene_container(parts_parent=scene_container)
-        if container.side == 'R':
-            gen.flip(scene_container)
-        return scene_container
+        container_manager = SceneContainerManager(container)
+        return container_manager.create_scene_container()
 
 
     def remove_container(self, container):
@@ -61,13 +65,8 @@ class ArmatureManager:
 
     def add_part(self, part, parent_container):
         scene_container = pm.PyNode(self.blueprint_manager.blueprint.containers[parent_container.data_name].scene_name)
-        scene_part = part.create_scene_part(scene_container)
-        self.zero_out_part_rotation(part)
-        return scene_part
-
-
-    def zero_out_part_rotation(self, part):
-        pm.PyNode(part.scene_name).rotate.set(0, 0, 0)
+        part_manager = ScenePartManager(part)
+        return part_manager.create_scene_part(scene_container)
 
 
     def remove_part(self, part, parent_container):
@@ -90,7 +89,8 @@ class ArmatureManager:
 
 
     def mirror_part_handle(self, part_key, container_key):
-        scene_part_handle = pm.PyNode(self.blueprint_manager.blueprint.containers[container_key].parts[part_key].scene_name)
+        scene_part_handle = pm.PyNode(
+            self.blueprint_manager.blueprint.containers[container_key].parts[part_key].scene_name)
         opposite_scene_part_handle = gen.get_opposite_side_obj(scene_part_handle)
         if not opposite_scene_part_handle:
             return False
