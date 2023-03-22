@@ -20,15 +20,12 @@ BlueprintManager = blueprint_manager_util.BlueprintManager
 import Snowman3.riggers.utilities.container_utils as container_utils
 importlib.reload(container_utils)
 SceneContainerManager = container_utils.SceneContainerManager
+ContainerCreator = container_utils.ContainerCreator
+ContainerData = container_utils.ContainerData
 
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
 ScenePartManager = part_utils.ScenePartManager
-
-import Snowman3.riggers.containers.rig_container_utils as rig_container_utils
-importlib.reload(rig_container_utils)
-ContainerCreator = rig_container_utils.ContainerCreator
-ContainerData = rig_container_utils.ContainerData
 ###########################
 ###########################
 
