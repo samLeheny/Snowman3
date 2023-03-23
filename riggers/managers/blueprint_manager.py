@@ -93,6 +93,22 @@ class BlueprintManager:
         return self.blueprint
 
 
+    def load_blueprint_from_numbered_version(self, number):
+        version_dir = self.get_numbered_version_dir(number)
+        version_blueprint_filepath = f'{version_dir}/{core_data_filename}.json'
+        self.blueprint_from_file(version_blueprint_filepath)
+
+
+    def get_numbered_version_dir(self, number, version_padding=default_version_padding):
+        padded_num_string = str(number).rjust(version_padding, '0')
+        subdir_names = self.get_all_numbered_subdir_names()
+        version_dir_string = f'{self.asset_name}-v{padded_num_string}'
+        if version_dir_string not in subdir_names:
+            return False
+        dir = f'{self.versions_dir}/{version_dir_string}'
+        return dir
+
+
     def load_blueprint_from_latest_version(self):
         latest_version_dir = self.get_latest_numbered_directory()
         latest_version_blueprint_filepath = f'{latest_version_dir}/{core_data_filename}.json'
@@ -100,9 +116,7 @@ class BlueprintManager:
 
 
     def get_latest_numbered_directory(self):
-        version_dirs = [p[0] for p in os.walk(self.versions_dir)]
-        version_subdirs = [version_dirs[i] for i in range(1, len(version_dirs))]
-        subdir_names = [os.path.basename(os.path.normpath(p)) for p in version_subdirs]
+        subdir_names = self.get_all_numbered_subdir_names()
         nums = [name.split('-v')[1] for name in subdir_names]
         latest_dir_string = f'{self.asset_name}-v{nums[-1]}'
         latest_dir_filepath = f'{self.versions_dir}/{latest_dir_string}'
@@ -171,10 +185,21 @@ class BlueprintManager:
         self.save_blueprint(dirpath=new_save_dir)
 
 
-    def create_new_numbered_directory(self, asset_name, version_padding=default_version_padding):
+    def get_all_numbered_subdirs(self):
         version_dirs = [p[0] for p in os.walk(self.versions_dir)]
         version_subdirs = [version_dirs[i] for i in range(1, len(version_dirs))]
+        return version_subdirs
+
+
+    def get_all_numbered_subdir_names(self):
+        version_subdirs = self.get_all_numbered_subdirs()
         subdir_names = [os.path.basename(os.path.normpath(p)) for p in version_subdirs]
+        return subdir_names
+
+
+    def create_new_numbered_directory(self, asset_name, version_padding=default_version_padding):
+        version_subdirs = self.get_all_numbered_subdirs()
+        subdir_names = self.get_all_numbered_subdir_names()
         if not version_subdirs:
             bulked_num = str(1).rjust(version_padding, '0')
             new_dir_string = f'{asset_name}-v{bulked_num}'
