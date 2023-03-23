@@ -9,17 +9,22 @@
 ##### Import Commands #####
 import os
 import importlib
+import pymel.core as pm
+import json
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
-import Snowman3.riggers.utilities.blueprint_utils as blueprint_utils
-importlib.reload(blueprint_utils)
-Blueprint = blueprint_utils.Blueprint
+import Snowman3.riggers.utilities.container_utils as container_utils
+importlib.reload(container_utils)
+Container = container_utils.Container
+ContainerManager = container_utils.ContainerManager
+ContainerCreator = container_utils.ContainerCreator
+ContainerData = container_utils.ContainerData
 
-import Snowman3.riggers.utilities.placer_utils as placer_utils
-importlib.reload(placer_utils)
-Placer = placer_utils.Placer
+import Snowman3.riggers.utilities.part_utils as part_utils
+importlib.reload(part_utils)
+PartManager = part_utils.PartManager
 ###########################
 ###########################
 
@@ -27,93 +32,146 @@ Placer = placer_utils.Placer
 ######## Variables ########
 temp_files_dir = 'working'
 versions_dir = 'versions'
-version_padding = 4
+core_data_filename = 'core_data'
+default_version_padding = 4
 ###########################
 ###########################
 
 
+########################################################################################################################
+class Blueprint:
+    def __init__(
+        self,
+        asset_name,
+        dirpath = None,
+        containers = {}
+    ):
+        self.asset_name = asset_name
+        self.dirpath = dirpath
+        self.containers = containers
 
+
+########################################################################################################################
 class BlueprintManager:
     def __init__(
         self,
         asset_name: str = None,
         prefab_key: str = None,
-        dirpath: str = None
+        dirpath: str = None,
+        blueprint = None
     ):
         self.asset_name = asset_name
         self.prefab_key = prefab_key
         self.dirpath = f'{dirpath}'
         self.tempdir = f'{self.dirpath}/{temp_files_dir}'
         self.versions_dir = f'{self.dirpath}/{versions_dir}'
+        self.blueprint = blueprint
 
 
 
-    ####################################################################################################################
+    def create_blueprint_from_prefab(self):
+        print(f"Creating blueprint from prefab: '{self.prefab_key}'...")
+        self.blueprint = self.create_new_blueprint()
+        self.populate_prefab_blueprint()
+        return self.blueprint
+
+
+    def populate_prefab_blueprint(self):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.containers'
+        prefab_containers = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_containers)
+        self.blueprint.containers = prefab_containers.containers
+        self.save_blueprint_to_tempdisk()
+
+
     def create_new_blueprint(self):
-        print('Creating new blueprint...')
-        blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.dirpath)
+        print(f"Creating new blueprint for asset '{self.asset_name}'...")
+        self.blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
         self.create_working_dir()
         self.create_versions_dir()
-        self.save_blueprint_to_tempdisk(blueprint)
+        self.save_blueprint_to_tempdisk()
+        return self.blueprint
 
 
+    def load_blueprint_from_latest_version(self):
+        latest_version_dir = self.get_latest_numbered_directory()
+        latest_version_blueprint_filepath = f'{latest_version_dir}/{core_data_filename}.json'
+        self.blueprint_from_file(latest_version_blueprint_filepath)
 
-    ####################################################################################################################
-    def save_blueprint_to_tempdisk(self, blueprint):
-        blueprint_utils.save_blueprint(dirpath=self.tempdir, blueprint=blueprint)
+
+    def get_latest_numbered_directory(self):
+        version_dirs = [p[0] for p in os.walk(self.versions_dir)]
+        version_subdirs = [version_dirs[i] for i in range(1, len(version_dirs))]
+        subdir_names = [os.path.basename(os.path.normpath(p)) for p in version_subdirs]
+        nums = [name.split('-v')[1] for name in subdir_names]
+        latest_dir_string = f'{self.asset_name}-v{nums[-1]}'
+        latest_dir_filepath = f'{self.versions_dir}/{latest_dir_string}'
+        return latest_dir_filepath
 
 
+    def save_blueprint_to_tempdisk(self):
+        self.save_blueprint(self.tempdir)
 
-    ####################################################################################################################
+
     def create_working_dir(self):
         if not os.path.exists(self.tempdir):
+            print("Asset 'working' directory created.")
             os.mkdir(self.tempdir)
 
 
-
-    ####################################################################################################################
     def create_versions_dir(self):
         if not os.path.exists(self.versions_dir):
+            print("Asset 'versions' directory created.")
             os.mkdir(self.versions_dir)
 
 
-
-    ####################################################################################################################
     def save_work(self):
         print('Saving work...')
-        working_blueprint = self.get_blueprint_from_working_dir()
-        updated_working_blueprint = self.update_blueprint_from_scene(working_blueprint)
-        self.save_blueprint_to_disk(updated_working_blueprint)
-        self.save_blueprint_to_tempdisk(updated_working_blueprint)
+        self.blueprint = self.get_blueprint_from_working_dir()
+        self.update_blueprint_from_scene()
+        self.save_blueprint_to_disk()
+        self.save_blueprint_to_tempdisk()
 
 
-
-    ####################################################################################################################
     def get_blueprint_from_working_dir(self):
-        print("Fetching current working blueprint...")
-        blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-        return blueprint
+        self.blueprint = self.blueprint_from_file(f'{self.tempdir}/{core_data_filename}.json')
+        return self.blueprint
 
 
-
-    ####################################################################################################################
-    def update_blueprint_from_scene(self, blueprint):
-        print("Updating working blueprint with scene data...")
-        return blueprint
-
+    def update_blueprint_from_scene(self):
+        for key, container in self.blueprint.containers.items():
+            self.blueprint.containers[key] = self.update_container_from_scene(container)
+        return self.blueprint
 
 
-    ####################################################################################################################
-    def save_blueprint_to_disk(self, blueprint):
+    def update_container_from_scene(self, container):
+        for key, part in container.parts.items():
+            container.parts[key] = self.update_part_from_scene(part)
+        return container
+
+
+    def update_part_from_scene(self, part):
+        scene_handle = pm.PyNode(part.scene_name)
+        part.position = tuple(scene_handle.translate.get())
+        for key, placer in part.placers.items():
+            part.placers[key] = self.update_placer_from_scene(placer)
+        return part
+
+
+    def update_placer_from_scene(self, placer):
+        scene_placer = pm.PyNode(placer.scene_name)
+        placer.position = tuple(scene_placer.translate.get())
+        return placer
+
+
+    def save_blueprint_to_disk(self):
         print("Saving work to disk...")
-        asset_name = blueprint.asset_name
+        asset_name = self.blueprint.asset_name
         new_save_dir = self.create_new_numbered_directory(asset_name)
-        blueprint_utils.save_blueprint(dirpath=new_save_dir, blueprint=blueprint)
+        self.save_blueprint(dirpath=new_save_dir)
 
 
-
-    ####################################################################################################################
-    def create_new_numbered_directory(self, asset_name, version_padding=version_padding):
+    def create_new_numbered_directory(self, asset_name, version_padding=default_version_padding):
         version_dirs = [p[0] for p in os.walk(self.versions_dir)]
         version_subdirs = [version_dirs[i] for i in range(1, len(version_dirs))]
         subdir_names = [os.path.basename(os.path.normpath(p)) for p in version_subdirs]
@@ -130,62 +188,97 @@ class BlueprintManager:
         return new_dir
 
 
+    def blueprint_from_file(self, filepath):
+        blueprint_data = self.data_from_file(filepath)
+        self.blueprint = self.blueprint_from_data(blueprint_data)
+        return self.blueprint
 
-    ####################################################################################################################
-    def test(self, num):
 
-        '''import Snowman3.riggers.modules.root.data.placers as placers
-        module_placers = placers.placers
+    def data_from_file(self, filepath):
+        with open(filepath, 'r') as fh:
+            data = json.load(fh)
+        return data
 
-        for placer in module_placers:
-            placer_utils.create_scene_placer(placer=placer)'''
 
-        import Snowman3.riggers.utilities.part_utils as part_utils
-        importlib.reload(part_utils)
-        Part = part_utils.Part
+    def blueprint_from_data(self, data):
+        self.blueprint = Blueprint(**data)
+        containers_data_holder = self.blueprint.containers
+        self.blueprint.containers = {}
+        for key, data in containers_data_holder.items():
+            new_container = Container(**data)
+            container_manager = ContainerManager(new_container)
+            container_manager.create_parts_from_data(new_container.parts)
+            self.blueprint.containers[key] = container_manager.container
+        return self.blueprint
 
-        import Snowman3.riggers.utilities.module_utils as module_utils
-        importlib.reload(module_utils)
-        Module = module_utils.Module
 
-        m1 = Module(name='spine', side=None)
-        m2 = Module(name='pelvis', side=None)
+    def data_from_blueprint(self):
+        data = {}
+        for key, value in vars(self.blueprint).items():
+            data[key] = value
+        data['containers'] = {}
+        for key, container in self.blueprint.containers.items():
+            container_manager = ContainerManager(container)
+            data['containers'][key] = container_manager.data_from_container()
+        return data
 
-        if num == 1:
-            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-            for module in (m1, m2):
-                blueprint_utils.create_scene_module(module)
-                L_test_part = Part(name='arm', side='L', handle_size=None, position=[3, 0, 0])
-                R_test_part = Part(name='arm', side='R', handle_size=None, position=[-3, 0, 0])
-                blueprint_utils.create_part(L_test_part, module)
-                blueprint_utils.create_part(R_test_part, module)
 
-        '''if num == 2:
-            L_test_part = Part(name='arm', side='L', handle_size=None, position=[3, 0, 0],
-                               scene_name='L_spine_arm_PART')
-            blueprint_utils.remove_part_from_module(L_test_part, m1)'''
+    def data_from_container(self, container):
+        container_manager = ContainerManager(container)
+        return container_manager.data_from_container()
 
-        if num == 2:
-            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-            for module in (m1, m2):
-                module_key = f'{gen.side_tag(module.side)}{module.name}'
-                blueprint_utils.mirror_blueprint(blueprint)
 
-        if num == 3:
-            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-            blueprint_utils.update_blueprint_from_scene(blueprint)
+    def data_from_part(self, part):
+        part_manager = PartManager(part)
+        return part_manager.data_from_part()
 
-        if num == 4:
-            blueprint = blueprint_utils.blueprint_from_file(self.tempdir)
-            m = module_utils.module_from_data(blueprint.modules['spine'])
-            pL = part_utils.part_from_data(m.parts['L_arm'])
-            pR = part_utils.part_from_data(m.parts['R_arm'])
-            L_x_placer = Placer(name='shoulder', side='L', position=(4, 5, 6), size=1.1, scene_name='L_spine_arm_shoulder')
-            R_x_placer = Placer(name='shoulder', side='R', position=(4, 5, 6), size=1.1, scene_name='R_spine_arm_shoulder')
-            blueprint_utils.create_placer(L_x_placer, pL, m)
-            blueprint_utils.create_placer(R_x_placer, pR, m)
 
-        if num == 5:
-            L_x_placer = Placer(name='shoulder', side='L', position=(4, 5, 6), size=1.1, scene_name='L_spine_arm_shoulder')
-            placer_utils.mirror_placer(L_x_placer)
+    def save_blueprint(self, dirpath=None):
+        if not dirpath:
+            dirpath = self.dirpath
+        blueprint_data = self.data_from_blueprint()
+        filepath = f'{dirpath}/{core_data_filename}.json'
+        with open(filepath, 'w') as fh:
+            json.dump(blueprint_data, fh, indent=5)
 
+
+    def add_container(self, container):
+        self.blueprint.containers[container.data_name] = container
+        self.save_blueprint_to_tempdisk()
+
+
+    def remove_container(self, container):
+        self.blueprint = self.get_blueprint_from_working_dir()
+        self.blueprint.containers.pop(container.data_name)
+        self.save_blueprint_to_tempdisk()
+
+
+    def add_part(self, part, container):
+        self.blueprint = self.get_blueprint_from_working_dir()
+        self.blueprint.containers[container.data_name].parts[part.data_name] = part
+        self.save_blueprint_to_tempdisk()
+
+
+    def remove_part(self, part, parent_container):
+        self.blueprint = self.get_blueprint_from_working_dir()
+        self.blueprint.containers[parent_container.data_name].parts.pop(part.data_name)
+        self.save_blueprint_to_tempdisk()
+
+
+    def get_opposite_container(self, container_key):
+        container = self.get_container(container_key)
+        container_manager = ContainerManager(container)
+        opposite_container_key = container_manager.opposite_container_data_name()
+        if opposite_container_key not in self.blueprint.containers:
+            return None
+        opposite_container = self.blueprint.containers[opposite_container_key]
+        return opposite_container
+
+
+    def get_container(self, container_key):
+        return self.blueprint.containers[container_key]
+
+
+    def get_part(self, part_key, container_key):
+        container = self.get_container(container_key)
+        return container.parts[part_key]

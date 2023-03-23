@@ -8,13 +8,27 @@
 ###########################
 ##### Import Commands #####
 import importlib
+from dataclasses import dataclass
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
+import Snowman3.utilities.rig_utils as rig
+importlib.reload(rig)
+
+import Snowman3.riggers.utilities.placer_utils as placer_utils
+importlib.reload(placer_utils)
+Placer = placer_utils.Placer
+PlacerManager = placer_utils.PlacerManager
+ScenePlacerManager = placer_utils.ScenePlacerManager
+
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
+
+import Snowman3.riggers.utilities.metadata_utils as metadata_utils
+importlib.reload(metadata_utils)
+MetaDataAttr = metadata_utils.MetaDataAttr
 ###########################
 ###########################
 
@@ -28,132 +42,183 @@ color_code = color_code.sided_ctrl_color
 
 
 
+########################################################################################################################
 class Part:
     def __init__(
         self,
         name: str,
         side: str = None,
-        handle_size: float = None,
-        position = None,
-        placers = None,
+        handle_size: float = 1.0,
+        position: tuple = (0, 0, 0),
+        placers: dict = {},
         data_name: str = None,
         scene_name: str = None,
+        prefab_key: str = None,
+        connectors: tuple = None,
     ):
         self.name = name
         self.side = side
-        self.handle_size = handle_size if handle_size else 1.0
-        self.position = position if position else [0, 0, 0]
-        self.placers = placers if placers else {}
-        self.data_name = data_name if data_name else f'{gen.side_tag(side)}{name}'
-        self.scene_name = scene_name
+        self.handle_size = handle_size
+        self.position = position
+        self.placers = placers
+        self.data_name = data_name if data_name else prefab_key
+        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{part_tag}'
+        self.prefab_key = prefab_key
+        self.connectors = connectors
 
-
-########################################################################################################################
-def create_scene_part(part, parent=None):
-    scene_part = create_part_handle(part)
-    position_part(part)
-    scene_part.setParent(parent) if parent else None
-    pm.select(clear=1)
-    add_part_metadata(part, scene_part)
-    return scene_part
 
 
 ########################################################################################################################
-def create_part_handle(part):
-    handle = gen.prefab_curve_construct(prefab='cube', name=part.scene_name, scale=part.handle_size, side=part.side)
-    color_part_handle(part)
-    return handle
+class PartManager:
+    def __init__(
+        self,
+        part
+    ):
+        self.part = part
 
 
-########################################################################################################################
-def position_part(part):
-    handle = get_part_handle(part)
-    handle.translate.set(tuple(part.position))
+    def data_from_part(self):
+        data = {}
+        for param, value in vars(self.part).items():
+            data[param] = value
+        data['placers'] = {}
+        for key, placer, in self.part.placers.items():
+            placer_manager = PlacerManager(placer)
+            data['placers'][key] = placer_manager.data_from_placer()
+        return data
 
 
-########################################################################################################################
-def part_conflict_action(part):
-    print(f"Cannot create part '{part.scene_name}' - a part with this name already exists in scene.")
+    def create_placers_from_data(self, placers_data):
+        for key, data in placers_data.items():
+            self.part.placers[key] = Placer(**data)
 
-
-########################################################################################################################
-def add_part_metadata(part, scene_part):
-    # ...Placer tag
-    gen.add_attr(scene_part, long_name='PartTag', attribute_type='string', keyable=0, default_value=part.name)
-    # ...Side
-    side_attr_input = part.side if part.side else 'None'
-    gen.add_attr(scene_part, long_name='Side', attribute_type='string', keyable=0, default_value=side_attr_input)
-    # ...Handle size
-    gen.add_attr(scene_part, long_name='HandleSize', attribute_type='float', keyable=0, default_value=part.handle_size)
-    pm.setAttr(f'{scene_part}.HandleSize', channelBox=1)
-    for a in ('sx', 'sy', 'sz'):
-        pm.connectAttr(f'{scene_part}.HandleSize', f'{scene_part}.{a}')
-        pm.setAttr(f'{scene_part}.{a}', keyable=0)
 
 
 ########################################################################################################################
-def data_from_part(part):
-    data = {}
-    for param, value in vars(part).items():
-        data[param] = value
-    return data
+class ScenePartManager:
+    def __init__(
+        self,
+        part
+    ):
+        self.part = part
+        self.scene_part = None
+
+
+    def create_scene_part(self, parent=None):
+        self.create_part_handle()
+        self.position_part(self.scene_part)
+        self.scene_part.setParent(parent) if parent else None
+        self.add_part_metadata()
+        self.populate_scene_part(self.scene_part)
+        self.create_placer_connectors()
+        self.zero_out_part_rotation()
+        return self.scene_part
+
+
+    def create_part_handle(self):
+        self.scene_part = gen.prefab_curve_construct(prefab='cube', name=self.part.scene_name,
+                                                     scale=self.part.handle_size, side=self.part.side)
+        self.color_part_handle()
+
+
+    def color_part_handle(self, color=None):
+        if not color:
+            if not self.part.side:
+                color = color_code['M']
+            else:
+                color = color_code[self.part.side]
+        gen.set_color(self.scene_part, color)
+
+
+    def position_part(self, handle):
+        handle.translate.set(tuple(self.part.position))
+
+
+    def add_part_metadata(self):
+        metadata_attrs = (
+            MetaDataAttr(long_name='PartTag', attribute_type='string', keyable=0, default_value_attr='name'),
+            MetaDataAttr(long_name='Side', attribute_type='string', keyable=0, default_value_attr='side'),
+            MetaDataAttr(long_name='HandleSize', attribute_type='float', keyable=0, default_value_attr='handle_size')
+        )
+        [attr.create(self.part, self.scene_part) for attr in metadata_attrs]
+        pm.setAttr(f'{self.scene_part}.HandleSize', channelBox=1)
+        for a in ('sx', 'sy', 'sz'):
+            pm.connectAttr(f'{self.scene_part}.HandleSize', f'{self.scene_part}.{a}')
+            pm.setAttr(f'{self.scene_part}.{a}', keyable=0)
+
+
+    def populate_scene_part(self, placers_parent=None):
+        if not self.part.placers:
+            return False
+        for placer in self.part.placers.values():
+            placer_manager = ScenePlacerManager(placer)
+            placer_manager.create_scene_placer(parent=placers_parent)
+
+
+    def zero_out_part_rotation(self):
+        self.scene_part.rotate.set(0, 0, 0)
+
+
+    def create_placer_connectors(self):
+        connectors_grp = pm.group(name='connector_curves', empty=1, parent=self.scene_part)
+        for pair in self.part.connectors:
+            source_scene_placer = pm.PyNode(self.part.placers[pair[0]].scene_name)
+            target_scene_placer = pm.PyNode(self.part.placers[pair[1]].scene_name)
+            connector = rig.connector_curve(name=f'{gen.side_tag(self.part.side)}{self.part.name}',
+                                            end_driver_1=source_scene_placer, end_driver_2=target_scene_placer,
+                                            override_display_type=2, parent=connectors_grp, inheritsTransform=False)
+
+
+
 
 
 ########################################################################################################################
-def get_part_handle(part):
-    if not pm.objExists(part.scene_name):
-        return False
-    part_handle = pm.PyNode(part.scene_name)
-    return part_handle
+class PartCreator:
+    def __init__(
+        self,
+        name: str,
+        prefab_key: str,
+        side: str = None,
+        position: tuple[float, float, float] = (0, 0, 0),
+        part_offset = (0, 0, 0)
+    ):
+        self.name = name
+        self.prefab_key = prefab_key
+        self.side = side
+        self.position = position
+        self.part_offset = part_offset
 
 
-########################################################################################################################
-def part_from_data(data):
-    part = Part(**data)
-    return part
+    def create_part(self):
+        placers_dict = self.get_placers()
+        position = tuple([self.position[i] + self.part_offset[i] for i in range(3)])
+        scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
+        connectors = self.get_connectors()
+        part = Part(name = self.name,
+                    prefab_key = self.prefab_key,
+                    side = self.side,
+                    position = position,
+                    handle_size = 1.0,
+                    data_name = self.prefab_key,
+                    scene_name = scene_name,
+                    placers = placers_dict,
+                    connectors = connectors)
+        return part
 
 
-########################################################################################################################
-def update_part_from_scene(part):
-    part_handle = get_part_handle(part)
-    # ...Update position
-    part.position = list(part_handle.translate.get())
-    # ...Update handle size
-    part.handle_size = pm.getAttr(f'{part_handle}.HandleSize')
+    def get_placers(self):
+        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
+        placers_data = importlib.import_module(dir_string)
+        importlib.reload(placers_data)
+        placers_input = placers_data.create_placers(side=self.side, part_name=self.name)
+        placers_dict = {}
+        for placer in placers_input:
+            placers_dict[placer.data_name] = placer
+        return placers_dict
 
 
-########################################################################################################################
-def mirror_part(part):
-    part_handle = get_part_handle(part)
-    opposite_part_handle = get_opposite_part_handle(part_handle)
-    # ...Mirror position
-    pm.setAttr(f'{opposite_part_handle}.tx', pm.getAttr(f'{part_handle}.tx') * -1)
-    [pm.setAttr(f'{opposite_part_handle}.{a}', pm.getAttr(f'{part_handle}.{a}')) for a in ('ty', 'tz')]
-    # ...Match handle size
-    pm.setAttr(f'{opposite_part_handle}.HandleSize', pm.getAttr(f'{part_handle}.HandleSize'))
-
-
-########################################################################################################################
-def get_opposite_part_handle(part_handle):
-    sided_prefixes = {'L_': 'R_', 'R_': 'L_'}
-    this_prefix = None
-    opposite_part_handle = None
-    for prefix in sided_prefixes.keys():
-        if str(part_handle).startswith(prefix):
-            this_prefix = prefix
-    if this_prefix:
-        opposite_part_handle = pm.PyNode(str(part_handle).replace(this_prefix, sided_prefixes[this_prefix]))
-    return opposite_part_handle
-
-
-########################################################################################################################
-def get_scene_part(part):
-    scene_part = pm.PyNode(part.scene_name)
-    return scene_part
-
-
-########################################################################################################################
-def color_part_handle(part, color=None):
-    if not color:
-        color = color_code[part.side]
-    gen.set_color(get_part_handle(part), color)
+    def get_connectors(self):
+        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
+        placers_data = importlib.import_module(dir_string)
+        importlib.reload(placers_data)
+        return placers_data.get_connection_pairs()

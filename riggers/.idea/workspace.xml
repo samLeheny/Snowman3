@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="cf65ea33-bca2-4798-9443-2e149a45323e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/managers/blueprint_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/managers/blueprint_manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/biped_arm/data/parts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/biped_clavicle/data/parts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/biped_hand/data/parts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/biped_neck/data/parts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/biped_spine/data/parts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/foot_plantigrade/data/parts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/leg_plantigrade/data/parts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/root/data/parts.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/biped_arm/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/biped_arm/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/biped_clavicle/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/biped_clavicle/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/biped_hand/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/biped_hand/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/biped_neck/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/biped_neck/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/biped_spine/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/biped_spine/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/cog/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/cog/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/foot_plantigrade/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/foot_plantigrade/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/leg_plantigrade/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/leg_plantigrade/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parts/root/data/placers.py" beforeDir="false" afterPath="$PROJECT_DIR$/parts/root/data/placers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prefab_blueprints/biped/modules.py" beforeDir="false" afterPath="$PROJECT_DIR$/prefab_blueprints/biped/modules.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utilities/module_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/module_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utilities/part_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utilities/part_utils.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="2N53EE6Kgzxmu8Dswdz0m4q6uz3" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Users/61451/Documents/maya/2023/prefs"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="cf65ea33-bca2-4798-9443-2e149a45323e" name="Changes" comment="" />
+      <created>1678940001669</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1678940001669</updated>
+    </task>
+    <servers />
+  </component>
+</project>

@@ -1,4 +1,4 @@
-# Title: rootPlacers.py
+# Title: biped_arm.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -23,20 +23,11 @@ Placer = placer_utils.Placer
 ###########################
 
 
+def create_placers(part_name, side=None):
+    placers = []
+    return placers
 
-placers = {
-    Placer(
-        name = "root",
-        position = (0, 0, 0),
-        size = 1.75,
-        vector_handle_positions = [[0, 0, 5], [0, 5, 0]],
-        orientation = [[0, 0, 1], [0, 1, 0]]
-    ),
-    Placer(
-        name = "COG",
-        position = (0, 105, 0.39),
-        size = 1.75,
-        vector_handle_positions = [[0, 0, 5], [0, 5, 0]],
-        orientation = [[0, 0, 1], [0, 1, 0]]
-    ),
-}
+
+def get_connection_pairs():
+    return ()
+
