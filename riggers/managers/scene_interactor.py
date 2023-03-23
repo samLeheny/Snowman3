@@ -68,6 +68,11 @@ class SceneInteractor:
         self.armature_manager.build_armature_from_blueprint()
 
 
+    def build_armature_from_version_number(self, number):
+        self.blueprint_manager.load_blueprint_from_numbered_version(number)
+        self.armature_manager.build_armature_from_blueprint()
+
+
     def mirror_armature(self, driver_side):
         for key, container in self.blueprint_manager.blueprint.containers.items():
             if container.side == driver_side:
