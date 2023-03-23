@@ -9,10 +9,6 @@
 ##### Import Commands #####
 import importlib
 
-import Snowman3.riggers.utilities.part_utils as part_utils
-importlib.reload(part_utils)
-Part = part_utils.Part
-
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
@@ -27,24 +23,22 @@ Placer = placer_utils.Placer
 ###########################
 
 
-def create_part(name, side=None, position=(0, 0, 0)):
-    part = Part(
-        name = name,
-        prefab_key = 'cog',
-        side = side,
-        position=position,
-        handle_size=1.0,
-        placers={
-            'cog':
-                Placer(
-                    name='Cog',
-                    side=side,
-                    parent_part_name=name,
-                    position=(0, 105, 0.39),
-                    size=1.75,
-                    vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
-                    orientation=[[0, 0, 1], [0, 1, 0]]
-                ),
-        }
-    )
-    return part
+def create_placers(part_name, side=None):
+    placers = [
+        Placer(
+            name='Cog',
+            data_name='cog',
+            side=side,
+            parent_part_name=part_name,
+            position=(0, 105, 0.39),
+            size=1.75,
+            vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
+            orientation=[[0, 0, 1], [0, 1, 0]]
+        ),
+    ]
+
+    return placers
+
+
+def get_connection_pairs():
+    return ()

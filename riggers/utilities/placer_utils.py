@@ -51,7 +51,7 @@ class Placer:
         self.size = size
         self.vector_handle_positions = vector_handle_positions
         self.orientation = orientation
-        self.data_name = data_name if data_name else f'{gen.side_tag(side)}{name}'
+        self.data_name = data_name
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{parent_part_name}_{name}_{placer_tag}'
         self.parent_part_name = parent_part_name
 

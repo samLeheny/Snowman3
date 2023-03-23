@@ -17,6 +17,7 @@ importlib.reload(gen)
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
 Part = part_utils.Part
+PartCreator = part_utils.PartCreator
 PartManager = part_utils.PartManager
 ScenePartManager = part_utils.ScenePartManager
 
@@ -130,22 +131,22 @@ class ContainerCreator:
         self.side = container_data.side
         self.part_offset = container_data.part_offset if container_data.part_offset else (0, 0, 0)
         self.prefab_key = container_data.prefab_key
-        self.parts_data = container_data.prefab_container_data.parts_data if \
-            container_data.prefab_container_data else {}
         self.parts = {}
         self.parts_prefix = container_data.parts_prefix
 
 
     def get_prefab_part(self, name, prefab_key, parts_prefix):
-        dir_string = f'Snowman3.riggers.parts.{prefab_key}'
-        part_data = importlib.import_module(dir_string)
-        importlib.reload(part_data)
-        part = part_data.create_part(f'{parts_prefix}{name}', self.side, self.part_offset)
-        return part
+        part_creator = PartCreator(name=f'{parts_prefix}{name}', prefab_key=prefab_key,  side=self.side,
+                                   part_offset=self.part_offset)
+        return part_creator.create_part()
 
 
-    def assemble_parts(self, parts_data):
-        for key, part_data in parts_data.items():
+    def assemble_parts(self):
+        if not self.prefab_key:
+            return self.parts
+        container_inputs = prefab_container_inputs[self.prefab_key]
+        prefab_parts_data = container_inputs.parts_data
+        for key, part_data in prefab_parts_data.items():
             self.parts[key] = self.get_prefab_part(
                 name = part_data['key'],
                 prefab_key = part_data['prefab_key'],
@@ -157,43 +158,31 @@ class ContainerCreator:
     def create_container(self):
         data_name = f'{gen.side_tag(self.side)}{self.name}'
         scene_name = f'{gen.side_tag(self.side)}{self.name}_{container_tag}'
+        parts = self.assemble_parts()
         container = Container(
             name = self.name,
             prefab_key = self.prefab_key,
             side = self.side,
-            parts = self.assemble_parts(self.parts_data),
             parts_prefix = self.parts_prefix,
+            parts = parts,
             data_name = data_name,
             scene_name = scene_name
         )
         return container
 
 
-
+@dataclass()
 class ContainerData:
-    def __init__(
-        self,
-        name: str,
-        prefab_key: str,
-        side: str,
-        part_offset: tuple[float, float, float],
-        parts_prefix: str = '',
-    ):
-        self.name = name
-        self.prefab_key = prefab_key
-        self.side = side
-        self.part_offset = part_offset
-        self.prefab_container_data = prefab_container_inputs[prefab_key] if prefab_key else None
-        self.parts_prefix = parts_prefix
+    name: str
+    prefab_key: str
+    side: str
+    part_offset: tuple[float, float, float]
+    parts_prefix: str = ''
 
 
-
+@dataclass()
 class PrefabContainerData:
-    def __init__(
-        self,
-        parts_data,
-    ):
-        self.parts_data = parts_data
+    parts_data: dict
 
 
 

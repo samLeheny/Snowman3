@@ -22,13 +22,12 @@ dirpath = r'C:\Users\61451\Desktop\sam_build'
 mc.file(new=True, f=True)
 
 print('-'*120)
-# ...Build blueprint
-BPManager = BlueprintManager(asset_name='sam', prefab_key='biped', dirpath=dirpath)
-blueprint = BPManager.create_blueprint_from_prefab()
+# ...Create scene interactor. Populate it with blueprint manager and armature manager
+interactor = SceneInteractor()
+interactor.create_managers(asset_name='sam', prefab_key='biped', dirpath=dirpath)
 
-# ...Build armature
-armature_manager = ArmatureManager(blueprint_manager=BPManager)
-armature_manager.build_armature_from_blueprint()
+# ...Build blueprint and armature
+interactor.build_armature_from_prefab()
 
 # ...Scramble placer and part positions in scene
 scene_placers = pm.ls('*_PLC')
@@ -40,8 +39,7 @@ for obj in objs_to_move:
     obj.translate.set(tuple(new_position))
 
 # ...Mirror placer and part positions
-BPManager.update_blueprint_from_scene()
-interactor = SceneInteractor(blueprint_manager=BPManager, armature_manager=armature_manager)
+interactor.update_blueprint_from_scene()
 interactor.mirror_armature('L')
 
 # ...Add new (prefab) container
@@ -61,3 +59,7 @@ interactor.add_mirrored_part('biped_arm', 'L_Arm')
 interactor.add_mirrored_container('L_Leg')
 
 interactor.save_work()
+
+mc.file(new=True, f=True)
+
+interactor.build_armature_from_latest_version()

@@ -8,10 +8,14 @@
 ###########################
 ##### Import Commands #####
 import importlib
+from dataclasses import dataclass
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
+
+import Snowman3.utilities.rig_utils as rig
+importlib.reload(rig)
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
@@ -45,11 +49,12 @@ class Part:
         name: str,
         side: str = None,
         handle_size: float = 1.0,
-        position: tuple[float, float, float] = (0, 0, 0),
+        position: tuple = (0, 0, 0),
         placers: dict = {},
         data_name: str = None,
         scene_name: str = None,
-        prefab_key: str = None
+        prefab_key: str = None,
+        connectors: tuple = None,
     ):
         self.name = name
         self.side = side
@@ -59,6 +64,7 @@ class Part:
         self.data_name = data_name if data_name else prefab_key
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{part_tag}'
         self.prefab_key = prefab_key
+        self.connectors = connectors
 
 
 
@@ -104,6 +110,7 @@ class ScenePartManager:
         self.scene_part.setParent(parent) if parent else None
         self.add_part_metadata()
         self.populate_scene_part(self.scene_part)
+        self.create_placer_connectors()
         self.zero_out_part_rotation()
         return self.scene_part
 
@@ -150,3 +157,68 @@ class ScenePartManager:
 
     def zero_out_part_rotation(self):
         self.scene_part.rotate.set(0, 0, 0)
+
+
+    def create_placer_connectors(self):
+        connectors_grp = pm.group(name='connector_curves', empty=1, parent=self.scene_part)
+        for pair in self.part.connectors:
+            source_scene_placer = pm.PyNode(self.part.placers[pair[0]].scene_name)
+            target_scene_placer = pm.PyNode(self.part.placers[pair[1]].scene_name)
+            connector = rig.connector_curve(name=f'{gen.side_tag(self.part.side)}{self.part.name}',
+                                            end_driver_1=source_scene_placer, end_driver_2=target_scene_placer,
+                                            override_display_type=2, parent=connectors_grp, inheritsTransform=False)
+
+
+
+
+
+########################################################################################################################
+class PartCreator:
+    def __init__(
+        self,
+        name: str,
+        prefab_key: str,
+        side: str = None,
+        position: tuple[float, float, float] = (0, 0, 0),
+        part_offset = (0, 0, 0)
+    ):
+        self.name = name
+        self.prefab_key = prefab_key
+        self.side = side
+        self.position = position
+        self.part_offset = part_offset
+
+
+    def create_part(self):
+        placers_dict = self.get_placers()
+        position = tuple([self.position[i] + self.part_offset[i] for i in range(3)])
+        scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
+        connectors = self.get_connectors()
+        part = Part(name = self.name,
+                    prefab_key = self.prefab_key,
+                    side = self.side,
+                    position = position,
+                    handle_size = 1.0,
+                    data_name = self.prefab_key,
+                    scene_name = scene_name,
+                    placers = placers_dict,
+                    connectors = connectors)
+        return part
+
+
+    def get_placers(self):
+        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
+        placers_data = importlib.import_module(dir_string)
+        importlib.reload(placers_data)
+        placers_input = placers_data.create_placers(side=self.side, part_name=self.name)
+        placers_dict = {}
+        for placer in placers_input:
+            placers_dict[placer.data_name] = placer
+        return placers_dict
+
+
+    def get_connectors(self):
+        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
+        placers_data = importlib.import_module(dir_string)
+        importlib.reload(placers_data)
+        return placers_data.get_connection_pairs()

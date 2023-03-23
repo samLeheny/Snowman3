@@ -93,6 +93,22 @@ class BlueprintManager:
         return self.blueprint
 
 
+    def load_blueprint_from_latest_version(self):
+        latest_version_dir = self.get_latest_numbered_directory()
+        latest_version_blueprint_filepath = f'{latest_version_dir}/{core_data_filename}.json'
+        self.blueprint_from_file(latest_version_blueprint_filepath)
+
+
+    def get_latest_numbered_directory(self):
+        version_dirs = [p[0] for p in os.walk(self.versions_dir)]
+        version_subdirs = [version_dirs[i] for i in range(1, len(version_dirs))]
+        subdir_names = [os.path.basename(os.path.normpath(p)) for p in version_subdirs]
+        nums = [name.split('-v')[1] for name in subdir_names]
+        latest_dir_string = f'{self.asset_name}-v{nums[-1]}'
+        latest_dir_filepath = f'{self.versions_dir}/{latest_dir_string}'
+        return latest_dir_filepath
+
+
     def save_blueprint_to_tempdisk(self):
         self.save_blueprint(self.tempdir)
 
