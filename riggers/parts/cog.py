@@ -12,6 +12,7 @@ import importlib
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
+PlacerCreator = placer_utils.PlacerCreator
 ###########################
 ###########################
 
@@ -23,22 +24,31 @@ Placer = placer_utils.Placer
 ###########################
 
 
-def create_placers(part_name, side=None):
-    placers = [
-        Placer(
+class PlacersGetter:
+
+    def __init__(
+        self,
+        part_name: str,
+        side: str = None,
+    ):
+        self.part_name = part_name
+        self.side = side
+
+    def create_placers(self):
+        placers = []
+        placer_creator = PlacerCreator(
             name='Cog',
             data_name='cog',
-            side=side,
-            parent_part_name=part_name,
-            position=(0, 105, 0.39),
+            side=self.side,
+            parent_part_name=self.part_name,
+            position=(0, 0, 0),
             size=1.75,
             vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
             orientation=[[0, 0, 1], [0, 1, 0]]
-        ),
-    ]
+        )
+        placers.append(placer_creator.create_placer())
+        return placers
 
-    return placers
 
-
-def get_connection_pairs():
-    return ()
+    def get_connection_pairs(self):
+        return ()

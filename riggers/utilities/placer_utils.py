@@ -8,7 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
-import pymel.core as pm
+from dataclasses import dataclass
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -32,28 +32,62 @@ color_code = color_code.sided_ctrl_color
 
 
 ########################################################################################################################
+@dataclass
 class Placer:
+    name: str
+    side: str = None
+    position: tuple[float, float, float] = (0, 0, 0)
+    size: float = 1.0
+    vector_handle_positions: list[list, list] = ((0, 0, 1), (0, 1, 0))
+    orientation: list[list, list] = ((0, 0, 1), (0, 1, 0))
+    data_name: str = None
+    scene_name: str = None
+    parent_part_name: str = None
+
+
+
+########################################################################################################################
+class PlacerCreator:
     def __init__(
         self,
         name: str,
+        data_name: str,
+        parent_part_name: str,
+        position: tuple,
         side: str = None,
-        position: tuple[float, float, float] = (0, 0, 0),
-        size: float = 1.0,
-        vector_handle_positions: list[list, list] = ((0, 0, 1), (0, 1, 0)),
-        orientation: list[list, list] = ((0, 0, 1), (0, 1, 0)),
-        data_name: str = None,
-        scene_name: str = None,
-        parent_part_name: str = None,
+        size: float = None,
+        vector_handle_positions: list = None,
+        orientation: list = None,
+        scene_name: str = None
     ):
         self.name = name
-        self.side = side
-        self.position = position
-        self.size = size
-        self.vector_handle_positions = vector_handle_positions
-        self.orientation = orientation
         self.data_name = data_name
-        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{parent_part_name}_{name}_{placer_tag}'
         self.parent_part_name = parent_part_name
+        self.position = position
+        self.side = side
+        self.size = size if size else 1.25
+        self.vector_handle_positions = vector_handle_positions if vector_handle_positions else [[5, 0, 0], [0, 0, -5]]
+        self.orientation = orientation if orientation else [[0, 0, 1], [1, 0, 0]]
+        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{parent_part_name}_{name}_{placer_tag}'
+
+
+    def create_placer(self):
+        placer = Placer(
+            name=self.name,
+            data_name=self.data_name,
+            side=self.side,
+            parent_part_name=self.parent_part_name,
+            position=self.flip_position() if self.side == 'R' else self.position,
+            size=self.size,
+            vector_handle_positions=self.vector_handle_positions,
+            orientation=self.orientation,
+            scene_name=self.scene_name
+        )
+        return placer
+
+
+    def flip_position(self):
+        return -self.position[0], self.position[1], self.position[2]
 
 
 

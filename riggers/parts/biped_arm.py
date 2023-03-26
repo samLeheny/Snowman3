@@ -12,6 +12,7 @@ import importlib
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
+PlacerCreator = placer_utils.PlacerCreator
 ###########################
 ###########################
 
@@ -23,68 +24,44 @@ part_tag = 'PART'
 ###########################
 
 
-def create_placers(part_name, side=None):
+class PlacersGetter:
 
-    placers = [
-        Placer(
-            name="UpperArm",
-            data_name='upperarm',
-            side=side,
-            parent_part_name=part_name,
-            position=(0, 0, 0),
-            size=1.25,
-            vector_handle_positions=[[5, 0, 0], [0, 0, -5]],
-            orientation=[[0, 0, 1], [1, 0, 0]],
-        ),
-        Placer(
-            name="LowerArm",
-            data_name='lowerarm',
-            side=side,
-            parent_part_name=part_name,
-            position=(26.94, 0, -2.97),
-            size=1.25,
-            vector_handle_positions=[[5, 0, 0], [0, 0, -5]],
-            orientation=[[0, 0, 1], [1, 0, 0]],
-        ),
-        Placer(
-            name="LowerArmEnd",
-            data_name='lowerarm_end',
-            side=side,
-            parent_part_name=part_name,
-            position=(52.64, 0, 0),
-            size=1.25,
-            vector_handle_positions=[[5, 0, 0], [0, 0, -5]],
-            orientation=[[0, 0, 1], [1, 0, 0]],
-        ),
-        Placer(
-            name="WristEnd",
-            data_name='wrist_end',
-            side=side,
-            parent_part_name=part_name,
-            position=(59, 0, 0),
-            size=1,
-            vector_handle_positions=[[5, 0, 0], [0, 0, -5]],
-            orientation=[[0, 0, 1], [1, 0, 0]]
-        ),
-        Placer(
-            name="IkElbow",
-            data_name='ik_elbow',
-            side=side,
-            parent_part_name=part_name,
-            position=(26.94, 0, -35),
-            size=1.25,
-            vector_handle_positions=[[5, 0, 0], [0, 0, -5]],
-            orientation=[[0, 0, 1], [1, 0, 0]]
+    def __init__(
+        self,
+        part_name: str,
+        side: str = None,
+    ):
+        self.part_name = part_name
+        self.side = side
+
+    def create_placers(self):
+        data_packs = [
+            ['UpperArm', 'upperarm', (0, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
+            ['LowerArm', 'lowerarm', (26.94, 0, -2.97), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
+            ['LowerArmEnd', 'lowerarm_end', (52.64, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
+            ['WristEnd', 'wrist_end', (59, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 0.7],
+            ['IkElbow', 'ik_elbow', (26.94, 0, -35), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
+        ]
+        placers = []
+        for p in data_packs:
+            placer_creator = PlacerCreator(
+                name=p[0],
+                data_name=p[1],
+                side=self.side,
+                parent_part_name=self.part_name,
+                position=p[2],
+                size=p[5],
+                vector_handle_positions=p[3],
+                orientation=p[4],
+            )
+            placers.append(placer_creator.create_placer())
+        return placers
+
+
+    def get_connection_pairs(self):
+        return (
+            ('lowerarm', 'upperarm'),
+            ('lowerarm_end', 'lowerarm'),
+            ('wrist_end', 'lowerarm_end'),
+            ('ik_elbow', 'lowerarm')
         )
-    ]
-
-    return placers
-
-
-def get_connection_pairs():
-    return (
-        ('lowerarm', 'upperarm'),
-        ('lowerarm_end', 'lowerarm'),
-        ('wrist_end', 'lowerarm_end'),
-        ('ik_elbow', 'lowerarm')
-    )

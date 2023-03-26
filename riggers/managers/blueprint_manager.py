@@ -15,16 +15,10 @@ import json
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
-import Snowman3.riggers.utilities.container_utils as container_utils
-importlib.reload(container_utils)
-Container = container_utils.Container
-ContainerManager = container_utils.ContainerManager
-ContainerCreator = container_utils.ContainerCreator
-ContainerData = container_utils.ContainerData
-
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
 PartManager = part_utils.PartManager
+Part = part_utils.Part
 ###########################
 ###########################
 
@@ -44,11 +38,11 @@ class Blueprint:
         self,
         asset_name,
         dirpath = None,
-        containers = {}
+        parts = {}
     ):
         self.asset_name = asset_name
         self.dirpath = dirpath
-        self.containers = containers
+        self.parts = parts
 
 
 ########################################################################################################################
@@ -77,10 +71,10 @@ class BlueprintManager:
 
 
     def populate_prefab_blueprint(self):
-        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.containers'
-        prefab_containers = importlib.import_module(dir_string.format(self.prefab_key))
-        importlib.reload(prefab_containers)
-        self.blueprint.containers = prefab_containers.containers
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.parts'
+        prefab_parts = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_parts)
+        self.blueprint.parts = prefab_parts.parts
         self.save_blueprint_to_tempdisk()
 
 
@@ -153,15 +147,9 @@ class BlueprintManager:
 
 
     def update_blueprint_from_scene(self):
-        for key, container in self.blueprint.containers.items():
-            self.blueprint.containers[key] = self.update_container_from_scene(container)
+        for key, part in self.blueprint.parts.items():
+            self.blueprint.parts[key] = self.update_part_from_scene(part)
         return self.blueprint
-
-
-    def update_container_from_scene(self, container):
-        for key, part in container.parts.items():
-            container.parts[key] = self.update_part_from_scene(part)
-        return container
 
 
     def update_part_from_scene(self, part):
@@ -227,13 +215,13 @@ class BlueprintManager:
 
     def blueprint_from_data(self, data):
         self.blueprint = Blueprint(**data)
-        containers_data_holder = self.blueprint.containers
-        self.blueprint.containers = {}
-        for key, data in containers_data_holder.items():
-            new_container = Container(**data)
-            container_manager = ContainerManager(new_container)
-            container_manager.create_parts_from_data(new_container.parts)
-            self.blueprint.containers[key] = container_manager.container
+        parts_data_holder = self.blueprint.parts
+        self.blueprint.parts = {}
+        for key, data in parts_data_holder.items():
+            new_part = Part(**data)
+            part_manager = PartManager(new_part)
+            part_manager.create_placers_from_data(new_part.placers)
+            self.blueprint.parts[key] = part_manager.part
         return self.blueprint
 
 
@@ -241,16 +229,11 @@ class BlueprintManager:
         data = {}
         for key, value in vars(self.blueprint).items():
             data[key] = value
-        data['containers'] = {}
-        for key, container in self.blueprint.containers.items():
-            container_manager = ContainerManager(container)
-            data['containers'][key] = container_manager.data_from_container()
+        data['parts'] = {}
+        for key, part in self.blueprint.parts.items():
+            part_manager = PartManager(part)
+            data['parts'][key] = part_manager.data_from_part()
         return data
-
-
-    def data_from_container(self, container):
-        container_manager = ContainerManager(container)
-        return container_manager.data_from_container()
 
 
     def data_from_part(self, part):
@@ -267,43 +250,17 @@ class BlueprintManager:
             json.dump(blueprint_data, fh, indent=5)
 
 
-    def add_container(self, container):
-        self.blueprint.containers[container.data_name] = container
-        self.save_blueprint_to_tempdisk()
-
-
-    def remove_container(self, container):
+    def add_part(self, part):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.containers.pop(container.data_name)
+        self.blueprint.parts[part.data_name] = part
         self.save_blueprint_to_tempdisk()
 
 
-    def add_part(self, part, container):
+    def remove_part(self, part):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.containers[container.data_name].parts[part.data_name] = part
+        self.blueprint.parts.pop(part.data_name)
         self.save_blueprint_to_tempdisk()
 
 
-    def remove_part(self, part, parent_container):
-        self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.containers[parent_container.data_name].parts.pop(part.data_name)
-        self.save_blueprint_to_tempdisk()
-
-
-    def get_opposite_container(self, container_key):
-        container = self.get_container(container_key)
-        container_manager = ContainerManager(container)
-        opposite_container_key = container_manager.opposite_container_data_name()
-        if opposite_container_key not in self.blueprint.containers:
-            return None
-        opposite_container = self.blueprint.containers[opposite_container_key]
-        return opposite_container
-
-
-    def get_container(self, container_key):
-        return self.blueprint.containers[container_key]
-
-
-    def get_part(self, part_key, container_key):
-        container = self.get_container(container_key)
-        return container.parts[part_key]
+    def get_part(self, part_key):
+        return self.blueprint.parts[part_key]

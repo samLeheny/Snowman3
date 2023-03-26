@@ -43,28 +43,18 @@ color_code = color_code.sided_ctrl_color
 
 
 ########################################################################################################################
+@dataclass
 class Part:
-    def __init__(
-        self,
-        name: str,
-        side: str = None,
-        handle_size: float = 1.0,
-        position: tuple = (0, 0, 0),
-        placers: dict = {},
-        data_name: str = None,
-        scene_name: str = None,
-        prefab_key: str = None,
-        connectors: tuple = None,
-    ):
-        self.name = name
-        self.side = side
-        self.handle_size = handle_size
-        self.position = position
-        self.placers = placers
-        self.data_name = data_name if data_name else prefab_key
-        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{part_tag}'
-        self.prefab_key = prefab_key
-        self.connectors = connectors
+    name: str
+    side: str = None
+    handle_size: float = 1.0
+    position: tuple = (0, 0, 0)
+    placers: dict = None
+    data_name: str = None
+    scene_name: str = None
+    prefab_key: str = None
+    connectors: tuple = None
+    construction_inputs: dict = None
 
 
 
@@ -76,7 +66,6 @@ class PartManager:
     ):
         self.part = part
 
-
     def data_from_part(self):
         data = {}
         for param, value in vars(self.part).items():
@@ -87,11 +76,11 @@ class PartManager:
             data['placers'][key] = placer_manager.data_from_placer()
         return data
 
-
-    def create_placers_from_data(self, placers_data):
+    def create_placers_from_data(self, placers_data=None):
+        if not placers_data:
+            placers_data = self.part.placers
         for key, data in placers_data.items():
             self.part.placers[key] = Placer(**data)
-
 
 
 ########################################################################################################################
@@ -104,14 +93,12 @@ class ScenePartManager:
         self.scene_part = None
 
 
-    def create_scene_part(self, parent=None):
+    def create_scene_part(self):
         self.create_part_handle()
         self.position_part(self.scene_part)
-        self.scene_part.setParent(parent) if parent else None
         self.add_part_metadata()
         self.populate_scene_part(self.scene_part)
         self.create_placer_connectors()
-        self.zero_out_part_rotation()
         return self.scene_part
 
 
@@ -155,10 +142,6 @@ class ScenePartManager:
             placer_manager.create_scene_placer(parent=placers_parent)
 
 
-    def zero_out_part_rotation(self):
-        self.scene_part.rotate.set(0, 0, 0)
-
-
     def create_placer_connectors(self):
         connectors_grp = pm.group(name='connector_curves', empty=1, parent=self.scene_part)
         for pair in self.part.connectors:
@@ -170,8 +153,6 @@ class ScenePartManager:
 
 
 
-
-
 ########################################################################################################################
 class PartCreator:
     def __init__(
@@ -180,45 +161,48 @@ class PartCreator:
         prefab_key: str,
         side: str = None,
         position: tuple[float, float, float] = (0, 0, 0),
-        part_offset = (0, 0, 0)
+        construction_inputs: dict = None
     ):
         self.name = name
         self.prefab_key = prefab_key
         self.side = side
         self.position = position
-        self.part_offset = part_offset
+        self.construction_inputs = construction_inputs
+        self.placers_getter = self.construct_placers_getter()
+
+
+    def construct_placers_getter(self):
+        dir_string = f"Snowman3.riggers.parts.{self.prefab_key}"
+        getter = importlib.import_module(dir_string)
+        importlib.reload(getter)
+        PlacersGetter = getter.PlacersGetter
+        args = self.construction_inputs if self.construction_inputs else {}
+        for key, value in (('part_name', self.name), ('side', self.side)):
+            args[key] = value
+        placers_getter = PlacersGetter(**args)
+        return placers_getter
+
+
+    def get_placers(self):
+        placers_dict = {}
+        for placer in self.placers_getter.create_placers():
+            placers_dict[placer.data_name] = placer
+        return placers_dict
 
 
     def create_part(self):
         placers_dict = self.get_placers()
-        position = tuple([self.position[i] + self.part_offset[i] for i in range(3)])
+        position = self.position
         scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
-        connectors = self.get_connectors()
+        connectors = self.placers_getter.get_connection_pairs()
         part = Part(name = self.name,
                     prefab_key = self.prefab_key,
                     side = self.side,
                     position = position,
                     handle_size = 1.0,
-                    data_name = self.prefab_key,
+                    data_name = f'{gen.side_tag(self.side)}{self.name}',
                     scene_name = scene_name,
                     placers = placers_dict,
-                    connectors = connectors)
+                    connectors = connectors,
+                    construction_inputs = self.construction_inputs)
         return part
-
-
-    def get_placers(self):
-        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
-        placers_data = importlib.import_module(dir_string)
-        importlib.reload(placers_data)
-        placers_input = placers_data.create_placers(side=self.side, part_name=self.name)
-        placers_dict = {}
-        for placer in placers_input:
-            placers_dict[placer.data_name] = placer
-        return placers_dict
-
-
-    def get_connectors(self):
-        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
-        placers_data = importlib.import_module(dir_string)
-        importlib.reload(placers_data)
-        return placers_data.get_connection_pairs()

@@ -42,21 +42,13 @@ for obj in objs_to_move:
 interactor.update_blueprint_from_scene()
 interactor.mirror_armature('L')
 
-# ...Add new (prefab) container
-interactor.add_container('ThirdArm', side='L', prefab_key='biped_arm', parts_prefix='Third')
-# ...Add new (empty) container
-interactor.add_container('Tail', side='M', prefab_key=None, parts_prefix=None)
-# ...Remove a container
-interactor.remove_container('R_Leg')
 # ...Add new part to existing container
-interactor.add_part('NewPart', 'foot_plantigrade', 'L_Hand', side='L')
+interactor.add_part('NewPart', 'foot_plantigrade', side='L')
 # ...Remove a part from a container
-interactor.remove_part('biped_arm', 'R_Arm')
+interactor.remove_part('R_Arm')
 
 # ...Add mirrored part to existing part
-interactor.add_mirrored_part('biped_arm', 'L_Arm')
-# ...Add mirrored container to existing container
-interactor.add_mirrored_container('L_Leg')
+interactor.add_mirrored_part('L_Arm')
 
 interactor.save_work()
 
