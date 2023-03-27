@@ -36,11 +36,15 @@ class PlacersGetter:
 
     def create_placers(self):
         data_packs = [
-            ['UpperArm', 'upperarm', (0, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
-            ['LowerArm', 'lowerarm', (26.94, 0, -2.97), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
-            ['LowerArmEnd', 'lowerarm_end', (52.64, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
-            ['WristEnd', 'wrist_end', (59, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 0.7],
-            ['IkElbow', 'ik_elbow', (26.94, 0, -35), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
+            ['UpperArm', 'upperarm', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
+            ['LowerArm', 'lowerarm', (26.94, 0, -2.97), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True,
+             None],
+            ['LowerArmEnd', 'lowerarm_end', (52.64, 0, 0), [[1, 0, 0], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, True,
+             None],
+            ['WristEnd', 'wrist_end', (59, 0, 0), [[1, 0, 0], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.7, False,
+             'LowerArmEnd'],
+            ['IkElbow', 'ik_elbow', (26.94, 0, -35), [[1, 0, 0], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, False,
+             None]
         ]
         placers = []
         for p in data_packs:
@@ -53,6 +57,8 @@ class PlacersGetter:
                 size=p[5],
                 vector_handle_positions=p[3],
                 orientation=p[4],
+                match_orienter=p[7],
+                has_vector_handles=p[6]
             )
             placers.append(placer_creator.create_placer())
         return placers
@@ -65,3 +71,11 @@ class PlacersGetter:
             ('wrist_end', 'lowerarm_end'),
             ('ik_elbow', 'lowerarm')
         )
+
+
+    def get_vector_handle_attachments(self):
+        return{
+            'upperarm': ['lowerarm', 'ik_elbow'],
+            'lowerarm': ['lowerarm_end', 'ik_elbow'],
+            'lowerarm_end': ['wrist_end', None]
+        }

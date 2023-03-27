@@ -45,15 +45,21 @@ class PlacersGetter:
         placers = []
         for i in range(self.jnt_count):
             n = i + 1
+            has_vector_handles = True
+            size = 1.25
+            if i == range(self.jnt_count):
+                has_vector_handles = False
+                size = 0.8
             placer_creator = PlacerCreator(
                 name=f'Spine{str(n)}',
                 data_name=f'spine_{str(n)}',
                 side=self.side,
                 parent_part_name=self.part_name,
                 position=(0, spine_seg_length * i, 0),
-                size=1.25,
-                vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
-                orientation=[[0, 1, 0], [0, 0, 1]]
+                size=size,
+                vector_handle_positions=[[0, 0, 1], [0, 1, 0]],
+                orientation=[[0, 1, 0], [0, 0, 1]],
+                has_vector_handles=has_vector_handles
             )
             placers.append(placer_creator.create_placer())
         return placers
@@ -67,3 +73,7 @@ class PlacersGetter:
                 (f'spine_{str(n+1)}', f'spine_{str(n)}')
             )
         return tuple(pairs)
+
+
+    def get_vector_handle_attachments(self):
+        return{}

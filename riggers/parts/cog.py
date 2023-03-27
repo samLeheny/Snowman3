@@ -43,8 +43,9 @@ class PlacersGetter:
             parent_part_name=self.part_name,
             position=(0, 0, 0),
             size=1.75,
-            vector_handle_positions=[[0, 0, 5], [0, 5, 0]],
-            orientation=[[0, 0, 1], [0, 1, 0]]
+            vector_handle_positions=[[0, 0, 1], [0, 1, 0]],
+            orientation=[[0, 0, 1], [0, 1, 0]],
+            has_vector_handles=False
         )
         placers.append(placer_creator.create_placer())
         return placers
@@ -52,3 +53,7 @@ class PlacersGetter:
 
     def get_connection_pairs(self):
         return ()
+
+
+    def get_vector_handle_attachments(self):
+        return{}

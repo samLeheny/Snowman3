@@ -54,6 +54,7 @@ class Part:
     scene_name: str = None
     prefab_key: str = None
     connectors: tuple = None
+    vector_handle_attachments: dict = None
     construction_inputs: dict = None
 
 
@@ -99,6 +100,7 @@ class ScenePartManager:
         self.add_part_metadata()
         self.populate_scene_part(self.scene_part)
         self.create_placer_connectors()
+        self.attach_all_vector_handles()
         return self.scene_part
 
 
@@ -152,6 +154,32 @@ class ScenePartManager:
                                             override_display_type=2, parent=connectors_grp, inheritsTransform=False)
 
 
+    def attach_all_vector_handles(self):
+        attachment_sets = self.part.vector_handle_attachments
+        if not attachment_sets:
+            return False
+        for placer_key, targets in attachment_sets.items():
+            placer = self.part.placers[placer_key]
+            if not placer.has_vector_handles:
+                return False
+            self.attach_vector_handles(placer, targets[0], 'aim')
+            self.attach_vector_handles(placer, targets[1], 'up')
+
+
+    def attach_vector_handles(self, placer, target_key, vector):
+        if not target_key:
+            return False
+        target_placer = self.part.placers[target_key]
+        target_scene_placer = pm.PyNode(target_placer.scene_name)
+        handle_particles = {'aim': 'AIM', 'up': 'UP'}
+        scene_vector_handle = pm.PyNode(
+            f"{gen.side_tag(self.part.side)}{self.part.name}_{placer.name}_{handle_particles[vector]}")
+        pm.pointConstraint(target_scene_placer, scene_vector_handle)
+
+
+
+
+
 
 ########################################################################################################################
 class PartCreator:
@@ -195,6 +223,7 @@ class PartCreator:
         position = self.position
         scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
         connectors = self.placers_getter.get_connection_pairs()
+        vector_handle_attachments = self.placers_getter.get_vector_handle_attachments()
         part = Part(name = self.name,
                     prefab_key = self.prefab_key,
                     side = self.side,
@@ -204,5 +233,6 @@ class PartCreator:
                     scene_name = scene_name,
                     placers = placers_dict,
                     connectors = connectors,
+                    vector_handle_attachments=vector_handle_attachments,
                     construction_inputs = self.construction_inputs)
         return part

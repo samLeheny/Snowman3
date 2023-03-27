@@ -100,3 +100,46 @@ def connector_curve(name=None, end_driver_1=None, end_driver_2=None, override_di
 
     pm.select(clear=1)
     return curve, curve_plugs[0], curve_plugs[1]
+
+
+
+########################################################################################################################
+def orienter(name=None, side=None, scale=1):
+    # Initialize variables
+    name = name if name else ''
+    cvs = [
+        [
+            [0, 1.4, 0.369], [-0.261, 1.4, 0.261], [-0.369, 1.4, 0], [-0.261, 1.4, -0.261], [0, 1.4, -0.369],
+            [0.261, 1.4, -0.261], [0.369, 1.4, 0], [0.261, 1.4, 0.261],
+        ], [
+            [0, 1.4, 0.333], [0, 2.5, 0], [0, 1.4, -0.333]
+        ], [
+            [0.333, 1.4, 0], [0, 2.5, 0], [-0.333, 1.4, 0]
+        ], [
+            [1.4, 0, 0.369], [1.4, 0.261, 0.261], [1.4, 0.369, 0], [1.4, 0.261, -0.261], [1.4, 0, -0.369],
+            [1.4, -0.261, -0.261], [1.4, -0.369, 0], [1.4, -0.261, 0.261],
+        ], [
+            [1.4, 0, 0.333], [2.5, 0, 0], [1.4, 0, -0.333]
+        ], [
+            [1.4, 0.333, 0], [2.5, 0, 0], [1.4, -0.333, 0]
+        ], [
+            [0, 0.369, 1.4], [-0.261, 0.261, 1.4], [-0.369, 0, 1.4], [-0.261, -0.261, 1.4], [0, -0.369, 1.4],
+            [0.261, -0.261, 1.4], [0.369, 0, 1.4], [0.261, 0.261, 1.4],
+        ], [
+            [0, 0.333, 1.4], [0, 0, 2.5], [0, -0.333, 1.4]
+        ], [
+            [0.333, 0, 1.4], [0, 0, 2.5], [-0.333, 0, 1.4]
+        ]
+    ]
+    colors = [14, 14, 14, 13, 13, 13, 6, 6, 6]
+    forms = ["periodic", "open", "open", "periodic", "open", "open", "periodic", "open", "open"]
+    degrees = [3, 1, 1, 3, 1, 1, 3, 1, 1]
+    # Compose orienter name
+    ori_name = f'{gen.side_tag(side)}{name}_{nom.orienter}'
+    orienter = gen.curve_construct(cvs=cvs, name=ori_name, color=None, form=forms, scale=scale, side=None,
+                                   degree=degrees)
+    # Color orienter
+    shapes = orienter.getShapes()
+    for s, c in zip(shapes, colors):
+        gen.set_color(s, c)
+    return orienter

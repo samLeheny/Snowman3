@@ -36,20 +36,21 @@ class PlacersGetter:
 
     def create_placers(self):
         data_packs = [
-            ['Clavicle', 'clavicle', (0, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]]],
-            ['ClavicleEnd', 'clavicle_end', (12, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]]],
+            ['Clavicle', 'clavicle', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True],
+            ['ClavicleEnd', 'clavicle_end', (12, 0, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 0.8, False],
         ]
         placers = []
-        for name, data_name, position, vector_handle_positions, orientation in data_packs:
+        for p in data_packs:
             placer_creator = PlacerCreator(
-                name=name,
-                data_name=data_name,
+                name=p[0],
+                data_name=p[1],
                 side=self.side,
                 parent_part_name=self.part_name,
-                position=position,
-                size=1.25,
-                vector_handle_positions=vector_handle_positions,
-                orientation=orientation,
+                position=p[2],
+                size=p[5],
+                vector_handle_positions=p[3],
+                orientation=p[4],
+                has_vector_handles=p[6]
             )
             placers.append(placer_creator.create_placer())
         return placers
@@ -59,3 +60,7 @@ class PlacersGetter:
         return (
             ('clavicle_end', 'clavicle'),
         )
+
+
+    def get_vector_handle_attachments(self):
+        return{}

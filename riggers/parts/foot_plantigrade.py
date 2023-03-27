@@ -36,14 +36,18 @@ class PlacersGetter:
 
     def create_placers(self):
         data_packs = [
-            ['Foot', 'foot', (0, 0, 0), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
-            ['Ball', 'ball', (0, -7.5, 11.8), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
-            ['BallEnd', 'ball_end', (0, -7.5, 16.73), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 1.25],
-            ['SoleToe', 'sole_toe', (0, -10, 11.8), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 0.6],
-            ['SoleToeEnd', 'sole_toe_end', (0, -10, 19), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 0.6],
-            ['SoleInner', 'sole_inner', (-4.5, -10, 11.8), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 0.6],
-            ['SoleOuter', 'sole_outer', (4.5, -10, 11.8), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 0.6],
-            ['SoleHeel', 'sole_heel', (0, -10, -4), [[5, 0, 0], [0, 0, -5]], [[0, 0, 1], [1, 0, 0]], 0.6],
+            ['Foot', 'foot', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
+            ['Ball', 'ball', (0, -7.5, 11.8), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
+            ['BallEnd', 'ball_end', (0, -7.5, 16.73), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, False,
+             'Ball'],
+            ['SoleToe', 'sole_toe', (0, -10, 11.8), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 0.6, False, None],
+            ['SoleToeEnd', 'sole_toe_end', (0, -10, 19), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 0.6, False,
+             None],
+            ['SoleInner', 'sole_inner', (-4.5, -10, 11.8), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 0.6, False,
+             None],
+            ['SoleOuter', 'sole_outer', (4.5, -10, 11.8), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 0.6, False,
+             None],
+            ['SoleHeel', 'sole_heel', (0, -10, -4), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 0.6, False, None],
         ]
         placers = []
         for p in data_packs:
@@ -56,6 +60,8 @@ class PlacersGetter:
                 size=p[5],
                 vector_handle_positions=p[3],
                 orientation=p[4],
+                match_orienter=p[7],
+                has_vector_handles=p[6]
             )
             placers.append(placer_creator.create_placer())
         return placers
@@ -66,3 +72,7 @@ class PlacersGetter:
             ('ball', 'foot'),
             ('ball_end', 'ball')
         )
+
+
+    def get_vector_handle_attachments(self):
+        return{}

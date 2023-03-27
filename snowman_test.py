@@ -35,7 +35,7 @@ scene_parts = pm.ls('*_PART')
 objs_to_move = scene_placers + scene_parts
 for obj in objs_to_move:
     current_position = list(obj.translate.get())
-    new_position = [current_position[i] + (random.random()*5) for i in range(3)]
+    new_position = [current_position[i] + (random.random()*3) for i in range(3)]
     obj.translate.set(tuple(new_position))
 
 # ...Mirror placer and part positions
