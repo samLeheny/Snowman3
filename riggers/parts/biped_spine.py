@@ -13,6 +13,10 @@ import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 PlacerCreator = placer_utils.PlacerCreator
+
+import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
+importlib.reload(class_PartConstructor)
+PartConstructor = class_PartConstructor.PartConstructor
 ###########################
 ###########################
 
@@ -25,7 +29,7 @@ PlacerCreator = placer_utils.PlacerCreator
 
 
 
-class PlacersGetter:
+class BespokePartConstructor(PartConstructor):
 
     def __init__(
         self,
@@ -33,14 +37,13 @@ class PlacersGetter:
         side: str = None,
         segment_count: int = 6
     ):
-        self.part_name = part_name
-        self.side = side
+        super().__init__(part_name, side)
         self.segment_count = segment_count
         self.jnt_count = segment_count + 1
 
 
     def create_placers(self):
-        spine_length = 49.0
+        spine_length = 42.0
         spine_seg_length = spine_length / self.segment_count
         placers = []
         for i in range(self.jnt_count):
@@ -57,7 +60,7 @@ class PlacersGetter:
                 parent_part_name=self.part_name,
                 position=(0, spine_seg_length * i, 0),
                 size=size,
-                vector_handle_positions=[[0, 0, 1], [0, 1, 0]],
+                vector_handle_positions=self.proportionalize_vector_handle_positions([[0, 1, 0], [0, 0, 1]], size),
                 orientation=[[0, 1, 0], [0, 0, 1]],
                 has_vector_handles=has_vector_handles
             )

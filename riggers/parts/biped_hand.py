@@ -13,6 +13,10 @@ import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 PlacerCreator = placer_utils.PlacerCreator
+
+import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
+importlib.reload(class_PartConstructor)
+PartConstructor = class_PartConstructor.PartConstructor
 ###########################
 ###########################
 
@@ -24,7 +28,7 @@ PlacerCreator = placer_utils.PlacerCreator
 ###########################
 
 
-class PlacersGetter:
+class BespokePartConstructor(PartConstructor):
 
     def __init__(
         self,
@@ -36,8 +40,7 @@ class PlacersGetter:
         finger_count: int = 4,
         thumb_count: int = 1
     ):
-        self.part_name = part_name
-        self.side = side
+        super().__init__(part_name, side)
         self.include_metacarpals = include_metacarpals
         self.finger_segment_count = finger_segment_count
         self.finger_jnt_count = finger_segment_count + 1
@@ -47,13 +50,13 @@ class PlacersGetter:
         self.thumb_count = thumb_count
 
 
-    def get_finger_name(self, number):
+    def get_digit_name(self, number, digit_count):
         finger_names = (('Index', 'Pinky'),
                         ('Index', 'Middle', 'Pinky'),
                         ('Index', 'Middle', 'Ring', 'Pinky'))
         code = None
         if 1 < self.finger_count < 5:
-            code = finger_names[self.finger_count - 2]
+            code = finger_names[digit_count - 2]
         if code:
             return f'{code[number-1]}Finger'
         else:
@@ -63,14 +66,15 @@ class PlacersGetter:
 
     def create_placers(self):
         placers = []
+        size = 0.9
         placer_creator = PlacerCreator(
             name='Wrist',
             data_name='wrist',
             side=self.side,
             parent_part_name=self.part_name,
             position=(0, 0, 0),
-            size=0.9,
-            vector_handle_positions=[[1, 0, 0], [0, 1, 0]],
+            size=size,
+            vector_handle_positions=self.proportionalize_vector_handle_positions([[1, 0, 0], [0, 1, 0]], size),
             orientation=[[0, 0, 1], [0, 1, 0]],
             has_vector_handles=True
         )
@@ -116,14 +120,15 @@ class PlacersGetter:
                 match_orienters.append(match_orienter)
 
             for p in zip(placer_names, placer_x_positions, has_placer_handles, match_orienters):
+                size = 0.4
                 placer_creator = PlacerCreator(
                     name=p[0],
                     data_name=p[0],
                     side=self.side,
                     parent_part_name=self.part_name,
                     position=(p[1], 0, z_position),
-                    size=0.4,
-                    vector_handle_positions=vector_handle_positions,
+                    size=size,
+                    vector_handle_positions=self.proportionalize_vector_handle_positions(vector_handle_positions, size),
                     orientation=[[0, 0, 1], [1, 0, 0]],
                     match_orienter=p[3],
                     has_vector_handles=p[2]
@@ -131,8 +136,9 @@ class PlacersGetter:
                 placers.append(placer_creator.create_placer())
 
         for i in range(self.finger_count):
-            create_finger_placers(name=self.get_finger_name(i+1), z_position=(finger_spacing*i)-(palm_width/2),
-                                  include_metacarpal=self.include_metacarpals)
+            create_finger_placers(
+                name=self.get_digit_name(i + 1, self.finger_count), z_position=(finger_spacing * i) - (palm_width / 2),
+                include_metacarpal=self.include_metacarpals)
 
         create_finger_placers(name='Thumb', z_position=((palm_width*1.6)/2), include_metacarpal=False)
 
@@ -143,7 +149,7 @@ class PlacersGetter:
     def get_connection_pairs(self):
         pairs = []
         for i in range(self.finger_count):
-            finger_name = self.get_finger_name(i+1)
+            finger_name = self.get_digit_name(i + 1, self.finger_count)
             finger_pairs = []
             segs = [f'{finger_name}Seg{s+1}' for s in range(self.finger_segment_count)]
             segs.append(f'{finger_name}End')
@@ -177,7 +183,7 @@ class PlacersGetter:
             tags = []
             finger_name = 'Thumb'
             if digit_type == 'finger':
-                finger_name = self.get_finger_name(digit_number + 1)
+                finger_name = self.get_digit_name(digit_number + 1, self.finger_count)
             for s in range(segment_count + 1):
                 if s == segment_count:
                     seg_tag = 'End'

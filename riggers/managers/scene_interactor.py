@@ -51,6 +51,7 @@ class SceneInteractor:
 
     def build_armature_from_prefab(self):
         self.blueprint_manager.create_blueprint_from_prefab()
+        self.blueprint_manager.run_prefab_post_actions()
         self.armature_manager.build_armature_from_blueprint()
 
 
@@ -72,18 +73,6 @@ class SceneInteractor:
         for key, part in self.blueprint_manager.blueprint.parts.items():
             if part.side == driver_side:
                 self.armature_manager.mirror_part(key)
-
-
-    def add_container(self, name, side=None, prefab_key=None, parts_prefix=None):
-        container = self.create_container(name=name, side=side, prefab_key=prefab_key, parts_prefix=parts_prefix)
-        self.blueprint_manager.add_container(container)
-        self.armature_manager.add_container(container)
-
-
-    def remove_container(self, container_key):
-        container = self.blueprint_manager.get_container(container_key)
-        self.armature_manager.remove_container(container)
-        self.blueprint_manager.remove_container(container)
 
 
     def create_part(self, name, prefab_key, side=None):
@@ -118,32 +107,10 @@ class SceneInteractor:
         return new_opposing_part
 
 
-    def create_mirrored_container(self, existing_container_key):
-        existing_container = self.blueprint_manager.get_container(existing_container_key)
-        if self.blueprint_manager.get_opposite_container(existing_container_key):
-            return False
-        opposite_container_data = self.blueprint_manager.data_from_container(existing_container)
-        opposite_container_data['side'] = gen.opposite_side(existing_container.side)
-        new_opposing_container = self.create_container(
-            opposite_container_data['name'], opposite_container_data['side'], opposite_container_data['prefab_key'],
-            existing_container.parts_prefix)
-        return new_opposing_container
-
-
     def add_mirrored_part(self, existing_part_key):
         new_opposite_part = self.create_mirrored_part(existing_part_key)
         self.blueprint_manager.add_part(new_opposite_part)
         self.armature_manager.add_part(new_opposite_part)
         self.armature_manager.mirror_part(existing_part_key)
-        self.blueprint_manager.update_blueprint_from_scene()
-        self.blueprint_manager.save_blueprint_to_tempdisk()
-
-
-    def add_mirrored_container(self, existing_container_key):
-        existing_container = self.blueprint_manager.get_container(existing_container_key)
-        new_opposing_container = self.create_mirrored_container(existing_container_key)
-        self.blueprint_manager.add_container(new_opposing_container)
-        self.armature_manager.add_container(new_opposing_container)
-        self.armature_manager.mirror_container(existing_container.data_name)
         self.blueprint_manager.update_blueprint_from_scene()
         self.blueprint_manager.save_blueprint_to_tempdisk()

@@ -8,8 +8,9 @@
 ###########################
 ##### Import Commands #####
 import importlib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import pymel.core as pm
+from typing import Sequence
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -47,15 +48,15 @@ color_code = color_code.sided_ctrl_color
 class Part:
     name: str
     side: str = None
-    handle_size: float = 1.0
+    handle_size: float = 1.2
     position: tuple = (0, 0, 0)
-    placers: dict = None
+    placers: dict = field(default_factory=dict)
     data_name: str = None
     scene_name: str = None
     prefab_key: str = None
-    connectors: tuple = None
-    vector_handle_attachments: dict = None
-    construction_inputs: dict = None
+    connectors: Sequence = field(default_factory=list)
+    vector_handle_attachments: dict = field(default_factory=dict)
+    construction_inputs: dict = field(default_factory=dict)
 
 
 
@@ -68,9 +69,7 @@ class PartManager:
         self.part = part
 
     def data_from_part(self):
-        data = {}
-        for param, value in vars(self.part).items():
-            data[param] = value
+        data = vars(self.part).copy()
         data['placers'] = {}
         for key, placer, in self.part.placers.items():
             placer_manager = PlacerManager(placer)
@@ -108,6 +107,8 @@ class ScenePartManager:
         self.scene_part = gen.prefab_curve_construct(prefab='cube', name=self.part.scene_name,
                                                      scale=self.part.handle_size, side=self.part.side)
         self.color_part_handle()
+        self.lock_transforms()
+        self.add_attributes()
 
 
     def color_part_handle(self, color=None):
@@ -142,6 +143,7 @@ class ScenePartManager:
         for placer in self.part.placers.values():
             placer_manager = ScenePlacerManager(placer)
             placer_manager.create_scene_placer(parent=placers_parent)
+            self.connect_placer_attributes(placer_manager.scene_placer)
 
 
     def create_placer_connectors(self):
@@ -177,7 +179,22 @@ class ScenePartManager:
         pm.pointConstraint(target_scene_placer, scene_vector_handle)
 
 
+    def lock_transforms(self):
+        lock_attrs = ('visibility',)
+        for attr in lock_attrs:
+            pm.setAttr(f'{self.scene_part}.{attr}', keyable=0, lock=1)
 
+
+    def add_attributes(self):
+        gen.add_attr(obj=self.scene_part, long_name='VectorHandles', attribute_type='bool', keyable=False,
+                     channel_box=True)
+        gen.add_attr(obj=self.scene_part, long_name='Orienters', attribute_type='bool', keyable=False,
+                     channel_box=True)
+
+
+    def connect_placer_attributes(self, scene_placer):
+        for attr in ('VectorHandles', 'Orienters'):
+            pm.connectAttr(f'{self.scene_part}.{attr}', f'{scene_placer}.{attr}')
 
 
 
@@ -203,11 +220,11 @@ class PartCreator:
         dir_string = f"Snowman3.riggers.parts.{self.prefab_key}"
         getter = importlib.import_module(dir_string)
         importlib.reload(getter)
-        PlacersGetter = getter.PlacersGetter
+        BespokePartConstructor = getter.BespokePartConstructor
         args = self.construction_inputs if self.construction_inputs else {}
         for key, value in (('part_name', self.name), ('side', self.side)):
             args[key] = value
-        placers_getter = PlacersGetter(**args)
+        placers_getter = BespokePartConstructor(**args)
         return placers_getter
 
 

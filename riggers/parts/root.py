@@ -13,6 +13,10 @@ import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 PlacerCreator = placer_utils.PlacerCreator
+
+import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
+importlib.reload(class_PartConstructor)
+PartConstructor = class_PartConstructor.PartConstructor
 ###########################
 ###########################
 
@@ -24,26 +28,27 @@ PlacerCreator = placer_utils.PlacerCreator
 ###########################
 
 
-class PlacersGetter:
+class BespokePartConstructor(PartConstructor):
 
     def __init__(
         self,
         part_name: str,
         side: str = None,
     ):
-        self.part_name = part_name
-        self.side = side
+        super().__init__(part_name, side)
+
 
     def create_placers(self):
         placers = []
+        size = 1.75
         placer_creator = PlacerCreator(
             name='Root',
             data_name='root',
             side=self.side,
             parent_part_name=self.part_name,
             position=(0, 0, 0),
-            size=1.75,
-            vector_handle_positions=[[0, 0, 1], [0, 1, 0]],
+            size=size,
+            vector_handle_positions=self.proportionalize_vector_handle_positions([[0, 0, 1], [0, 1, 0]], size),
             orientation=[[0, 0, 1], [0, 1, 0]],
             has_vector_handles=False
         )

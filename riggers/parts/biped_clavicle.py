@@ -13,6 +13,10 @@ import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 PlacerCreator = placer_utils.PlacerCreator
+
+import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
+importlib.reload(class_PartConstructor)
+PartConstructor = class_PartConstructor.PartConstructor
 ###########################
 ###########################
 
@@ -24,20 +28,20 @@ PlacerCreator = placer_utils.PlacerCreator
 ###########################
 
 
-class PlacersGetter:
-
+class BespokePartConstructor(PartConstructor):
     def __init__(
         self,
         part_name: str,
         side: str = None,
     ):
-        self.part_name = part_name
-        self.side = side
+        super().__init__(part_name, side)
+
 
     def create_placers(self):
         data_packs = [
-            ['Clavicle', 'clavicle', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True],
-            ['ClavicleEnd', 'clavicle_end', (12, 0, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 0.8, False],
+            ['Clavicle', 'clavicle', (0, 0, 0), [[1, 0, 0], [0, 0, 1]], [[0, 0, 1], [-1, 0, 0]], 1.25, True, None],
+            ['ClavicleEnd', 'clavicle_end', (12, 0, 0), [[1, 0, 0], [0, 0, 1]], [[0, 0, 1], [-1, 0, 0]], 0.8, False,
+             'Clavicle'],
         ]
         placers = []
         for p in data_packs:
@@ -48,8 +52,9 @@ class PlacersGetter:
                 parent_part_name=self.part_name,
                 position=p[2],
                 size=p[5],
-                vector_handle_positions=p[3],
+                vector_handle_positions=self.proportionalize_vector_handle_positions(p[3], p[5]),
                 orientation=p[4],
+                match_orienter=p[7],
                 has_vector_handles=p[6]
             )
             placers.append(placer_creator.create_placer())

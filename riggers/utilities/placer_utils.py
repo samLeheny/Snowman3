@@ -10,6 +10,7 @@
 import importlib
 import pymel.core as pm
 from dataclasses import dataclass
+from typing import Sequence
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -40,7 +41,7 @@ color_code = color_code.sided_ctrl_color
 class Placer:
     name: str
     side: str = None
-    position: tuple[float, float, float] = (0, 0, 0)
+    position: Sequence = (0, 0, 0)
     size: float = 1.0
     has_vector_handles: bool = True
     vector_handle_positions: list[list, list] = ((0, 0, 1), (0, 1, 0))
@@ -113,10 +114,7 @@ class PlacerManager:
 
 
     def data_from_placer(self):
-        data = {}
-        for param, value in vars(self.placer).items():
-            data[param] = value
-        return data
+        return vars(self.placer).copy()
 
 
 
@@ -132,15 +130,25 @@ class ScenePlacerManager:
 
 
     def create_scene_placer(self, parent=None):
-        self.scene_placer = gen.prefab_curve_construct(prefab='sphere_placer', name=self.placer.scene_name,
-                                                       scale=self.placer.size, side=self.placer.side)
-        self.scene_placer.setParent(parent) if parent else None
+        self.create_scene_obj(parent)
         self.position_scene_placer()
         self.add_scene_placer_metadata()
         self.color_scene_handle()
+        self.add_attributes()
+        self.lock_transforms()
         self.create_vector_handles() if self.placer.has_vector_handles else None
         self.create_orienter()
         return self.scene_placer
+
+
+    def create_scene_obj(self, parent=None):
+        self.scene_placer = gen.prefab_curve_construct(prefab='sphere_placer', name=self.placer.scene_name,
+                                                       scale=self.placer.size, side=self.placer.side)
+        buffer_grp = pm.group(name=self.placer.scene_name.replace(placer_tag, 'BUFFER'), em=1, world=1)
+        if parent:
+            buffer_grp.setParent(parent)
+            gen.zero_out(buffer_grp)
+        self.scene_placer.setParent(buffer_grp)
 
 
     def position_scene_placer(self):
@@ -181,6 +189,19 @@ class ScenePlacerManager:
         orienter.constrain_orienter(vector_handles=self.vector_handles)
 
 
+    def lock_transforms(self):
+        lock_attrs = ('rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz', 'visibility')
+        for attr in lock_attrs:
+            pm.setAttr(f'{self.scene_placer}.{attr}', keyable=0, lock=1)
+
+
+    def add_attributes(self):
+        gen.add_attr(obj=self.scene_placer, long_name='VectorHandles', attribute_type='bool', keyable=False,
+                     channel_box=True)
+        gen.add_attr(obj=self.scene_placer, long_name='Orienters', attribute_type='bool', keyable=False,
+                     channel_box=True)
+
+
 
 
 ########################################################################################################################
@@ -211,8 +232,6 @@ class VectorHandleManager:
         self.scene_handle.setParent(self.parent) if self.parent else None
         self.set_position()
         self.create_connector_curve()
-        '''self.connect_to_placer_metadata()
-        self.drive_handle_visibility()'''
 
 
     def create_scene_handle(self):
@@ -222,6 +241,8 @@ class VectorHandleManager:
         self.scene_handle = gen.prefab_curve_construct(prefab=handle_shape, name=self.scene_name, side=self.side,
                                                        scale=self.size * shape_scaler_factor)
         self.color_scene_handle()
+        self.connect_attributes_to_placer()
+        self.lock_transforms()
 
 
     def color_scene_handle(self, color=None):
@@ -238,13 +259,19 @@ class VectorHandleManager:
 
 
     def set_position(self):
-        dist_mult = self.placer.size * 4
-        init_placement_vector = (0, 0, 0)
-        if self.vector == 'aim':
-            init_placement_vector = tuple([self.placer.vector_handle_positions[0][i]*dist_mult for i in range(3)])
-        elif self.vector == 'up':
-            init_placement_vector = tuple([self.placer.vector_handle_positions[1][i]*dist_mult for i in range(3)])
-        self.scene_handle.translate.set(init_placement_vector)
+        init_placement_vector = {'aim': self.placer.vector_handle_positions[0],
+                                 'up': self.placer.vector_handle_positions[1]}
+        self.scene_handle.translate.set(init_placement_vector[self.vector])
+
+
+    def lock_transforms(self):
+        lock_attrs = ('rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz', 'visibility')
+        for attr in lock_attrs:
+            pm.setAttr(f'{self.scene_handle}.{attr}', keyable=0, lock=1)
+
+
+    def connect_attributes_to_placer(self):
+        pm.connectAttr(f'{self.parent}.VectorHandles', f'{self.scene_handle}.visibility')
 
 
 
@@ -255,7 +282,6 @@ class OrienterManager:
         placer,
         parent,
     ):
-        pass
         self.placer = placer
         self.parent = parent
         self.scene_orienter = None
@@ -270,6 +296,8 @@ class OrienterManager:
         self.scene_orienter = rig.orienter(name=orienter_name, side=self.placer.side, scale=self.placer.size)
         buffer = gen.buffer_obj(self.scene_orienter, parent=self.parent)
         gen.zero_out(buffer)
+        self.connect_attributes_to_placer()
+        self.lock_transforms()
         return self.scene_orienter
 
 
@@ -292,3 +320,13 @@ class OrienterManager:
             f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.placer.match_orienter}_ORI'
         neighboring_orienter = pm.PyNode(neighboring_orienter_name)
         pm.orientConstraint(neighboring_orienter, self.scene_orienter.getParent())
+
+
+    def lock_transforms(self):
+        lock_attrs = ('translate', 'tx', 'ty', 'tz', 'scale', 'sx', 'sy', 'sz', 'visibility')
+        for attr in lock_attrs:
+            pm.setAttr(f'{self.scene_orienter}.{attr}', keyable=0, lock=1)
+
+
+    def connect_attributes_to_placer(self):
+        pm.connectAttr(f'{self.parent}.Orienters', f'{self.scene_orienter}.visibility')

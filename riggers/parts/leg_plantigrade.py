@@ -13,6 +13,10 @@ import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 PlacerCreator = placer_utils.PlacerCreator
+
+import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
+importlib.reload(class_PartConstructor)
+PartConstructor = class_PartConstructor.PartConstructor
 ###########################
 ###########################
 
@@ -24,24 +28,24 @@ PlacerCreator = placer_utils.PlacerCreator
 ###########################
 
 
-class PlacersGetter:
+class BespokePartConstructor(PartConstructor):
 
     def __init__(
         self,
         part_name: str,
         side: str = None,
     ):
-        self.part_name = part_name
-        self.side = side
+        super().__init__(part_name, side)
+
 
     def create_placers(self):
         data_packs = [
-            ['Thigh', 'thigh', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
-            ['Calf', 'calf', (0, -45, 4.57), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
-            ['CalfEnd', 'calf_end', (0, -91, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
-            ['AnkleEnd', 'ankle_end', (0, -101, 0), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 0.7, False,
+            ['Thigh', 'thigh', (0, 0, 0), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
+            ['Calf', 'calf', (0, -45, 4.57), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
+            ['CalfEnd', 'calf_end', (0, -91, 0), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
+            ['AnkleEnd', 'ankle_end', (0, -101, 0), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 0.7, False,
              'CalfEnd'],
-            ['IkKnee', 'ik_knee', (0, -45, 40), [[1, 0, 0], [0, 0, -1]], [[0, 0, 1], [1, 0, 0]], 1.25, False, None],
+            ['IkKnee', 'ik_knee', (0, -45, 40), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 1.25, False, None],
         ]
         placers = []
         for p in data_packs:
@@ -52,7 +56,7 @@ class PlacersGetter:
                 parent_part_name=self.part_name,
                 position=p[2],
                 size=p[5],
-                vector_handle_positions=p[3],
+                vector_handle_positions=self.proportionalize_vector_handle_positions(p[3], p[5]),
                 orientation=p[4],
                 match_orienter=p[7],
                 has_vector_handles=p[6]

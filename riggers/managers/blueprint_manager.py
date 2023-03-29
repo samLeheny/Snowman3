@@ -8,6 +8,7 @@
 ###########################
 ##### Import Commands #####
 import os
+from dataclasses import dataclass, field
 import importlib
 import pymel.core as pm
 import json
@@ -19,6 +20,11 @@ import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
 PartManager = part_utils.PartManager
 Part = part_utils.Part
+
+import Snowman3.riggers.utilities.poseConstraint_utils as postConstraint_utils
+importlib.reload(postConstraint_utils)
+PostConstraintManager = postConstraint_utils.PostConstraintManager
+PostConstraint = postConstraint_utils.PostConstraint
 ###########################
 ###########################
 
@@ -33,16 +39,12 @@ default_version_padding = 4
 
 
 ########################################################################################################################
+@dataclass
 class Blueprint:
-    def __init__(
-        self,
-        asset_name,
-        dirpath = None,
-        parts = {}
-    ):
-        self.asset_name = asset_name
-        self.dirpath = dirpath
-        self.parts = parts
+    asset_name: str
+    dirpath: str = None
+    parts: dict = field(default_factory=dict)
+    post_constraints: dict = field(default_factory=list)
 
 
 ########################################################################################################################
@@ -157,12 +159,29 @@ class BlueprintManager:
         part.position = tuple(scene_handle.translate.get())
         for key, placer in part.placers.items():
             part.placers[key] = self.update_placer_from_scene(placer)
+            part.placers[key] = self.update_vector_handles_from_scene(placer)
         return part
 
 
     def update_placer_from_scene(self, placer):
         scene_placer = pm.PyNode(placer.scene_name)
         placer.position = tuple(scene_placer.translate.get())
+        return placer
+
+
+    def update_vector_handles_from_scene(self, placer):
+        def process_handle(vector):
+            handle_name = f'{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}'
+            if not pm.objExists(handle_name):
+                return False
+            scene_vector_handle = pm.PyNode(handle_name)
+            position = list(scene_vector_handle.translate.get())
+            if vector == 'AIM':
+                placer.vector_handle_positions[0] = position
+            elif vector == 'UP':
+                placer.vector_handle_positions[1] = position
+        process_handle('AIM')
+        process_handle('UP')
         return placer
 
 
@@ -215,24 +234,48 @@ class BlueprintManager:
 
     def blueprint_from_data(self, data):
         self.blueprint = Blueprint(**data)
-        parts_data_holder = self.blueprint.parts
-        self.blueprint.parts = {}
-        for key, data in parts_data_holder.items():
-            new_part = Part(**data)
-            part_manager = PartManager(new_part)
-            part_manager.create_placers_from_data(new_part.placers)
-            self.blueprint.parts[key] = part_manager.part
+        self.blueprint.parts = self.parts_from_data(self.blueprint.parts)
+        self.blueprint.post_constraints = self.post_constraints_from_data(self.blueprint.post_constraints)
         return self.blueprint
 
 
+    def parts_from_data(self, parts_data):
+        parts = {}
+        for key, data in parts_data.items():
+            new_part = Part(**data)
+            manager = PartManager(new_part)
+            manager.create_placers_from_data(new_part.placers)
+            parts[key] = manager.part
+        return parts
+
+
+    def post_constraints_from_data(self, post_constraints_data):
+        post_constraints = []
+        for data in post_constraints_data:
+            post_constraints.append(PostConstraint(**data))
+        return post_constraints
+
+
     def data_from_blueprint(self):
+        data = vars(self.blueprint).copy()
+        data['parts'] = self.parts_data_from_blueprint(self.blueprint.parts)
+        data['post_constraints'] = self.post_constraints_data_from_blueprints(self.blueprint.post_constraints)
+        return data
+
+
+    def parts_data_from_blueprint(self, parts):
         data = {}
-        for key, value in vars(self.blueprint).items():
-            data[key] = value
-        data['parts'] = {}
-        for key, part in self.blueprint.parts.items():
-            part_manager = PartManager(part)
-            data['parts'][key] = part_manager.data_from_part()
+        for key, part in parts.items():
+            manager = PartManager(part)
+            data[key] = manager.data_from_part()
+        return data
+
+
+    def post_constraints_data_from_blueprints(self, post_constraints):
+        data = []
+        for post_constraint in post_constraints:
+            manager = PostConstraintManager(post_constraint)
+            data.append(manager.data_from_post_constraint())
         return data
 
 
@@ -264,3 +307,11 @@ class BlueprintManager:
 
     def get_part(self, part_key):
         return self.blueprint.parts[part_key]
+
+
+    def run_prefab_post_actions(self):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.post_actions'
+        prefab_post_actions = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_post_actions)
+        self.blueprint = prefab_post_actions.run_post_actions(self.blueprint)
+        self.save_blueprint_to_tempdisk()
