@@ -17,6 +17,10 @@ PlacerCreator = placer_utils.PlacerCreator
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
 importlib.reload(class_PartConstructor)
 PartConstructor = class_PartConstructor.PartConstructor
+
+import Snowman3.riggers.utilities.part_utils as part_utils
+importlib.reload(part_utils)
+SceneRigPartManager = part_utils.SceneRigPartManager
 ###########################
 ###########################
 
@@ -83,3 +87,9 @@ class BespokePartConstructor(PartConstructor):
             'lowerarm': ['lowerarm_end', 'ik_elbow'],
             'lowerarm_end': ['wrist_end', None]
         }
+
+
+
+    def build_rig_part(self, part):
+        rig_part_manager = SceneRigPartManager(part)
+        rig_part = rig_part_manager.create_scene_rig_part()

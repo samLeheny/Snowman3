@@ -36,12 +36,6 @@ PostConstraintManager = postConstraint_utils.PostConstraintManager
 ###########################
 
 
-########################################################################################################################
-@dataclass
-class Armature:
-    name: str
-
-
 
 ########################################################################################################################
 class ArmatureManager:
@@ -50,17 +44,19 @@ class ArmatureManager:
         blueprint_manager = None
     ):
         self.blueprint_manager = blueprint_manager
+        self.scene_root = None
 
 
     def build_armature_from_blueprint(self):
         print("Building armature in scene from blueprint...")
-        self.add_parts_from_blueprint()
+        self.create_scene_armature_root()
+        self.add_parts_from_blueprint(parent=self.scene_root)
         self.add_post_constraints()
 
 
-    def add_parts_from_blueprint(self):
+    def add_parts_from_blueprint(self, parent=None):
         for part in self.blueprint_manager.blueprint.parts.values():
-            self.add_part(part)
+            self.add_part(part, parent)
 
 
     def add_post_constraints(self):
@@ -74,9 +70,12 @@ class ArmatureManager:
                 self.hide_placer(data.target_placer, data.target_part)
 
 
-    def add_part(self, part):
+    def add_part(self, part, parent=None):
         scene_part_manager = ScenePartManager(part)
-        return scene_part_manager.create_scene_part()
+        scene_part = scene_part_manager.create_scene_part()
+        scene_part.setParent(parent) if parent else None
+        pm.select(clear=1)
+        return scene_part
 
 
     def remove_part(self, part):
@@ -125,6 +124,8 @@ class ArmatureManager:
                 return False
             scene_handle = pm.PyNode(handle_name)
             opposite_scene_handle = gen.get_opposite_side_obj(scene_handle)
+            if not opposite_scene_handle:
+                return False
             scene_handle_position = list(scene_handle.translate.get())
             scene_handle_position[0] = -scene_handle_position[0]
             opposite_scene_handle.translate.set(scene_handle_position)
@@ -171,3 +172,9 @@ class ArmatureManager:
         scene_placer = self.get_scene_placer(placer_key, part_key)
         scene_placer.visibility.set(lock=0)
         scene_placer.visibility.set(0, lock=1)
+
+
+    def create_scene_armature_root(self):
+        scene_root_name = f"{self.blueprint_manager.blueprint.asset_name}_ARMATURE"
+        self.scene_root = pm.shadingNode('transform', name=scene_root_name, au=1)
+        gen.set_color(self.scene_root, 2)

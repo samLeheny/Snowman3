@@ -23,6 +23,10 @@ ArmatureManager = armature_manager_util.ArmatureManager
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
 PartCreator = part_utils.PartCreator
+
+import Snowman3.riggers.managers.rig_manager as rig_manager_util
+importlib.reload(rig_manager_util)
+RigManager = rig_manager_util.RigManager
 ###########################
 ###########################
 
@@ -37,16 +41,19 @@ PartCreator = part_utils.PartCreator
 class SceneInteractor:
     def __init__(
         self,
-        blueprint_manager=None,
-        armature_manager=None
+        blueprint_manager: BlueprintManager = None,
+        armature_manager: ArmatureManager = None,
+        rig_manager: RigManager = None
     ):
         self.blueprint_manager = blueprint_manager
         self.armature_manager = armature_manager
+        self.rig_manager = rig_manager
 
 
     def create_managers(self, asset_name, dirpath, prefab_key=None):
         self.blueprint_manager = BlueprintManager(asset_name=asset_name, dirpath=dirpath, prefab_key=prefab_key)
         self.armature_manager = ArmatureManager(blueprint_manager=self.blueprint_manager)
+        self.rig_manager = RigManager(blueprint_manager=self.blueprint_manager)
 
 
     def build_armature_from_prefab(self):
@@ -114,3 +121,7 @@ class SceneInteractor:
         self.armature_manager.mirror_part(existing_part_key)
         self.blueprint_manager.update_blueprint_from_scene()
         self.blueprint_manager.save_blueprint_to_tempdisk()
+
+
+    def build_rig(self):
+        self.rig_manager.build_rig_from_armature()

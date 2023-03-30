@@ -24,6 +24,11 @@ Placer = placer_utils.Placer
 PlacerManager = placer_utils.PlacerManager
 ScenePlacerManager = placer_utils.ScenePlacerManager
 
+import Snowman3.riggers.utilities.control_utils as control_utils
+importlib.reload(control_utils)
+Control = control_utils.Control
+ControlManager = control_utils.ControlManager
+
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
 
@@ -51,6 +56,7 @@ class Part:
     handle_size: float = 1.2
     position: tuple = (0, 0, 0)
     placers: dict = field(default_factory=dict)
+    controls: dict = field(default_factory=dict)
     data_name: str = None
     scene_name: str = None
     prefab_key: str = None
@@ -70,17 +76,32 @@ class PartManager:
 
     def data_from_part(self):
         data = vars(self.part).copy()
+
         data['placers'] = {}
-        for key, placer, in self.part.placers.items():
-            placer_manager = PlacerManager(placer)
-            data['placers'][key] = placer_manager.data_from_placer()
+        for key, placer in self.part.placers.items():
+            manager = PlacerManager(placer)
+            data['placers'][key] = manager.data_from_placer()
+
+        data['controls'] = {}
+        for key, control in self.part.controls.items():
+            manager = ControlManager(control)
+            data['controls'][key] = manager.data_from_control()
+
         return data
+
 
     def create_placers_from_data(self, placers_data=None):
         if not placers_data:
             placers_data = self.part.placers
         for key, data in placers_data.items():
             self.part.placers[key] = Placer(**data)
+
+
+    def create_controls_from_data(self, controls_data=None):
+        if not controls_data:
+            controls_data = self.part.controls
+        for key, data in controls_data.items():
+            self.part.controls[key] = Control(**data)
 
 
 ########################################################################################################################
@@ -213,10 +234,10 @@ class PartCreator:
         self.side = side
         self.position = position
         self.construction_inputs = construction_inputs
-        self.placers_getter = self.construct_placers_getter()
+        self.part_constructor = self.construct_part_constructor()
 
 
-    def construct_placers_getter(self):
+    def construct_part_constructor(self):
         dir_string = f"Snowman3.riggers.parts.{self.prefab_key}"
         getter = importlib.import_module(dir_string)
         importlib.reload(getter)
@@ -224,23 +245,29 @@ class PartCreator:
         args = self.construction_inputs if self.construction_inputs else {}
         for key, value in (('part_name', self.name), ('side', self.side)):
             args[key] = value
-        placers_getter = BespokePartConstructor(**args)
-        return placers_getter
+        part_constructor = BespokePartConstructor(**args)
+        return part_constructor
 
 
     def get_placers(self):
         placers_dict = {}
-        for placer in self.placers_getter.create_placers():
+        for placer in self.part_constructor.create_placers():
             placers_dict[placer.data_name] = placer
         return placers_dict
 
 
+    def get_controls(self):
+        ctrls_dict = {}
+        for ctrl in self.part_constructor.create_controls():
+            ctrls_dict[ctrl.data_name] = ctrl
+        return ctrls_dict
+
+
     def create_part(self):
-        placers_dict = self.get_placers()
         position = self.position
         scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
-        connectors = self.placers_getter.get_connection_pairs()
-        vector_handle_attachments = self.placers_getter.get_vector_handle_attachments()
+        connectors = self.part_constructor.get_connection_pairs()
+        vector_handle_attachments = self.part_constructor.get_vector_handle_attachments()
         part = Part(name = self.name,
                     prefab_key = self.prefab_key,
                     side = self.side,
@@ -248,8 +275,48 @@ class PartCreator:
                     handle_size = 1.0,
                     data_name = f'{gen.side_tag(self.side)}{self.name}',
                     scene_name = scene_name,
-                    placers = placers_dict,
+                    placers = self.get_placers(),
+                    controls = self.get_controls(),
                     connectors = connectors,
                     vector_handle_attachments=vector_handle_attachments,
                     construction_inputs = self.construction_inputs)
         return part
+
+
+
+########################################################################################################################
+class SceneRigPart:
+    def __init__(
+        self
+    ):
+        self.container = None
+        self.transform_grp = None
+        self.no_transform_grp = None
+
+
+
+########################################################################################################################
+class SceneRigPartManager:
+    def __init__(
+        self,
+        part
+    ):
+        self.part = part
+        self.scene_rig_part = None
+
+
+    def create_scene_rig_part(self):
+        self.scene_rig_part = SceneRigPart()
+        self.create_part_containers()
+        return self.scene_rig_part
+
+
+    def create_part_containers(self):
+        self.scene_rig_part.scene_rig_part = rig_part_container = pm.group(
+            name=f'{gen.side_tag(self.part.side)}{self.part.name}_RIG', world=1, empty=1)
+        self.scene_rig_part.transform_grp = pm.group(
+            name=f'Transform_GRP', empty=1, parent=self.scene_rig_part.scene_rig_part)
+        self.scene_rig_part.no_transform_grp = pm.group(
+            name=f'NoTransform_GRP', empty=1, parent=self.scene_rig_part.scene_rig_part)
+        self.scene_rig_part.no_transform_grp.inheritsTransform.set(0, lock=1)
+        pm.select(clear=1)

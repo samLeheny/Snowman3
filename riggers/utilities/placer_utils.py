@@ -280,7 +280,7 @@ class OrienterManager:
     def __init__(
         self,
         placer,
-        parent,
+        parent = None,
     ):
         self.placer = placer
         self.parent = parent
@@ -292,8 +292,7 @@ class OrienterManager:
 
 
     def create_scene_obj(self):
-        orienter_name = f'{self.placer.parent_part_name}_{self.placer.name}'
-        self.scene_orienter = rig.orienter(name=orienter_name, side=self.placer.side, scale=self.placer.size)
+        self.scene_orienter = rig.orienter(name=self.get_orienter_name(), scale=self.placer.size)
         buffer = gen.buffer_obj(self.scene_orienter, parent=self.parent)
         gen.zero_out(buffer)
         self.connect_attributes_to_placer()
@@ -330,3 +329,13 @@ class OrienterManager:
 
     def connect_attributes_to_placer(self):
         pm.connectAttr(f'{self.parent}.Orienters', f'{self.scene_orienter}.visibility')
+
+
+    def get_orienter_name(self):
+        return f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.placer.name}_ORI'
+
+
+    def get_orienter(self):
+        if not pm.objExists(self.get_orienter_name()):
+            return None
+        return pm.PyNode(self.get_orienter_name())

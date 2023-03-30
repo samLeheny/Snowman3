@@ -104,7 +104,7 @@ def connector_curve(name=None, end_driver_1=None, end_driver_2=None, override_di
 
 
 ########################################################################################################################
-def orienter(name=None, side=None, scale=1):
+def orienter(name=None, scale=1):
     # Initialize variables
     name = name if name else ''
     cvs = [
@@ -135,8 +135,7 @@ def orienter(name=None, side=None, scale=1):
     forms = ["periodic", "open", "open", "periodic", "open", "open", "periodic", "open", "open"]
     degrees = [3, 1, 1, 3, 1, 1, 3, 1, 1]
     # Compose orienter name
-    ori_name = f'{gen.side_tag(side)}{name}_{nom.orienter}'
-    orienter = gen.curve_construct(cvs=cvs, name=ori_name, color=None, form=forms, scale=scale, side=None,
+    orienter = gen.curve_construct(cvs=cvs, name=name, color=None, form=forms, scale=scale, side=None,
                                    degree=degrees)
     # Color orienter
     shapes = orienter.getShapes()

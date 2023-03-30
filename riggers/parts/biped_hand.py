@@ -17,6 +17,10 @@ PlacerCreator = placer_utils.PlacerCreator
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
 importlib.reload(class_PartConstructor)
 PartConstructor = class_PartConstructor.PartConstructor
+
+import Snowman3.riggers.utilities.part_utils as part_utils
+importlib.reload(part_utils)
+SceneRigPartManager = part_utils.SceneRigPartManager
 ###########################
 ###########################
 
@@ -179,20 +183,25 @@ class BespokePartConstructor(PartConstructor):
     def get_vector_handle_attachments(self):
         attachments = {}
 
-        def process_digit(digit_number, segment_count, digit_type):
+        def create_segment_tags_list(digit_number, segment_count, digit_type):
             tags = []
-            finger_name = 'Thumb'
-            if digit_type == 'finger':
-                finger_name = self.get_digit_name(digit_number + 1, self.finger_count)
-            for s in range(segment_count + 1):
-                if s == segment_count:
-                    seg_tag = 'End'
-                else:
-                    seg_tag = f'Seg{s + 1}'
-                placer_key = f'{finger_name}{seg_tag}'
+            finger_names = {'thumb': 'Thumb',
+                            'finger': self.get_digit_name(digit_number + 1, self.finger_count)}
+            finger_name = finger_names[digit_type]
+            if self.include_metacarpals and digit_type == 'finger':
+                tags.append(f'{finger_name}Meta')
+            for seg_num in range(segment_count + 1):
+                seg_name_tag = f'Seg{seg_num + 1}'
+                if seg_num == segment_count:
+                    seg_name_tag = 'End'
+                placer_key = f'{finger_name}{seg_name_tag}'
                 tags.append(placer_key)
-            for tag_num in range(segment_count):
-                attachments[tags[tag_num]] = [tags[tag_num + 1], None]
+            return tags
+
+        def process_digit(digit_number, segment_count, digit_type):
+            segment_tags = create_segment_tags_list(digit_number, segment_count, digit_type)
+            for i in range(len(segment_tags)-1):
+                attachments[segment_tags[i]] = [segment_tags[i + 1], None]
 
         for f in range(self.finger_count):
             process_digit(f, self.finger_segment_count, 'finger')
@@ -200,3 +209,9 @@ class BespokePartConstructor(PartConstructor):
             process_digit(t, self.thumb_segment_count, 'thumb')
 
         return attachments
+
+
+
+    def build_rig_part(self, part):
+        rig_part_manager = SceneRigPartManager(part)
+        rig_part = rig_part_manager.create_scene_rig_part()

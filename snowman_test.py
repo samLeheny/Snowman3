@@ -55,3 +55,5 @@ interactor.save_work()
 mc.file(new=True, f=True)
 
 interactor.build_armature_from_latest_version()
+
+interactor.build_rig()

@@ -8,34 +8,48 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import pymel.core as pm
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 PlacerCreator = placer_utils.PlacerCreator
+OrienterManager = placer_utils.OrienterManager
+
+import Snowman3.riggers.utilities.control_utils as control_utils
+importlib.reload(control_utils)
+ControlCreator = control_utils.ControlCreator
+SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
 importlib.reload(class_PartConstructor)
 PartConstructor = class_PartConstructor.PartConstructor
+
+import Snowman3.riggers.utilities.part_utils as part_utils
+importlib.reload(part_utils)
+SceneRigPartManager = part_utils.SceneRigPartManager
+
+import Snowman3.dictionaries.colorCode as color_code
+importlib.reload(color_code)
 ###########################
 ###########################
 
 
 ###########################
 ######## Variables ########
-
+color_code = color_code.sided_ctrl_color
 ###########################
 ###########################
 
 
 class BespokePartConstructor(PartConstructor):
-
     def __init__(
         self,
         part_name: str,
         side: str = None,
     ):
         super().__init__(part_name, side)
+
 
 
     def create_placers(self):
@@ -56,9 +70,47 @@ class BespokePartConstructor(PartConstructor):
         return placers
 
 
-    def get_connection_pairs(self):
-        return ()
+    def create_controls(self):
+        root_ctrl_size = 60
+        sub_root_ctrl_size = root_ctrl_size * 0.833
+        ctrl_creators = [
+            ControlCreator(
+                name = 'Root',
+                shape = 'COG',
+                color = color_code['root'],
+                locks = {"s": [1, 1, 1], "v": 1},
+                size = root_ctrl_size,
+                match_position = None
+            ),
+            ControlCreator(
+                name='SubRoot',
+                shape='circle',
+                color=color_code['root'],
+                locks={"s": [1, 1, 1], "v": 1},
+                size=sub_root_ctrl_size,
+                match_position=None
+            )
+        ]
+        controls = [creator.create_control() for creator in ctrl_creators]
+        return controls
 
 
-    def get_vector_handle_attachments(self):
-        return{}
+
+    def build_rig_part(self, part):
+        rig_part_manager = SceneRigPartManager(part)
+        rig_part = rig_part_manager.create_scene_rig_part()
+
+        scene_ctrl_managers = {}
+        for ctrl in part.controls.values():
+            scene_ctrl_managers[ctrl.name] = SceneControlManager(ctrl)
+
+        scene_ctrls = {}
+        for key, manager in scene_ctrl_managers.items():
+            scene_ctrls[key] = manager.create_scene_control()
+
+        scene_ctrls['Root'].setParent(rig_part.transform_grp)
+        scene_ctrls['SubRoot'].setParent(scene_ctrls['Root'])
+
+        orienter_manager = OrienterManager(part.placers['root'])
+        root_orienter = orienter_manager.get_orienter()
+        pm.matchTransform(scene_ctrls['Root'], root_orienter)

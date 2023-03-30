@@ -245,6 +245,7 @@ class BlueprintManager:
             new_part = Part(**data)
             manager = PartManager(new_part)
             manager.create_placers_from_data(new_part.placers)
+            manager.create_controls_from_data(new_part.controls)
             parts[key] = manager.part
         return parts
 
