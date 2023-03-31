@@ -8,6 +8,10 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import pymel.core as pm
+
+import Snowman3.utilities.general_utils as gen
+importlib.reload(gen)
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
@@ -58,8 +62,12 @@ class PartConstructor:
 
 
     def build_rig_part(self, part):
-        '''orienters = {}
-        for key, placer in part.placers.items():
-            orienter_manager = OrienterManager(placer=placer)
-            orienters[key] = orienter_manager.get_orienter()'''
-        print('PLACE_HOLDER')
+        return None
+
+
+    def create_rig_part_grps(self, part):
+        rig_part_container = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_RIG', world=1, empty=1)
+        transform_grp = pm.group(name=f'Transform_GRP', empty=1, parent=rig_part_container)
+        no_transform_grp = pm.group(name=f'NoTransform_GRP', empty=1, parent=rig_part_container)
+        no_transform_grp.inheritsTransform.set(0, lock=1)
+        return rig_part_container, transform_grp, no_transform_grp

@@ -104,6 +104,7 @@ class PartManager:
             self.part.controls[key] = Control(**data)
 
 
+
 ########################################################################################################################
 class ScenePartManager:
     def __init__(
@@ -281,42 +282,3 @@ class PartCreator:
                     vector_handle_attachments=vector_handle_attachments,
                     construction_inputs = self.construction_inputs)
         return part
-
-
-
-########################################################################################################################
-class SceneRigPart:
-    def __init__(
-        self
-    ):
-        self.container = None
-        self.transform_grp = None
-        self.no_transform_grp = None
-
-
-
-########################################################################################################################
-class SceneRigPartManager:
-    def __init__(
-        self,
-        part
-    ):
-        self.part = part
-        self.scene_rig_part = None
-
-
-    def create_scene_rig_part(self):
-        self.scene_rig_part = SceneRigPart()
-        self.create_part_containers()
-        return self.scene_rig_part
-
-
-    def create_part_containers(self):
-        self.scene_rig_part.scene_rig_part = rig_part_container = pm.group(
-            name=f'{gen.side_tag(self.part.side)}{self.part.name}_RIG', world=1, empty=1)
-        self.scene_rig_part.transform_grp = pm.group(
-            name=f'Transform_GRP', empty=1, parent=self.scene_rig_part.scene_rig_part)
-        self.scene_rig_part.no_transform_grp = pm.group(
-            name=f'NoTransform_GRP', empty=1, parent=self.scene_rig_part.scene_rig_part)
-        self.scene_rig_part.no_transform_grp.inheritsTransform.set(0, lock=1)
-        pm.select(clear=1)

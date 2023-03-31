@@ -10,6 +10,9 @@
 import importlib
 import pymel.core as pm
 
+import Snowman3.utilities.general_utils as gen
+importlib.reload(gen)
+
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
@@ -24,10 +27,6 @@ SceneControlManager = control_utils.SceneControlManager
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
 importlib.reload(class_PartConstructor)
 PartConstructor = class_PartConstructor.PartConstructor
-
-import Snowman3.riggers.utilities.part_utils as part_utils
-importlib.reload(part_utils)
-SceneRigPartManager = part_utils.SceneRigPartManager
 
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
@@ -57,7 +56,6 @@ class BespokePartConstructor(PartConstructor):
         size = 1.75
         placer_creator = PlacerCreator(
             name='Cog',
-            data_name='cog',
             side=self.side,
             parent_part_name=self.part_name,
             position=(0, 0, 0),
@@ -87,8 +85,7 @@ class BespokePartConstructor(PartConstructor):
 
 
     def build_rig_part(self, part):
-        rig_part_manager = SceneRigPartManager(part)
-        rig_part = rig_part_manager.create_scene_rig_part()
+        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
 
         scene_ctrl_managers = {}
         for ctrl in part.controls.values():
@@ -98,8 +95,10 @@ class BespokePartConstructor(PartConstructor):
         for key, manager in scene_ctrl_managers.items():
             scene_ctrls[key] = manager.create_scene_control()
 
-        scene_ctrls['Cog'].setParent(rig_part.transform_grp)
+        scene_ctrls['Cog'].setParent(transform_grp)
 
-        orienter_manager = OrienterManager(part.placers['cog'])
+        orienter_manager = OrienterManager(part.placers['Cog'])
         cog_orienter = orienter_manager.get_orienter()
         pm.matchTransform(scene_ctrls['Cog'], cog_orienter)
+
+        return rig_part_container

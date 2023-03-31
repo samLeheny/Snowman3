@@ -42,6 +42,7 @@ class Control:
     up_direction: list[float, float, float] = field(default_factory=lambda: [0, 1, 0])
     match_position: str = None
     side: str = None
+    scene_name: str = None
 
 
 
@@ -52,14 +53,15 @@ class ControlCreator:
         name: str,
         shape: str,
         color: Union[list, int],
-        locks: dict,
+        locks: dict = None,
         data_name: str = None,
         position: list = None,
         size: Union[list, float] = 1.0,
         forward_direction: list[float, float, float] = None,
         up_direction: list[float, float, float] = None,
         match_position: str = None,
-        side: str = None
+        side: str = None,
+        scene_name: str = None
     ):
         self.name = name
         self.data_name = data_name if data_name else name
@@ -72,6 +74,7 @@ class ControlCreator:
         self.up_direction = up_direction if up_direction else [0, 1, 0]
         self.match_position = match_position
         self.side = side
+        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{control_tag}'
 
 
     def create_control(self):
@@ -86,7 +89,8 @@ class ControlCreator:
             forward_direction = self.forward_direction,
             up_direction = self.up_direction,
             match_position = self.match_position,
-            side = self.side
+            side = self.side,
+            scene_name = self.scene_name
         )
         return control
 

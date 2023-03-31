@@ -58,7 +58,6 @@ class PlacerCreator:
     def __init__(
         self,
         name: str,
-        data_name: str,
         parent_part_name: str,
         position: tuple,
         side: str = None,
@@ -67,10 +66,11 @@ class PlacerCreator:
         vector_handle_positions: list = None,
         orientation: list = None,
         match_orienter: str = None,
-        scene_name: str = None
+        scene_name: str = None,
+        data_name: str = None,
     ):
         self.name = name
-        self.data_name = data_name
+        self.data_name = data_name if data_name else name
         self.parent_part_name = parent_part_name
         self.position = position
         self.side = side

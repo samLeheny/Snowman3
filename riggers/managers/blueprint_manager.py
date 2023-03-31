@@ -9,6 +9,7 @@
 ##### Import Commands #####
 import os
 from dataclasses import dataclass, field
+from typing import Sequence
 import importlib
 import pymel.core as pm
 import json
@@ -45,6 +46,7 @@ class Blueprint:
     dirpath: str = None
     parts: dict = field(default_factory=dict)
     post_constraints: dict = field(default_factory=list)
+    custom_constraints: Sequence = field(default_factory=list)
 
 
 ########################################################################################################################
@@ -77,6 +79,12 @@ class BlueprintManager:
         prefab_parts = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_parts)
         self.blueprint.parts = prefab_parts.parts
+
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.custom_constraints'
+        custom_constraints = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(custom_constraints)
+        self.blueprint.custom_constraints = custom_constraints.constraint_pairs
+
         self.save_blueprint_to_tempdisk()
 
 

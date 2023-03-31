@@ -8,6 +8,10 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import pymel.core as pm
+
+import Snowman3.utilities.general_utils as gen
+importlib.reload(gen)
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
@@ -17,10 +21,6 @@ PlacerCreator = placer_utils.PlacerCreator
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
 importlib.reload(class_PartConstructor)
 PartConstructor = class_PartConstructor.PartConstructor
-
-import Snowman3.riggers.utilities.part_utils as part_utils
-importlib.reload(part_utils)
-SceneRigPartManager = part_utils.SceneRigPartManager
 ###########################
 ###########################
 
@@ -44,32 +44,27 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['Foot', 'foot', (0, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, True, None],
-            ['Ball', 'ball', (0, -7.5, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, True, None],
-            ['BallEnd', 'ball_end', (0, -7.5, 16.73), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, False,
-             'Ball'],
-            ['SoleToe', 'sole_toe', (0, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
-            ['SoleToeEnd', 'sole_toe_end', (0, -10, 19), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False,
-             None],
-            ['SoleInner', 'sole_inner', (-4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False,
-             None],
-            ['SoleOuter', 'sole_outer', (4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False,
-             None],
-            ['SoleHeel', 'sole_heel', (0, -10, -4), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
+            ['Foot', (0, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, True, None],
+            ['Ball', (0, -7.5, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, True, None],
+            ['BallEnd', (0, -7.5, 16.73), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, False, 'Ball'],
+            ['SoleToe', (0, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
+            ['SoleToeEnd', (0, -10, 19), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
+            ['SoleInner', (-4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
+            ['SoleOuter', (4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
+            ['SoleHeel', (0, -10, -4), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
         ]
         placers = []
         for p in data_packs:
             placer_creator = PlacerCreator(
                 name=p[0],
-                data_name=p[1],
                 side=self.side,
                 parent_part_name=self.part_name,
-                position=p[2],
-                size=p[5],
-                vector_handle_positions=self.proportionalize_vector_handle_positions(p[3], p[5]),
-                orientation=p[4],
-                match_orienter=p[7],
-                has_vector_handles=p[6]
+                position=p[1],
+                size=p[4],
+                vector_handle_positions=self.proportionalize_vector_handle_positions(p[2], p[4]),
+                orientation=p[3],
+                match_orienter=p[6],
+                has_vector_handles=p[5]
             )
             placers.append(placer_creator.create_placer())
         return placers
@@ -77,12 +72,13 @@ class BespokePartConstructor(PartConstructor):
 
     def get_connection_pairs(self):
         return (
-            ('ball', 'foot'),
-            ('ball_end', 'ball')
+            ('Ball', 'Foot'),
+            ('BallEnd', 'Ball')
         )
 
 
 
     def build_rig_part(self, part):
-        rig_part_manager = SceneRigPartManager(part)
-        rig_part = rig_part_manager.create_scene_rig_part()
+        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+
+        return rig_part_container

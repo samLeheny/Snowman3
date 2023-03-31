@@ -8,6 +8,10 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import pymel.core as pm
+
+import Snowman3.utilities.general_utils as gen
+importlib.reload(gen)
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
@@ -17,10 +21,6 @@ PlacerCreator = placer_utils.PlacerCreator
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
 importlib.reload(class_PartConstructor)
 PartConstructor = class_PartConstructor.PartConstructor
-
-import Snowman3.riggers.utilities.part_utils as part_utils
-importlib.reload(part_utils)
-SceneRigPartManager = part_utils.SceneRigPartManager
 ###########################
 ###########################
 
@@ -73,7 +73,6 @@ class BespokePartConstructor(PartConstructor):
         size = 0.9
         placer_creator = PlacerCreator(
             name='Wrist',
-            data_name='wrist',
             side=self.side,
             parent_part_name=self.part_name,
             position=(0, 0, 0),
@@ -127,7 +126,6 @@ class BespokePartConstructor(PartConstructor):
                 size = 0.4
                 placer_creator = PlacerCreator(
                     name=p[0],
-                    data_name=p[0],
                     side=self.side,
                     parent_part_name=self.part_name,
                     position=(p[1], 0, z_position),
@@ -161,7 +159,7 @@ class BespokePartConstructor(PartConstructor):
                 segs.insert(0, f'{finger_name}Meta')
             for j in range(self.finger_segment_count+1):
                 finger_pairs.append([segs[j], segs[j+1]])
-            finger_pairs.insert(0, ['wrist', segs[0]])
+            finger_pairs.insert(0, ['Wrist', segs[0]])
             for pair in finger_pairs:
                 pairs.append(pair)
 
@@ -172,7 +170,7 @@ class BespokePartConstructor(PartConstructor):
             segs.append(f"{thumb_name}{'End'}")
             for j in range(self.thumb_segment_count):
                 thumb_pairs.append([segs[j], segs[j+1]])
-            thumb_pairs.insert(0, ['wrist', segs[0]])
+            thumb_pairs.insert(0, ['Wrist', segs[0]])
             for pair in thumb_pairs:
                 pairs.append(pair)
 
@@ -213,5 +211,6 @@ class BespokePartConstructor(PartConstructor):
 
 
     def build_rig_part(self, part):
-        rig_part_manager = SceneRigPartManager(part)
-        rig_part = rig_part_manager.create_scene_rig_part()
+        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+
+        return rig_part_container
