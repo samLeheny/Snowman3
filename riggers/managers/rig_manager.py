@@ -62,18 +62,17 @@ class RigManager:
 
 
     def build_rig_parts(self):
-        rig_parts_parent = self.rig.scene_rig_container
         parts = self.blueprint_manager.blueprint.parts
         for key, part in parts.items():
-            self.build_rig_part(part, parent=rig_parts_parent)
+            self.build_rig_part(part)
 
 
-    def build_rig_part(self, part, parent):
+    def build_rig_part(self, part):
         dir_string = f"Snowman3.riggers.parts.{part.prefab_key}"
         getter = importlib.import_module(dir_string)
         importlib.reload(getter)
         BespokePartConstructor = getter.BespokePartConstructor
-        part_manager = BespokePartConstructor(part_name = part.name, side = part.side)
+        part_manager = BespokePartConstructor(part_name=part.name, side=part.side)
         rig_part_container = part_manager.build_rig_part(part)
         if rig_part_container:
             rig_part_container.setParent(self.rig.scene_rig_container)

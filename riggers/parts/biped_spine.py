@@ -82,7 +82,8 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_controls(self):
-        ctrl_creators = [
+        ctrl_creators = []
+        ik_ctrl_creators = [
             ControlCreator(
                 name = 'IkChest',
                 shape = 'circle',
@@ -102,6 +103,28 @@ class BespokePartConstructor(PartConstructor):
                 size=14
             )
         ]
+        ctrl_creators += ik_ctrl_creators
+        fk_ctrl_creators = [
+            ControlCreator(
+                name='FkSpine1',
+                shape='directional_circle',
+                color=color_code['M2'],
+                size=12,
+            ),
+            ControlCreator(
+                name='FkSpine2',
+                shape='directional_circle',
+                color=color_code['M2'],
+                size=12,
+            ),
+            ControlCreator(
+                name='FkSpine3',
+                shape='directional_circle',
+                color=color_code['M2'],
+                size=12,
+            )
+        ]
+        ctrl_creators += fk_ctrl_creators
         controls = [creator.create_control() for creator in ctrl_creators]
         return controls
 
@@ -118,7 +141,19 @@ class BespokePartConstructor(PartConstructor):
 
 
 
+    def find_mid_value(self, count):
+        even_count = False
+        if count % 2 == 0:
+            even_count = True
+        if even_count:
+            return int(count / 2), int((count / 2) + 1)
+        else:
+            return int(((count - 1) / 2) + 1)
+
+
+
     def build_rig_part(self, part):
+        segment_count = part.construction_inputs['segment_count']
         rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
 
         scene_ctrl_managers = {}
@@ -131,5 +166,50 @@ class BespokePartConstructor(PartConstructor):
 
         for ctrl in scene_ctrls.values():
             ctrl.setParent(transform_grp)
+
+        def snap_ctrl_to_orienter(ctrl_key, orienter_key):
+            orienter_manager = OrienterManager(part.placers[orienter_key])
+            orienter = orienter_manager.get_orienter()
+            pm.matchTransform(scene_ctrls[ctrl_key], orienter)
+        snap_ctrl_to_orienter('IkPelvis', f'Spine{1}')
+        snap_ctrl_to_orienter('IkChest', f'Spine{segment_count + 1}')
+        spine_mid_num = self.find_mid_value(self.jnt_count)
+        if isinstance(spine_mid_num, int):
+            snap_ctrl_to_orienter('IkWaist', f'Spine{spine_mid_num}')
+        else:
+            spine_mid_num_pair = spine_mid_num
+            orienter_managers = [OrienterManager(part.placers[f'Spine{str(num)}']) for num in spine_mid_num_pair]
+            orienters = [manager.get_orienter() for manager in orienter_managers]
+            pm.delete(pm.parentConstraint(orienters[0], orienters[1], scene_ctrls['IkWaist']))
+
+        orienters = []
+        for i in range(7):
+            key = f'Spine{i+1}'
+            orienter_manager = OrienterManager(part.placers[key])
+            orienters.append(orienter_manager.get_orienter())
+        segment_lengths = [gen.distance_between(orienters[i], orienters[i+1]) for i in range(len(orienters)-1)]
+        total_spine_length = sum(segment_lengths)
+        top_fk_ctrl_position = 0.855
+        fk_ctrl_count = 3
+        fk_ctrl_placement_mults = [(top_fk_ctrl_position/fk_ctrl_count)*i for i in range(1, (fk_ctrl_count+1))]
+        fk_ctrl_placement = [total_spine_length * mult for mult in fk_ctrl_placement_mults]
+        spine_length_increments = []
+        for i, length in enumerate(segment_lengths):
+            if i == 0:
+                spine_length_increments.append(length)
+            else:
+                spine_length_increments.append(spine_length_increments[i-1] + length)
+        pairs = []
+        pair_values = []
+        for placement in fk_ctrl_placement:
+            for i, increment in enumerate(spine_length_increments):
+                if increment > placement:
+                    pairs.append((i-1, i))
+                    pair_values.append((spine_length_increments[i-1], increment))
+                    break
+        print(fk_ctrl_placement)
+        #print(spine_length_increments)
+        #print(pairs)
+        print(pair_values)
 
         return rig_part_container
