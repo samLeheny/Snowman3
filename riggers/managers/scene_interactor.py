@@ -90,7 +90,7 @@ class SceneInteractor:
     def add_part(self, name, prefab_key, side=None):
         part = self.create_part(name, prefab_key, side)
         self.blueprint_manager.add_part(part)
-        self.armature_manager.add_part(part)
+        self.armature_manager.add_part(part, parent=self.armature_manager.scene_root)
 
 
     def remove_part(self, part_key):

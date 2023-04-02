@@ -2571,3 +2571,11 @@ def install_uniform_scale_attr(obj, attr_name, minValue=0.001, keyable=True):
     for attr in ('sx', 'sy', 'sz'):
         pm.connectAttr(f'{obj}.{attr_name}', f'{obj}.{attr}')
         pm.setAttr(f'{obj}.{attr}', lock=1, keyable=0)
+
+
+
+########################################################################################################################
+def delete_history(obj):
+    pm.select(obj, replace=1)
+    pm.delete(constructionHistory=1)
+    pm.select(clear=1)

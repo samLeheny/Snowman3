@@ -28,7 +28,7 @@ sided_ctrl_color = {
     nom.rightSideTag4 : [0.5, 0, 0],
 
     nom.midSideTag : [0.25, 1, 0],
-    nom.midSideTag2 : [0, 1, 0.033],
+    nom.midSideTag2 : [0.145, 0.66, 0],
     nom.midSideTag3 : [0, 0.278, 0.097],
     nom.midSideTag4 : [0, 0.2, 0],
 
