@@ -939,8 +939,6 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
 
         return output
 
-
-
     # Check CV data integrity
     if not cvs:
         pm.error("Unable to create curve. No control point data provided.")
@@ -948,14 +946,12 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
     elif not isinstance(cvs, list):
         pm.error("Unable to create curve. Control points data must be of type: list")
 
-
     # Determine how many discrete curves are needed to complete this curve object
     shape_count = 1
     if isinstance(cvs[0][0], list):
         shape_count = len(cvs)
     else:
         cvs = [cvs]
-
 
     #...Determine which shape build method to use
     form = bulk_up_list(form, new_length=shape_count)

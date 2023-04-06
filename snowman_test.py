@@ -30,7 +30,7 @@ interactor.create_managers(asset_name='sam', prefab_key='biped', dirpath=dirpath
 interactor.build_armature_from_prefab()
 
 # ...Scramble placer and part positions in scene
-scene_placers = pm.ls('*_PLC')
+'''scene_placers = pm.ls('*_PLC')
 scene_parts = pm.ls('*_PART')
 objs_to_move = scene_placers + scene_parts
 for obj in objs_to_move:
@@ -48,7 +48,7 @@ interactor.add_part('NewPart', 'foot_plantigrade', side='L')
 interactor.remove_part('R_Arm')
 
 # ...Add mirrored part to existing part
-interactor.add_mirrored_part('L_Arm')
+interactor.add_mirrored_part('L_Arm')'''
 
 interactor.save_work()
 
