@@ -8,6 +8,8 @@
 ###########################
 ##### Import Commands #####
 import os
+from dataclasses import dataclass, field
+from typing import Sequence
 import importlib
 import pymel.core as pm
 import json
@@ -15,16 +17,15 @@ import json
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
-import Snowman3.riggers.utilities.container_utils as container_utils
-importlib.reload(container_utils)
-Container = container_utils.Container
-ContainerManager = container_utils.ContainerManager
-ContainerCreator = container_utils.ContainerCreator
-ContainerData = container_utils.ContainerData
-
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
 PartManager = part_utils.PartManager
+Part = part_utils.Part
+
+import Snowman3.riggers.utilities.poseConstraint_utils as postConstraint_utils
+importlib.reload(postConstraint_utils)
+PostConstraintManager = postConstraint_utils.PostConstraintManager
+PostConstraint = postConstraint_utils.PostConstraint
 ###########################
 ###########################
 
@@ -39,16 +40,13 @@ default_version_padding = 4
 
 
 ########################################################################################################################
+@dataclass
 class Blueprint:
-    def __init__(
-        self,
-        asset_name,
-        dirpath = None,
-        containers = {}
-    ):
-        self.asset_name = asset_name
-        self.dirpath = dirpath
-        self.containers = containers
+    asset_name: str
+    dirpath: str = None
+    parts: dict = field(default_factory=dict)
+    post_constraints: dict = field(default_factory=list)
+    custom_constraints: Sequence = field(default_factory=list)
 
 
 ########################################################################################################################
@@ -77,10 +75,16 @@ class BlueprintManager:
 
 
     def populate_prefab_blueprint(self):
-        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.containers'
-        prefab_containers = importlib.import_module(dir_string.format(self.prefab_key))
-        importlib.reload(prefab_containers)
-        self.blueprint.containers = prefab_containers.containers
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.parts'
+        prefab_parts = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_parts)
+        self.blueprint.parts = prefab_parts.parts
+
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.custom_constraints'
+        custom_constraints = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(custom_constraints)
+        self.blueprint.custom_constraints = custom_constraints.constraint_pairs
+
         self.save_blueprint_to_tempdisk()
 
 
@@ -153,15 +157,9 @@ class BlueprintManager:
 
 
     def update_blueprint_from_scene(self):
-        for key, container in self.blueprint.containers.items():
-            self.blueprint.containers[key] = self.update_container_from_scene(container)
+        for key, part in self.blueprint.parts.items():
+            self.blueprint.parts[key] = self.update_part_from_scene(part)
         return self.blueprint
-
-
-    def update_container_from_scene(self, container):
-        for key, part in container.parts.items():
-            container.parts[key] = self.update_part_from_scene(part)
-        return container
 
 
     def update_part_from_scene(self, part):
@@ -169,12 +167,29 @@ class BlueprintManager:
         part.position = tuple(scene_handle.translate.get())
         for key, placer in part.placers.items():
             part.placers[key] = self.update_placer_from_scene(placer)
+            part.placers[key] = self.update_vector_handles_from_scene(placer)
         return part
 
 
     def update_placer_from_scene(self, placer):
         scene_placer = pm.PyNode(placer.scene_name)
         placer.position = tuple(scene_placer.translate.get())
+        return placer
+
+
+    def update_vector_handles_from_scene(self, placer):
+        def process_handle(vector):
+            handle_name = f'{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}'
+            if not pm.objExists(handle_name):
+                return False
+            scene_vector_handle = pm.PyNode(handle_name)
+            position = list(scene_vector_handle.translate.get())
+            if vector == 'AIM':
+                placer.vector_handle_positions[0] = position
+            elif vector == 'UP':
+                placer.vector_handle_positions[1] = position
+        process_handle('AIM')
+        process_handle('UP')
         return placer
 
 
@@ -227,30 +242,50 @@ class BlueprintManager:
 
     def blueprint_from_data(self, data):
         self.blueprint = Blueprint(**data)
-        containers_data_holder = self.blueprint.containers
-        self.blueprint.containers = {}
-        for key, data in containers_data_holder.items():
-            new_container = Container(**data)
-            container_manager = ContainerManager(new_container)
-            container_manager.create_parts_from_data(new_container.parts)
-            self.blueprint.containers[key] = container_manager.container
+        self.blueprint.parts = self.parts_from_data(self.blueprint.parts)
+        self.blueprint.post_constraints = self.post_constraints_from_data(self.blueprint.post_constraints)
         return self.blueprint
 
 
+    def parts_from_data(self, parts_data):
+        parts = {}
+        for key, data in parts_data.items():
+            new_part = Part(**data)
+            manager = PartManager(new_part)
+            manager.create_placers_from_data(new_part.placers)
+            manager.create_controls_from_data(new_part.controls)
+            parts[key] = manager.part
+        return parts
+
+
+    def post_constraints_from_data(self, post_constraints_data):
+        post_constraints = []
+        for data in post_constraints_data:
+            post_constraints.append(PostConstraint(**data))
+        return post_constraints
+
+
     def data_from_blueprint(self):
-        data = {}
-        for key, value in vars(self.blueprint).items():
-            data[key] = value
-        data['containers'] = {}
-        for key, container in self.blueprint.containers.items():
-            container_manager = ContainerManager(container)
-            data['containers'][key] = container_manager.data_from_container()
+        data = vars(self.blueprint).copy()
+        data['parts'] = self.parts_data_from_blueprint(self.blueprint.parts)
+        data['post_constraints'] = self.post_constraints_data_from_blueprints(self.blueprint.post_constraints)
         return data
 
 
-    def data_from_container(self, container):
-        container_manager = ContainerManager(container)
-        return container_manager.data_from_container()
+    def parts_data_from_blueprint(self, parts):
+        data = {}
+        for key, part in parts.items():
+            manager = PartManager(part)
+            data[key] = manager.data_from_part()
+        return data
+
+
+    def post_constraints_data_from_blueprints(self, post_constraints):
+        data = []
+        for post_constraint in post_constraints:
+            manager = PostConstraintManager(post_constraint)
+            data.append(manager.data_from_post_constraint())
+        return data
 
 
     def data_from_part(self, part):
@@ -267,43 +302,25 @@ class BlueprintManager:
             json.dump(blueprint_data, fh, indent=5)
 
 
-    def add_container(self, container):
-        self.blueprint.containers[container.data_name] = container
-        self.save_blueprint_to_tempdisk()
-
-
-    def remove_container(self, container):
+    def add_part(self, part):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.containers.pop(container.data_name)
+        self.blueprint.parts[part.data_name] = part
         self.save_blueprint_to_tempdisk()
 
 
-    def add_part(self, part, container):
+    def remove_part(self, part):
         self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.containers[container.data_name].parts[part.data_name] = part
+        self.blueprint.parts.pop(part.data_name)
         self.save_blueprint_to_tempdisk()
 
 
-    def remove_part(self, part, parent_container):
-        self.blueprint = self.get_blueprint_from_working_dir()
-        self.blueprint.containers[parent_container.data_name].parts.pop(part.data_name)
+    def get_part(self, part_key):
+        return self.blueprint.parts[part_key]
+
+
+    def run_prefab_post_actions(self):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.post_actions'
+        prefab_post_actions = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(prefab_post_actions)
+        self.blueprint = prefab_post_actions.run_post_actions(self.blueprint)
         self.save_blueprint_to_tempdisk()
-
-
-    def get_opposite_container(self, container_key):
-        container = self.get_container(container_key)
-        container_manager = ContainerManager(container)
-        opposite_container_key = container_manager.opposite_container_data_name()
-        if opposite_container_key not in self.blueprint.containers:
-            return None
-        opposite_container = self.blueprint.containers[opposite_container_key]
-        return opposite_container
-
-
-    def get_container(self, container_key):
-        return self.blueprint.containers[container_key]
-
-
-    def get_part(self, part_key, container_key):
-        container = self.get_container(container_key)
-        return container.parts[part_key]

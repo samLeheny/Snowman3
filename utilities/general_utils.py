@@ -939,8 +939,6 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
 
         return output
 
-
-
     # Check CV data integrity
     if not cvs:
         pm.error("Unable to create curve. No control point data provided.")
@@ -948,14 +946,12 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
     elif not isinstance(cvs, list):
         pm.error("Unable to create curve. Control points data must be of type: list")
 
-
     # Determine how many discrete curves are needed to complete this curve object
     shape_count = 1
     if isinstance(cvs[0][0], list):
         shape_count = len(cvs)
     else:
         cvs = [cvs]
-
 
     #...Determine which shape build method to use
     form = bulk_up_list(form, new_length=shape_count)
@@ -1143,16 +1139,13 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
     if not shape_offset:
         shape_offset = [0, 0, 0]
 
-
     #...Test that provided dictionary entry exists
     if prefab not in curve_prefabs:
         pm.error("Cannot create prefab curve object. " \
                  "Provided prefab dictionary key '{}' is invalid".format(prefab))
 
-
     #...Get shape data dictionary for this prefab
     prefab_dict = curve_prefabs[prefab]
-
 
     #...Initialize dictionary to assemble curve object input data
     crv_obj_inputs = {
@@ -1169,14 +1162,12 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
     for key in prefab_dict:
         crv_obj_inputs[key] = prefab_dict[key]
 
-
     #...Update curve object input dictionary with provided parameters.
     if color:
         crv_obj_inputs["color"] = color
 
     if not scale:
         scale = 1
-
 
     #...If a name was provided, override any name that came through with the control info
     if name:
@@ -1195,8 +1186,6 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
                     forward_direction = forward_direction,
                     side = side,
     )
-
-
 
     return output_obj
 
@@ -2095,16 +2084,6 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
 
 
 ########################################################################################################################
-def flip(obj, axis="x"):
-
-    obj.ry.set(180)
-    obj.sz.set(-1)
-
-
-
-
-
-########################################################################################################################
 def get_shape_center(obj):
 
 
@@ -2541,8 +2520,6 @@ def drive_attr(obj_1, obj_2, attr):
 
 
 
-
-
 ########################################################################################################################
 def get_angle_convergence_between_two_vectors(vector_1, vector_2):
     v1, v2 = vector_1, vector_2
@@ -2553,11 +2530,10 @@ def get_angle_convergence_between_two_vectors(vector_1, vector_2):
 
 
 
-
 ########################################################################################################################
 def side_tag(side):
-    side_tag = f'{side}_' if side else ''
-    return(side_tag)
+    side_tag_string = f'{side}_' if side else ''
+    return side_tag_string
 
 
 
@@ -2565,3 +2541,20 @@ def side_tag(side):
 def opposite_side(side):
     sides = {'L': 'R', 'R': 'L'}
     return sides[side]
+
+
+
+########################################################################################################################
+def install_uniform_scale_attr(obj, attr_name, minValue=0.001, keyable=True):
+    pm.addAttr(obj, longName=attr_name, minValue=minValue, defaultValue=1, keyable=keyable)
+    for attr in ('sx', 'sy', 'sz'):
+        pm.connectAttr(f'{obj}.{attr_name}', f'{obj}.{attr}')
+        pm.setAttr(f'{obj}.{attr}', lock=1, keyable=0)
+
+
+
+########################################################################################################################
+def delete_history(obj):
+    pm.select(obj, replace=1)
+    pm.delete(constructionHistory=1)
+    pm.select(clear=1)

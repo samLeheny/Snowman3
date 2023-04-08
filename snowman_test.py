@@ -30,36 +30,31 @@ interactor.create_managers(asset_name='sam', prefab_key='biped', dirpath=dirpath
 interactor.build_armature_from_prefab()
 
 # ...Scramble placer and part positions in scene
-scene_placers = pm.ls('*_PLC')
+'''scene_placers = pm.ls('*_PLC')
 scene_parts = pm.ls('*_PART')
 objs_to_move = scene_placers + scene_parts
 for obj in objs_to_move:
     current_position = list(obj.translate.get())
-    new_position = [current_position[i] + (random.random()*5) for i in range(3)]
+    new_position = [current_position[i] + ((random.random()-0.5)*3) for i in range(3)]
     obj.translate.set(tuple(new_position))
 
 # ...Mirror placer and part positions
 interactor.update_blueprint_from_scene()
 interactor.mirror_armature('L')
 
-# ...Add new (prefab) container
-interactor.add_container('ThirdArm', side='L', prefab_key='biped_arm', parts_prefix='Third')
-# ...Add new (empty) container
-interactor.add_container('Tail', side='M', prefab_key=None, parts_prefix=None)
-# ...Remove a container
-interactor.remove_container('R_Leg')
 # ...Add new part to existing container
-interactor.add_part('NewPart', 'foot_plantigrade', 'L_Hand', side='L')
+interactor.add_part('NewPart', 'foot_plantigrade', side='L')
 # ...Remove a part from a container
-interactor.remove_part('biped_arm', 'R_Arm')
+interactor.remove_part('R_Arm')
 
 # ...Add mirrored part to existing part
-interactor.add_mirrored_part('biped_arm', 'L_Arm')
-# ...Add mirrored container to existing container
-interactor.add_mirrored_container('L_Leg')
+interactor.add_mirrored_part('L_Arm')'''
 
-interactor.save_work()
+'''interactor.save_work()
 
 mc.file(new=True, f=True)
 
 interactor.build_armature_from_latest_version()
+
+interactor.build_rig()
+'''
