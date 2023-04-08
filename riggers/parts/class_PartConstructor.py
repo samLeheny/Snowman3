@@ -16,6 +16,10 @@ importlib.reload(gen)
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 OrienterManager = placer_utils.OrienterManager
+
+import Snowman3.riggers.utilities.control_utils as control_utils
+importlib.reload(control_utils)
+SceneControlManager = control_utils.SceneControlManager
 ###########################
 ###########################
 
@@ -67,7 +71,28 @@ class PartConstructor:
 
     def create_rig_part_grps(self, part):
         rig_part_container = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_RIG', world=1, empty=1)
-        transform_grp = pm.group(name=f'Transform_GRP', empty=1, parent=rig_part_container)
-        no_transform_grp = pm.group(name=f'NoTransform_GRP', empty=1, parent=rig_part_container)
+        connector_node = pm.group(name=f'Connector', empty=1, parent=rig_part_container)
+        transform_grp = pm.group(name=f'Transform_GRP', empty=1, parent=connector_node)
+        no_transform_grp = pm.group(name=f'NoTransform_GRP', empty=1, parent=connector_node)
+        if self.side == 'R':
+            [gen.flip_obj(grp) for grp in (transform_grp, no_transform_grp)]
         no_transform_grp.inheritsTransform.set(0, lock=1)
-        return rig_part_container, transform_grp, no_transform_grp
+        return rig_part_container, connector_node, transform_grp, no_transform_grp
+
+
+    def get_scene_armature_nodes(self, part):
+        orienters = self.get_scene_orienters(part)
+        ctrls = self.create_scene_ctrls(part)
+        return orienters, ctrls
+
+
+    def get_scene_orienters(self, part):
+        orienter_managers = {key: OrienterManager(placer) for (key, placer) in part.placers.items()}
+        scene_orienters = {key: manager.get_orienter() for (key, manager) in orienter_managers.items()}
+        return scene_orienters
+
+
+    def create_scene_ctrls(self, part):
+        scene_ctrl_managers = {ctrl.name: SceneControlManager(ctrl) for ctrl in part.controls.values()}
+        scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
+        return scene_ctrls

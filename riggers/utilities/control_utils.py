@@ -17,6 +17,9 @@ importlib.reload(gen)
 
 import Snowman3.utilities.rig_utils as rig
 importlib.reload(rig)
+
+import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
+importlib.reload(prefab_curve_shapes)
 ###########################
 ###########################
 
@@ -24,6 +27,7 @@ importlib.reload(rig)
 ###########################
 ######## Variables ########
 control_tag = 'CTRL'
+prefab_ctrl_shapes = prefab_curve_shapes.create_dict()
 ###########################
 ###########################
 
@@ -75,6 +79,11 @@ class ControlCreator:
         self.match_position = match_position
         self.side = side
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{control_tag}'
+        self.form, self.cvs, self.degree = self.compose_cvs()
+
+
+    def compose_cvs(self):
+        return prefab_ctrl_shapes[self.shape].values()
 
 
     def create_control(self):

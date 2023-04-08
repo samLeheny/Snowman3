@@ -1139,16 +1139,13 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
     if not shape_offset:
         shape_offset = [0, 0, 0]
 
-
     #...Test that provided dictionary entry exists
     if prefab not in curve_prefabs:
         pm.error("Cannot create prefab curve object. " \
                  "Provided prefab dictionary key '{}' is invalid".format(prefab))
 
-
     #...Get shape data dictionary for this prefab
     prefab_dict = curve_prefabs[prefab]
-
 
     #...Initialize dictionary to assemble curve object input data
     crv_obj_inputs = {
@@ -1165,14 +1162,12 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
     for key in prefab_dict:
         crv_obj_inputs[key] = prefab_dict[key]
 
-
     #...Update curve object input dictionary with provided parameters.
     if color:
         crv_obj_inputs["color"] = color
 
     if not scale:
         scale = 1
-
 
     #...If a name was provided, override any name that came through with the control info
     if name:
@@ -1191,8 +1186,6 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
                     forward_direction = forward_direction,
                     side = side,
     )
-
-
 
     return output_obj
 
@@ -2085,16 +2078,6 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
                 output['offsetWeights'] = offset_matrix_blend+'.target[{}].weight'.format(str(i-1))
 
     return output
-
-
-
-
-
-########################################################################################################################
-def flip(obj, axis="x"):
-
-    obj.ry.set(180)
-    obj.sz.set(-1)
 
 
 

@@ -1,4 +1,4 @@
-# Title: biped_arm.py
+# Title: biped_spine.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -131,19 +131,22 @@ class BespokePartConstructor(PartConstructor):
                 name = 'IkChest',
                 shape = 'circle',
                 color = color_code[self.side],
-                size = 14
+                size = 14,
+                side=self.side
             ),
             ControlCreator(
                 name='IkWaist',
                 shape='circle',
                 color=color_code[self.side],
-                size=14
+                size=14,
+                side=self.side
             ),
             ControlCreator(
                 name='IkPelvis',
                 shape='circle',
                 color=color_code[self.side],
-                size=14
+                size=14,
+                side=self.side
             )
         ]
         ctrl_creators += ik_ctrl_creators
@@ -153,27 +156,31 @@ class BespokePartConstructor(PartConstructor):
                 shape='directional_circle',
                 color=color_code['M2'],
                 size=12,
-                up_direction = [0, -1, 0]
+                up_direction = [0, -1, 0],
+                side=self.side
             ),
             ControlCreator(
                 name='FkSpine2',
                 shape='directional_circle',
                 color=color_code['M2'],
                 size=12,
-                up_direction = [0, -1, 0]
+                up_direction = [0, -1, 0],
+                side=self.side
             ),
             ControlCreator(
                 name='FkSpine3',
                 shape='directional_circle',
                 color=color_code['M2'],
                 size=12,
-                up_direction = [0, -1, 0]
+                up_direction = [0, -1, 0],
+                side=self.side
             ),
             ControlCreator(
                 name='FkHips',
                 shape='directional_circle',
                 color=color_code['M2'],
                 size=12,
+                side=self.side
             )
         ]
         ctrl_creators += fk_ctrl_creators
@@ -183,6 +190,7 @@ class BespokePartConstructor(PartConstructor):
                 shape='square',
                 color=color_code['M3'],
                 size=12,
+                side=self.side
             ) for i in range(self.segment_count+1)
         ]
         ctrl_creators += tweak_ctrl_creators
@@ -192,7 +200,8 @@ class BespokePartConstructor(PartConstructor):
                 shape='gear',
                 color=color_code['settings'],
                 size=1,
-                locks={'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]}
+                locks={'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]},
+                side=self.side
             )
         )
         controls = [creator.create_control() for creator in ctrl_creators]
@@ -255,16 +264,13 @@ class BespokePartConstructor(PartConstructor):
 
 
     def build_rig_part(self, part):
+        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+
         segment_count = part.construction_inputs['segment_count']
         bind_jnt_count = segment_count + 1
-        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
 
-        orienter_managers = {key: OrienterManager(placer) for (key, placer) in part.placers.items()}
-        orienters = {key: manager.get_orienter() for (key, manager) in orienter_managers.items()}
         spine_orienters = [orienters[f'Spine{i+1}'] for i in range(segment_count+1)]
-
-        scene_ctrl_managers = {ctrl.name: SceneControlManager(ctrl) for ctrl in part.controls.values()}
-        scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
 
         for ctrl_key in ['IkPelvis', 'IkWaist', 'IkChest']:
             scene_ctrls[ctrl_key].setParent(transform_grp)
@@ -326,7 +332,7 @@ class BespokePartConstructor(PartConstructor):
 
         bind_jnts = self.create_bind_joints(grp_parent=no_transform_grp, ctrls=scene_ctrls,
                                             bind_jnt_count=bind_jnt_count, ribbon=ik_output_ribbon['nurbsPlane'],
-                                            rig_part_container=rig_part_container)
+                                            rig_part_transform=transform_grp)
 
         for ctrl, indices in zip((scene_ctrls['IkPelvis'], scene_ctrls['IkWaist'], scene_ctrls['IkChest']),
                                  ((0, 1), (2, 3, 4), (5,))):
@@ -339,7 +345,7 @@ class BespokePartConstructor(PartConstructor):
         for ctrl in (scene_ctrls['IkPelvis'], scene_ctrls['IkWaist'], scene_ctrls['IkChest']):
             node = ctrl.getParent(generations=2)
             mult_matrix = nodes.multMatrix(
-                matrixIn=(rig_part_container.worldMatrix, node.parentInverseMatrix))
+                matrixIn=(transform_grp.worldMatrix, node.parentInverseMatrix))
             nodes.decomposeMatrix(inputMatrix=mult_matrix.matrixSum, outputScale=node.scale)
 
         # Install tweak controls above bind joints ---------------------------------------------------------------------
@@ -396,7 +402,7 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def create_bind_joints(self, grp_parent, ctrls, bind_jnt_count, ribbon, rig_part_container):
+    def create_bind_joints(self, grp_parent, ctrls, bind_jnt_count, ribbon, rig_part_transform):
         bind_jnts_grp = pm.group(name='spine_bindJnts', p=grp_parent, em=1)
         bind_jnts = []
         bind_jnt_attach_nodes = []
@@ -410,7 +416,7 @@ class BespokePartConstructor(PartConstructor):
             pin.outputRotate.connect(attach.rotate)
             jnt_buffer.setParent(attach)
             jnt_buffer.translate.set(0, 0, 0)
-            mult_matrix = nodes.multMatrix(matrixIn=(rig_part_container.worldMatrix, jnt_buffer.parentInverseMatrix))
+            mult_matrix = nodes.multMatrix(matrixIn=(rig_part_transform.worldMatrix, jnt_buffer.parentInverseMatrix))
             nodes.decomposeMatrix(inputMatrix=mult_matrix.matrixSum, outputScale=jnt_buffer.scale)
             bind_jnts.append(jnt)
             bind_jnt_attach_nodes.append(attach)

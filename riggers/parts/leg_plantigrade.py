@@ -44,11 +44,11 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['Thigh', (0, 0, 0), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
-            ['Calf', (0, -45, 4.57), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
-            ['CalfEnd', (0, -91, 0), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 1.25, True, None],
-            ['AnkleEnd', (0, -101, 0), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 0.7, False, 'CalfEnd'],
-            ['IkKnee', (0, -45, 40), [[0, -1, 0], [0, 0, 1]], [[0, 0, 1], [1, 0, 0]], 1.25, False, None],
+            ['Thigh', (0, 0, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['Calf', (0, -45, 4.57), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['CalfEnd', (0, -91, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['AnkleEnd', (0, -101, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 0.7, False, 'CalfEnd'],
+            ['IkKnee', (0, -45, 40), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 1, 0]], 1.25, False, None],
         ]
         placers = []
         for p in data_packs:
@@ -86,6 +86,6 @@ class BespokePartConstructor(PartConstructor):
 
 
     def build_rig_part(self, part):
-        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
 
         return rig_part_container

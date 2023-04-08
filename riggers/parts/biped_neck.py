@@ -1,4 +1,4 @@
-# Title: biped_arm.py
+# Title: biped_neck.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -15,6 +15,9 @@ importlib.reload(gen)
 
 import Snowman3.utilities.rig_utils as rig
 importlib.reload(rig)
+
+import Snowman3.utilities.node_utils as nodes
+importlib.reload(nodes)
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
@@ -87,19 +90,22 @@ class BespokePartConstructor(PartConstructor):
                 shape='circle',
                 color=color_code['M2'],
                 size=7,
+                side=self.side
             ),
             ControlCreator(
                 name='Head',
                 shape='cylinder',
                 color=color_code['M2'],
                 size=[9, 0.65, 9],
+                side=self.side
             ),
             ControlCreator(
                 name='NeckSettings',
                 shape='gear',
                 color=color_code['settings'],
                 size=0.75,
-                locks={'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]}
+                locks={'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]},
+                side=self.side
             )
         ]
         controls = [creator.create_control() for creator in ctrl_creators]
@@ -118,13 +124,10 @@ class BespokePartConstructor(PartConstructor):
 
 
     def build_rig_part(self, part):
-        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
-        orienter_managers = {key: OrienterManager(placer) for (key, placer) in part.placers.items()}
-        orienters = {key: manager.get_orienter() for (key, manager) in orienter_managers.items()}
-
-        scene_ctrl_managers = {ctrl.name: SceneControlManager(ctrl) for ctrl in part.controls.values()}
-        scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
+        jnt_resolution = 5
 
         pairs = (('Neck', 'Neck'), ('Head', 'Head'), ('NeckSettings', 'NeckSettings'))
         [pm.matchTransform(scene_ctrls[pair[0]], orienters[pair[1]]) for pair in pairs]
@@ -170,33 +173,31 @@ class BespokePartConstructor(PartConstructor):
         pm.delete(pm.orientConstraint(temp_neck_aimer, stretch_out_socket))
 
         # ...Roll joint system -----------------------------------------------------------------------------------------
-        """pm.addAttr(ctrls["settings"], longName="NeckLen", attributeType="float", minValue=0.001, defaultValue=1,
-                   keyable=1)
+        pm.addAttr(scene_ctrls['NeckSettings'], longName='NeckLen', attributeType='float', minValue=0.001,
+                   defaultValue=1, keyable=1)
         # ...Rollers
-        neck_length = gen.distance_between(position_1=rig_module.placers['neck'].world_position,
-                                           position_2=rig_module.placers['head'].world_position)
+        neck_length = gen.distance_between(obj_1=orienters['Neck'], obj_2=orienters['Head'])
         bend_ctrl_size = neck_length * 0.5
-        neck_roller = rig_utils.limb_rollers(start_node=stretch_socket,
-                                             end_node=stretch_out_socket,
-                                             roller_name='neck',
-                                             roll_axis=(0, 1, 0),
-                                             up_axis=(0, 0, 1),
-                                             ctrl_color=bend_ctrl_color,
-                                             parent=rig_module.no_transform_grp,
-                                             side=rig_module.side,
-                                             ctrl_size=bend_ctrl_size,
-                                             populate_ctrls=[0, 1, 0],
-                                             world_up_obj=stretch_socket)
+        neck_roller = rig.limb_rollers(start_node=stretch_socket,
+                                       end_node=stretch_out_socket,
+                                       roller_name='neck',
+                                       roll_axis=(0, 1, 0),
+                                       up_axis=(0, 0, 1),
+                                       ctrl_color=color_code['M'],
+                                       parent=no_transform_grp,
+                                       side=part.side,
+                                       ctrl_size=bend_ctrl_size,
+                                       populate_ctrls=[0, 1, 0],
+                                       world_up_obj=stretch_socket)
         # ...Ribbon
         ribbon_up_vector = (0, 0, -1)
-        if rig_module.side == nom.rightSideTag:
+        if part.side == nom.rightSideTag:
             ribbon_up_vector = (0, 0, 1)
 
         # ...Create ribbons
-        neck_ribbon = rig_utils.ribbon_plane(name="neck", start_obj=stretch_socket, end_obj=stretch_out_socket,
-                                             up_obj=up_obj, density=jnt_resolution, side=rig_module.side,
-                                             up_vector=ribbon_up_vector)
-        neck_ribbon["nurbsStrip"].setParent(rig_module.no_transform_grp)
+        neck_ribbon = rig.ribbon_plane(name='neck', start_obj=stretch_socket, end_obj=stretch_out_socket, up_obj=up_obj,
+                                       density=jnt_resolution, side=part.side, up_vector=ribbon_up_vector)
+        neck_ribbon["nurbsStrip"].setParent(no_transform_grp)
         neck_ribbon["nurbsStrip"].scale.set(1, 1, 1)
 
         # ...Skin ribbons
@@ -205,33 +206,34 @@ class BespokePartConstructor(PartConstructor):
         pm.skinCluster(maximumInfluences=1, toSelectedBones=1)
 
         # ...Tweak ctrls
-        neck_length = node_utils.multDoubleLinear(input1=ctrls["settings"] + "." + "NeckLen",
-                                                  input2=gen.distance_between(obj_1=ctrls["neck"], obj_2=ctrls["head"]))
+        neck_length_node = nodes.multDoubleLinear(input1=f'{scene_ctrls["NeckSettings"]}.NeckLen',
+                                                  input2=gen.distance_between(obj_1=scene_ctrls["Neck"],
+                                                                              obj_2=scene_ctrls["Head"]))
 
         # --------------------------------------------------------------------------------------------------------------
-        pm.addAttr(ctrls["settings"], longName="Volume", attributeType="float", minValue=0, maxValue=10, defaultValue=0,
-                   keyable=1)
+        pm.addAttr(scene_ctrls['NeckSettings'], longName='Volume', attributeType='float', minValue=0, maxValue=10,
+                   defaultValue=0, keyable=1)
 
-        neck_tweak_ctrls = rig_utils.ribbon_tweak_ctrls(
-            ribbon=neck_ribbon["nurbsStrip"], ctrl_name="neck", length_ends=(ctrls["neck"], ctrls["head"]),
-            length_attr=neck_length.output, attr_ctrl=ctrls["settings"], side=rig_module.side,
-            ctrl_color=tweak_ctrl_color,
-            ctrl_resolution=jnt_resolution, parent=rig_module.no_transform_grp, ctrl_size=5.0)
+        neck_tweak_ctrls = rig.ribbon_tweak_ctrls(
+            ribbon=neck_ribbon['nurbsStrip'], ctrl_name='Neck', length_ends=(scene_ctrls['Neck'], scene_ctrls['Head']),
+            length_attr=neck_length_node.output, attr_ctrl=scene_ctrls['NeckSettings'], side=part.side,
+            ctrl_color=color_code['M'], ctrl_resolution=jnt_resolution, parent=no_transform_grp,
+            ctrl_size=neck_length * 0.4)
 
         # Adjustable biped_neck length ---------------------------------------------------------------------------------
-        rig_module.neck_len_start_node = pm.shadingNode("transform", name="neck_length_start", au=1)
-        rig_module.neck_len_end_node = pm.shadingNode("transform", name="neck_length_end", au=1)
-        rig_module.neck_len_end_node.setParent(rig_module.neck_len_start_node)
+        neck_len_start_node = pm.shadingNode('transform', name='neck_length_start', au=1)
+        neck_len_end_node = pm.shadingNode('transform', name='neck_length_end', au=1)
+        neck_len_end_node.setParent(neck_len_start_node)
 
-        pm.matchTransform(rig_module.neck_len_start_node, ctrls["neck"])
-        pm.delete(pm.aimConstraint(ctrls["head"], rig_module.neck_len_start_node, worldUpType="object",
+        pm.matchTransform(neck_len_start_node, scene_ctrls['Neck'])
+        pm.delete(pm.aimConstraint(scene_ctrls['Head'], neck_len_start_node, worldUpType='object',
                                    worldUpObject=up_obj, aimVector=(0, 1, 0), upVector=(0, 0, 1)))
-        pm.matchTransform(rig_module.neck_len_end_node, ctrls["head"])
+        pm.matchTransform(neck_len_end_node, scene_ctrls['Head'])
 
-        neck_length.output.connect(rig_module.neck_len_end_node.ty)
-        rig_module.neck_len_start_node.setParent(ctrls["neck"])
+        neck_length_node.output.connect(neck_len_end_node.ty)
+        neck_len_start_node.setParent(scene_ctrls['Neck'])
 
-        ctrls["head"].getParent().setParent(rig_module.neck_len_end_node)
+        scene_ctrls['Head'].getParent().setParent(neck_len_end_node)
 
         # Finalize controls --------------------------------------------------------------------------------------------
         '''ctrls["neckBend"] = ctrl_data["neckBend"].initialize_anim_ctrl(existing_obj=neck_roller["mid_ctrl"])
@@ -244,7 +246,7 @@ class BespokePartConstructor(PartConstructor):
         for key in ctrl_data:
             ctrl_data[key].finalize_anim_ctrl(delete_existing_shapes=True)'''
 
-        [gen.zero_offsetParentMatrix(ctrl) for ctrl in ctrls.values()]
+        [gen.zero_offsetParentMatrix(ctrl) for ctrl in scene_ctrls.values()]
 
         # ...Attach neck rig to greater rig ----------------------------------------------------------------------------
         '''if rig_space_connector:
@@ -254,6 +256,5 @@ class BespokePartConstructor(PartConstructor):
         # --------------------------------------------------------------------------------------------------------------
         pm.delete(temp_nodes_to_delete)
         pm.select(clear=1)
-        return rig_module"""
 
         return rig_part_container

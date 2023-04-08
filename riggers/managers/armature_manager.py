@@ -119,7 +119,7 @@ class ArmatureManager:
     def mirror_vector_handle_positions(self, placer_key, part_key):
         placer = self.get_placer(placer_key, part_key)
         def process_handle(vector):
-            handle_name = f"{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}"
+            handle_name = f'{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}'
             if not pm.objExists(handle_name):
                 return False
             scene_handle = pm.PyNode(handle_name)

@@ -44,14 +44,14 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['Foot', (0, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, True, None],
-            ['Ball', (0, -7.5, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, True, None],
-            ['BallEnd', (0, -7.5, 16.73), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 1.25, False, 'Ball'],
-            ['SoleToe', (0, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
-            ['SoleToeEnd', (0, -10, 19), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
-            ['SoleInner', (-4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
-            ['SoleOuter', (4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
-            ['SoleHeel', (0, -10, -4), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.6, False, None],
+            ['Foot', (0, 0, 0), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['Ball', (0, -7.5, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['BallEnd', (0, -7.5, 16.73), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, 'Ball'],
+            ['SoleToe', (0, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.6, False, None],
+            ['SoleToeEnd', (0, -10, 19), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.6, False, None],
+            ['SoleInner', (-4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.6, False, None],
+            ['SoleOuter', (4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.6, False, None],
+            ['SoleHeel', (0, -10, -4), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.6, False, None],
         ]
         placers = []
         for p in data_packs:
@@ -79,6 +79,6 @@ class BespokePartConstructor(PartConstructor):
 
 
     def build_rig_part(self, part):
-        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
 
         return rig_part_container

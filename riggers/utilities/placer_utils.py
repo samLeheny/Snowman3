@@ -76,10 +76,19 @@ class PlacerCreator:
         self.side = side
         self.size = size if size else 1.25
         self.has_vector_handles = has_vector_handles
-        self.vector_handle_positions = vector_handle_positions if vector_handle_positions else [[5, 0, 0], [0, 0, -5]]
-        self.orientation = orientation if orientation else [[0, 0, 1], [1, 0, 0]]
+        self.vector_handle_positions = self.initialize_vector_handle_positions(vector_handle_positions)
+        self.orientation = orientation if orientation else [[1, 0, 0], [0, 1, 0]]
         self.match_orienter = match_orienter
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{parent_part_name}_{name}_{placer_tag}'
+
+
+    def initialize_vector_handle_positions(self, handle_vectors):
+        if not handle_vectors:
+            handle_vectors = [[5, 0, 0], [0, 0, -5]]
+        aim_vector, up_vector = handle_vectors
+        aim_side_mult = -1 if self.side == 'R' else 1
+        aim_vector = [aim_vector[i] * aim_side_mult for i in range(3)]
+        return [aim_vector, up_vector]
 
 
     def create_placer(self):
@@ -225,6 +234,7 @@ class VectorHandleManager:
         self.parent = parent
         self.placer = placer
         self.scene_handle = None
+        self.vector_handles_size = 1
 
 
     def create_in_scene(self):
@@ -235,7 +245,8 @@ class VectorHandleManager:
 
 
     def create_scene_handle(self):
-        types = {'aim': ('AIM', 'cube', 0.7), 'up': ('UP', 'tetrahedron', 1.6)}
+        types = {'aim': ('AIM', 'cube', self.vector_handles_size * 0.7),
+                 'up': ('UP', 'tetrahedron', self.vector_handles_size * 1.6)}
         vector_type, handle_shape, shape_scaler_factor = types[self.vector]
         self.scene_name = f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.name}_{vector_type}'
         self.scene_handle = gen.prefab_curve_construct(prefab=handle_shape, name=self.scene_name, side=self.side,
@@ -289,15 +300,24 @@ class OrienterManager:
 
     def create_scene_orienter(self):
         self.create_scene_obj()
+        self.connect_attributes_to_placer()
+        self.lock_transforms()
 
 
     def create_scene_obj(self):
         self.scene_orienter = rig.orienter(name=self.get_orienter_name(), scale=self.placer.size)
-        buffer = gen.buffer_obj(self.scene_orienter, parent=self.parent)
-        gen.zero_out(buffer)
-        self.connect_attributes_to_placer()
-        self.lock_transforms()
+        offset = gen.buffer_obj(self.scene_orienter, parent=self.parent, suffix='OFFSET')
+        buffer = gen.buffer_obj(self.scene_orienter)
+        gen.zero_out(offset)
+        if self.placer.side == 'R':
+            gen.flip_obj(offset)
+            self.flip_orienter_shape()
         return self.scene_orienter
+
+
+    def flip_orienter_shape(self):
+        self.scene_orienter.sz.set(-1)
+        pm.makeIdentity(self.scene_orienter, apply=1)
 
 
     def constrain_orienter(self, vector_handles):

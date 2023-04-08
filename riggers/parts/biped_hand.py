@@ -78,7 +78,7 @@ class BespokePartConstructor(PartConstructor):
             position=(0, 0, 0),
             size=size,
             vector_handle_positions=self.proportionalize_vector_handle_positions([[1, 0, 0], [0, 1, 0]], size),
-            orientation=[[0, 0, 1], [0, 1, 0]],
+            orientation=[[1, 0, 0], [0, 1, 0]],
             has_vector_handles=True
         )
         placers.append(placer_creator.create_placer())
@@ -131,7 +131,7 @@ class BespokePartConstructor(PartConstructor):
                     position=(p[1], 0, z_position),
                     size=size,
                     vector_handle_positions=self.proportionalize_vector_handle_positions(vector_handle_positions, size),
-                    orientation=[[0, 0, 1], [1, 0, 0]],
+                    orientation=[[1, 0, 0], [0, 0, 1]],
                     match_orienter=p[3],
                     has_vector_handles=p[2]
                 )
@@ -211,6 +211,6 @@ class BespokePartConstructor(PartConstructor):
 
 
     def build_rig_part(self, part):
-        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
 
         return rig_part_container

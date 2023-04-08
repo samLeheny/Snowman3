@@ -87,16 +87,35 @@ class RigManager:
     def make_custom_constraint(self, constraint_pair):
         source_part_key, source_ctrl_key = constraint_pair[0]
         target_part_key = constraint_pair[1]
+        match_transform = constraint_pair[2]
         source_ctrl = self.blueprint_manager.blueprint.parts[source_part_key].controls[source_ctrl_key]
         target_part = self.blueprint_manager.blueprint.parts[target_part_key]
         if not all((pm.objExists(source_ctrl.scene_name), pm.objExists(self.get_rig_part_scene_name(target_part)))):
             return False
         scene_source_ctrl = pm.PyNode(source_ctrl.scene_name)
         scene_target_part = pm.PyNode(self.get_rig_part_scene_name(target_part))
-        pm.parentConstraint(scene_source_ctrl, scene_target_part, mo=1)
-        pm.scaleConstraint(scene_source_ctrl, scene_target_part, mo=1)
+        part_connector = self.get_rig_connector(scene_target_part)
+        if match_transform:
+            children = part_connector.getChildren()
+            for child in children:
+                child.setParent(world=1)
+            pm.matchTransform(part_connector, scene_source_ctrl)
+            for child in children:
+                child.setParent(part_connector)
+        pm.parentConstraint(scene_source_ctrl, part_connector, mo=1)
+        #pm.scaleConstraint(scene_source_ctrl, part_transform_grp, mo=1)
 
 
     def get_rig_part_scene_name(self, part):
+        part_suffix, rig_suffix = 'PART', 'RIG'
         part_scene_name = part.scene_name
-        return part_scene_name.replace('PART', 'RIG')
+        return part_scene_name.replace(part_suffix, rig_suffix)
+
+
+    def get_rig_connector(self, rig_scene_part):
+        rig_part_connector_name = 'Connector'
+        return_node = None
+        for child in rig_scene_part.getChildren():
+            if gen.get_clean_name(str(child)) == rig_part_connector_name:
+                return_node = child
+        return return_node
