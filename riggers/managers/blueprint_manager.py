@@ -193,6 +193,13 @@ class BlueprintManager:
         return placer
 
 
+    def update_control_shape_from_scene(self, ctrl):
+        scene_ctrl = pm.PyNode(ctrl.scene_name)
+        ctrl_shape_data = gen.get_shape_data_from_obj(scene_ctrl)
+        ctrl.shape = ctrl_shape_data
+        return ctrl
+
+
     def save_blueprint_to_disk(self):
         print("Saving work to disk...")
         asset_name = self.blueprint.asset_name

@@ -143,8 +143,7 @@ def orienter(name=None, scale=1):
     forms = ["periodic", "open", "open", "periodic", "open", "open", "periodic", "open", "open"]
     degrees = [3, 1, 1, 3, 1, 1, 3, 1, 1]
     # Compose orienter name
-    orienter = gen.curve_construct(cvs=cvs, name=name, color=None, form=forms, scale=scale, side=None,
-                                   degree=degrees)
+    orienter = gen.curve_construct(cvs=cvs, name=name, color=None, form=forms, scale=scale, degree=degrees)
     # Color orienter
     shapes = orienter.getShapes()
     for s, c in zip(shapes, colors):

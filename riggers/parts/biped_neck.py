@@ -106,8 +106,26 @@ class BespokePartConstructor(PartConstructor):
                 size=0.75,
                 locks={'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]},
                 side=self.side
+            ),
+            ControlCreator(
+                name='NeckBend',
+                shape='circle',
+                color=color_code['M2'],
+                size=6,
+                side=self.side
             )
         ]
+        for i in range(5):
+            ctrl_creators.append(
+                ControlCreator(
+                    name=f'NeckTweak{i+1}',
+                    shape='square',
+                    color=self.colors[3],
+                    up_direction=[1, 0, 0],
+                    size=4,
+                    side=self.side
+                )
+            )
         controls = [creator.create_control() for creator in ctrl_creators]
         return controls
 
@@ -219,6 +237,21 @@ class BespokePartConstructor(PartConstructor):
             length_attr=neck_length_node.output, attr_ctrl=scene_ctrls['NeckSettings'], side=part.side,
             ctrl_color=color_code['M'], ctrl_resolution=jnt_resolution, parent=no_transform_grp,
             ctrl_size=neck_length * 0.4)
+
+        ctrl_pairs = [('NeckBend', neck_roller['ctrls'][1])]
+        for i, tweak_ctrl in enumerate(neck_tweak_ctrls):
+            ctrl_pairs.append((f'NeckTweak{i+1}', tweak_ctrl))
+
+        for ctrl_str, ribbon_setup_ctrl in ctrl_pairs:
+            scene_ctrl = scene_ctrls[ctrl_str]
+            scene_ctrl_name = gen.get_clean_name(str(scene_ctrl))
+            pm.rename(scene_ctrl, f'{scene_ctrl_name}_TEMP')
+            pm.rename(ribbon_setup_ctrl, scene_ctrl_name)
+            scene_ctrl.setParent(ribbon_setup_ctrl.getParent())
+            gen.zero_out(scene_ctrl)
+            pm.matchTransform(scene_ctrl, ribbon_setup_ctrl)
+            gen.copy_shapes(source_obj=scene_ctrl, destination_obj=ribbon_setup_ctrl, delete_existing_shapes=True)
+            scene_ctrls[ctrl_str] = ribbon_setup_ctrl
 
         # Adjustable biped_neck length ---------------------------------------------------------------------------------
         neck_len_start_node = pm.shadingNode('transform', name='neck_length_start', au=1)

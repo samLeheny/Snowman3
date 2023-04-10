@@ -32,7 +32,7 @@ def make_inter_part_attachments(blueprint):
     constraints_list = []
     def sided_data(side):
         constraint_data_sets = [
-            PostConstraint(f'{side}_Arm', 'UpperArm', f'{side}_Clavicle', 'ClavicleEnd', True),
+            PostConstraint(f'{side}_Arm', 'Upperarm', f'{side}_Clavicle', 'ClavicleEnd', True),
             PostConstraint(f'{side}_Hand', 'Wrist', f'{side}_Arm', 'ForearmEnd', True),
             PostConstraint(f'{side}_Hand', 'Wrist', f'{side}_Arm', 'WristEnd', False),
             PostConstraint(f'{side}_Foot', 'Foot', f'{side}_Leg', 'CalfEnd', True),

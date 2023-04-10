@@ -8,6 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -125,3 +126,84 @@ class SceneInteractor:
 
     def build_rig(self):
         self.rig_manager.build_rig_from_armature()
+
+
+    def update_selected_control_shapes(self):
+        sel = pm.ls(sl=1)
+        if not sel:
+            return False
+        for obj in sel:
+            if not self.check_obj_is_control(obj):
+                continue
+            self.update_control_shape(obj)
+        self.blueprint_manager.save_blueprint_to_tempdisk()
+
+
+    def update_all_control_shapes(self):
+        possible_ctrls = pm.ls('*_CTRL', type='transform')
+        for obj in possible_ctrls:
+            if not self.check_obj_is_control(obj):
+                continue
+            self.update_control_shape(obj)
+        self.blueprint_manager.save_blueprint_to_tempdisk()
+
+
+    def mirror_selected_control_shapes(self):
+        sel = pm.ls(sl=1)
+        if not sel:
+            return False
+        for obj in sel:
+            if not self.check_obj_is_control(obj):
+                continue
+            self.mirror_control_shape(obj)
+        self.blueprint_manager.save_blueprint_to_tempdisk()
+        '''############################
+        ############################
+        ############################'''
+
+
+    def mirror_all_control_shapes(self):
+        possible_ctrls = pm.ls('*_CTRL', type='transform')
+        for obj in possible_ctrls:
+            if not self.check_obj_is_control(obj):
+                continue
+            self.mirror_control_shape(obj)
+        self.blueprint_manager.save_blueprint_to_tempdisk()
+        '''############################
+        ############################
+        ############################'''
+
+
+    def check_obj_is_control(self, obj):
+        if not gen.get_clean_name(str(obj)).endswith('_CTRL'):
+            return False
+        if not obj.getShape():
+            return False
+        return True
+
+
+    def update_control_shape(self, ctrl):
+        blueprint_ctrl = self.find_scene_control_in_blueprint(ctrl)
+        self.blueprint_manager.update_control_shape_from_scene(blueprint_ctrl)
+
+
+    def mirror_control_shape(self, ctrl):
+        opposite_ctrl = gen.get_opposite_side_obj(ctrl)
+        if not opposite_ctrl:
+            return False
+        '''############################
+        ############################
+        ############################'''
+
+
+    def find_scene_control_in_blueprint(self, ctrl):
+        return_node = None
+        blueprint_ctrls = []
+        blueprint = self.blueprint_manager.blueprint
+        for part in blueprint.parts.values():
+            for control in part.controls.values():
+                blueprint_ctrls.append(control)
+        for control in blueprint_ctrls:
+            if gen.get_clean_name(str(ctrl)) == control.scene_name:
+                return_node = control
+        return return_node

@@ -20,13 +20,16 @@ OrienterManager = placer_utils.OrienterManager
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
 SceneControlManager = control_utils.SceneControlManager
+
+import Snowman3.dictionaries.colorCode as color_code
+importlib.reload(color_code)
 ###########################
 ###########################
 
 
 ###########################
 ######## Variables ########
-
+color_code = color_code.sided_ctrl_color
 ###########################
 ###########################
 
@@ -39,6 +42,12 @@ class PartConstructor:
     ):
         self.part_name = part_name
         self.side = side
+        self.colors = self.get_colors()
+
+
+    def get_colors(self):
+        side_key = self.side if self.side else 'M'
+        return [color_code[side_key]] + [color_code[f'{side_key}{i}'] for i in range(2, 5)]
     
 
     def proportionalize_vector_handle_positions(self, positions, placer_size, scale_factor=4.0):

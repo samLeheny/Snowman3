@@ -41,9 +41,6 @@ class Control:
     color: Union[list, int]
     position: list
     locks: dict = field(default_factory=lambda: {'v': 1})
-    size: Union[list, float] = 1.0
-    forward_direction: list[float, float, float] = field(default_factory=lambda: [0, 0, 1])
-    up_direction: list[float, float, float] = field(default_factory=lambda: [0, 1, 0])
     match_position: str = None
     side: str = None
     scene_name: str = None
@@ -79,24 +76,26 @@ class ControlCreator:
         self.match_position = match_position
         self.side = side
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{control_tag}'
-        self.form, self.cvs, self.degree = self.compose_cvs()
+        self.cv_data = self.compose_cvs()
 
 
-    def compose_cvs(self):
-        return prefab_ctrl_shapes[self.shape].values()
+    def compose_cvs(self, prefabs_dict=prefab_ctrl_shapes):
+        prefab_curve_data = prefabs_dict[self.shape]
+        composed_cv_data = gen.compose_curve_construct_cvs(
+            cvs=prefab_curve_data['cvs'], form=prefab_curve_data['form'], scale=self.size,
+            degree=prefab_curve_data['degree'], shape_offset=None, up_direction=self.up_direction,
+            forward_direction=self.forward_direction)
+        return composed_cv_data
 
 
     def create_control(self):
         control = Control(
             name = self.name,
             data_name = self.data_name,
-            shape = self.shape,
+            shape = self.cv_data,
             color = self.color,
             position = self.position,
             locks = self.locks,
-            size = self.size,
-            forward_direction = self.forward_direction,
-            up_direction = self.up_direction,
             match_position = self.match_position,
             side = self.side,
             scene_name = self.scene_name
@@ -137,14 +136,12 @@ class SceneControlManager:
 
 
     def create_scene_obj(self):
-        self.scene_control = gen.prefab_curve_construct(
+        self.scene_control = gen.curve_construct(
             name=self.get_scene_name(),
-            prefab=self.control.shape,
-            forward_direction=self.control.forward_direction,
-            up_direction=self.control.up_direction,
-            side=self.control.side,
             color=self.control.color,
-            scale=self.control.size
+            cvs=self.control.shape['cvs'],
+            degree=self.control.shape['degree'],
+            form=self.control.shape['form'],
         )
         return self.scene_control
 

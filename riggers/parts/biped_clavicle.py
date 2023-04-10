@@ -111,10 +111,13 @@ class BespokePartConstructor(PartConstructor):
         orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
         clavicle_jnt = rig.joint(name='Clavicle', side=part.side, joint_type=nom.bindJnt, radius=1.0)
+        clavicle_end_jnt = rig.joint(name='ClavicleEnd', side=part.side, joint_type=nom.bindJnt, radius=0.6)
+        clavicle_end_jnt.setParent(clavicle_jnt)
         clavicle_jnt.setParent(scene_ctrls['Clavicle'])
         clavicle_ctrl_buffer = gen.buffer_obj(scene_ctrls['Clavicle'], parent=transform_grp)
         gen.zero_out(clavicle_ctrl_buffer)
         pm.matchTransform(clavicle_ctrl_buffer, orienters['Clavicle'])
+        pm.matchTransform(clavicle_end_jnt, orienters['ClavicleEnd'])
 
         pm.select(clear=1)
         return rig_part_container

@@ -50,11 +50,11 @@ interactor.remove_part('R_Arm')
 # ...Add mirrored part to existing part
 interactor.add_mirrored_part('L_Arm')'''
 
-'''interactor.save_work()
+interactor.save_work()
 
 mc.file(new=True, f=True)
 
 interactor.build_armature_from_latest_version()
 
 interactor.build_rig()
-'''
+interactor.update_all_control_shapes()
