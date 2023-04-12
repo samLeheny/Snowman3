@@ -10,6 +10,7 @@
 import importlib
 import math
 import pymel.core as pm
+from dataclasses import dataclass
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -33,58 +34,75 @@ default_socket_name = 'limbSocket'
 default_pv_name = 'poleVector'
 ctrl_colors = {"FK": 13, "IK": 6, "other": ([0, 0.220, 1], [0.663, 0.028, 0.032]), "sub": (15, 4)}
 roll_jnt_resolution = 5
+
+@dataclass
+class LimbRigPrefab:
+    limb_type: str
+    default_seg_names: list
+    default_jnt_positions: tuple
+    dynamic_length_values: tuple
+    double_jnt_values: tuple
+    ik_indices: dict
+    pin_ctrls: tuple
+    tarsus_index: int = None
+
 prefab_inputs = {
-        'plantigrade': {
-            'default_seg_names' : ['upperlimb', 'lowerlimb', 'extrem'],
-            'default_jnt_positions' : ((0, 0, 0), (1, 0, -0.5), (2, 0, 0), (2.5, 0, 0)),
-            'dynamic_length_values' : (1, 1, 0, 0),
-            'double_jnt_values' : (0, 0, 0, 0),
-            'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
-            'tarsus_index': None,
-            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': 1, 'limb_span_jnt_indices': (0, 2)},)
-        },
-        'plantigrade_doubleKnee': {
-            'default_seg_names': ['upperlimb', 'joint', 'lowerlimb', 'extrem'],
-            'default_jnt_positions': ((0, 0, 0), (0.9, 0, -0.5), (1.1, 0, -0.5), (2, 0, 0), (2.5, 0, 0)),
-            'dynamic_length_values': (1, 0, 1, 0, 0),
-            'double_jnt_values' : (0, 1, 0, 0, 0),
-            'ik_indices' : {'start': 0, 'end': -2, 'mid': 1},
-            'tarsus_index': None,
-            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},)
-        },
-        'digitigrade': {
-            'default_seg_names': ['upperlimb', 'lowerlimb', 'tarsus', 'extrem'],
-            'default_jnt_positions': ((0, 0, 0), (0.75, 0, -0.5), (1.5, 0, 0.25), (2, 0, 0), (2.5, 0, 0)),
-            'dynamic_length_values': (1, 1, 1, 0, 0),
-            'double_jnt_values' : (0, 0, 0, 0, 0),
-            'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
-            'tarsus_index': 2,
-            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': 1, 'limb_span_jnt_indices': (0, 2)},
-                          {'name': 'heel', 'target_jnt_index': 2, 'limb_span_jnt_indices': (1, 3)})
-        },
-        'digitigrade_doubleKnees': {
-            'default_seg_names': ['upperlimb', 'frontKnee', 'lowerlimb', 'backKnee', 'tarsus', 'extrem'],
-            'default_jnt_positions': ((0, 0, 0), (0.65, 0, -0.5), (0.85, 0, -0.5), (1.4, 0, 0.25), (1.6, 0, 0.25),
-                                      (2, 0, 0), (2.5, 0, 0)),
-            'dynamic_length_values': (1, 0, 1, 0, 1, 0, 0),
-            'double_jnt_values' : (0, 1, 0, 1, 0, 0, 0),
-            'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
-            'tarsus_index': 4,
-            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},
-                          {'name': 'heel', 'target_jnt_index': (3, 4), 'limb_span_jnt_indices': (2, 5)})
-        },
-        'digitigrade_doubleFrontKnee': {
-            'default_seg_names': ['upperlimb', 'frontKnee', 'lowerlimb', 'tarsus', 'extrem'],
-            'default_jnt_positions': ((0, 0, 0), (0.65, 0, -0.5), (0.85, 0, -0.5), (1.5, 0, 0.25), (2, 0, 0),
-                                      (2.5, 0, 0)),
-            'dynamic_length_values': (1, 0, 1, 1, 0, 0),
-            'double_jnt_values' : (0, 1, 0, 0, 0, 0),
-            'ik_indices' : {'start': 0, 'end': -3, 'mid': 1},
-            'tarsus_index': 3,
-            'pin_ctrls': ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},
-                          {'name': 'heel', 'target_jnt_index': 3, 'limb_span_jnt_indices': (2, 4)})
-        },
-    }
+    'plantigrade': LimbRigPrefab(
+        limb_type = 'plantigrade',
+        default_seg_names = ['upperlimb', 'lowerlimb', 'extrem'],
+        default_jnt_positions = ((0, 0, 0), (1, 0, -0.5), (2, 0, 0), (2.5, 0, 0)),
+        dynamic_length_values = (1, 1, 0, 0),
+        double_jnt_values = (0, 0, 0, 0),
+        ik_indices = {'start': 0, 'end': -2, 'mid': 1},
+        tarsus_index = None,
+        pin_ctrls = ({'name': 'knee', 'target_jnt_index': 1, 'limb_span_jnt_indices': (0, 2)},)
+    ),
+    'plantigrade_doubleKnee': LimbRigPrefab(
+        limb_type = 'plantigrade_doubleKnee',
+        default_seg_names = ['upperlimb', 'joint', 'lowerlimb', 'extrem'],
+        default_jnt_positions = ((0, 0, 0), (0.9, 0, -0.5), (1.1, 0, -0.5), (2, 0, 0), (2.5, 0, 0)),
+        dynamic_length_values = (1, 0, 1, 0, 0),
+        double_jnt_values = (0, 1, 0, 0, 0),
+        ik_indices = {'start': 0, 'end': -2, 'mid': 1},
+        tarsus_index = None,
+        pin_ctrls = ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},)
+    ),
+    'digitigrade': LimbRigPrefab(
+        limb_type = 'digitigrade',
+        default_seg_names = ['upperlimb', 'lowerlimb', 'tarsus', 'extrem'],
+        default_jnt_positions = ((0, 0, 0), (0.75, 0, -0.5), (1.5, 0, 0.25), (2, 0, 0), (2.5, 0, 0)),
+        dynamic_length_values = (1, 1, 1, 0, 0),
+        double_jnt_values = (0, 0, 0, 0, 0),
+        ik_indices = {'start': 0, 'end': -3, 'mid': 1},
+        tarsus_index = 2,
+        pin_ctrls = ({'name': 'knee', 'target_jnt_index': 1, 'limb_span_jnt_indices': (0, 2)},
+                     {'name': 'heel', 'target_jnt_index': 2, 'limb_span_jnt_indices': (1, 3)})
+    ),
+    'digitigrade_doubleKnees': LimbRigPrefab(
+        limb_type = 'digitigrade_doubleKnees',
+        default_seg_names = ['upperlimb', 'frontKnee', 'lowerlimb', 'backKnee', 'tarsus', 'extrem'],
+        default_jnt_positions = ((0, 0, 0), (0.65, 0, -0.5), (0.85, 0, -0.5), (1.4, 0, 0.25), (1.6, 0, 0.25),
+                                 (2, 0, 0), (2.5, 0, 0)),
+        dynamic_length_values = (1, 0, 1, 0, 1, 0, 0),
+        double_jnt_values = (0, 1, 0, 1, 0, 0, 0),
+        ik_indices = {'start': 0, 'end': -3, 'mid': 1},
+        tarsus_index = 4,
+        pin_ctrls = ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},
+                     {'name': 'heel', 'target_jnt_index': (3, 4), 'limb_span_jnt_indices': (2, 5)})
+    ),
+    'digitigrade_doubleFrontKnee': LimbRigPrefab(
+        limb_type = 'digitigrade_doubleFrontKnee',
+        default_seg_names = ['upperlimb', 'frontKnee', 'lowerlimb', 'tarsus', 'extrem'],
+        default_jnt_positions = ((0, 0, 0), (0.65, 0, -0.5), (0.85, 0, -0.5), (1.5, 0, 0.25), (2, 0, 0),
+                                 (2.5, 0, 0)),
+        dynamic_length_values = (1, 0, 1, 1, 0, 0),
+        double_jnt_values = (0, 1, 0, 0, 0, 0),
+        ik_indices = {'start': 0, 'end': -3, 'mid': 1},
+        tarsus_index = 3,
+        pin_ctrls = ({'name': 'knee', 'target_jnt_index': (1, 2), 'limb_span_jnt_indices': (0, 3)},
+                     {'name': 'heel', 'target_jnt_index': 3, 'limb_span_jnt_indices': (2, 4)})
+    )
+}
 ###########################
 ###########################
 
@@ -201,9 +219,9 @@ class LimbRig:
 
         inputs = prefab_inputs[prefab_key]
 
-        default_seg_names = inputs['default_seg_names']
-        default_jnt_positions = inputs['default_jnt_positions']
-        dynamic_length_values = inputs['dynamic_length_values']
+        default_seg_names = inputs.default_seg_names
+        default_jnt_positions = inputs.default_jnt_positions
+        dynamic_length_values = inputs.dynamic_length_values
 
         if not self.segment_names: self.segment_names = default_seg_names
         self.segment_names.append(f'{self.segment_names[-1]}End')
@@ -218,25 +236,25 @@ class LimbRig:
                                       start_world_position = self.jnt_positions[i],
                                       end_world_position = end_world_position,
                                       dynamic_length = dynamic_length_values[i],
-                                      double_jnt_status = inputs['double_jnt_values'][i])
+                                      double_jnt_status = inputs.double_jnt_values[i])
             self.segments.append(new_segment)
 
         self.total_limb_length = sum([s.segment_length for s in self.segments])
 
         self.segment_count = len(self.segments)
-        self.limb_ik_start_jnt_index = inputs['ik_indices']['start']
-        self.limb_ik_end_jnt_index = inputs['ik_indices']['end']
-        self.limb_ik_mid_jnt_index = inputs['ik_indices']['mid']
+        self.limb_ik_start_jnt_index = inputs.ik_indices['start']
+        self.limb_ik_end_jnt_index = inputs.ik_indices['end']
+        self.limb_ik_mid_jnt_index = inputs.ik_indices['mid']
 
         self.create_position_holders()
         self.get_pv_vector()
         self.create_rig_grps()
         self.create_rig_socket_ctrl()
         self.create_length_mult_nodes()
-        self.blend_rig(pin_ctrls_data=inputs['pin_ctrls'])
+        self.blend_rig(pin_ctrls_data=inputs.pin_ctrls)
         self.fk_rig()
-        self.ik_rig(tarsus_index=inputs['tarsus_index'], limb_ik_start_index=inputs['ik_indices']['start'],
-                    limb_ik_end_index=inputs['ik_indices']['end'])
+        self.ik_rig(tarsus_index=inputs.tarsus_index, limb_ik_start_index=inputs.ik_indices['start'],
+                    limb_ik_end_index=inputs.ik_indices['end'])
         self.setup_kinematic_blend()
         self.delete_position_holders()
 
@@ -430,12 +448,9 @@ class LimbRig:
         ctrl_color = self.ctrl_colors['other'][1] if self.side == 'R' else self.ctrl_colors['other'][0]
 
         #...Create controls
-        ctrl = self.ctrls['socket'] = rig.control(ctrl_info = {'shape': 'tag_hexagon',
-                                                                     'scale': [ctrl_size, ctrl_size, ctrl_size]},
-                                                        name = f'{self.socket_name}Pin',
-                                                        ctrl_type = nom.animCtrl,
-                                                        side = self.side,
-                                                        color = ctrl_color)
+        ctrl = self.ctrls['socket'] = rig.control(
+            ctrl_info = {'shape': 'tag_hexagon', 'scale': [ctrl_size, ctrl_size, ctrl_size]},
+            name = f'{self.socket_name}Pin', ctrl_type = nom.animCtrl, side = self.side, color = ctrl_color)
 
         #...Position ctrl in scene and hierarchy
         ctrl.translate.set(self.jnt_positions[0])
@@ -1319,5 +1334,4 @@ class LimbSegment:
 
         length_attr_name = f'{self.segment_name}Len'
         pm.addAttr(ctrl, longName=length_attr_name, attributeType='float', minValue=0.001, defaultValue=1, keyable=1)
-        self.length_mult_node = nodes.multDoubleLinear(input1=self.segment_length,
-                                                            input2=f'{ctrl}.{length_attr_name}')
+        self.length_mult_node = nodes.multDoubleLinear(input1=self.segment_length, input2=f'{ctrl}.{length_attr_name}')

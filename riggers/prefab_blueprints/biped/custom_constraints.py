@@ -27,4 +27,8 @@ constraint_pairs = [
     [['M_Spine', 'IkChest'], 'R_Clavicle', True],
     [['L_Clavicle', 'Clavicle'], 'L_Arm', True],
     [['R_Clavicle', 'Clavicle'], 'R_Arm', True],
+    [['M_Spine', 'IkPelvis'], 'L_Leg', True],
+    [['M_Spine', 'IkPelvis'], 'R_Leg', True],
+    [['L_Arm', 'IkHand'], 'L_Hand', True],
+    [['R_Arm', 'IkHand'], 'R_Hand', True],
 ]

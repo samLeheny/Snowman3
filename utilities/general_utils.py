@@ -67,7 +67,6 @@ get_colour_from_sided_list
 curve_obj
 rename_shapes
 prefab_curve_obj
-side_tag_from_string
 break_connections
 get_clean_name
 get_opposite_side_obj
@@ -1123,44 +1122,6 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
 
 
 ########################################################################################################################
-def side_tag_from_string(side):
-    """
-    Takes in string describing directions left, right, or middle and returns a correctly formatted side tag that can be
-        used as the correct arguments to parameters in other functions.
-    Args:
-        side (string): The string describing the direction of the desired side tag. String should refer to directions:
-            left, right, or middle
-    Return:
-        (string) The resulting side tag.
-    """
-
-    if not side:
-        return None
-
-
-    side_tag = None
-
-
-    side_strings_dict = {
-        nom.leftSideTag : ["left", "Left", "LEFT", "l", "L"],
-        nom.rightSideTag : ["right", "Right", "RIGHT", "r", "R"],
-        nom.midSideTag : ["middle", "Middle", "MIDDLE", "mid", "Mid", "MID", "m", "M"]
-    }
-
-    for key in side_strings_dict:
-        if side in side_strings_dict[key]:
-            side_tag = key
-            break
-
-
-    if not side_tag:
-        pm.error("Failed to get side tag from string argument. Check that argument '{0}' is valid.".format(side))
-
-    return side_tag
-
-
-
-########################################################################################################################
 def break_connections(attr, incoming=True, outgoing=False):
     """
 
@@ -1379,7 +1340,6 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
     if keep_original:
         source_obj = pm.duplicate(source_obj, name=str(source_obj) + '_TEMP', renameChildren=1)[0]
 
-
     #...Unlock all transform attributes on source object(s) to avoid the shapes jumping when re-parented
     [pm.setAttr(source_obj + "." + attr, lock=0, channelBox=1) for attr in all_transform_attrs]
     [break_connections(source_obj + "." + attr) for attr in all_transform_attrs + ["offsetParentMatrix"]]
@@ -1387,8 +1347,9 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
     source_obj.inheritsTransform.set(lock=0)
     source_obj.inheritsTransform.set(1)
     source_obj.setParent(destination_obj)
+    #pm.makeIdentity(source_obj, apply=1)
+    convert_offset(source_obj, reverse=True)
     pm.makeIdentity(source_obj, apply=1)
-
 
     for source_shape in source_obj.getShapes():
 
@@ -1400,12 +1361,10 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
 
     pm.delete(source_obj)
 
-
     # Rename shapes
     final_shapes = destination_obj.getShapes()
 
     rename_shapes(destination_obj)
-
 
     pm.select(clear=1)
 
@@ -2419,3 +2378,33 @@ def delete_history(obj):
     pm.select(obj, replace=1)
     pm.delete(constructionHistory=1)
     pm.select(clear=1)
+
+
+########################################################################################################################
+def get_obj_side(obj):
+    side_tags = {'L_': 'L', 'R_': 'R', 'M_': 'M'}
+    obj_name = get_clean_name(str(obj))
+    for tag in side_tags:
+        if obj_name.startswith(tag):
+            return side_tags[tag]
+    return None
+
+
+
+########################################################################################################################
+def create_lock_memory(obj, unlock=True):
+    lock_memory = []
+    for attr in all_transform_attrs:
+        if pm.getAttr(f'{obj}.{attr}', lock=1):
+            lock_memory.append(attr)
+            if unlock:
+                pm.setAttr(f'{obj}.{attr}', lock=0)
+    return lock_memory
+
+
+
+########################################################################################################################
+def lock_attrs_from_memory(obj, lock_memory):
+    for attr in all_transform_attrs:
+        if attr in lock_memory:
+            pm.setAttr(f'{obj}.{attr}', lock=1)

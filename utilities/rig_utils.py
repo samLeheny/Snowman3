@@ -179,11 +179,7 @@ def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_t
         nom.nonBindJnt: [nom.nonBindJnt, "nonBind", "non bind", "non_bind", "Non_Bind", "Non Bind", "non-bind",
                          "nonbind"]
     }
-    side_tag_string = None
-    if not side:
-        side_tag_string = ''
-    else:
-        side_tag_string = f'{gen.side_tag_from_string(side)}_'
+    side_tag = f'{side}_' if side else ''
     # Clear selection so joint doesn't auto-parent somewhere weird
     pm.select(clear=1)
     # Make joint and set its name, radius, and position (if any were provided)
@@ -195,7 +191,7 @@ def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_t
         if joint_type in joint_type_name_chunks[key]:
             joint_type_suffix = key
     # Determine joint name on arguments
-    joint_name = f'{side_tag_string}{name}_{joint_type_suffix}'
+    joint_name = f'{side_tag}{name}_{joint_type_suffix}'
     # Create joint
     jnt = pm.joint(name=joint_name, radius=radius, position=position)
     # Set joint's color (if specific color not provided, then color joint based on joint_type argument)

@@ -57,4 +57,5 @@ mc.file(new=True, f=True)
 interactor.build_armature_from_latest_version()
 
 interactor.build_rig()
-interactor.update_all_control_shapes()
+
+interactor.mirror_all_control_shapes('L')

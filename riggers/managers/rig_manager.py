@@ -82,6 +82,7 @@ class RigManager:
         constraint_pairs = self.blueprint_manager.blueprint.custom_constraints
         for pair in constraint_pairs:
             self.make_custom_constraint(pair)
+        pm.select(clear=1)
 
 
     def make_custom_constraint(self, constraint_pair):
