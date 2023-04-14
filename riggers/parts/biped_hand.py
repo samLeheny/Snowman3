@@ -17,6 +17,9 @@ importlib.reload(gen)
 import Snowman3.utilities.rig_utils as rig
 importlib.reload(rig)
 
+import Snowman3.utilities.node_utils as nodes
+importlib.reload(nodes)
+
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
@@ -208,7 +211,7 @@ class BespokePartConstructor(PartConstructor):
                     )
                 )
         for i in range(self.finger_count):
-            digit_name = self.get_digit_name(i, self.finger_count)
+            digit_name = self.get_digit_name(i+1, self.finger_count)
             create_digit_ctrls(digit_name, self.finger_segment_count, self.include_metacarpals)
         create_digit_ctrls('Thumb', self.thumb_segment_count, False)
         controls = [creator.create_control() for creator in ctrl_creators]
@@ -283,84 +286,146 @@ class BespokePartConstructor(PartConstructor):
         rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
         orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
-        pm.matchTransform(scene_ctrls['QuickPoseFingers'], orienters['QuickPoseFingers'])
+        quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], parent=transform_grp)
+        gen.zero_out(quick_pose_buffer)
+
+        pm.matchTransform(quick_pose_buffer, orienters['QuickPoseFingers'])
+        fingers_curl_weight = -1.25
+        fingers_curl_mult_node = nodes.animBlendNodeAdditiveDA(inputA=scene_ctrls['QuickPoseFingers'].rz,
+                                                               weightA=fingers_curl_weight)
+        fingers_fan_mult_node = nodes.addDoubleLinear(input1=scene_ctrls['QuickPoseFingers'].sz, input2=-1)
+        fingers_shift_weight = -0.1
+        fingers_shift_mult_node = nodes.unitConversion(input=scene_ctrls['QuickPoseFingers'].tz,
+                                                       conversionFactor=fingers_shift_weight)
+
         if self.include_metacarpals:
+            palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], parent=transform_grp)
+            gen.zero_out(palm_flex_buffer)
             last_finger_name = self.get_digit_name(self.finger_count, self.finger_count)
-            pm.matchTransform(scene_ctrls['PalmFlex'], orienters[f'{last_finger_name}Meta'])
+            pm.matchTransform(palm_flex_buffer, orienters[f'{last_finger_name}Meta'])
 
         fingers = []
 
         @dataclass
-        class fingerHierarchy:
+        class Finger:
             segments = []
             metacarpal = None
             index: int = None
             name: str = None
 
         @dataclass
-        class fingerSegment:
+        class FingerSegment:
             ctrl = None
             jnt = None
+            buffer = None
             curl_buffer = None
             spread_buffer = None
+            parent_segment = None
             index: int = None
             name: str = None
 
         for a in range(self.finger_count):
-            finger_name = self.get_digit_name(a, self.finger_count)
-            new_finger = fingerHierarchy(index=a+1, name=finger_name)
+            finger_name = self.get_digit_name(a+1, self.finger_count)
+            new_finger = Finger(index=a+1, name=finger_name)
+            previous_segment = None
             if self.include_metacarpals:
                 segment_name = f'{finger_name}Meta'
-                new_finger.metacarpal = fingerSegment(index=0, name=segment_name)
+                new_finger.metacarpal = FingerSegment(index=0, name=segment_name)
+                new_finger.metacarpal.ctrl = scene_ctrls[segment_name]
+                previous_segment = new_finger.metacarpal
+            segments = []
             for b in range(self.finger_segment_count):
                 segment_name = f'{finger_name}Seg{b+1}'
-                new_segment = fingerSegment(index=b+1, name=segment_name)
-                new_finger.segments.append(new_segment)
+                new_segment = FingerSegment(index=b+1, name=segment_name)
+                if previous_segment:
+                    new_segment.parent_segment = previous_segment
+                new_segment.ctrl = scene_ctrls[segment_name]
+                segments.append(new_segment)
+                previous_segment = new_segment
+            new_finger.segments = segments
+            fingers.append(new_finger)
 
 
-        segment_joints = {}
-        def install_joints(digit_name, segment_count, include_metacarpals):
-            if include_metacarpals:
-                jnt = rig.joint(name=f'{digit_name}Meta', side=part.side, parent=scene_ctrls[f'{digit_name}Meta'])
-                segment_joints[f'{digit_name}Meta'] = jnt
+        def install_joints(digit):
+            if digit.metacarpal:
+                digit.metacarpal.jnt = jnt = rig.joint(name=digit.metacarpal.name, side=part.side,
+                                                       parent=digit.metacarpal.ctrl, radius=0.45)
                 gen.zero_out(jnt)
-            for s in range(segment_count):
-                jnt = rig.joint(name=f'{digit_name}Seg{s+1}', side=part.side,
-                                parent=scene_ctrls[f'{digit_name}Seg{s+1}'])
-                segment_joints[f'{digit_name}Seg{s+1}'] = jnt
+            for segment in digit.segments:
+                segment.jnt = jnt = rig.joint(name=segment.name, side=part.side, parent=segment.ctrl, radius=0.45)
                 gen.zero_out(jnt)
-        for i in range(self.finger_count):
-            digit_name = self.get_digit_name(i, self.finger_count)
-            install_joints(digit_name, self.finger_segment_count, self.include_metacarpals)
+                segment.ctrl.setParent(segment.parent_segment.jnt)
 
 
-        def position_digit_ctrls(digit_name, segment_count, include_metacarpals):
-            if include_metacarpals:
-                pm.matchTransform(scene_ctrls[f'{digit_name}Meta'], orienters[f'{digit_name}Meta'])
-            for j in range(segment_count):
-                pm.matchTransform(scene_ctrls[f'{digit_name}Seg{j+1}'], orienters[f'{digit_name}Seg{j+1}'])
-        for i in range(self.finger_count):
-            digit_name = self.get_digit_name(i, self.finger_count)
-            position_digit_ctrls(digit_name, self.finger_segment_count, self.include_metacarpals)
-        position_digit_ctrls('Thumb', self.thumb_segment_count, False)
+        def position_ctrls(digit):
+            if digit.metacarpal:
+                pm.matchTransform(digit.metacarpal.ctrl, orienters[digit.metacarpal.name])
+            for seg in digit.segments:
+                pm.matchTransform(seg.ctrl, orienters[seg.name])
 
 
-        def digit_hierarchy(digit_name, segment_count, include_metacarpals):
-            prev_seg_jnt = None
-            if include_metacarpals:
-                this_seg_ctrl = scene_ctrls[f'{digit_name}Meta']
-                metacarpal_buffer = gen.buffer_obj(this_seg_ctrl)
-                prev_seg_jnt = segment_joints[f'{digit_name}Meta']
-            for j in range(segment_count):
-                this_seg_ctrl = scene_ctrls[f'{digit_name}Seg{j+1}']
-                curl_buffer = gen.buffer_obj(this_seg_ctrl, 'ROLL')
-                curl_buffer.setParent(prev_seg_jnt) if prev_seg_jnt else None
-                prev_seg_jnt = segment_joints[f'{digit_name}Seg{j+1}']
-                if j == 0:
-                    spread_buffer = gen.buffer_obj(this_seg_ctrl, 'SPREAD')
-        for i in range(self.finger_count):
-            digit_name = self.get_digit_name(i, self.finger_count)
-            digit_hierarchy(digit_name, self.finger_segment_count, self.include_metacarpals)
+        def install_buffer_nodes(digit):
+            if digit.metacarpal:
+                digit.metacarpal.buffer = gen.buffer_obj(digit.metacarpal.ctrl)
+            for seg in digit.segments:
+                seg.buffer = gen.buffer_obj(seg.ctrl)
+                seg.curl_buffer = gen.buffer_obj(seg.ctrl, 'ROLL')
+                if seg.index == 1:
+                    seg.spread_buffer = gen.buffer_obj(seg.ctrl, 'SPREAD')
+
+
+        def parent_finger(digit):
+            finger_root_seg = digit.metacarpal if digit.metacarpal else digit.segments[0]
+            finger_root_seg.buffer.setParent(transform_grp)
+
+
+        def connect_curling(finger):
+            for seg in finger.segments:
+                fingers_curl_mult_node.output.connect(seg.curl_buffer.ry)
+
+
+        def connect_spreading(finger):
+            seg = finger.segments[0]
+            max_spread_weight = 1.25
+            weight = -((((max_spread_weight * 2) / (self.finger_count - 1)) * (finger.index - 1)) - max_spread_weight)
+            mult_node = nodes.animBlendNodeAdditiveDA(inputA=scene_ctrls['QuickPoseFingers'].rx,
+                                                      output=seg.spread_buffer.ry, weightA=weight)
+
+
+        def connect_fanning(finger):
+            seg = finger.segments[0]
+            max_fan_weight = 50
+            weight = (((max_fan_weight*2)/(self.finger_count - 1)) * (finger.index - 1)) - max_fan_weight
+            mult_node = nodes.multDoubleLinear(input1=fingers_fan_mult_node.output, input2=weight,
+                                               output=seg.spread_buffer.rz)
+
+
+        def connect_shifting(finger):
+            seg = finger.segments[0]
+            fingers_shift_mult_node.output.connect(seg.curl_buffer.rz)
+
+
+        def connect_palm_flexing(finger, finger_count):
+
+            middle_index = finger_count / 2
+            if (finger.index - middle_index) < 0.001:
+                return False
+            metacarpal_flex_weight = (1 / middle_index ** 2) * (finger.index - middle_index) ** 2
+            mult_node = nodes.animBlendNodeAdditiveDA(inputA=scene_ctrls['PalmFlex'].ry, weightA=metacarpal_flex_weight,
+                                                      output=finger.metacarpal.ctrl.ry)
+
+
+        for finger in fingers:
+            install_joints(finger)
+            position_ctrls(finger)
+            install_buffer_nodes(finger)
+            parent_finger(finger)
+            connect_curling(finger)
+            connect_spreading(finger)
+            connect_fanning(finger)
+            connect_shifting(finger)
+            if self.include_metacarpals:
+                connect_palm_flexing(finger, self.finger_count)
 
 
         return rig_part_container

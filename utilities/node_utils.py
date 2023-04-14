@@ -34,6 +34,9 @@ fourByFourMatrix
 multMatrix
 clamp
 blendMatrix
+animBlendNodeAdditiveRotation
+animBlendNodeAdditiveDA
+unitConversion
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -924,5 +927,93 @@ def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, 
             outputMatrix = (outputMatrix,)
         [pm.connectAttr(node.outputMatrix, v) for v in outputMatrix]
 
+
+    return node
+
+
+
+########################################################################################################################
+def animBlendNodeAdditiveDA(name=None, inputA=None, inputB=None, weightA=None, weightB=None, output=None):
+
+
+    #...Create node
+    if name:
+        node = pm.shadingNode("animBlendNodeAdditiveDA", name=name, asUtility=1)
+    else:
+        node = pm.shadingNode("animBlendNodeAdditiveDA", asUtility=1)
+
+
+    #...Pass arguments to floatMath input attributes 'inputA' and 'inputB'. If the provided arguments are numeric
+    #...types, set the attributes to match them. If they are mObject attributes, connect them to the floatMath node's
+    #...input attributes.
+
+    #...inputA
+    if inputA:
+
+        if isinstance(inputA, (int, float)):
+            node.inputA.set(inputA)
+        else:
+            pm.connectAttr(inputA, node.inputA)
+
+    #...floatB
+    if inputB:
+
+        if isinstance(inputB, (int, float)):
+            node.floatB.set(inputB)
+        else:
+            pm.connectAttr(inputB, node.inputB)
+
+    # ...weightA
+    if weightA:
+
+        if isinstance(weightA, (int, float)):
+            node.weightA.set(weightA)
+        else:
+            pm.connectAttr(weightA, node.weightA)
+
+    # ...floatB
+    if weightB:
+
+        if isinstance(weightB, (int, float)):
+            node.floatB.set(weightB)
+        else:
+            pm.connectAttr(weightB, node.weightB)
+
+    #....Connect node's output attribute to its destination
+    if output:
+        node.output.connect(output)
+
+    return node
+
+
+
+########################################################################################################################
+def unitConversion(name=None, input=None, output=None, conversionFactor=None):
+
+    conversionFactor = conversionFactor if conversionFactor else 1
+
+    # ...Create node
+    if name:
+        node = pm.shadingNode("unitConversion", name=name, asUtility=1)
+    else:
+        node = pm.shadingNode("unitConversion", asUtility=1)
+
+    # ...input
+    if input:
+        if isinstance(input, (int, float)):
+            node.inputA.set(input)
+        else:
+            pm.connectAttr(input, node.input)
+
+    # ...conversionFactor
+    if conversionFactor:
+        if isinstance(conversionFactor, (int, float)):
+            node.conversionFactor.set(conversionFactor)
+        else:
+            pm.connectAttr(conversionFactor, node.conversionFactor)
+
+    # ....Connect node's output attribute to its destination
+    if output:
+        node.output.connect(output)
 
     return node

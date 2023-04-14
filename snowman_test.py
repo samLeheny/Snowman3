@@ -58,4 +58,4 @@ interactor.build_armature_from_latest_version()
 
 interactor.build_rig()
 
-interactor.mirror_all_control_shapes('L')
+#interactor.mirror_all_control_shapes('L')
