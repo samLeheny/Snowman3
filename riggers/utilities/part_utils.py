@@ -127,7 +127,7 @@ class ScenePartManager:
 
     def create_part_handle(self):
         self.scene_part = gen.prefab_curve_construct(prefab='cube', name=self.part.scene_name,
-                                                     scale=self.part.handle_size, side=self.part.side)
+                                                     scale=self.part.handle_size)
         self.color_part_handle()
         self.lock_transforms()
         self.add_attributes()

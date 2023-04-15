@@ -1,7 +1,7 @@
 # Title: control_utils.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
-
+import copy
 # Description:
 
 
@@ -80,10 +80,9 @@ class ControlCreator:
 
 
     def compose_cvs(self, prefabs_dict=prefab_ctrl_shapes):
-        prefab_curve_data = prefabs_dict[self.shape]
+        prefab_curve_data = copy.deepcopy(prefabs_dict[self.shape])
         composed_cv_data = gen.compose_curve_construct_cvs(
-            cvs=prefab_curve_data['cvs'], form=prefab_curve_data['form'], scale=self.size,
-            degree=prefab_curve_data['degree'], shape_offset=None, up_direction=self.up_direction,
+            curve_data=prefab_curve_data, scale=self.size, shape_offset=None, up_direction=self.up_direction,
             forward_direction=self.forward_direction)
         return composed_cv_data
 
@@ -139,9 +138,7 @@ class SceneControlManager:
         self.scene_control = gen.curve_construct(
             name=self.get_scene_name(),
             color=self.control.color,
-            cvs=self.control.shape['cvs'],
-            degree=self.control.shape['degree'],
-            form=self.control.shape['form'],
+            curves=self.control.shape
         )
         return self.scene_control
 

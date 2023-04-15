@@ -142,8 +142,10 @@ def orienter(name=None, scale=1):
     colors = [14, 14, 14, 13, 13, 13, 6, 6, 6]
     forms = ["periodic", "open", "open", "periodic", "open", "open", "periodic", "open", "open"]
     degrees = [3, 1, 1, 3, 1, 1, 3, 1, 1]
+    curve_count = len(cvs)
+    curves = [{'cvs': cvs[i], 'degree': degrees[i], 'form': forms[i]} for i in range(curve_count)]
     # Compose orienter name
-    orienter = gen.curve_construct(cvs=cvs, name=name, color=None, form=forms, scale=scale, degree=degrees)
+    orienter = gen.curve_construct(curves=curves, name=name, color=None, scale=scale)
     # Color orienter
     shapes = orienter.getShapes()
     for s, c in zip(shapes, colors):
@@ -317,8 +319,7 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
         scale=scale,
         shape_offset=shape_offset,
         forward_direction=forward_direction,
-        up_direction=up_direction,
-        side=side
+        up_direction=up_direction
     )
 
     # Embed lock information into hidden attributes on control

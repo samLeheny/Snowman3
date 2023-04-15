@@ -1,7 +1,7 @@
 # Title: general_utils.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
-
+import copy
 # Description: We generally want to avoid importing utility files into one another as it quickly leads to infinite
 # recursion errors. 'general_utils' is an exception to this rule; A function belongs here if it is general enough that
 # it's likely to be useful in the bodies of other utility functions.
@@ -784,8 +784,7 @@ def nurbs_curve(name=None, cvs=None, degree=3, form='open', color=None):
 
 
 ########################################################################################################################
-def compose_curve_cvs(cvs=None, form='open', scale=1, degree=1, shape_offset=None, up_direction=None,
-                      forward_direction=None, points_offset=None):
+def compose_curve_cvs(cvs=None, scale=1, up_direction=None, forward_direction=None, points_offset=None):
 
     if not up_direction: up_direction = (0, 1, 0)
     if not forward_direction: forward_direction = (0, 0, 1)
@@ -810,148 +809,30 @@ def compose_curve_cvs(cvs=None, form='open', scale=1, degree=1, shape_offset=Non
 
 
 ########################################################################################################################
-def compose_curve_construct_cvs(cvs=None, form='open', scale=1, degree=1, shape_offset=None, up_direction=None,
-                                forward_direction=None):
+def compose_curve_construct_cvs(curve_data, scale=1, shape_offset=None, up_direction=None, forward_direction=None):
 
     if not up_direction: up_direction = [0, 1, 0]
     if not forward_direction: forward_direction = [0, 0, 1]
-
-    ##### Check input integrity #####
-    # Function to easily convert a variable into a list of itself - if it isn't already a list
-    def bulk_up_list(output_variable=None, check_variable=None, new_length=None):
-        """
-            Args:
-                output_variable: The variable to be turned into a list (if needed.)
-                check_variable: The variable whose type should be checked. If it's already a list, then the function is
-                    redundant. If none provided, will use output_variable as check_variable.
-                new_length: If only one value was provided but a returned list of a certain index length is needed,
-                    input argument of the desired index length and function will duplicate the one provided value to
-                    bulk up the resulting list.
-            Return:
-        """
-        output = output_variable
-        if check_variable is None:
-            check_variable = output_variable
-
-        if not isinstance(check_variable, list):
-            output = [output]
-
-        if len(output) < new_length:
-            for j in range(len(output), new_length):
-                output.append(output[0])
-
-        return output
-
-    # Check CV data integrity
-    if not cvs:
-        pm.error("Unable to create curve. No control point data provided.")
-
-    elif not isinstance(cvs, list):
-        pm.error("Unable to create curve. Control points data must be of type: list")
-
-    # Determine how many discrete curves are needed to complete this curve object
-    shape_count = 1
-    if isinstance(cvs[0][0], list):
-        shape_count = len(cvs)
-    else:
-        cvs = [cvs]
-
-    # ...Determine which shape build method to use
-    form = bulk_up_list(form, new_length=shape_count)
-
-    for entry in form:
-        if not isinstance(entry, str):
-            pm.error("Unable to create curve. form received invalid string argument: {}".format(entry))
-
-    form_strings = {
-        "open": ["open", "Open", "opened", "Opened"],
-        "periodic": ["periodic", "Periodic", "closed", "Closed", "close", "Close"]
-    }
-
-    for f in form:
-
-        string_is_recognized = False
-
-        for key in form_strings:
-            if f in form_strings[key]:
-                f = key
-                string_is_recognized = True
-                break
-
-        if not string_is_recognized:
-            pm.error("Unable to create curve. form received invalid string argument:"
-                     "'{}'".format(f))
-
-    acceptable_form_inputs = []
-    for string_list in form_strings.values():
-        for string in string_list:
-            acceptable_form_inputs.append(string)
-
-    # ...Check degree input integrity
-    degree_is_valid = True
-
-    degree = bulk_up_list(degree, new_length=shape_count)
-
-    for entry in degree:
-        if isinstance(entry, int):
-            if entry not in [1, 3]:
-                degree_is_valid = False
-        else:
-            degree_is_valid = False
-
-    if degree_is_valid in [False, 0]:
-        pm.error("Unable to create curve. 'degree' parameter received invalid argument: {}".format(degree))
-
-    # ...Check shape_offset input integrity
-    if not shape_offset:
-        shape_offset = [0, 0, 0]
-    shape_offset = bulk_up_list(output_variable=shape_offset, check_variable=shape_offset[0], new_length=shape_count)
-    for entry in shape_offset:
-        if not isinstance(entry, list):
-            pm.error("Unable to create curve. 'shape_offset' parameter received invalid argument: {}".format(entry))
-
-        else:
-            if len(entry) != 3:
-                pm.error("Unable to create curve. 'shape_offset' parameter received invalid argument: {}".format(entry))
-
-    if not isinstance(scale, list):
-        scale = [scale, scale, scale]
-
-    for entry in scale:
-        if not isinstance(entry, (int, float)):
-            pm.error("Unable to create curve. 'scale' parameter received invalid argument: {}".format(entry))
-
-    ##### BUILD SHAPES #####
-    cv_lists = []
-    for i in range(shape_count):
+    if not shape_offset: shape_offset = [0, 0, 0]
+    for i, curve in enumerate(curve_data):
         # ...For each curve in curve object, build curve using the home-brewed 'curve' function
-        cv_lists.append(compose_curve_cvs(cvs=cvs[i], form=form[i], scale=scale, degree=degree[i],
-                                          points_offset=shape_offset[i], up_direction=up_direction,
-                                          forward_direction=forward_direction))
-
-    return {'cvs': cv_lists, 'degree': degree, 'form': form}
+        cv_list = compose_curve_cvs(cvs=curve['cvs'], scale=scale,  points_offset=shape_offset,
+                                    up_direction=up_direction, forward_direction=forward_direction)
+        curve_data[i]['cvs'] = cv_list
+    return curve_data
 
 
 
 ########################################################################################################################
-def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degree=1, shape_offset=None,
-                    up_direction=None, forward_direction=None):
+def curve_construct(curves, name=None, color=None, scale=1, shape_offset=None, up_direction=None,
+                    forward_direction=None):
     """
         Produces a nurbs curve object based on parameters. As opposed to other functions, if parameters are provided as
             lists, the function will produce an object with multiple curve shapes. Useful for producing complex curve
             objects to be used as animation controls.
         Args:
-            cvs (list): List of coordinates for curve CVs.
-            name (string): Name of curve object.
-            color (numeric/ [float, float, float]): Override color of curve. If an integer is provided, will use as
-                override color index. If list of three numbers (integers or floats) is provided, will use as RGB color.
-            form (string): Determines whether curve shape should be a closed loop. Acceptable
-                inputs: "open", "periodic"
             scale (numeric): Factor by which to scale shape CV placement vectors. Defines scale of resulting curve
                 shape.
-            degree (int): Curve smoothing degree. Acceptable degrees: 1, 3. If an integer is provided, will apply that
-                degree to all curves in curve object. If a list is provided, will apply each list entry as degree of
-                corresponding curve in curve object.
             shape_offset ([float, float, float]): Vector by which to offset all CV positions so shape will not be
                 centered to object pivot. Require coordinates in form of list of three number values (integers or
                 floats).
@@ -963,26 +844,19 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
             (mTransform) The created curve object.
     """
 
-    # Determine how many discrete curves are needed to complete this curve object
-    shape_count = 1
-    if isinstance(cvs[0][0], list):
-        shape_count = len(cvs)
-    else:
-        cvs = [cvs]
-
     composed_cv_data = compose_curve_construct_cvs(
-        cvs=cvs, form=form, scale=scale, degree=degree, shape_offset=shape_offset, up_direction=up_direction,
+        curve_data=curves, scale=scale, shape_offset=shape_offset, up_direction=up_direction,
         forward_direction=forward_direction)
 
     ##### BUILD SHAPES #####
     crvs = []
-    for i in range(shape_count):
-        curve = nurbs_curve(color = color,
-                            form = composed_cv_data['form'][i],
-                            cvs = composed_cv_data['cvs'][i],
-                            degree = composed_cv_data['degree'][i])
-        if curve:
-            crvs.append(curve)
+    for i, curve in enumerate(composed_cv_data):
+        crvs.append(
+            nurbs_curve(color = color,
+                        form = curves[i]['form'],
+                        cvs = curves[i]['cvs'],
+                        degree = curves[i]['degree'])
+        )
 
     #...Parent shapes together under a single transform node
     crv_obj = crvs[0]
@@ -1003,7 +877,6 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
 ########################################################################################################################
 def rename_shapes(obj):
 
-
     #...Make sure we're dealing with shape nodes, not transform nodes
     if not pm.nodeType(obj) in ['transform']:
         print("Cannot rename shapes for node '{}'. Function must be given a transform node".format(obj))
@@ -1012,7 +885,6 @@ def rename_shapes(obj):
     shapes = obj.getShapes()
     if not shapes:
         return None
-
 
     #...Compose dictionary of new shape names
     new_shape_names = []
@@ -1028,14 +900,13 @@ def rename_shapes(obj):
     for shape in shapes:
         shape.rename(new_shape_names[ shapes.index(shape) ])
 
-
     return new_shape_names
 
 
 
 ########################################################################################################################
 def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None, forward_direction=None, scale=None,
-                           shape_offset=None, side=None):
+                           shape_offset=None):
     """
         Retrieves curve object data from curves dictionary, compiles it and feeds it to the curveObj function then
             returns the resulting curve object.
@@ -1053,22 +924,15 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
             shape_offset ([float, float, float]): Vector by which to offset all CV positions so shape will not be
                 centered to object pivot. Requires coordinates in form of list of three number values (integers or
                 floats).
-            side (string): In the event multiple colours are provided, the side argument will be used to determine which
-                colour to use.
         Returns:
             (mTransform) The created curve object.
     """
 
-
     #...Initialize parameters
-    if not up_direction:
-        up_direction = [0, 1, 0]
-
-    if not forward_direction:
-        forward_direction = [0, 0, 1]
-
-    if not shape_offset:
-        shape_offset = [0, 0, 0]
+    if not up_direction: up_direction = [0, 1, 0]
+    if not forward_direction: forward_direction = [0, 0, 1]
+    if not shape_offset: shape_offset = [0, 0, 0]
+    if not scale: scale = 1
 
     #...Test that provided dictionary entry exists
     if prefab not in curve_prefabs:
@@ -1076,47 +940,18 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
                  "Provided prefab dictionary key '{}' is invalid".format(prefab))
 
     #...Get shape data dictionary for this prefab
-    prefab_dict = curve_prefabs[prefab]
-
-    #...Initialize dictionary to assemble curve object input data
-    crv_obj_inputs = {
-        "cvs" : None,
-        "name" : name,
-        "color" : 0,
-        "buildMethod" : "open",
-        "scale" : 1,
-        "degree" : 1,
-        "shape_offset" : shape_offset,
-    }
-
-    #...Update curve object input dictionary with data from the shape dictionary
-    for key in prefab_dict:
-        crv_obj_inputs[key] = prefab_dict[key]
-
-    #...Update curve object input dictionary with provided parameters.
-    if color:
-        crv_obj_inputs["color"] = color
-
-    if not scale:
-        scale = 1
-
-    #...If a name was provided, override any name that came through with the control info
-    if name:
-        crv_obj_inputs["name"] = name
+    prefab_list = copy.deepcopy(curve_prefabs[prefab])
 
     #...Create the shape object with assembled data
     output_obj = curve_construct(
-                    cvs = crv_obj_inputs["cvs"],
-                    name = crv_obj_inputs["name"],
-                    color = crv_obj_inputs["color"],
-                    form = crv_obj_inputs["form"],
-                    scale = crv_obj_inputs["scale"] * scale,
-                    degree = crv_obj_inputs["degree"],
-                    shape_offset = crv_obj_inputs["shape_offset"],
-                    up_direction = up_direction,
-                    forward_direction = forward_direction,
+        curves=prefab_list,
+        name = name,
+        color = color,
+        scale = scale,
+        shape_offset = shape_offset,
+        up_direction = up_direction,
+        forward_direction = forward_direction,
     )
-
     return output_obj
 
 

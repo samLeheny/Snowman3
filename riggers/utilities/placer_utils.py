@@ -152,7 +152,7 @@ class ScenePlacerManager:
 
     def create_scene_obj(self, parent=None):
         self.scene_placer = gen.prefab_curve_construct(prefab='sphere_placer', name=self.placer.scene_name,
-                                                       scale=self.placer.size, side=self.placer.side)
+                                                       scale=self.placer.size)
         buffer_grp = pm.group(name=self.placer.scene_name.replace(placer_tag, 'BUFFER'), em=1, world=1)
         if parent:
             buffer_grp.setParent(parent)
@@ -249,7 +249,7 @@ class VectorHandleManager:
                  'up': ('UP', 'tetrahedron', self.vector_handles_size * 1.6)}
         vector_type, handle_shape, shape_scaler_factor = types[self.vector]
         self.scene_name = f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.name}_{vector_type}'
-        self.scene_handle = gen.prefab_curve_construct(prefab=handle_shape, name=self.scene_name, side=self.side,
+        self.scene_handle = gen.prefab_curve_construct(prefab=handle_shape, name=self.scene_name,
                                                        scale=self.size * shape_scaler_factor)
         self.color_scene_handle()
         self.connect_attributes_to_placer()
