@@ -36,6 +36,7 @@ clamp
 blendMatrix
 animBlendNodeAdditiveRotation
 animBlendNodeAdditiveDA
+animBlendNodeAdditiveRotation
 unitConversion
 '''
 ########################################################################################################################
@@ -982,6 +983,70 @@ def animBlendNodeAdditiveDA(name=None, inputA=None, inputB=None, weightA=None, w
     #....Connect node's output attribute to its destination
     if output:
         node.output.connect(output)
+
+    return node
+
+
+
+########################################################################################################################
+def animBlendNodeAdditiveRotation(name=None, inputA=None, inputB=None, weightA=None, weightB=None, output=None):
+
+
+    #...Create node
+    if name:
+        node = pm.shadingNode('animBlendNodeAdditiveRotation', name=name, asUtility=1)
+    else:
+        node = pm.shadingNode('animBlendNodeAdditiveRotation', asUtility=1)
+
+    # ...inputA
+    inputA_array = ['inputAX', 'inputAY', 'inputAZ']
+    if inputA:
+        if isinstance(inputA, (list, tuple)):
+            inputA = tuple(inputA) if isinstance(inputA, list) else None
+            for i in range(3):
+                if isinstance(inputA[i], (int, float)):
+                    pm.setAttr(f'{node}.{inputA_array[i]}', inputA[i])
+                else:
+                    pm.connectAttr(inputA[i], f'{node}.{inputA_array[i]}')
+        else:
+            pm.connectAttr(inputA, node.inputA)
+
+    # ...inputB
+    inputB_array = ['inputBX', 'inputBY', 'inputBZ']
+    if inputB:
+        if isinstance(inputB, (list, tuple)):
+            inputB = tuple(inputB) if isinstance(inputB, list) else None
+            for i in range(3):
+                if isinstance(inputB[i], (int, float)):
+                    pm.setAttr(f'{node}.{inputB_array[i]}', inputB[i])
+                else:
+                    pm.connectAttr(inputB[i], f'{node}.{inputB_array[i]}')
+        else:
+            pm.connectAttr(inputB, node.inputB)
+
+    # ...weightA
+    if weightA:
+        if isinstance(weightA, (int, float)):
+            node.weightA.set(weightA)
+        else:
+            pm.connectAttr(weightA, node.weightA)
+
+    # ...floatB
+    if weightB:
+        if isinstance(weightB, (int, float)):
+            node.floatB.set(weightB)
+        else:
+            pm.connectAttr(weightB, node.weightB)
+
+    # ...output
+    output_array = ['outputX', 'outputY', 'outputZ']
+    if output:
+        if isinstance(output, (list, tuple)):
+            output = tuple(output) if isinstance(output, list) else None
+            for i in range(3):
+                pm.connectAttr(f'{node}.{output_array[i]}', output[i])
+        else:
+            node.output.connect(output)
 
     return node
 

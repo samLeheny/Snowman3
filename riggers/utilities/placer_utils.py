@@ -86,7 +86,9 @@ class PlacerCreator:
         if not handle_vectors:
             handle_vectors = [[5, 0, 0], [0, 0, -5]]
         aim_vector, up_vector = handle_vectors
-        aim_side_mult = -1 if self.side == 'R' else 1
+        aim_side_mult = 1
+        if self.side == 'R' and aim_vector[1:] == [0, 0]:
+            aim_side_mult = -1
         aim_vector = [aim_vector[i] * aim_side_mult for i in range(3)]
         return [aim_vector, up_vector]
 

@@ -33,13 +33,13 @@ part_creators = [
     PartCreator('Clavicle', 'biped_clavicle', 'R', (-3, 146.88, 0.39), {}),
     PartCreator('Arm', 'biped_arm', 'L', (15, 146.88, 0.39), {}),
     PartCreator('Arm', 'biped_arm', 'R', (-15, 146.88, 0.39), {}),
-    PartCreator('Hand', 'biped_hand', 'L', (67.64, 146.88, 0.39), {
+    PartCreator('Hand', 'hand', 'L', (67.64, 146.88, 0.39), {
         'finger_count': 4,
         'finger_segment_count': 3,
         'thumb_count': 1,
         'thumb_segment_count': 3,
         'include_metacarpals': True}),
-    PartCreator('Hand', 'biped_hand', 'R', (-67.64, 146.88, 0.39), {
+    PartCreator('Hand', 'hand', 'R', (-67.64, 146.88, 0.39), {
         'finger_count': 4,
         'finger_segment_count': 3,
         'thumb_count': 1,

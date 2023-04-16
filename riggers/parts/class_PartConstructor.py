@@ -19,6 +19,7 @@ OrienterManager = placer_utils.OrienterManager
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
+ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.dictionaries.colorCode as color_code

@@ -80,31 +80,36 @@ class RigManager:
 
     def make_custom_constraints(self):
         constraint_pairs = self.blueprint_manager.blueprint.custom_constraints
-        for pair in constraint_pairs:
-            self.make_custom_constraint(pair)
+        for package in constraint_pairs:
+            self.make_custom_constraint(package)
         pm.select(clear=1)
 
 
-    def make_custom_constraint(self, constraint_pair):
-        source_part_key, source_ctrl_key = constraint_pair[0]
-        target_part_key = constraint_pair[1]
-        match_transform = constraint_pair[2]
-        source_ctrl = self.blueprint_manager.blueprint.parts[source_part_key].controls[source_ctrl_key]
-        target_part = self.blueprint_manager.blueprint.parts[target_part_key]
-        if not all((pm.objExists(source_ctrl.scene_name), pm.objExists(self.get_rig_part_scene_name(target_part)))):
+    def make_custom_constraint(self, data):
+        driver_part = pm.PyNode(f'{data["driver_part_name"]}_RIG')
+        driven_part = pm.PyNode(f'{data["driven_part_name"]}_RIG')
+        driver_node, driven_node = None, None
+        for child in driver_part.getChildren(allDescendents=1):
+            if gen.get_clean_name(str(child)) == data['driver_node_name']:
+                driver_node = child
+                break
+        for child in driven_part.getChildren(allDescendents=1):
+            if gen.get_clean_name(str(child)) == data['driven_node_name']:
+                driven_node = child
+                break
+        if not all((driver_node, driven_node)):
             return False
-        scene_source_ctrl = pm.PyNode(source_ctrl.scene_name)
-        scene_target_part = pm.PyNode(self.get_rig_part_scene_name(target_part))
-        part_connector = self.get_rig_connector(scene_target_part)
-        if match_transform:
-            children = part_connector.getChildren()
+        if data['match_transform']:
+            children = driven_node.getChildren()
             for child in children:
                 child.setParent(world=1)
-            pm.matchTransform(part_connector, scene_source_ctrl)
+            pm.matchTransform(driven_node, driver_node)
             for child in children:
-                child.setParent(part_connector)
-        pm.parentConstraint(scene_source_ctrl, part_connector, mo=1)
-        #pm.scaleConstraint(scene_source_ctrl, part_transform_grp, mo=1)
+                child.setParent(driven_node)
+        if data['constraint_type'] == 'parent':
+            pm.parentConstraint(driver_node, driven_node, mo=1)
+        elif data['constraint_type'] == 'point':
+            pm.pointConstraint(driver_node, driven_node, mo=1)
 
 
     def get_rig_part_scene_name(self, part):

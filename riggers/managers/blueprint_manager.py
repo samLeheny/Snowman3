@@ -83,7 +83,8 @@ class BlueprintManager:
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.custom_constraints'
         custom_constraints = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(custom_constraints)
-        self.blueprint.custom_constraints = custom_constraints.constraint_pairs
+        constraint_data = [vars(data) for data in custom_constraints.constraint_pairs]
+        self.blueprint.custom_constraints = constraint_data
 
         self.save_blueprint_to_tempdisk()
 

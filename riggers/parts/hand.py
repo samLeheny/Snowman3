@@ -66,17 +66,23 @@ class BespokePartConstructor(PartConstructor):
         self.thumb_count = thumb_count
 
 
-    def get_digit_name(self, number, digit_count):
-        finger_names = (('Index', 'Pinky'),
-                        ('Index', 'Middle', 'Pinky'),
-                        ('Index', 'Middle', 'Ring', 'Pinky'))
-        code = None
-        if 1 < self.finger_count < 5:
-            code = finger_names[digit_count - 2]
-        if code:
-            return f'{code[number-1]}Finger'
-        else:
-            return f'Finger{number}'
+    def get_digit_name(self, number, digit_count, digit_type):
+        if digit_type == 'finger':
+            finger_names = (('Index', 'Pinky'),
+                            ('Index', 'Middle', 'Pinky'),
+                            ('Index', 'Middle', 'Ring', 'Pinky'))
+            code = None
+            if 1 < self.finger_count < 5:
+                code = finger_names[digit_count - 2]
+            if code:
+                return f'{code[number-1]}Finger'
+            else:
+                return f'Finger{number}'
+        elif digit_type == 'thumb':
+            if digit_count < 2:
+                return 'Thumb'
+            else:
+                return f'Thumb{number}'
 
 
 
@@ -162,7 +168,7 @@ class BespokePartConstructor(PartConstructor):
 
         for i in range(self.finger_count):
             create_finger_placers(
-                name=self.get_digit_name(i + 1, self.finger_count), z_position=(-finger_spacing * i) + (palm_width / 2),
+                name=self.get_digit_name(i + 1, self.finger_count, 'finger'), z_position=(-finger_spacing * i) + (palm_width / 2),
                 include_metacarpal=self.include_metacarpals)
 
         create_finger_placers(name='Thumb', z_position=((palm_width*1.6)/2), include_metacarpal=False)
@@ -173,6 +179,14 @@ class BespokePartConstructor(PartConstructor):
 
     def create_controls(self):
         ctrl_creators = [
+            ControlCreator(
+                name='Wrist',
+                shape='circle',
+                up_direction=[1, 0, 0],
+                color=self.colors[0],
+                size=4,
+                side=self.side
+            ),
             ControlCreator(
                 name='PalmFlex',
                 shape='hand_bend',
@@ -211,7 +225,7 @@ class BespokePartConstructor(PartConstructor):
                     )
                 )
         for i in range(self.finger_count):
-            digit_name = self.get_digit_name(i+1, self.finger_count)
+            digit_name = self.get_digit_name(i+1, self.finger_count, 'finger')
             create_digit_ctrls(digit_name, self.finger_segment_count, self.include_metacarpals)
         create_digit_ctrls('Thumb', self.thumb_segment_count, False)
         controls = [creator.create_control() for creator in ctrl_creators]
@@ -223,7 +237,7 @@ class BespokePartConstructor(PartConstructor):
     def get_connection_pairs(self):
         pairs = []
         for i in range(self.finger_count):
-            finger_name = self.get_digit_name(i + 1, self.finger_count)
+            finger_name = self.get_digit_name(i + 1, self.finger_count, 'finger')
             finger_pairs = []
             segs = [f'{finger_name}Seg{s+1}' for s in range(self.finger_segment_count)]
             segs.append(f'{finger_name}End')
@@ -256,7 +270,7 @@ class BespokePartConstructor(PartConstructor):
         def create_segment_tags_list(digit_number, segment_count, digit_type):
             tags = []
             finger_names = {'thumb': 'Thumb',
-                            'finger': self.get_digit_name(digit_number + 1, self.finger_count)}
+                            'finger': self.get_digit_name(digit_number + 1, self.finger_count, 'finger')}
             finger_name = finger_names[digit_type]
             if self.include_metacarpals and digit_type == 'finger':
                 tags.append(f'{finger_name}Meta')
@@ -286,7 +300,11 @@ class BespokePartConstructor(PartConstructor):
         rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
         orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
-        quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], parent=transform_grp)
+        wrist_jnt = rig.joint(name='Wrist', radius=0.7, side=part.side, parent=scene_ctrls['Wrist'])
+        wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], parent=transform_grp)
+        pm.matchTransform(wrist_buffer, orienters['Wrist'])
+
+        quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], parent=scene_ctrls['Wrist'])
         gen.zero_out(quick_pose_buffer)
 
         pm.matchTransform(quick_pose_buffer, orienters['QuickPoseFingers'])
@@ -299,12 +317,11 @@ class BespokePartConstructor(PartConstructor):
                                                        conversionFactor=fingers_shift_weight)
 
         if self.include_metacarpals:
-            palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], parent=transform_grp)
+            palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], parent=scene_ctrls['Wrist'])
             gen.zero_out(palm_flex_buffer)
-            last_finger_name = self.get_digit_name(self.finger_count, self.finger_count)
+            last_finger_name = self.get_digit_name(self.finger_count, self.finger_count, 'finger')
             pm.matchTransform(palm_flex_buffer, orienters[f'{last_finger_name}Meta'])
 
-        fingers = []
 
         @dataclass
         class Finger:
@@ -324,26 +341,33 @@ class BespokePartConstructor(PartConstructor):
             index: int = None
             name: str = None
 
-        for a in range(self.finger_count):
-            finger_name = self.get_digit_name(a+1, self.finger_count)
-            new_finger = Finger(index=a+1, name=finger_name)
-            previous_segment = None
-            if self.include_metacarpals:
-                segment_name = f'{finger_name}Meta'
-                new_finger.metacarpal = FingerSegment(index=0, name=segment_name)
-                new_finger.metacarpal.ctrl = scene_ctrls[segment_name]
-                previous_segment = new_finger.metacarpal
-            segments = []
-            for b in range(self.finger_segment_count):
-                segment_name = f'{finger_name}Seg{b+1}'
-                new_segment = FingerSegment(index=b+1, name=segment_name)
-                if previous_segment:
-                    new_segment.parent_segment = previous_segment
-                new_segment.ctrl = scene_ctrls[segment_name]
-                segments.append(new_segment)
-                previous_segment = new_segment
-            new_finger.segments = segments
-            fingers.append(new_finger)
+        def create_digit_list(digit_count, segment_count, include_metacarpals, finger_type):
+            digits = []
+            for a in range(digit_count):
+                digit_name = self.get_digit_name(a+1, digit_count, finger_type)
+                new_finger = Finger(index=a+1, name=digit_name)
+                previous_segment = None
+                if include_metacarpals:
+                    segment_name = f'{digit_name}Meta'
+                    new_finger.metacarpal = FingerSegment(index=0, name=segment_name)
+                    new_finger.metacarpal.ctrl = scene_ctrls[segment_name]
+                    previous_segment = new_finger.metacarpal
+                segments = []
+                for b in range(segment_count):
+                    segment_name = f'{digit_name}Seg{b+1}'
+                    new_segment = FingerSegment(index=b+1, name=segment_name)
+                    if previous_segment:
+                        new_segment.parent_segment = previous_segment
+                    new_segment.ctrl = scene_ctrls[segment_name]
+                    segments.append(new_segment)
+                    previous_segment = new_segment
+                new_finger.segments = segments
+                digits.append(new_finger)
+            return digits
+
+        fingers = create_digit_list(self.finger_count, self.finger_segment_count, self.include_metacarpals, 'finger')
+        thumbs = create_digit_list(self.thumb_count, self.thumb_segment_count, False, 'thumb')
+
 
 
         def install_joints(digit):
@@ -354,7 +378,8 @@ class BespokePartConstructor(PartConstructor):
             for segment in digit.segments:
                 segment.jnt = jnt = rig.joint(name=segment.name, side=part.side, parent=segment.ctrl, radius=0.45)
                 gen.zero_out(jnt)
-                segment.ctrl.setParent(segment.parent_segment.jnt)
+                if segment.parent_segment:
+                    segment.ctrl.setParent(segment.parent_segment.jnt)
 
 
         def position_ctrls(digit):
@@ -376,7 +401,7 @@ class BespokePartConstructor(PartConstructor):
 
         def parent_finger(digit):
             finger_root_seg = digit.metacarpal if digit.metacarpal else digit.segments[0]
-            finger_root_seg.buffer.setParent(transform_grp)
+            finger_root_seg.buffer.setParent(wrist_jnt)
 
 
         def connect_curling(finger):
@@ -411,15 +436,18 @@ class BespokePartConstructor(PartConstructor):
             if (finger.index - middle_index) < 0.001:
                 return False
             metacarpal_flex_weight = (1 / middle_index ** 2) * (finger.index - middle_index) ** 2
-            mult_node = nodes.animBlendNodeAdditiveDA(inputA=scene_ctrls['PalmFlex'].ry, weightA=metacarpal_flex_weight,
-                                                      output=finger.metacarpal.ctrl.ry)
+            mult_node = nodes.animBlendNodeAdditiveRotation(inputA=scene_ctrls['PalmFlex'].rotate,
+                                                            weightA=metacarpal_flex_weight,
+                                                            output=finger.metacarpal.ctrl.rotate)
 
+
+        for digit in fingers + thumbs:
+            install_joints(digit)
+            position_ctrls(digit)
+            install_buffer_nodes(digit)
+            parent_finger(digit)
 
         for finger in fingers:
-            install_joints(finger)
-            position_ctrls(finger)
-            install_buffer_nodes(finger)
-            parent_finger(finger)
             connect_curling(finger)
             connect_spreading(finger)
             connect_fanning(finger)

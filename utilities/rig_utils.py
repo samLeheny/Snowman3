@@ -608,3 +608,13 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
 
         tweak_ctrls.append(ctrl)
     return tweak_ctrls
+
+
+
+########################################################################################################################
+def joint_rot_to_ori(joint):
+    jointOrient_attrs = ("jointOrientX", "jointOrientY", "jointOrientZ")
+    for i in range(3):
+        pm.setAttr(f'{joint}.{jointOrient_attrs[i]}',
+                   pm.getAttr(f'{joint}.{jointOrient_attrs[i]}') + pm.getAttr(f'{joint}.{gen.rotate_attrs[i]}'))
+    pm.setAttr(joint.rotate, 0, 0, 0)
