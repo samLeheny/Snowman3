@@ -185,7 +185,8 @@ class BespokePartConstructor(PartConstructor):
             ('Forearm', 'Upperarm'),
             ('ForearmEnd', 'Forearm'),
             ('WristEnd', 'ForearmEnd'),
-            ('IkElbow', 'Forearm')
+            ('IkElbow', 'Forearm'),
+            ('Upperarm', 'HandFollowSpace')
         )
 
 

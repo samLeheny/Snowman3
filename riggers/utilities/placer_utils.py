@@ -42,6 +42,7 @@ class Placer:
     name: str
     side: str = None
     position: Sequence = (0, 0, 0)
+    rotation: Sequence = (0, 0, 0)
     size: float = 1.0
     has_vector_handles: bool = True
     vector_handle_positions: list[list, list] = ((0, 0, 1), (0, 1, 0))
@@ -60,6 +61,7 @@ class PlacerCreator:
         name: str,
         parent_part_name: str,
         position: tuple,
+        rotation: tuple = (0, 0, 0),
         side: str = None,
         size: float = None,
         has_vector_handles: bool = True,
@@ -73,6 +75,7 @@ class PlacerCreator:
         self.data_name = data_name if data_name else name
         self.parent_part_name = parent_part_name
         self.position = position
+        self.rotation = rotation
         self.side = side
         self.size = size if size else 1.25
         self.has_vector_handles = has_vector_handles
@@ -100,6 +103,7 @@ class PlacerCreator:
             side = self.side,
             parent_part_name = self.parent_part_name,
             position = self.flip_position() if self.side == 'R' else self.position,
+            rotation = self.rotation,
             size = self.size,
             vector_handle_positions = self.vector_handle_positions,
             orientation = self.orientation,
@@ -164,6 +168,7 @@ class ScenePlacerManager:
 
     def position_scene_placer(self):
         self.scene_placer.translate.set(tuple(self.placer.position))
+        self.scene_placer.rotate.set(tuple(self.placer.rotation))
 
 
     def add_scene_placer_metadata(self):

@@ -55,6 +55,7 @@ class RigManager:
         self.build_rig_root_structure()
         self.build_rig_parts()
         self.make_custom_constraints()
+        self.kill_unwanted_controls()
 
 
     def build_rig_root_structure(self):
@@ -110,6 +111,34 @@ class RigManager:
             pm.parentConstraint(driver_node, driven_node, mo=1)
         elif data['constraint_type'] == 'point':
             pm.pointConstraint(driver_node, driven_node, mo=1)
+
+
+    def kill_unwanted_controls(self):
+        kill_ctrls = self.blueprint_manager.blueprint.kill_ctrls
+        for package in kill_ctrls:
+            self.kill_unwanted_control(package)
+
+
+    def kill_unwanted_control(self, data):
+        part = pm.PyNode(f'{data["part_name"]}_RIG')
+        ctrl = None
+        for child in part.getChildren(allDescendents=1):
+            if gen.get_clean_name(str(child)) == data['ctrl_node_name']:
+                ctrl = child
+                break
+        if not ctrl:
+            return False
+        if data['hide']:
+            for shape in ctrl.getShapes():
+                shape.visibility.set(0, lock=1)
+        if data['lock']:
+            for attr in ('translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz',
+                         'visibility'):
+                pm.setAttr(f'{ctrl}.{attr}', lock=1)
+        if data['rename']:
+            current_name = gen.get_clean_name(str(ctrl))
+            new_name = current_name.replace('CTRL', 'DeadCTRL')
+            pm.rename(ctrl, new_name)
 
 
     def get_rig_part_scene_name(self, part):

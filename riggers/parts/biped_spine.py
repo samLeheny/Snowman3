@@ -210,7 +210,7 @@ class BespokePartConstructor(PartConstructor):
 
 
     def get_connection_pairs(self):
-        pairs = []
+        pairs = [('Spine1', 'SpineSettings')]
         for i in range(self.segment_count):
             n = i + 1
             pairs.append(

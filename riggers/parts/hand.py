@@ -235,7 +235,7 @@ class BespokePartConstructor(PartConstructor):
 
 
     def get_connection_pairs(self):
-        pairs = []
+        pairs = [('Wrist', 'QuickPoseFingers')]
         for i in range(self.finger_count):
             finger_name = self.get_digit_name(i + 1, self.finger_count, 'finger')
             finger_pairs = []

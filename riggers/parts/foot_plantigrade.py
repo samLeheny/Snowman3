@@ -329,12 +329,9 @@ class BespokePartConstructor(PartConstructor):
 
 
     def fk_foot(self, part, parent=None, ankle_orienter=None, fk_toe_ctrl=None):
-
         fk_foot_space = pm.shadingNode('transform', name=f'{gen.side_tag(part.side)}FkFootSpace', au=1)
         fk_foot_space.setParent(parent)
-        world_pos = pm.xform(ankle_orienter, q=1, worldSpace=1, rotatePivot=1)
-        pm.move(world_pos[0], world_pos[1], world_pos[2], fk_foot_space)
+        pm.matchTransform(fk_foot_space, ankle_orienter)
         fk_toe_ctrl.getParent().setParent(fk_foot_space)
-
         pm.select(clear=1)
         return {'fk_foot_space': fk_foot_space}

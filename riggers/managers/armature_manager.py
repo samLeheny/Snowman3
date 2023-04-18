@@ -65,7 +65,7 @@ class ArmatureManager:
             target_scene_placer = self.get_scene_placer(data.target_placer, data.target_part)
             if not all((source_scene_placer, target_scene_placer)):
                 continue
-            self.constrain_placer(source_scene_placer, target_scene_placer.getParent())
+            self.constrain_placer(source_scene_placer, target_scene_placer)
             if data.hide_target_placer:
                 self.hide_placer(data.target_placer, data.target_part)
 
@@ -87,15 +87,24 @@ class ArmatureManager:
         self.mirror_part_placers(part_key)
 
 
-    def mirror_part_handle(self, part_key):
+    def mirror_part_handle(self, part_key, scale_attr='HandleSize'):
         scene_part_handle = pm.PyNode(
             self.blueprint_manager.blueprint.parts[part_key].scene_name)
         opposite_scene_part_handle = gen.get_opposite_side_obj(scene_part_handle)
         if not opposite_scene_part_handle:
             return False
+
         scene_part_handle_position = scene_part_handle.translate.get()
         scene_part_handle_position[0] = -scene_part_handle_position[0]
         opposite_scene_part_handle.translate.set(scene_part_handle_position)
+
+        scene_part_handle_rotation = scene_part_handle.rotate.get()
+        scene_part_handle_rotation[1] = -scene_part_handle_rotation[1]
+        scene_part_handle_rotation[2] = -scene_part_handle_rotation[2]
+        opposite_scene_part_handle.rotate.set(scene_part_handle_rotation)
+
+        scene_part_handle_scale = pm.getAttr(f'{scene_part_handle}.{scale_attr}')
+        pm.setAttr(f'{opposite_scene_part_handle}.{scale_attr}', scene_part_handle_scale)
 
 
     def mirror_part_placers(self, part_key):

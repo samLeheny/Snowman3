@@ -47,6 +47,7 @@ class Blueprint:
     parts: dict = field(default_factory=dict)
     post_constraints: dict = field(default_factory=list)
     custom_constraints: Sequence = field(default_factory=list)
+    kill_ctrls: Sequence = field(default_factory=list)
 
 
 ########################################################################################################################
@@ -75,18 +76,33 @@ class BlueprintManager:
 
 
     def populate_prefab_blueprint(self):
+        self.populate_blueprint_parts()
+        self.populate_blueprint_custom_constraints()
+        self.populate_blueprint_kill_ctrls()
+        self.save_blueprint_to_tempdisk()
+
+
+    def populate_blueprint_parts(self):
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.parts'
         prefab_parts = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_parts)
         self.blueprint.parts = prefab_parts.parts
 
+
+    def populate_blueprint_custom_constraints(self):
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.custom_constraints'
         custom_constraints = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(custom_constraints)
-        constraint_data = [vars(data) for data in custom_constraints.constraint_pairs]
+        constraint_data = [vars(data) for data in custom_constraints.inputs]
         self.blueprint.custom_constraints = constraint_data
 
-        self.save_blueprint_to_tempdisk()
+
+    def populate_blueprint_kill_ctrls(self):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.kill_ctrls'
+        kill_ctrls = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(kill_ctrls)
+        ctrl_data = [vars(data) for data in kill_ctrls.inputs]
+        self.blueprint.kill_ctrls = ctrl_data
 
 
     def create_new_blueprint(self):
@@ -166,6 +182,8 @@ class BlueprintManager:
     def update_part_from_scene(self, part):
         scene_handle = pm.PyNode(part.scene_name)
         part.position = tuple(scene_handle.translate.get())
+        part.rotation = tuple(scene_handle.rotate.get())
+        part.scale = pm.getAttr(f'{scene_handle}.{"HandleSize"}')
         for key, placer in part.placers.items():
             part.placers[key] = self.update_placer_from_scene(placer)
             part.placers[key] = self.update_vector_handles_from_scene(placer)
@@ -175,6 +193,7 @@ class BlueprintManager:
     def update_placer_from_scene(self, placer):
         scene_placer = pm.PyNode(placer.scene_name)
         placer.position = tuple(scene_placer.translate.get())
+        placer.rotation = tuple(scene_placer.rotate.get())
         return placer
 
 

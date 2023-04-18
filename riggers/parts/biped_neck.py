@@ -133,6 +133,7 @@ class BespokePartConstructor(PartConstructor):
     def get_connection_pairs(self):
         return (
             ('Head', 'Neck'),
+            ('Neck', 'NeckSettings')
         )
 
 

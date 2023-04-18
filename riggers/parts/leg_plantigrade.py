@@ -183,7 +183,8 @@ class BespokePartConstructor(PartConstructor):
             ('Shin', 'Thigh'),
             ('ShinEnd', 'Shin'),
             ('AnkleEnd', 'ShinEnd'),
-            ('IkKnee', 'Shin')
+            ('IkKnee', 'Shin'),
+            ('Thigh', 'FootFollowSpace')
         )
 
 

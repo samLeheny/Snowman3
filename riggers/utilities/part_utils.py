@@ -55,6 +55,8 @@ class Part:
     side: str = None
     handle_size: float = 1.2
     position: tuple = (0, 0, 0)
+    rotation: tuple = (0, 0, 0)
+    scale: float = 1,
     placers: dict = field(default_factory=dict)
     controls: dict = field(default_factory=dict)
     data_name: str = None
@@ -144,6 +146,8 @@ class ScenePartManager:
 
     def position_part(self, handle):
         handle.translate.set(tuple(self.part.position))
+        handle.rotate.set(tuple(self.part.rotation))
+        handle.scale.set(self.part.scale, self.part.scale, self.part.scale)
 
 
     def add_part_metadata(self):
@@ -154,6 +158,7 @@ class ScenePartManager:
         )
         [attr.create(self.part, self.scene_part) for attr in metadata_attrs]
         pm.setAttr(f'{self.scene_part}.HandleSize', channelBox=1)
+        pm.setAttr(f'{self.scene_part}.HandleSize', self.scene_part.sx.get())
         for a in ('sx', 'sy', 'sz'):
             pm.connectAttr(f'{self.scene_part}.HandleSize', f'{self.scene_part}.{a}')
             pm.setAttr(f'{self.scene_part}.{a}', keyable=0)
@@ -228,12 +233,16 @@ class PartCreator:
         prefab_key: str,
         side: str = None,
         position: tuple[float, float, float] = (0, 0, 0),
+        rotation: tuple[float, float, float] = (0, 0, 0),
+        scale: float = 1,
         construction_inputs: dict = None
     ):
         self.name = name
         self.prefab_key = prefab_key
         self.side = side
         self.position = position
+        self.rotation = rotation
+        self.scale = scale
         self.construction_inputs = construction_inputs
         self.part_constructor = self.construct_part_constructor()
 
@@ -266,6 +275,8 @@ class PartCreator:
 
     def create_part(self):
         position = self.position
+        rotation = self.rotation
+        scale = self.scale
         scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
         connectors = self.part_constructor.get_connection_pairs()
         vector_handle_attachments = self.part_constructor.get_vector_handle_attachments()
@@ -273,6 +284,8 @@ class PartCreator:
                     prefab_key = self.prefab_key,
                     side = self.side,
                     position = position,
+                    rotation = rotation,
+                    scale = scale,
                     handle_size = 1.0,
                     data_name = f'{gen.side_tag(self.side)}{self.name}',
                     scene_name = scene_name,
