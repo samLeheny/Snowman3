@@ -40,34 +40,32 @@ PostConstraintManager = postConstraint_utils.PostConstraintManager
 ########################################################################################################################
 class ArmatureManager:
     def __init__(
-        self,
-        blueprint_manager = None
+        self
     ):
-        self.blueprint_manager = blueprint_manager
         self.scene_root = None
 
 
-    def build_armature_from_blueprint(self):
+    def build_armature_from_blueprint(self, blueprint):
         print("Building armature in scene from blueprint...")
-        self.create_scene_armature_root()
-        self.add_parts_from_blueprint(parent=self.scene_root)
-        self.add_post_constraints()
+        self.create_scene_armature_root(blueprint.asset_name)
+        self.add_parts_from_blueprint(blueprint=blueprint, parent=self.scene_root)
+        self.add_post_constraints(blueprint.post_constraints, blueprint.parts)
 
 
-    def add_parts_from_blueprint(self, parent=None):
-        for part in self.blueprint_manager.blueprint.parts.values():
+    def add_parts_from_blueprint(self, blueprint, parent=None):
+        for part in blueprint.parts.values():
             self.add_part(part, parent)
 
 
-    def add_post_constraints(self):
-        for data in self.blueprint_manager.blueprint.post_constraints:
-            source_scene_placer = self.get_scene_placer(data.source_placer, data.source_part)
-            target_scene_placer = self.get_scene_placer(data.target_placer, data.target_part)
+    def add_post_constraints(self, post_constraints, parts):
+        for data in post_constraints:
+            source_scene_placer = self.get_scene_placer(data.source_placer, parts[data.source_part])
+            target_scene_placer = self.get_scene_placer(data.target_placer, parts[data.target_part])
             if not all((source_scene_placer, target_scene_placer)):
                 continue
             self.constrain_placer(source_scene_placer, target_scene_placer)
             if data.hide_target_placer:
-                self.hide_placer(data.target_placer, data.target_part)
+                self.hide_placer(data.target_placer, parts[data.target_part])
 
 
     def add_part(self, part, parent=None):
@@ -82,14 +80,13 @@ class ArmatureManager:
         pm.delete(pm.PyNode(part.scene_name))
 
 
-    def mirror_part(self, part_key):
-        self.mirror_part_handle(part_key)
-        self.mirror_part_placers(part_key)
+    def mirror_part(self, part):
+        self.mirror_part_handle(part)
+        self.mirror_part_placers(part)
 
 
-    def mirror_part_handle(self, part_key, scale_attr='HandleSize'):
-        scene_part_handle = pm.PyNode(
-            self.blueprint_manager.blueprint.parts[part_key].scene_name)
+    def mirror_part_handle(self, part, scale_attr='HandleSize'):
+        scene_part_handle = pm.PyNode(part.scene_name)
         opposite_scene_part_handle = gen.get_opposite_side_obj(scene_part_handle)
         if not opposite_scene_part_handle:
             return False
@@ -107,26 +104,27 @@ class ArmatureManager:
         pm.setAttr(f'{opposite_scene_part_handle}.{scale_attr}', scene_part_handle_scale)
 
 
-    def mirror_part_placers(self, part_key):
-        part_placers = self.blueprint_manager.blueprint.parts[part_key].placers
-        for key in part_placers.keys():
-            self.mirror_placer_position(key, part_key)
-            self.mirror_vector_handle_positions(key, part_key)
-            self.mirror_orienter_rotation(key, part_key)
+    def mirror_part_placers(self, part):
+        for key in part.placers.keys():
+            self.mirror_placer_position(key, part)
+            self.mirror_vector_handle_positions(key, part)
+            self.mirror_orienter_rotation(key, part)
 
 
-    def mirror_placer_position(self, placer_key, part_key):
-        scene_placer = self.get_scene_placer(placer_key, part_key)
+    def mirror_placer_position(self, placer_key, part):
+        scene_placer = self.get_scene_placer(placer_key, part)
         opposite_scene_placer = gen.get_opposite_side_obj(scene_placer)
         if not opposite_scene_placer:
+            return False
+        if opposite_scene_placer.translate.get(lock=1):
             return False
         scene_placer_local_position = list(scene_placer.translate.get())
         scene_placer_local_position[0] = -scene_placer_local_position[0]
         opposite_scene_placer.translate.set(tuple(scene_placer_local_position))
 
 
-    def mirror_vector_handle_positions(self, placer_key, part_key):
-        placer = self.get_placer(placer_key, part_key)
+    def mirror_vector_handle_positions(self, placer_key, part):
+        placer = self.get_placer(placer_key, part)
         def process_handle(vector):
             handle_name = f'{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}'
             if not pm.objExists(handle_name):
@@ -142,8 +140,8 @@ class ArmatureManager:
         process_handle('UP')
 
 
-    def mirror_orienter_rotation(self, placer_key, part_key):
-        scene_orienter = self.get_scene_orienter(placer_key, part_key)
+    def mirror_orienter_rotation(self, placer_key, part):
+        scene_orienter = self.get_scene_orienter(placer_key, part)
         opposite_scene_orienter = gen.get_opposite_side_obj(scene_orienter)
         if not opposite_scene_orienter:
             return False
@@ -151,19 +149,19 @@ class ArmatureManager:
         opposite_scene_orienter.rotate.set(tuple(scene_orienter_rotation))
 
 
-    def get_placer(self, placer_key, part_key):
-        return self.blueprint_manager.blueprint.parts[part_key].placers[placer_key]
+    def get_placer(self, placer_key, part):
+        return part.placers[placer_key]
 
 
-    def get_scene_placer(self, placer_key, part_key):
-        placer = self.get_placer(placer_key, part_key)
+    def get_scene_placer(self, placer_key, part):
+        placer = self.get_placer(placer_key, part)
         if not pm.objExists(placer.scene_name):
             return None
         return pm.PyNode(placer.scene_name)
 
 
-    def get_scene_orienter(self, placer_key, part_key):
-        placer = self.get_placer(placer_key, part_key)
+    def get_scene_orienter(self, placer_key, part):
+        placer = self.get_placer(placer_key, part)
         orienter_name = f"{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_ORI"
         if not pm.objExists(orienter_name):
             return None
@@ -171,19 +169,19 @@ class ArmatureManager:
 
 
     def constrain_placer(self, source, target):
-        for attr in ('translate', 'rotate', 'scale', 'tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz'):
+        transform_attrs = ('translate', 'rotate', 'scale', 'tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz')
+        for attr in transform_attrs:
             pm.setAttr(f'{target}.{attr}', lock=0)
         pm.parentConstraint(source, target, mo=1)
         pm.scaleConstraint(source, target, mo=1)
 
 
-    def hide_placer(self, placer_key, part_key):
-        scene_placer = self.get_scene_placer(placer_key, part_key)
+    def hide_placer(self, placer_key, part):
+        scene_placer = self.get_scene_placer(placer_key, part)
         scene_placer.visibility.set(lock=0)
         scene_placer.visibility.set(0, lock=1)
 
 
-    def create_scene_armature_root(self):
-        scene_root_name = f"{self.blueprint_manager.blueprint.asset_name}_ARMATURE"
+    def create_scene_armature_root(self, scene_root_name):
         self.scene_root = pm.shadingNode('transform', name=scene_root_name, au=1)
         gen.set_color(self.scene_root, 2)

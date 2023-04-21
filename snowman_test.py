@@ -3,14 +3,6 @@ import random
 import pymel.core as pm
 import maya.cmds as mc
 
-import Snowman3.riggers.managers.blueprint_manager as blueprint_manager
-importlib.reload(blueprint_manager)
-BlueprintManager = blueprint_manager.BlueprintManager
-
-import Snowman3.riggers.managers.armature_manager as armature_manager
-importlib.reload(armature_manager)
-ArmatureManager = armature_manager.ArmatureManager
-
 import Snowman3.riggers.managers.scene_interactor as scene_interactor
 importlib.reload(scene_interactor)
 SceneInteractor = scene_interactor.SceneInteractor
@@ -37,11 +29,11 @@ for obj in objs_to_move:
     current_position = list(obj.translate.get())
     new_position = [current_position[i] + ((random.random()-0.5)*3) for i in range(3)]
     obj.translate.set(tuple(new_position))
-
+'''
 # ...Mirror placer and part positions
 interactor.update_blueprint_from_scene()
 interactor.mirror_armature('L')
-
+'''
 # ...Add new part to existing container
 interactor.add_part('NewPart', 'foot_plantigrade', side='L')
 # ...Remove a part from a container

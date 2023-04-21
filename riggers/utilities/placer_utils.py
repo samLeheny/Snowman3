@@ -51,6 +51,8 @@ class Placer:
     data_name: str = None
     scene_name: str = None
     parent_part_name: str = None
+    is_pole_vector: bool = False
+    pole_vector_partners: list = None
 
 
 
@@ -70,6 +72,8 @@ class PlacerCreator:
         match_orienter: str = None,
         scene_name: str = None,
         data_name: str = None,
+        is_pole_vector: bool = False,
+        pole_vector_partners: list = None
     ):
         self.name = name
         self.data_name = data_name if data_name else name
@@ -83,6 +87,8 @@ class PlacerCreator:
         self.orientation = orientation if orientation else [[1, 0, 0], [0, 1, 0]]
         self.match_orienter = match_orienter
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{parent_part_name}_{name}_{placer_tag}'
+        self.is_pole_vector = is_pole_vector
+        self.pole_vector_partners = pole_vector_partners
 
 
     def initialize_vector_handle_positions(self, handle_vectors):
@@ -109,7 +115,9 @@ class PlacerCreator:
             orientation = self.orientation,
             match_orienter = self.match_orienter,
             scene_name = self.scene_name,
-            has_vector_handles = self.has_vector_handles
+            has_vector_handles = self.has_vector_handles,
+            is_pole_vector = self.is_pole_vector,
+            pole_vector_partners = self.pole_vector_partners,
         )
         return placer
 
@@ -157,8 +165,14 @@ class ScenePlacerManager:
 
 
     def create_scene_obj(self, parent=None):
-        self.scene_placer = gen.prefab_curve_construct(prefab='sphere_placer', name=self.placer.scene_name,
-                                                       scale=self.placer.size)
+        if self.placer.is_pole_vector:
+            shape_prefab = 'tetrahedron'
+            size = self.placer.size * 1.5
+        else:
+            shape_prefab = 'sphere_placer'
+            size = self.placer.size
+        self.scene_placer = gen.prefab_curve_construct(prefab=shape_prefab, name=self.placer.scene_name,
+                                                       scale=size)
         buffer_grp = pm.group(name=self.placer.scene_name.replace(placer_tag, 'BUFFER'), em=1, world=1)
         if parent:
             buffer_grp.setParent(parent)
@@ -213,9 +227,9 @@ class ScenePlacerManager:
 
     def add_attributes(self):
         gen.add_attr(obj=self.scene_placer, long_name='VectorHandles', attribute_type='bool', keyable=False,
-                     channel_box=True)
+                     channel_box=False)
         gen.add_attr(obj=self.scene_placer, long_name='Orienters', attribute_type='bool', keyable=False,
-                     channel_box=True)
+                     channel_box=False)
 
 
 

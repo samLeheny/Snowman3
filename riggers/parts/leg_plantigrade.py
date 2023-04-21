@@ -56,12 +56,15 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['FootFollowSpace', (12, -7.5, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None],
-            ['Thigh', (0, 0, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
-            ['Shin', (0, -45, 4.57), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
-            ['ShinEnd', (0, -91, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
-            ['AnkleEnd', (0, -101, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 0.7, False, 'ShinEnd'],
-            ['IkKnee', (0, -45, 40), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 1, 0]], 1.25, False, None],
+            ['FootFollowSpace', (12, -7.5, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None,
+                False, None],
+            ['Thigh', (0, 0, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
+            ['Shin', (0, -45, 4.57), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
+            ['ShinEnd', (0, -91, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
+            ['AnkleEnd', (0, -101, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 0.7, False, 'ShinEnd', False,
+                None],
+            ['IkKnee', (0, -45, 40), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 1, 0]], 1.25, False, None, True,
+                ('Thigh', 'ShinEnd', 'Shin')],
         ]
         placers = []
         for p in data_packs:
@@ -74,7 +77,9 @@ class BespokePartConstructor(PartConstructor):
                 vector_handle_positions=self.proportionalize_vector_handle_positions(p[2], p[4]),
                 orientation=p[3],
                 match_orienter=p[6],
-                has_vector_handles=p[5]
+                has_vector_handles=p[5],
+                is_pole_vector=p[7],
+                pole_vector_partners=p[8]
             )
             placers.append(placer_creator.create_placer())
         return placers
@@ -207,8 +212,7 @@ class BespokePartConstructor(PartConstructor):
             segment_names=['Thigh', 'Shin', 'Foot'],
             socket_name='Hip',
             pv_name='Knee',
-            jnt_positions=[pm.xform(orienters[p], q=1, worldSpace=1, rotatePivot=1) for p in (
-                'Thigh', 'Shin', 'ShinEnd', 'AnkleEnd')],
+            orienters=[orienters[p] for p in ('Thigh', 'Shin', 'ShinEnd', 'AnkleEnd')],
             pv_position=pm.xform(orienters['IkKnee'], q=1, worldSpace=1, rotatePivot=1)
         )
 

@@ -375,11 +375,14 @@ class BespokePartConstructor(PartConstructor):
                 digit.metacarpal.jnt = jnt = rig.joint(name=digit.metacarpal.name, side=part.side,
                                                        parent=digit.metacarpal.ctrl, radius=0.45)
                 gen.zero_out(jnt)
+                digit.metacarpal.ctrl.setParent(wrist_jnt)
             for segment in digit.segments:
                 segment.jnt = jnt = rig.joint(name=segment.name, side=part.side, parent=segment.ctrl, radius=0.45)
                 gen.zero_out(jnt)
                 if segment.parent_segment:
                     segment.ctrl.setParent(segment.parent_segment.jnt)
+                elif not digit.metacarpal:
+                    segment.ctrl.setParent(wrist_jnt)
 
 
         def position_ctrls(digit):

@@ -184,9 +184,22 @@ class BlueprintManager:
         part.position = tuple(scene_handle.translate.get())
         part.rotation = tuple(scene_handle.rotate.get())
         part.scale = pm.getAttr(f'{scene_handle}.{"HandleSize"}')
+        part = self.update_part_placers_from_scene(part)
+        part = self.update_part_controls_from_scene(part)
+
+        return part
+
+
+    def update_part_placers_from_scene(self, part):
         for key, placer in part.placers.items():
             part.placers[key] = self.update_placer_from_scene(placer)
             part.placers[key] = self.update_vector_handles_from_scene(placer)
+        return part
+
+
+    def update_part_controls_from_scene(self, part):
+        for key, ctrl in part.controls.items():
+            part.controls[key] = self.update_control_shape_from_scene(ctrl)
         return part
 
 
@@ -214,6 +227,8 @@ class BlueprintManager:
 
 
     def update_control_shape_from_scene(self, ctrl):
+        if not pm.objExists(ctrl.scene_name):
+            return ctrl
         scene_ctrl = pm.PyNode(ctrl.scene_name)
         ctrl_shape_data = gen.get_shape_data_from_obj(scene_ctrl)
         ctrl.shape = ctrl_shape_data

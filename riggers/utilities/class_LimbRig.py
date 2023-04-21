@@ -119,10 +119,10 @@ class LimbRig:
         prefab,
         side = None,
         segment_names = None,
-        jnt_positions = None,
         pv_position = None,
         socket_name = None,
-        pv_name = None
+        pv_name = None,
+        orienters = None,
     ):
         self.roll_jnt_resolution = roll_jnt_resolution
         self.limb_name = limb_name
@@ -132,8 +132,9 @@ class LimbRig:
         self.segments = []
         self.segment_count = None
         self.segment_names = segment_names
-        self.jnt_positions = jnt_positions
         self.starter_jnt_positions = None
+        self.orienters = orienters
+        self.jnt_positions = self.get_joint_positions_from_orienters()
         self.pv_position = pv_position if not self.side == "R" else [-pv_position[0], pv_position[1], pv_position[2]]
         self.limb_ik_start_jnt_index = None
         self.limb_ik_end_jnt_index = None
@@ -172,6 +173,7 @@ class LimbRig:
     """
     --------- METHODS --------------------------------------------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
+    get_joint_positions_from_orienters
     build_prefab
     create_position_holders
     delete_position_holders
@@ -208,6 +210,12 @@ class LimbRig:
 
 
     ####################################################################################################################
+    def get_joint_positions_from_orienters(self):
+        return [pm.xform(orienter, q=1, worldSpace=1, rotatePivot=1) for orienter in self.orienters]
+
+
+
+    ####################################################################################################################
     def build_prefab(self, prefab_key):
         '''
         Builds the limb in scene based on prefab information provided
@@ -219,23 +227,19 @@ class LimbRig:
 
         inputs = prefab_inputs[prefab_key]
 
-        default_seg_names = inputs.default_seg_names
-        default_jnt_positions = inputs.default_jnt_positions
-        dynamic_length_values = inputs.dynamic_length_values
-
-        if not self.segment_names: self.segment_names = default_seg_names
+        if not self.segment_names: self.segment_names = inputs.default_seg_names
         self.segment_names.append(f'{self.segment_names[-1]}End')
-        if not self.jnt_positions: self.jnt_positions = default_jnt_positions
+        if not self.jnt_positions: self.jnt_positions = inputs.default_jnt_positions
         self.starter_jnt_positions = self.jnt_positions
 
         for i, name in enumerate(self.segment_names):
-            end_world_position = self.jnt_positions[i + 1] if i < len(default_seg_names) else None
+            end_world_position = self.jnt_positions[i + 1] if i < len(inputs.default_seg_names) else None
             new_segment = LimbSegment(segment_name = name,
                                       side = self.side,
                                       index = i,
                                       start_world_position = self.jnt_positions[i],
                                       end_world_position = end_world_position,
-                                      dynamic_length = dynamic_length_values[i],
+                                      dynamic_length = inputs.dynamic_length_values[i],
                                       double_jnt_status = inputs.double_jnt_values[i])
             self.segments.append(new_segment)
 
@@ -652,15 +656,12 @@ class LimbRig:
         self.blend_jnt_chain_buffer.setParent(self.ctrls['socket'])
         gen.zero_out(self.blend_jnt_chain_buffer)
 
-
         # Orient Jnts --------------------------------------------------------------------------------------------------
         nodes_to_orient = [seg.blend_jnt for seg in self.segments]
         nodes_to_orient[0] = self.blend_jnt_chain_buffer
         nodes_to_orient.remove(nodes_to_orient[-1])
         for i, node in enumerate(nodes_to_orient):
-            pm.delete(pm.aimConstraint(self.jnt_position_holders[i + 1], node, worldUpType='object',
-                                       aimVector=(1, 0, 0), upVector=(0, 0, -1),
-                                       worldUpObject=self.pv_position_holder))
+            pm.delete(pm.orientConstraint(self.orienters[i], node))
 
         self.segments[-1].blend_jnt.rotate.set(0, 0 ,0)
         self.segments[-1].blend_jnt.scale.set(1, 1, 1)
@@ -758,8 +759,6 @@ class LimbRig:
 
 
 
-
-
     ####################################################################################################################
     def ik_rig(self, limb_ik_start_index, limb_ik_end_index, tarsus_index=None):
 
@@ -783,8 +782,6 @@ class LimbRig:
 
         self.stretchy_ik(subject_indices=stretchy_indices, compensate_seg_indices=compensate_seg_indices,
                          ik_end_index=positive_limb_ik_end_index)
-
-
 
 
 
@@ -827,9 +824,7 @@ class LimbRig:
         for i, node in enumerate(match_nodes):
             if i == self.segment_count - 1:
                 continue
-            pm.delete(pm.aimConstraint(self.jnt_position_holders[i + 1], node, worldUpType='object',
-                                       aimVector=(1, 0, 0), upVector=(0, 0, -1),
-                                       worldUpObject=self.pv_position_holder))
+            pm.delete(pm.orientConstraint(self.orienters[i], node))
         self.segments[-1].ik_jnt.rotate.set(0, 0, 0)
         self.segments[-1].ik_jnt.scale.set(1, 1, 1)
 

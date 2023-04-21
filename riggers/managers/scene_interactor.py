@@ -53,14 +53,18 @@ class SceneInteractor:
 
     def create_managers(self, asset_name, dirpath, prefab_key=None):
         self.blueprint_manager = BlueprintManager(asset_name=asset_name, dirpath=dirpath, prefab_key=prefab_key)
-        self.armature_manager = ArmatureManager(blueprint_manager=self.blueprint_manager)
+        self.armature_manager = ArmatureManager()
         self.rig_manager = RigManager(blueprint_manager=self.blueprint_manager)
+
+
+    def build_armature_from_blueprint(self):
+        self.armature_manager.build_armature_from_blueprint(blueprint=self.blueprint_manager.blueprint)
 
 
     def build_armature_from_prefab(self):
         self.blueprint_manager.create_blueprint_from_prefab()
         self.blueprint_manager.run_prefab_post_actions()
-        self.armature_manager.build_armature_from_blueprint()
+        self.build_armature_from_blueprint()
 
 
     def update_blueprint_from_scene(self):
@@ -69,18 +73,18 @@ class SceneInteractor:
 
     def build_armature_from_latest_version(self):
         self.blueprint_manager.load_blueprint_from_latest_version()
-        self.armature_manager.build_armature_from_blueprint()
+        self.build_armature_from_blueprint()
 
 
     def build_armature_from_version_number(self, number):
         self.blueprint_manager.load_blueprint_from_numbered_version(number)
-        self.armature_manager.build_armature_from_blueprint()
+        self.build_armature_from_blueprint()
 
 
     def mirror_armature(self, driver_side):
-        for key, part in self.blueprint_manager.blueprint.parts.items():
+        for part in self.blueprint_manager.blueprint.parts.values():
             if part.side == driver_side:
-                self.armature_manager.mirror_part(key)
+                self.mirror_part(part)
 
 
     def create_part(self, name, prefab_key, side=None):
@@ -101,6 +105,7 @@ class SceneInteractor:
 
 
     def save_work(self):
+        self.update_blueprint_from_scene()
         self.blueprint_manager.save_work()
 
 
@@ -119,9 +124,13 @@ class SceneInteractor:
         new_opposite_part = self.create_mirrored_part(existing_part_key)
         self.blueprint_manager.add_part(new_opposite_part)
         self.armature_manager.add_part(new_opposite_part)
-        self.armature_manager.mirror_part(existing_part_key)
+        self.mirror_part(self.blueprint_manager.blueprint.parts[existing_part_key])
         self.blueprint_manager.update_blueprint_from_scene()
         self.blueprint_manager.save_blueprint_to_tempdisk()
+
+
+    def mirror_part(self, part):
+        self.armature_manager.mirror_part(part)
 
 
     def build_rig(self):
@@ -136,7 +145,6 @@ class SceneInteractor:
             if not self.check_obj_is_control(obj):
                 continue
             self.update_control_shape(obj)
-        self.blueprint_manager.save_blueprint_to_tempdisk()
 
 
     def update_all_control_shapes(self):
@@ -145,7 +153,6 @@ class SceneInteractor:
             if not self.check_obj_is_control(obj):
                 continue
             self.update_control_shape(obj)
-        self.blueprint_manager.save_blueprint_to_tempdisk()
 
 
     def mirror_selected_control_shapes(self):
@@ -158,7 +165,6 @@ class SceneInteractor:
             if not self.check_obj_is_control(obj):
                 continue
             self.mirror_control_shape(obj)
-        self.blueprint_manager.save_blueprint_to_tempdisk()
 
 
     def mirror_all_control_shapes(self, side):
@@ -168,7 +174,6 @@ class SceneInteractor:
             if not self.check_obj_is_control(obj):
                 continue
             self.mirror_control_shape(obj)
-        self.blueprint_manager.save_blueprint_to_tempdisk()
 
 
     def check_obj_is_control(self, obj):
@@ -185,6 +190,7 @@ class SceneInteractor:
 
 
     def mirror_control_shape(self, ctrl):
+        transform_attrs = ('translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz')
         if not gen.get_obj_side(ctrl) in ('L', 'R'):
             return False
         opposite_ctrl = gen.get_opposite_side_obj(ctrl)
@@ -196,7 +202,7 @@ class SceneInteractor:
             if not child.nodeType() == 'nurbsCurve':
                 pm.delete(child)
         temp_offset = pm.group(name='TEMP_FLIP_GRP', world=1, empty=1)
-        for attr in ('translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz'):
+        for attr in transform_attrs:
             pm.setAttr(f'{dup_ctrl}.{attr}', lock=0)
         dup_ctrl.setParent(temp_offset)
         gen.flip_obj(temp_offset)

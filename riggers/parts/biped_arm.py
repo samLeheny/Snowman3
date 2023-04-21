@@ -57,12 +57,17 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['HandFollowSpace', (6, 9.5, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None],
-            ['Upperarm', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25, True, None],
-            ['Forearm', (26.94, 0, -2.97), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25, True, None],
-            ['ForearmEnd', (52.64, 0, 0), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 1.25, True, None],
-            ['WristEnd', (59, 0, 0), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.7, False, 'ForearmEnd'],
-            ['IkElbow', (26.94, 0, -35), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, None]
+            ['HandFollowSpace', (6, 9.5, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None, False,
+                None],
+            ['Upperarm', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25, True, None, False, None],
+            ['Forearm', (26.94, 0, -2.97), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25, True, None, False,
+                None],
+            ['ForearmEnd', (52.64, 0, 0), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 1.25, True, None, False,
+                None],
+            ['WristEnd', (59, 0, 0), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.7, False, 'ForearmEnd', False,
+                None],
+            ['IkElbow', (26.94, 0, -35), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, None, True,
+                ('Upperarm', 'ForearmEnd', 'Forearm')]
         ]
         placers = []
         for p in data_packs:
@@ -75,7 +80,9 @@ class BespokePartConstructor(PartConstructor):
                 vector_handle_positions=self.proportionalize_vector_handle_positions(p[2], p[4]),
                 orientation=p[3],
                 match_orienter=p[6],
-                has_vector_handles=p[5]
+                has_vector_handles=p[5],
+                is_pole_vector=p[7],
+                pole_vector_partners=p[8]
             )
             placers.append(placer_creator.create_placer())
         return placers
@@ -212,8 +219,7 @@ class BespokePartConstructor(PartConstructor):
             segment_names=['Upperarm', 'Forearm', 'Hand'],
             socket_name='Shoulder',
             pv_name='Elbow',
-            jnt_positions=[pm.xform(orienters[p], q=1, worldSpace=1, rotatePivot=1) for p in (
-                'Upperarm', 'Forearm', 'ForearmEnd', 'WristEnd')],
+            orienters=[orienters[p] for p in ('Upperarm', 'Forearm', 'ForearmEnd', 'WristEnd')],
             pv_position=pm.xform(orienters['IkElbow'], q=1, worldSpace=1, rotatePivot=1)
         )
 
