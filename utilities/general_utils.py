@@ -1,7 +1,7 @@
 # Title: general_utils.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
-
+import copy
 # Description: We generally want to avoid importing utility files into one another as it quickly leads to infinite
 # recursion errors. 'general_utils' is an exception to this rule; A function belongs here if it is general enough that
 # it's likely to be useful in the bodies of other utility functions.
@@ -67,7 +67,6 @@ get_colour_from_sided_list
 curve_obj
 rename_shapes
 prefab_curve_obj
-side_tag_from_string
 break_connections
 get_clean_name
 get_opposite_side_obj
@@ -227,8 +226,6 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
 
 
 
-
-
 ########################################################################################################################
 def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orient=True, unlock=False):
     """
@@ -340,8 +337,6 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
 
 
 
-
-
 ########################################################################################################################
 def distance_between(obj_1=None, obj_2=None, position_1=None, position_2=None):
     """
@@ -408,8 +403,6 @@ def distance_between(obj_1=None, obj_2=None, position_1=None, position_2=None):
 
 
 
-
-
 ########################################################################################################################
 def vector_between(obj_1=None, obj_2=None, vector_1=None, vector_2=None):
     """
@@ -466,8 +459,6 @@ def vector_between(obj_1=None, obj_2=None, vector_1=None, vector_2=None):
 
 
 
-
-
 ########################################################################################################################
 def flip_obj(obj=None, axis="x"):
     """
@@ -487,8 +478,6 @@ def flip_obj(obj=None, axis="x"):
 
     if axis in ("z", "Z", (0, 0, 1)):
         obj.sz.set(obj.sz.get() * -1)
-
-
 
 
 
@@ -525,8 +514,6 @@ def get_color(obj):
 
     # Return colour information
     return color
-
-
 
 
 
@@ -576,8 +563,6 @@ def set_color(obj, color=None, apply_to_transform=False):
 
 
 
-
-
 ########################################################################################################################
 def cross_product(a, b, normalize=False):
     """
@@ -596,8 +581,6 @@ def cross_product(a, b, normalize=False):
         c = normalize_vector(c)
 
     return c
-
-
 
 
 
@@ -626,8 +609,6 @@ def normalize_vector(vector):
 
 
 
-
-
 ########################################################################################################################
 def orthogonal_vectors(vector_1, vector_2):
     """
@@ -650,11 +631,8 @@ def orthogonal_vectors(vector_1, vector_2):
 
 
 
-
-
 ########################################################################################################################
 def vectors_to_euler(aim_vector, up_vector, aim_axis, up_axis, rotation_order):
-
 
     #...Neatly format axis arguments, so we don't have to keep checking multiple possible input types
     aim_axis = format_axis_arg(aim_axis)
@@ -670,12 +648,10 @@ def vectors_to_euler(aim_vector, up_vector, aim_axis, up_axis, rotation_order):
             flip_order = True
 
 
-
     if not flip_order:
         final_aim_vector, final_up_vector, final_remaining_vector = orthogonal_vectors(aim_vector, up_vector)
     else:
         final_up_vector, final_aim_vector, final_remaining_vector = orthogonal_vectors(up_vector, aim_vector)
-
 
 
     mat_x = [0, 0, 0]
@@ -705,7 +681,6 @@ def vectors_to_euler(aim_vector, up_vector, aim_axis, up_axis, rotation_order):
         mat_z = [final_remaining_vector[0], final_remaining_vector[1], final_remaining_vector[2]]
 
 
-
     matrix_list = [mat_x[0], mat_x[1], mat_x[2], 0,
                    mat_y[0], mat_y[1], mat_y[2], 0,
                    mat_z[0], mat_z[1], mat_z[2], 0,
@@ -720,11 +695,7 @@ def vectors_to_euler(aim_vector, up_vector, aim_axis, up_axis, rotation_order):
 
     angles = [math.degrees(angle) for angle in (eulerRot.x, eulerRot.y, eulerRot.z)]
 
-
-
     return angles
-
-
 
 
 
@@ -745,8 +716,6 @@ def format_axis_arg(axis):
 
 
     return output
-
-
 
 
 
@@ -777,12 +746,17 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
 
 
 
+########################################################################################################################
+def get_colour_from_sided_list(sided_list, side):
+    sided_colors = {nom.leftSideTag: sided_list[0],
+                    nom.rightSideTag: sided_list[1]}
+    color = sided_colors[side]
+    return color
 
 
 
 ########################################################################################################################
-def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, points_offset=None, up_direction=None,
-                forward_direction=None, side=None):
+def nurbs_curve(name=None, cvs=None, degree=3, form='open', color=None):
     """
     Creates a nurbs curve from information in provided arguments.
     Args:
@@ -793,35 +767,36 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
             inputs: 'open', 'periodic'
         cvs (list): List of coordinates for curve CVs.
         degree (int): Curve smoothing degree. Acceptable degrees: 1, 3.
-        scale (numeric): Factor by which to scale shape CV placement vectors. Defines scale of resulting curve
-            shape.
-        points_offset ([float, float, float]): The vector by which to offset the entire curve shape.
-        up_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's local
-        positive y direction.
-        forward_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's
-            local positive z direction.
-        side (string): In the event multiple colours are provided, the side argument will be used to determine which
-            colour to use.
     Returns:
         (mTransform object) The newly created curve object.
     """
 
+    crv = pm.curve(name=name, degree=degree, point=cvs)
+    if form == "periodic":
+        pm.closeCurve(crv, replaceOriginal=1, preserveShape=0)
+    pm.delete(crv, constructionHistory=True)
+    if color:
+        set_color(crv, color)
+
+    pm.select(clear=1)
+    return crv
+
+
+
+########################################################################################################################
+def compose_curve_cvs(cvs=None, scale=1, up_direction=None, forward_direction=None, points_offset=None):
+
     if not up_direction: up_direction = (0, 1, 0)
     if not forward_direction: forward_direction = (0, 0, 1)
     points_offset = points_offset if points_offset else (0, 0, 0)
-    side_tag = side_tag_from_string(side) if side else None
 
     # Rearrange CV coordinates to match provided axes
     if up_direction == forward_direction:
         pm.error("up_direction and forward_direction parameters cannot have the same argument.")
     cvs = rearrange_point_list_vectors(cvs, up_direction=up_direction, forward_direction=forward_direction)
 
-    # Flip CV x coordinates if curve is right-sided
-    x_offset_direction = 1
-
     # Process scale factor in case only one value was passed
     scale = scale if isinstance(scale, list) else (scale, scale, scale)
-
 
     # Build a list of points at which to place the curve's CVs (incorporating scale and points_offset)
     points = [[(v[i] * scale[i]) + points_offset[i] for i in range(3)] for v in cvs]
@@ -829,224 +804,58 @@ def nurbs_curve(name=None, color=0, form="open", cvs=None, degree=3, scale=1, po
     # points = np.array(cvs).astype(float)
     # for i in range(3):
     #    points[:,i] *= float(scale[i])
-
-    # Build curve
-    crv = None
-
-    crv = pm.curve(name=name, degree=degree, point=points)
-    if form == "periodic":
-        pm.closeCurve(crv, replaceOriginal=1, preserveShape=0)
-
-    # Delete construction history
-    if crv:
-        pm.delete(crv, constructionHistory=True)
-
-    # Color curve. If color info is a list, treat the two entries as left color and right color. Refer to side argument
-    # to determine which color is correct
-    if color:
-        if isinstance(color, list) and len(color) == 2:
-            sided_color = get_colour_from_sided_list(color, side_tag)
-            color = sided_color
-
-        set_color(crv, color)
-
-
-    pm.select(clear=1)
-    return crv
-
-
+    return points
 
 
 
 ########################################################################################################################
-def get_colour_from_sided_list(sided_list, side):
+def compose_curve_construct_cvs(curve_data, scale=1, shape_offset=None, up_direction=None, forward_direction=None):
 
-    sided_colors = {nom.leftSideTag: sided_list[0],
-                    nom.rightSideTag: sided_list[1]}
-
-    color = sided_colors[side]
-
-    return color
-
-
+    if not up_direction: up_direction = [0, 1, 0]
+    if not forward_direction: forward_direction = [0, 0, 1]
+    if not shape_offset: shape_offset = [0, 0, 0]
+    for i, curve in enumerate(curve_data):
+        # ...For each curve in curve object, build curve using the home-brewed 'curve' function
+        cv_list = compose_curve_cvs(cvs=curve['cvs'], scale=scale,  points_offset=shape_offset,
+                                    up_direction=up_direction, forward_direction=forward_direction)
+        curve_data[i]['cvs'] = cv_list
+    return curve_data
 
 
 
 ########################################################################################################################
-def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degree=1, shape_offset=None,
-                    up_direction=None, forward_direction=None, side=None):
+def curve_construct(curves, name=None, color=None, scale=1, shape_offset=None, up_direction=None,
+                    forward_direction=None):
     """
         Produces a nurbs curve object based on parameters. As opposed to other functions, if parameters are provided as
             lists, the function will produce an object with multiple curve shapes. Useful for producing complex curve
             objects to be used as animation controls.
         Args:
-            cvs (list): List of coordinates for curve CVs.
-            name (string): Name of curve object.
-            color (numeric/ [float, float, float]): Override color of curve. If an integer is provided, will use as
-                override color index. If list of three numbers (integers or floats) is provided, will use as RGB color.
-            form (string): Determines whether curve shape should be a closed loop. Acceptable
-                inputs: "open", "periodic"
             scale (numeric): Factor by which to scale shape CV placement vectors. Defines scale of resulting curve
                 shape.
-            degree (int): Curve smoothing degree. Acceptable degrees: 1, 3. If an integer is provided, will apply that
-                degree to all curves in curve object. If a list is provided, will apply each list entry as degree of
-                corresponding curve in curve object.
             shape_offset ([float, float, float]): Vector by which to offset all CV positions so shape will not be
-                centered to object pivot. Requires coordinates in form of list of three number values (integers or
+                centered to object pivot. Require coordinates in form of list of three number values (integers or
                 floats).
             up_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's
                 local positive y direction.
             forward_direction ([float, float, float]): The unit vector indicating the world direction of the curve
                 shape's local positive z direction.
-            side (string): In the event multiple colours are provided, the side argument will be used to determine which
-                colour to use.
         Returns:
             (mTransform) The created curve object.
     """
-
-    if not up_direction:
-        up_direction = [0, 1, 0]
-
-    if not forward_direction:
-        forward_direction = [0, 0, 1]
-
-
-
-    ##### Check input integrity #####
-
-    # Function to easily convert a variable into a list of itself - if it isn't already a list
-    def bulk_up_list(output_variable=None, check_variable=None, new_length=None):
-        """
-            Args:
-                output_variable: The variable to be turned into a list (if needed.)
-                check_variable: The variable whose type should be checked. If it's already a list, then the function is
-                    redundant. If none provided, will use output_variable as check_variable.
-                new_length: If only one value was provided but a returned list of a certain index length is needed, input
-                    argument of the desired index length and function will duplicate the one provided value to bulk up
-                    the resulting list.
-            Return:
-        """
-        output = output_variable
-        if check_variable is None:
-            check_variable = output_variable
-
-        if not isinstance(check_variable, list):
-            output = [output]
-
-        if len(output) < new_length:
-            for i in range(len(output), new_length):
-                output.append(output[0])
-
-        return output
-
-    # Check CV data integrity
-    if not cvs:
-        pm.error("Unable to create curve. No control point data provided.")
-
-    elif not isinstance(cvs, list):
-        pm.error("Unable to create curve. Control points data must be of type: list")
-
-    # Determine how many discrete curves are needed to complete this curve object
-    shape_count = 1
-    if isinstance(cvs[0][0], list):
-        shape_count = len(cvs)
-    else:
-        cvs = [cvs]
-
-    #...Determine which shape build method to use
-    form = bulk_up_list(form, new_length=shape_count)
-
-    for entry in form:
-        if not isinstance(entry, str):
-            pm.error("Unable to create curve. form received invalid string argument: {}".format(entry))
-
-    form_strings = {
-        "open": ["open", "Open", "opened", "Opened"],
-        "periodic": ["periodic", "Periodic", "closed", "Closed", "close", "Close"]
-    }
-
-    for f in form:
-
-        string_is_recognized = False
-
-        for key in form_strings:
-            if f in form_strings[key]:
-                f = key
-                string_is_recognized = True
-                break
-
-        if not string_is_recognized:
-            pm.error("Unable to create curve. form received invalid string argument:"
-                     "'{}'".format(f))
-
-    acceptable_form_inputs = []
-    for string_list in form_strings.values():
-        for string in string_list:
-            acceptable_form_inputs.append(string)
-
-
-    #...Check degree input integrity
-    degree_is_valid = True
-
-    degree = bulk_up_list(degree, new_length=shape_count)
-
-    for entry in degree:
-        if isinstance(entry, int):
-            if not entry in [1, 3]:
-                degree_is_valid = False
-
-        else:
-
-            degree_is_valid = False
-
-    if degree_is_valid in [False, 0]:
-        pm.error("Unable to create curve. 'degree' parameter received invalid argument: {}".format(degree))
-
-
-
-    #...Check shape_offset input integrity
-    if not shape_offset:
-        shape_offset = [0, 0, 0]
-    shape_offset = bulk_up_list(output_variable=shape_offset, check_variable=shape_offset[0], new_length=shape_count)
-    for entry in shape_offset:
-        if not isinstance(entry, list):
-            pm.error("Unable to create curve. 'shape_offset' parameter received invalid argument: {}".format(entry))
-
-        else:
-            if len(entry) != 3:
-                pm.error("Unable to create curve. 'shape_offset' parameter received invalid argument: {}".format(entry))
-
-    if not isinstance(scale, list):
-        scale = [scale, scale, scale]
-        
-    for entry in scale:
-        if not isinstance(entry, (int, float)):
-            pm.error("Unable to create curve. 'scale' parameter received invalid argument: {}".format(entry))
-
+    composed_cv_data = compose_curve_construct_cvs(
+        curve_data=curves, scale=scale, shape_offset=shape_offset, up_direction=up_direction,
+        forward_direction=forward_direction)
 
     ##### BUILD SHAPES #####
     crvs = []
-    for i in range(shape_count):
-        shape_form = form[i]
-        shape_cvs = cvs[i]
-        shape_degree = degree[i]
-        shape_scale = scale
-        points_offset = shape_offset[i]
-        #...For each curve in curve object, build curve using the home-brewed 'curve' function
-
-        curve = nurbs_curve( color = color,
-                             form = shape_form,
-                             cvs = shape_cvs,
-                             degree = shape_degree,
-                             scale = shape_scale,
-                             points_offset = points_offset,
-                             up_direction = up_direction,
-                             forward_direction = forward_direction,
-                             side = side)
-
-
-        if curve:
-            crvs.append(curve)
+    for i, curve in enumerate(composed_cv_data):
+        crvs.append(
+            nurbs_curve(color = color,
+                        form = curves[i]['form'],
+                        cvs = curves[i]['cvs'],
+                        degree = curves[i]['degree'])
+        )
 
     #...Parent shapes together under a single transform node
     crv_obj = crvs[0]
@@ -1059,17 +868,13 @@ def curve_construct(cvs=None, name=None, color=None, form='open', scale=1, degre
     pm.rename(crv_obj, name)
     rename_shapes(crv_obj)
 
-
     pm.select(clear=1)
     return crv_obj
 
 
 
-
-
 ########################################################################################################################
 def rename_shapes(obj):
-
 
     #...Make sure we're dealing with shape nodes, not transform nodes
     if not pm.nodeType(obj) in ['transform']:
@@ -1079,7 +884,6 @@ def rename_shapes(obj):
     shapes = obj.getShapes()
     if not shapes:
         return None
-
 
     #...Compose dictionary of new shape names
     new_shape_names = []
@@ -1095,16 +899,13 @@ def rename_shapes(obj):
     for shape in shapes:
         shape.rename(new_shape_names[ shapes.index(shape) ])
 
-
     return new_shape_names
-
-
 
 
 
 ########################################################################################################################
 def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None, forward_direction=None, scale=None,
-                           shape_offset=None, side=None):
+                           shape_offset=None):
     """
         Retrieves curve object data from curves dictionary, compiles it and feeds it to the curveObj function then
             returns the resulting curve object.
@@ -1122,114 +923,35 @@ def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None
             shape_offset ([float, float, float]): Vector by which to offset all CV positions so shape will not be
                 centered to object pivot. Requires coordinates in form of list of three number values (integers or
                 floats).
-            side (string): In the event multiple colours are provided, the side argument will be used to determine which
-                colour to use.
         Returns:
             (mTransform) The created curve object.
     """
 
-
     #...Initialize parameters
-    if not up_direction:
-        up_direction = [0, 1, 0]
-
-    if not forward_direction:
-        forward_direction = [0, 0, 1]
-
-    if not shape_offset:
-        shape_offset = [0, 0, 0]
+    if not up_direction: up_direction = [0, 1, 0]
+    if not forward_direction: forward_direction = [0, 0, 1]
+    if not shape_offset: shape_offset = [0, 0, 0]
+    if not scale: scale = 1
 
     #...Test that provided dictionary entry exists
     if prefab not in curve_prefabs:
-        pm.error("Cannot create prefab curve object. " \
+        pm.error("Cannot create prefab curve object. "
                  "Provided prefab dictionary key '{}' is invalid".format(prefab))
 
     #...Get shape data dictionary for this prefab
-    prefab_dict = curve_prefabs[prefab]
-
-    #...Initialize dictionary to assemble curve object input data
-    crv_obj_inputs = {
-        "cvs" : None,
-        "name" : name,
-        "color" : 0,
-        "buildMethod" : "open",
-        "scale" : 1,
-        "degree" : 1,
-        "shape_offset" : shape_offset,
-    }
-
-    #...Update curve object input dictionary with data from the shape dictionary
-    for key in prefab_dict:
-        crv_obj_inputs[key] = prefab_dict[key]
-
-    #...Update curve object input dictionary with provided parameters.
-    if color:
-        crv_obj_inputs["color"] = color
-
-    if not scale:
-        scale = 1
-
-    #...If a name was provided, override any name that came through with the control info
-    if name:
-        crv_obj_inputs["name"] = name
+    prefab_list = copy.deepcopy(curve_prefabs[prefab])
 
     #...Create the shape object with assembled data
     output_obj = curve_construct(
-                    cvs = crv_obj_inputs["cvs"],
-                    name = crv_obj_inputs["name"],
-                    color = crv_obj_inputs["color"],
-                    form = crv_obj_inputs["form"],
-                    scale = crv_obj_inputs["scale"] * scale,
-                    degree = crv_obj_inputs["degree"],
-                    shape_offset = crv_obj_inputs["shape_offset"],
-                    up_direction = up_direction,
-                    forward_direction = forward_direction,
-                    side = side,
+        curves=prefab_list,
+        name = name,
+        color = color,
+        scale = scale,
+        shape_offset = shape_offset,
+        up_direction = up_direction,
+        forward_direction = forward_direction,
     )
-
     return output_obj
-
-
-
-
-
-########################################################################################################################
-def side_tag_from_string(side):
-    """
-    Takes in string describing directions left, right, or middle and returns a correctly formatted side tag that can be
-        used as the correct arguments to parameters in other functions.
-    Args:
-        side (string): The string describing the direction of the desired side tag. String should refer to directions:
-            left, right, or middle
-    Return:
-        (string) The resulting side tag.
-    """
-
-    if not side:
-        return None
-
-
-    side_tag = None
-
-
-    side_strings_dict = {
-        nom.leftSideTag : ["left", "Left", "LEFT", "l", "L"],
-        nom.rightSideTag : ["right", "Right", "RIGHT", "r", "R"],
-        nom.midSideTag : ["middle", "Middle", "MIDDLE", "mid", "Mid", "MID", "m", "M"]
-    }
-
-    for key in side_strings_dict:
-        if side in side_strings_dict[key]:
-            side_tag = key
-            break
-
-
-    if not side_tag:
-        pm.error("Failed to get side tag from string argument. Check that argument '{0}' is valid.".format(side))
-
-    return side_tag
-
-
 
 
 
@@ -1263,8 +985,6 @@ def break_connections(attr, incoming=True, outgoing=False):
                 pm.disconnectAttr(attr, connected_attr)
             except Exception:
                 pass
-
-
 
 
 
@@ -1317,8 +1037,6 @@ def match_position(obj, match_to, method="parent", preserve_scale=1, enforce_sca
 
 
 
-
-
 ########################################################################################################################
 def get_clean_name(node_name, keep_namespace=False):
     """
@@ -1362,8 +1080,6 @@ def get_clean_name(node_name, keep_namespace=False):
 
 
 
-
-
 ########################################################################################################################
 def get_opposite_side_obj(obj):
 
@@ -1400,22 +1116,16 @@ def get_opposite_side_obj(obj):
 
 
 
-
-
 ########################################################################################################################
 def position_between(obj, between, ratios=None, include_orientation=False):
-
-
     if not ratios:
         ratios = []
         for i in between:
             ratios.append(1.0/len(between))
 
-
     #...Check that an equal number of between nodes and ratio values were provided
     if len(between) != len(ratios):
         pm.error("Parameters 'between' and 'ratios' require list arguments of equal length.")
-
 
     #...Create constraint
     if include_orientation:
@@ -1423,22 +1133,17 @@ def position_between(obj, between, ratios=None, include_orientation=False):
     else:
         constraint = pm.pointConstraint(tuple(between), obj)
 
-
     #...Get constraint weights to edit
     if include_orientation:
         weights = pm.parentConstraint(constraint, query=1, weightAliasList=1)
     else:
         weights = pm.pointConstraint(constraint, query=1, weightAliasList=1)
 
-
     #...Apply weights
     [pm.setAttr(w, r) for w, r in zip(weights, ratios)]
 
-
     #...Delete constraint. We're finished with it
     pm.delete(constraint)
-
-
 
 
 
@@ -1469,7 +1174,6 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
     if keep_original:
         source_obj = pm.duplicate(source_obj, name=str(source_obj) + '_TEMP', renameChildren=1)[0]
 
-
     #...Unlock all transform attributes on source object(s) to avoid the shapes jumping when re-parented
     [pm.setAttr(source_obj + "." + attr, lock=0, channelBox=1) for attr in all_transform_attrs]
     [break_connections(source_obj + "." + attr) for attr in all_transform_attrs + ["offsetParentMatrix"]]
@@ -1477,8 +1181,9 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
     source_obj.inheritsTransform.set(lock=0)
     source_obj.inheritsTransform.set(1)
     source_obj.setParent(destination_obj)
+    #pm.makeIdentity(source_obj, apply=1)
+    convert_offset(source_obj, reverse=True)
     pm.makeIdentity(source_obj, apply=1)
-
 
     for source_shape in source_obj.getShapes():
 
@@ -1490,16 +1195,12 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
 
     pm.delete(source_obj)
 
-
     # Rename shapes
     final_shapes = destination_obj.getShapes()
 
     rename_shapes(destination_obj)
 
-
     pm.select(clear=1)
-
-
 
 
 
@@ -1526,8 +1227,6 @@ def compose_matrix(transforms):
 
 
     return matrix
-
-
 
 
 
@@ -1599,8 +1298,6 @@ def decompose_matrix(matrix):
 
 
 
-
-
 ########################################################################################################################
 def zero_offsetParentMatrix(obj, force=0, zero_transforms=0):
     """
@@ -1644,8 +1341,6 @@ def zero_offsetParentMatrix(obj, force=0, zero_transforms=0):
     for val in locks:
         if val == 1:
             pm.setAttr( obj + "." + lock_attr_list[locks.index(val)], lock=1)
-
-
 
 
 
@@ -1740,12 +1435,8 @@ def convert_offset(obj, reverse=False):
 
 
 
-
-
 ########################################################################################################################
 def get_skin_cluster(obj):
-
-
     obj = obj[0] if isinstance(obj, (tuple, list)) else obj
 
     #...If not arg provided, try getting obj from selection
@@ -1771,12 +1462,8 @@ def get_skin_cluster(obj):
 
 
 
-
-
 ########################################################################################################################
 def create_attr_blend_nodes(attr, node, reverse=True):
-
-
     mult = pm.shadingNode('multDoubleLinear', au=1)
     pm.connectAttr(node+'.'+attr, mult+'.input1')
     pm.setAttr(mult+'.input2', 0.1)
@@ -1810,8 +1497,6 @@ def create_attr_blend_nodes(attr, node, reverse=True):
     outputs = NodeOutputs(mult)
 
     return outputs
-
-
 
 
 
@@ -1849,8 +1534,6 @@ def get_attr_blend_nodes(attr, node, mult=None, reverse=None, output=1):
     else:
 
         return None
-
-
 
 
 
@@ -1911,8 +1594,6 @@ def point_on_surface_matrix(input_surface, parameter_U=None, parameter_V=None, t
 
 
     return output_node
-
-
 
 
 
@@ -2081,8 +1762,6 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
 
 
 
-
-
 ########################################################################################################################
 def get_shape_center(obj):
 
@@ -2123,8 +1802,6 @@ def get_shape_center(obj):
 
 
 
-
-
 ########################################################################################################################
 def reset_transform_to_shape_center(obj):
     
@@ -2154,15 +1831,10 @@ def reset_transform_to_shape_center(obj):
 
 
 
-
-
 ########################################################################################################################
 def scale_obj_shape(obj, scale=(1, 1, 1)):
-
-
     #...Get object center
     obj_center = pm.xform(obj, q=1, worldSpace=1, rotatePivot=1)
-
 
     #...Get shapes
     for shape in obj.getShapes():
@@ -2189,8 +1861,6 @@ def scale_obj_shape(obj, scale=(1, 1, 1)):
 
 
 
-
-
 ########################################################################################################################
 def interpolate(interp_point, point_1, point_2):
 
@@ -2205,99 +1875,46 @@ def interpolate(interp_point, point_1, point_2):
 
 
 
+########################################################################################################################
+def get_shape_data_from_obj(obj=None):
+    shapes = obj.getShapes()
+    pm.error("Provided object has no shape nodes.") if not shapes else None
+    return [get_data_from_shape(shape) for shape in shapes]
+
 
 
 ########################################################################################################################
-def get_shape_data_from_obj(obj=None):
-    """
-    Takes a nurbs curve object and composes a dictionary of data from which the obj can be reproduced.
-        Handy for rig IO - the format of the information is compatible with the inputs for Snowman's nurbs curve
-        prefabs.
-    Args:
-        obj (pyNode): The object (transform) whose shape data should be composed.
-    Returns:
-        (dict): 'form' - open/periodic,
-            'cvs' - cv positions relative to object's transform,
-            'degree' - curve smoothing algorithm
-    """
-
-    cv_position_decimals = 6
-
-    open_form_tag = "open"
-    periodic_form_tag = "periodic"
-
-    #...If no object provided, try getting object from current selection
-    if not obj:
-        sel = pm.ls(sl=1)
-        pm.error("No object provided.") if not sel else None
-        obj = sel[0]
-
-    #...Get object's nurbs curve children
-    shapes = obj.getShapes()
-
-    pm.error("Provided object has no shape nodes.") if not shapes else None
-
-    #...Collect and compose data from all object's nurbs curves
-    #...Curve degrees
-    degrees = [shape.degree() for shape in shapes]
-
-    #...Curve forms (open or periodic curve shapes)
-    forms = [shape.form().key for shape in shapes]
-
-    #...CV positions
-    cv_counts = [shape.numCVs() for shape in shapes]
-    cv_positions = []
-
-    for shp, deg in zip(shapes, degrees):
-        shape_cvs = ([[cv.x, cv.y, cv.z] for cv in shp.getCVs()])
-        #...Round coordinates
-        for i, v in enumerate(shape_cvs):
-            shape_cvs[i] = [round(v[j], cv_position_decimals) for j, w in enumerate(v)]
-        #...If degree of 3, the last three CVs will be repeats. Remove them from final list
-        cv_positions.append(shape_cvs[0: -3] if deg == 3 else shape_cvs)
-
-
-    return {'form': forms,
-            'cvs': cv_positions,
-            'degree': degrees}
-
-
+def get_data_from_shape(curve, cv_position_decimals=6):
+    degree = curve.degree()
+    form = curve.form().key
+    cvs = [curve.getCV(i) for i in range(curve.numCVs())]
+    for i, cv in enumerate(cvs):
+        cvs[i] = [round(cv[j], cv_position_decimals) for j in range(3)]
+    return {'cvs': cvs, 'degree': degree, 'form': form}
 
 
 
 ########################################################################################################################
 def matrix_to_list(matrix):
-
-    return (
-        matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3),
-        matrix(1, 0), matrix(1, 1), matrix(1, 2), matrix(1, 3),
-        matrix(2, 0), matrix(2, 1), matrix(2, 2), matrix(2, 3),
-        matrix(3, 0), matrix(3, 1), matrix(3, 2), matrix(3, 3)
-    )
-
-
+    return (matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3),
+            matrix(1, 0), matrix(1, 1), matrix(1, 2), matrix(1, 3),
+            matrix(2, 0), matrix(2, 1), matrix(2, 2), matrix(2, 3),
+            matrix(3, 0), matrix(3, 1), matrix(3, 2), matrix(3, 3))
 
 
 
 ########################################################################################################################
 def list_to_matrix(list_matrix):
-
     m_matrix = om.MMatrix()
     om.MScriptUtil.createMatrixFromList(list_matrix, m_matrix)
-
     return m_matrix
-
-
 
 
 
 ########################################################################################################################
 def get_obj_matrix(obj):
-
     m_xform = pm.xform(obj, worldSpace=True, m=1, q=1)
     return list_to_matrix(m_xform)
-
-
 
 
 
@@ -2305,7 +1922,7 @@ def get_obj_matrix(obj):
 def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, channel_box=False, enum_name=None,
              default_value=0, min_value=None, max_value=None, lock=False, parent="", number_of_children=0):
 
-    #...String type
+    # ...String type
     if attribute_type == "string":
 
         if parent:
@@ -2331,8 +1948,8 @@ def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, c
 
     else:
 
-    #...Non-string type
-        #...Compound type
+    # ...Non-string type
+        # ...Compound type
         if attribute_type == "compound":
             pm.addAttr(
                 obj,
@@ -2384,8 +2001,6 @@ def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, c
 
 
     return f'{str(obj.name)}.{long_name}'
-
-
 
 
 
@@ -2443,8 +2058,6 @@ def get_attr_data(attr, node):
 
 
 
-
-
 ########################################################################################################################
 def migrate_attr(old_node, new_node, attr, include_connections=True, remove_original=True):
 
@@ -2491,8 +2104,6 @@ def migrate_attr(old_node, new_node, attr, include_connections=True, remove_orig
 
 
 
-
-
 ########################################################################################################################
 def migrate_connections(old_attr, new_attr):
 
@@ -2504,8 +2115,6 @@ def migrate_connections(old_attr, new_attr):
     plugs = pm.listConnections(old_attr, source=0, destination=1, plugs=1)
     for plug in plugs:
         pm.connectAttr(new_attr, plug, force=1)
-
-
 
 
 
@@ -2558,3 +2167,33 @@ def delete_history(obj):
     pm.select(obj, replace=1)
     pm.delete(constructionHistory=1)
     pm.select(clear=1)
+
+
+########################################################################################################################
+def get_obj_side(obj):
+    side_tags = {'L_': 'L', 'R_': 'R', 'M_': 'M'}
+    obj_name = get_clean_name(str(obj))
+    for tag in side_tags:
+        if obj_name.startswith(tag):
+            return side_tags[tag]
+    return None
+
+
+
+########################################################################################################################
+def create_lock_memory(obj, unlock=True):
+    lock_memory = []
+    for attr in all_transform_attrs:
+        if pm.getAttr(f'{obj}.{attr}', lock=1):
+            lock_memory.append(attr)
+            if unlock:
+                pm.setAttr(f'{obj}.{attr}', lock=0)
+    return lock_memory
+
+
+
+########################################################################################################################
+def lock_attrs_from_memory(obj, lock_memory):
+    for attr in all_transform_attrs:
+        if attr in lock_memory:
+            pm.setAttr(f'{obj}.{attr}', lock=1)

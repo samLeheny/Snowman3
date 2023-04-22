@@ -47,6 +47,8 @@ class Blueprint:
     parts: dict = field(default_factory=dict)
     post_constraints: dict = field(default_factory=list)
     custom_constraints: Sequence = field(default_factory=list)
+    kill_ctrls: Sequence = field(default_factory=list)
+    attribute_handoffs: dict = field(default_factory=list)
 
 
 ########################################################################################################################
@@ -75,17 +77,42 @@ class BlueprintManager:
 
 
     def populate_prefab_blueprint(self):
+        self.populate_blueprint_parts()
+        self.populate_blueprint_custom_constraints()
+        self.populate_blueprint_kill_ctrls()
+        self.populate_blueprint_attr_handoffs()
+        self.save_blueprint_to_tempdisk()
+
+
+    def populate_blueprint_attr_handoffs(self):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.attr_handoffs'
+        attr_handoffs = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(attr_handoffs)
+        attr_handoffs_data = [vars(data) for data in attr_handoffs.inputs]
+        self.blueprint.attribute_handoffs = attr_handoffs_data
+
+
+    def populate_blueprint_parts(self):
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.parts'
         prefab_parts = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_parts)
         self.blueprint.parts = prefab_parts.parts
 
+
+    def populate_blueprint_custom_constraints(self):
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.custom_constraints'
         custom_constraints = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(custom_constraints)
-        self.blueprint.custom_constraints = custom_constraints.constraint_pairs
+        constraint_data = [vars(data) for data in custom_constraints.inputs]
+        self.blueprint.custom_constraints = constraint_data
 
-        self.save_blueprint_to_tempdisk()
+
+    def populate_blueprint_kill_ctrls(self):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.kill_ctrls'
+        kill_ctrls = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(kill_ctrls)
+        ctrl_data = [vars(data) for data in kill_ctrls.inputs]
+        self.blueprint.kill_ctrls = ctrl_data
 
 
     def create_new_blueprint(self):
@@ -165,15 +192,30 @@ class BlueprintManager:
     def update_part_from_scene(self, part):
         scene_handle = pm.PyNode(part.scene_name)
         part.position = tuple(scene_handle.translate.get())
+        part.rotation = tuple(scene_handle.rotate.get())
+        part.scale = pm.getAttr(f'{scene_handle}.{"HandleSize"}')
+        part = self.update_part_placers_from_scene(part)
+        part = self.update_part_controls_from_scene(part)
+        return part
+
+
+    def update_part_placers_from_scene(self, part):
         for key, placer in part.placers.items():
             part.placers[key] = self.update_placer_from_scene(placer)
             part.placers[key] = self.update_vector_handles_from_scene(placer)
         return part
 
 
+    def update_part_controls_from_scene(self, part):
+        for key, ctrl in part.controls.items():
+            part.controls[key] = self.update_control_shape_from_scene(ctrl)
+        return part
+
+
     def update_placer_from_scene(self, placer):
         scene_placer = pm.PyNode(placer.scene_name)
         placer.position = tuple(scene_placer.translate.get())
+        placer.rotation = tuple(scene_placer.rotate.get())
         return placer
 
 
@@ -191,6 +233,16 @@ class BlueprintManager:
         process_handle('AIM')
         process_handle('UP')
         return placer
+
+
+    def update_control_shape_from_scene(self, ctrl):
+        if not pm.objExists(ctrl.scene_name):
+            return ctrl
+        scene_ctrl = pm.PyNode(ctrl.scene_name)
+        ctrl_shape_data = gen.get_shape_data_from_obj(scene_ctrl)
+        print(ctrl_shape_data)
+        ctrl.shape = ctrl_shape_data
+        return ctrl
 
 
     def save_blueprint_to_disk(self):

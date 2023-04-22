@@ -42,6 +42,7 @@ class Placer:
     name: str
     side: str = None
     position: Sequence = (0, 0, 0)
+    rotation: Sequence = (0, 0, 0)
     size: float = 1.0
     has_vector_handles: bool = True
     vector_handle_positions: list[list, list] = ((0, 0, 1), (0, 1, 0))
@@ -50,6 +51,8 @@ class Placer:
     data_name: str = None
     scene_name: str = None
     parent_part_name: str = None
+    is_pole_vector: bool = False
+    pole_vector_partners: list = None
 
 
 
@@ -60,6 +63,7 @@ class PlacerCreator:
         name: str,
         parent_part_name: str,
         position: tuple,
+        rotation: tuple = (0, 0, 0),
         side: str = None,
         size: float = None,
         has_vector_handles: bool = True,
@@ -68,11 +72,14 @@ class PlacerCreator:
         match_orienter: str = None,
         scene_name: str = None,
         data_name: str = None,
+        is_pole_vector: bool = False,
+        pole_vector_partners: list = None
     ):
         self.name = name
         self.data_name = data_name if data_name else name
         self.parent_part_name = parent_part_name
         self.position = position
+        self.rotation = rotation
         self.side = side
         self.size = size if size else 1.25
         self.has_vector_handles = has_vector_handles
@@ -80,13 +87,17 @@ class PlacerCreator:
         self.orientation = orientation if orientation else [[1, 0, 0], [0, 1, 0]]
         self.match_orienter = match_orienter
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{parent_part_name}_{name}_{placer_tag}'
+        self.is_pole_vector = is_pole_vector
+        self.pole_vector_partners = pole_vector_partners
 
 
     def initialize_vector_handle_positions(self, handle_vectors):
         if not handle_vectors:
             handle_vectors = [[5, 0, 0], [0, 0, -5]]
         aim_vector, up_vector = handle_vectors
-        aim_side_mult = -1 if self.side == 'R' else 1
+        aim_side_mult = 1
+        if self.side == 'R' and aim_vector[1:] == [0, 0]:
+            aim_side_mult = -1
         aim_vector = [aim_vector[i] * aim_side_mult for i in range(3)]
         return [aim_vector, up_vector]
 
@@ -98,12 +109,15 @@ class PlacerCreator:
             side = self.side,
             parent_part_name = self.parent_part_name,
             position = self.flip_position() if self.side == 'R' else self.position,
+            rotation = self.rotation,
             size = self.size,
             vector_handle_positions = self.vector_handle_positions,
             orientation = self.orientation,
             match_orienter = self.match_orienter,
             scene_name = self.scene_name,
-            has_vector_handles = self.has_vector_handles
+            has_vector_handles = self.has_vector_handles,
+            is_pole_vector = self.is_pole_vector,
+            pole_vector_partners = self.pole_vector_partners,
         )
         return placer
 
@@ -151,8 +165,14 @@ class ScenePlacerManager:
 
 
     def create_scene_obj(self, parent=None):
-        self.scene_placer = gen.prefab_curve_construct(prefab='sphere_placer', name=self.placer.scene_name,
-                                                       scale=self.placer.size, side=self.placer.side)
+        if self.placer.is_pole_vector:
+            shape_prefab = 'tetrahedron'
+            size = self.placer.size * 1.5
+        else:
+            shape_prefab = 'sphere_placer'
+            size = self.placer.size
+        self.scene_placer = gen.prefab_curve_construct(prefab=shape_prefab, name=self.placer.scene_name,
+                                                       scale=size)
         buffer_grp = pm.group(name=self.placer.scene_name.replace(placer_tag, 'BUFFER'), em=1, world=1)
         if parent:
             buffer_grp.setParent(parent)
@@ -162,6 +182,7 @@ class ScenePlacerManager:
 
     def position_scene_placer(self):
         self.scene_placer.translate.set(tuple(self.placer.position))
+        self.scene_placer.rotate.set(tuple(self.placer.rotation))
 
 
     def add_scene_placer_metadata(self):
@@ -206,9 +227,9 @@ class ScenePlacerManager:
 
     def add_attributes(self):
         gen.add_attr(obj=self.scene_placer, long_name='VectorHandles', attribute_type='bool', keyable=False,
-                     channel_box=True)
+                     channel_box=False)
         gen.add_attr(obj=self.scene_placer, long_name='Orienters', attribute_type='bool', keyable=False,
-                     channel_box=True)
+                     channel_box=False)
 
 
 
@@ -249,7 +270,7 @@ class VectorHandleManager:
                  'up': ('UP', 'tetrahedron', self.vector_handles_size * 1.6)}
         vector_type, handle_shape, shape_scaler_factor = types[self.vector]
         self.scene_name = f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.name}_{vector_type}'
-        self.scene_handle = gen.prefab_curve_construct(prefab=handle_shape, name=self.scene_name, side=self.side,
+        self.scene_handle = gen.prefab_curve_construct(prefab=handle_shape, name=self.scene_name,
                                                        scale=self.size * shape_scaler_factor)
         self.color_scene_handle()
         self.connect_attributes_to_placer()

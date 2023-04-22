@@ -43,26 +43,33 @@ class Rig:
 class RigManager:
     def __init__(
         self,
-        blueprint_manager = None,
         rig = None
     ):
-        self.blueprint_manager = blueprint_manager
         self.rig = rig
+        self.scene_root = None
 
 
-    def build_rig_from_armature(self):
-        self.rig = Rig(name=self.blueprint_manager.blueprint.asset_name)
+    def build_rig_from_armature(self, blueprint):
+        self.rig = Rig(name=blueprint.asset_name)
+        self.get_scene_root(blueprint.asset_name)
         self.build_rig_root_structure()
-        self.build_rig_parts()
-        self.make_custom_constraints()
+        self.build_rig_parts(blueprint.parts)
+        self.perform_attribute_handoffs(blueprint.attribute_handoffs)
+        self.make_custom_constraints(blueprint.custom_constraints)
+        self.kill_unwanted_controls(blueprint.kill_ctrls)
+
+
+    def get_scene_root(self, scene_root_name):
+        if not pm.objExists(scene_root_name):
+            pm.error(f"Scene root: '{scene_root_name}' not found")
+        self.scene_root = pm.PyNode(scene_root_name)
 
 
     def build_rig_root_structure(self):
-        self.rig.scene_rig_container = pm.shadingNode('transform', name=self.rig.name, au=1)
+        self.rig.scene_rig_container = pm.group(name='Rig', em=1, p=self.scene_root)
 
 
-    def build_rig_parts(self):
-        parts = self.blueprint_manager.blueprint.parts
+    def build_rig_parts(self, parts):
         for key, part in parts.items():
             self.build_rig_part(part)
 
@@ -78,32 +85,64 @@ class RigManager:
             rig_part_container.setParent(self.rig.scene_rig_container)
 
 
-    def make_custom_constraints(self):
-        constraint_pairs = self.blueprint_manager.blueprint.custom_constraints
-        for pair in constraint_pairs:
-            self.make_custom_constraint(pair)
+    def make_custom_constraints(self, custom_constraints):
+        constraint_pairs = custom_constraints
+        for package in constraint_pairs:
+            self.make_custom_constraint(package)
+        pm.select(clear=1)
 
 
-    def make_custom_constraint(self, constraint_pair):
-        source_part_key, source_ctrl_key = constraint_pair[0]
-        target_part_key = constraint_pair[1]
-        match_transform = constraint_pair[2]
-        source_ctrl = self.blueprint_manager.blueprint.parts[source_part_key].controls[source_ctrl_key]
-        target_part = self.blueprint_manager.blueprint.parts[target_part_key]
-        if not all((pm.objExists(source_ctrl.scene_name), pm.objExists(self.get_rig_part_scene_name(target_part)))):
+    def make_custom_constraint(self, data):
+        driver_part = pm.PyNode(f'{data["driver_part_name"]}_RIG')
+        driven_part = pm.PyNode(f'{data["driven_part_name"]}_RIG')
+        driver_node, driven_node = None, None
+        for child in driver_part.getChildren(allDescendents=1):
+            if gen.get_clean_name(str(child)) == data['driver_node_name']:
+                driver_node = child
+                break
+        for child in driven_part.getChildren(allDescendents=1):
+            if gen.get_clean_name(str(child)) == data['driven_node_name']:
+                driven_node = child
+                break
+        if not all((driver_node, driven_node)):
             return False
-        scene_source_ctrl = pm.PyNode(source_ctrl.scene_name)
-        scene_target_part = pm.PyNode(self.get_rig_part_scene_name(target_part))
-        part_connector = self.get_rig_connector(scene_target_part)
-        if match_transform:
-            children = part_connector.getChildren()
+        if data['match_transform']:
+            children = driven_node.getChildren()
             for child in children:
                 child.setParent(world=1)
-            pm.matchTransform(part_connector, scene_source_ctrl)
+            pm.matchTransform(driven_node, driver_node)
             for child in children:
-                child.setParent(part_connector)
-        pm.parentConstraint(scene_source_ctrl, part_connector, mo=1)
-        #pm.scaleConstraint(scene_source_ctrl, part_transform_grp, mo=1)
+                child.setParent(driven_node)
+        if data['constraint_type'] == 'parent':
+            pm.parentConstraint(driver_node, driven_node, mo=1)
+        elif data['constraint_type'] == 'point':
+            pm.pointConstraint(driver_node, driven_node, mo=1)
+
+
+    def kill_unwanted_controls(self, kill_ctrls):
+        [self.kill_unwanted_control(package) for package in kill_ctrls]
+
+
+    def kill_unwanted_control(self, data):
+        part = pm.PyNode(f'{data["part_name"]}_RIG')
+        ctrl = None
+        for child in part.getChildren(allDescendents=1):
+            if gen.get_clean_name(str(child)) == data['ctrl_node_name']:
+                ctrl = child
+                break
+        if not ctrl:
+            return False
+        if data['hide']:
+            for shape in ctrl.getShapes():
+                shape.visibility.set(0, lock=1)
+        if data['lock']:
+            for attr in ('translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz',
+                         'visibility'):
+                pm.setAttr(f'{ctrl}.{attr}', lock=1)
+        if data['rename']:
+            current_name = gen.get_clean_name(str(ctrl))
+            new_name = current_name.replace('CTRL', 'DeadCTRL')
+            pm.rename(ctrl, new_name)
 
 
     def get_rig_part_scene_name(self, part):
@@ -119,3 +158,18 @@ class RigManager:
             if gen.get_clean_name(str(child)) == rig_part_connector_name:
                 return_node = child
         return return_node
+
+
+    def perform_attribute_handoffs(self, attr_handoffs):
+        [self.perform_attr_handoff(package) for package in attr_handoffs]
+
+
+    def perform_attr_handoff(self, handoff_data):
+        attr_exceptions = ("LockAttrData", "LockAttrDataT", "LockAttrDataR", "LockAttrDataS", "LockAttrDataV")
+        old_node = pm.PyNode(handoff_data['old_attr_node'])
+        new_node = pm.PyNode(handoff_data['new_attr_node'])
+        attrs = pm.listAttr(old_node, userDefined=1)
+        [attrs.remove(a) if a in attrs else None for a in attr_exceptions]
+        [gen.migrate_attr(old_node, new_node, a) for a in attrs]
+        if handoff_data['delete_old_node']:
+            pm.delete(old_node)

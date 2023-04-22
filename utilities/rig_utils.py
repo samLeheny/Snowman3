@@ -142,9 +142,10 @@ def orienter(name=None, scale=1):
     colors = [14, 14, 14, 13, 13, 13, 6, 6, 6]
     forms = ["periodic", "open", "open", "periodic", "open", "open", "periodic", "open", "open"]
     degrees = [3, 1, 1, 3, 1, 1, 3, 1, 1]
+    curve_count = len(cvs)
+    curves = [{'cvs': cvs[i], 'degree': degrees[i], 'form': forms[i]} for i in range(curve_count)]
     # Compose orienter name
-    orienter = gen.curve_construct(cvs=cvs, name=name, color=None, form=forms, scale=scale, side=None,
-                                   degree=degrees)
+    orienter = gen.curve_construct(curves=curves, name=name, color=None, scale=scale)
     # Color orienter
     shapes = orienter.getShapes()
     for s, c in zip(shapes, colors):
@@ -180,11 +181,7 @@ def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_t
         nom.nonBindJnt: [nom.nonBindJnt, "nonBind", "non bind", "non_bind", "Non_Bind", "Non Bind", "non-bind",
                          "nonbind"]
     }
-    side_tag_string = None
-    if not side:
-        side_tag_string = ''
-    else:
-        side_tag_string = f'{gen.side_tag_from_string(side)}_'
+    side_tag = f'{side}_' if side else ''
     # Clear selection so joint doesn't auto-parent somewhere weird
     pm.select(clear=1)
     # Make joint and set its name, radius, and position (if any were provided)
@@ -196,7 +193,7 @@ def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_t
         if joint_type in joint_type_name_chunks[key]:
             joint_type_suffix = key
     # Determine joint name on arguments
-    joint_name = f'{side_tag_string}{name}_{joint_type_suffix}'
+    joint_name = f'{side_tag}{name}_{joint_type_suffix}'
     # Create joint
     jnt = pm.joint(name=joint_name, radius=radius, position=position)
     # Set joint's color (if specific color not provided, then color joint based on joint_type argument)
@@ -322,8 +319,7 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
         scale=scale,
         shape_offset=shape_offset,
         forward_direction=forward_direction,
-        up_direction=up_direction,
-        side=side
+        up_direction=up_direction
     )
 
     # Embed lock information into hidden attributes on control
@@ -612,3 +608,13 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
 
         tweak_ctrls.append(ctrl)
     return tweak_ctrls
+
+
+
+########################################################################################################################
+def joint_rot_to_ori(joint):
+    jointOrient_attrs = ("jointOrientX", "jointOrientY", "jointOrientZ")
+    for i in range(3):
+        pm.setAttr(f'{joint}.{jointOrient_attrs[i]}',
+                   pm.getAttr(f'{joint}.{jointOrient_attrs[i]}') + pm.getAttr(f'{joint}.{gen.rotate_attrs[i]}'))
+    pm.setAttr(joint.rotate, 0, 0, 0)
