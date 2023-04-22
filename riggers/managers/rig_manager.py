@@ -43,27 +43,33 @@ class Rig:
 class RigManager:
     def __init__(
         self,
-        blueprint_manager = None,
         rig = None
     ):
-        self.blueprint_manager = blueprint_manager
         self.rig = rig
+        self.scene_root = None
 
 
-    def build_rig_from_armature(self):
-        self.rig = Rig(name=self.blueprint_manager.blueprint.asset_name)
+    def build_rig_from_armature(self, blueprint):
+        self.rig = Rig(name=blueprint.asset_name)
+        self.get_scene_root(blueprint.asset_name)
         self.build_rig_root_structure()
-        self.build_rig_parts()
-        self.make_custom_constraints()
-        self.kill_unwanted_controls()
+        self.build_rig_parts(blueprint.parts)
+        self.perform_attribute_handoffs(blueprint.attribute_handoffs)
+        self.make_custom_constraints(blueprint.custom_constraints)
+        self.kill_unwanted_controls(blueprint.kill_ctrls)
+
+
+    def get_scene_root(self, scene_root_name):
+        if not pm.objExists(scene_root_name):
+            pm.error(f"Scene root: '{scene_root_name}' not found")
+        self.scene_root = pm.PyNode(scene_root_name)
 
 
     def build_rig_root_structure(self):
-        self.rig.scene_rig_container = pm.shadingNode('transform', name=self.rig.name, au=1)
+        self.rig.scene_rig_container = pm.group(name='Rig', em=1, p=self.scene_root)
 
 
-    def build_rig_parts(self):
-        parts = self.blueprint_manager.blueprint.parts
+    def build_rig_parts(self, parts):
         for key, part in parts.items():
             self.build_rig_part(part)
 
@@ -79,8 +85,8 @@ class RigManager:
             rig_part_container.setParent(self.rig.scene_rig_container)
 
 
-    def make_custom_constraints(self):
-        constraint_pairs = self.blueprint_manager.blueprint.custom_constraints
+    def make_custom_constraints(self, custom_constraints):
+        constraint_pairs = custom_constraints
         for package in constraint_pairs:
             self.make_custom_constraint(package)
         pm.select(clear=1)
@@ -113,10 +119,8 @@ class RigManager:
             pm.pointConstraint(driver_node, driven_node, mo=1)
 
 
-    def kill_unwanted_controls(self):
-        kill_ctrls = self.blueprint_manager.blueprint.kill_ctrls
-        for package in kill_ctrls:
-            self.kill_unwanted_control(package)
+    def kill_unwanted_controls(self, kill_ctrls):
+        [self.kill_unwanted_control(package) for package in kill_ctrls]
 
 
     def kill_unwanted_control(self, data):
@@ -154,3 +158,18 @@ class RigManager:
             if gen.get_clean_name(str(child)) == rig_part_connector_name:
                 return_node = child
         return return_node
+
+
+    def perform_attribute_handoffs(self, attr_handoffs):
+        [self.perform_attr_handoff(package) for package in attr_handoffs]
+
+
+    def perform_attr_handoff(self, handoff_data):
+        attr_exceptions = ("LockAttrData", "LockAttrDataT", "LockAttrDataR", "LockAttrDataS", "LockAttrDataV")
+        old_node = pm.PyNode(handoff_data['old_attr_node'])
+        new_node = pm.PyNode(handoff_data['new_attr_node'])
+        attrs = pm.listAttr(old_node, userDefined=1)
+        [attrs.remove(a) if a in attrs else None for a in attr_exceptions]
+        [gen.migrate_attr(old_node, new_node, a) for a in attrs]
+        if handoff_data['delete_old_node']:
+            pm.delete(old_node)

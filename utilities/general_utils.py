@@ -843,7 +843,6 @@ def curve_construct(curves, name=None, color=None, scale=1, shape_offset=None, u
         Returns:
             (mTransform) The created curve object.
     """
-
     composed_cv_data = compose_curve_construct_cvs(
         curve_data=curves, scale=scale, shape_offset=shape_offset, up_direction=up_direction,
         forward_direction=forward_direction)
@@ -1878,87 +1877,42 @@ def interpolate(interp_point, point_1, point_2):
 
 ########################################################################################################################
 def get_shape_data_from_obj(obj=None):
-    """
-    Takes a nurbs curve object and composes a dictionary of data from which the obj can be reproduced.
-        Handy for rig IO - the format of the information is compatible with the inputs for Snowman's nurbs curve
-        prefabs.
-    Args:
-        obj (pyNode): The object (transform) whose shape data should be composed.
-    Returns:
-        (dict): 'form' - open/periodic,
-            'cvs' - cv positions relative to object's transform,
-            'degree' - curve smoothing algorithm
-    """
-
-    cv_position_decimals = 6
-
-    open_form_tag = "open"
-    periodic_form_tag = "periodic"
-
-    #...If no object provided, try getting object from current selection
-    if not obj:
-        sel = pm.ls(sl=1)
-        pm.error("No object provided.") if not sel else None
-        obj = sel[0]
-
-    #...Get object's nurbs curve children
     shapes = obj.getShapes()
-
     pm.error("Provided object has no shape nodes.") if not shapes else None
+    return [get_data_from_shape(shape) for shape in shapes]
 
-    #...Collect and compose data from all object's nurbs curves
-    #...Curve degrees
-    degrees = [shape.degree() for shape in shapes]
 
-    #...Curve forms (open or periodic curve shapes)
-    forms = [shape.form().key for shape in shapes]
 
-    #...CV positions
-    cv_counts = [shape.numCVs() for shape in shapes]
-    cv_positions = []
-
-    for shp, deg, form in zip(shapes, degrees, forms):
-        shape_cvs = ([[cv.x, cv.y, cv.z] for cv in shp.getCVs()])
-        #...Round coordinates
-        for i, v in enumerate(shape_cvs):
-            shape_cvs[i] = [round(v[j], cv_position_decimals) for j, w in enumerate(v)]
-        #...If degree of 3, the last three CVs will be repeats. Remove them from final list
-        if deg == 3 and form == 'periodic':
-            cv_positions.append(shape_cvs[0: -3])
-        else:
-            cv_positions.append(shape_cvs)
-
-    return {'form': forms,
-            'cvs': cv_positions,
-            'degree': degrees}
+########################################################################################################################
+def get_data_from_shape(curve, cv_position_decimals=6):
+    degree = curve.degree()
+    form = curve.form().key
+    cvs = [curve.getCV(i) for i in range(curve.numCVs())]
+    for i, cv in enumerate(cvs):
+        cvs[i] = [round(cv[j], cv_position_decimals) for j in range(3)]
+    return {'cvs': cvs, 'degree': degree, 'form': form}
 
 
 
 ########################################################################################################################
 def matrix_to_list(matrix):
-
-    return (
-        matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3),
-        matrix(1, 0), matrix(1, 1), matrix(1, 2), matrix(1, 3),
-        matrix(2, 0), matrix(2, 1), matrix(2, 2), matrix(2, 3),
-        matrix(3, 0), matrix(3, 1), matrix(3, 2), matrix(3, 3)
-    )
+    return (matrix(0, 0), matrix(0, 1), matrix(0, 2), matrix(0, 3),
+            matrix(1, 0), matrix(1, 1), matrix(1, 2), matrix(1, 3),
+            matrix(2, 0), matrix(2, 1), matrix(2, 2), matrix(2, 3),
+            matrix(3, 0), matrix(3, 1), matrix(3, 2), matrix(3, 3))
 
 
 
 ########################################################################################################################
 def list_to_matrix(list_matrix):
-
     m_matrix = om.MMatrix()
     om.MScriptUtil.createMatrixFromList(list_matrix, m_matrix)
-
     return m_matrix
 
 
 
 ########################################################################################################################
 def get_obj_matrix(obj):
-
     m_xform = pm.xform(obj, worldSpace=True, m=1, q=1)
     return list_to_matrix(m_xform)
 
@@ -1968,7 +1922,7 @@ def get_obj_matrix(obj):
 def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, channel_box=False, enum_name=None,
              default_value=0, min_value=None, max_value=None, lock=False, parent="", number_of_children=0):
 
-    #...String type
+    # ...String type
     if attribute_type == "string":
 
         if parent:
@@ -1994,8 +1948,8 @@ def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, c
 
     else:
 
-    #...Non-string type
-        #...Compound type
+    # ...Non-string type
+        # ...Compound type
         if attribute_type == "compound":
             pm.addAttr(
                 obj,

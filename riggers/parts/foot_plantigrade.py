@@ -32,13 +32,16 @@ import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
 ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
+
+import Snowman3.dictionaries.colorCode as color_code
+importlib.reload(color_code)
 ###########################
 ###########################
 
 
 ###########################
 ######## Variables ########
-
+color_code = color_code.sided_ctrl_color
 ###########################
 ###########################
 
@@ -63,6 +66,7 @@ class BespokePartConstructor(PartConstructor):
             ['SoleInner', (-4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
             ['SoleOuter', (4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
             ['SoleHeel', (0, -10, -4), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
+            ['FootSettings', (6, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.7, False, None]
         ]
         placers = []
         for p in data_packs:
@@ -101,6 +105,14 @@ class BespokePartConstructor(PartConstructor):
                 forward_direction=[1, 0, 0],
                 side=self.side
             ),
+            ControlCreator(
+                name='FootSettings',
+                shape='gear',
+                color=color_code['settings'],
+                size=0.6,
+                locks={'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]},
+                side=self.side
+            ),
         ]
         controls = [creator.create_control() for creator in ctrl_creators]
         return controls
@@ -119,14 +131,16 @@ class BespokePartConstructor(PartConstructor):
         orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
         for key, parent, orienter_key in (('FkToe', transform_grp, 'Ball'),
-                                          ('IkToe', transform_grp, 'Ball')):
+                                          ('IkToe', transform_grp, 'Ball'),
+                                          ('FootSettings', transform_grp, 'FootSettings')):
             scene_ctrls[key].setParent(parent)
             buffer = gen.buffer_obj(scene_ctrls[key])
             pm.matchTransform(buffer, orienters[orienter_key])
 
 
-        foot_attr_loc = pm.spaceLocator(name=f'{gen.side_tag(part.side)}foot_attr_LOC')
+        foot_attr_node = scene_ctrls['FootSettings']
         leg_attr_loc = pm.spaceLocator(name=f'{gen.side_tag(part.side)}leg_attr_LOC')
+        leg_attr_loc.setParent(no_transform_grp)
 
         # ...Ensure a kinematic blend attribute is present on given control
         if not pm.attributeQuery("fkIk", node=leg_attr_loc, exists=1):
@@ -155,9 +169,11 @@ class BespokePartConstructor(PartConstructor):
             if i > 0:
                 pm.matchTransform(bind_jnts[key], orienters[key])
 
+        scene_ctrls['FootSettings'].getParent().setParent(bind_jnts['Foot'])
+
         # ...IK rig
         ik_foot_rig = self.ik_foot(part=part, parent=transform_grp, bind_jnt_keys=bind_jnt_keys,
-                                   orienters=orienters, ctrls=scene_ctrls, foot_roll_ctrl=foot_attr_loc)
+                                   orienters=orienters, ctrls=scene_ctrls, foot_roll_ctrl=foot_attr_node)
         ik_grp = ik_foot_rig['ik_grp']
         ###rig_module.ik_chain_connector = ik_foot_rig["ik_chain_connector"]
         ik_jnts = ik_foot_rig['ik_jnts']

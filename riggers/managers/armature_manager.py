@@ -43,12 +43,13 @@ class ArmatureManager:
         self
     ):
         self.scene_root = None
+        self.armature_grp = None
 
 
     def build_armature_from_blueprint(self, blueprint):
         print("Building armature in scene from blueprint...")
         self.create_scene_armature_root(blueprint.asset_name)
-        self.add_parts_from_blueprint(blueprint=blueprint, parent=self.scene_root)
+        self.add_parts_from_blueprint(blueprint=blueprint, parent=self.armature_grp)
         self.add_post_constraints(blueprint.post_constraints, blueprint.parts)
 
 
@@ -183,5 +184,11 @@ class ArmatureManager:
 
 
     def create_scene_armature_root(self, scene_root_name):
+        armature_grp_name = 'Armature'
         self.scene_root = pm.shadingNode('transform', name=scene_root_name, au=1)
-        gen.set_color(self.scene_root, 2)
+        #gen.set_color(self.scene_root, 2)
+        self.armature_grp = pm.group(name=armature_grp_name, em=1, p=self.scene_root)
+
+
+    def hide_armature(self, lock_visibility=1):
+        self.armature_grp.visibility.set(0, lock=lock_visibility)

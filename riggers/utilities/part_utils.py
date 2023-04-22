@@ -121,13 +121,14 @@ class ScenePartManager:
         self.misc_grp = None
         self.no_transform_misc_grp = None
         self.transform_misc_grp = None
+        self.placers_grp = None
 
 
     def create_scene_part(self):
         self.create_part_handle()
         self.position_part(self.part_handle)
         self.add_part_metadata()
-        self.populate_scene_part(self.part_handle)
+        self.populate_scene_part()
         self.create_placer_connectors()
         self.attach_all_vector_handles()
         return self.part_handle
@@ -170,14 +171,15 @@ class ScenePartManager:
             pm.setAttr(f'{self.part_handle}.{a}', keyable=0)
 
 
-    def populate_scene_part(self, placers_parent=None):
+    def populate_scene_part(self):
         self.add_misc_grp()
+        self.add_placers_grp()
         if not self.part.placers:
             return False
         scene_placers = {}
         for placer in self.part.placers.values():
             placer_manager = ScenePlacerManager(placer)
-            scene_placers[placer.name] = placer_manager.create_scene_placer(parent=placers_parent)
+            scene_placers[placer.name] = placer_manager.create_scene_placer(parent=self.placers_grp)
             self.connect_placer_attributes(placer_manager.scene_placer)
         self.perform_pole_vector_setups(scene_placers)
 
@@ -189,6 +191,11 @@ class ScenePartManager:
         self.transform_misc_grp = pm.group(name=grp_names[1], em=1, p=self.misc_grp)
         self.no_transform_misc_grp = pm.group(name=grp_names[2], em=1, p=self.misc_grp)
         self.no_transform_misc_grp.inheritsTransform.set(0, lock=1)
+
+
+    def add_placers_grp(self):
+        grp_name = 'Placers'
+        self.placers_grp = pm.group(name=grp_name, em=1, p=self.part_handle)
 
 
     def perform_pole_vector_setups(self, scene_placers):
@@ -252,7 +259,8 @@ class ScenePartManager:
 
 
     def create_placer_connectors(self):
-        connectors_grp = pm.group(name='connector_curves', empty=1, parent=self.part_handle)
+        grp_name = 'ConnectorCurves'
+        connectors_grp = pm.group(name=grp_name, empty=1, parent=self.part_handle)
         for pair in self.part.connectors:
             source_scene_placer = pm.PyNode(self.part.placers[pair[0]].scene_name)
             target_scene_placer = pm.PyNode(self.part.placers[pair[1]].scene_name)
@@ -358,18 +366,20 @@ class PartCreator:
         scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
         connectors = self.part_constructor.get_connection_pairs()
         vector_handle_attachments = self.part_constructor.get_vector_handle_attachments()
-        part = Part(name = self.name,
-                    prefab_key = self.prefab_key,
-                    side = self.side,
-                    position = position,
-                    rotation = rotation,
-                    scale = scale,
-                    handle_size = 1.0,
-                    data_name = f'{gen.side_tag(self.side)}{self.name}',
-                    scene_name = scene_name,
-                    placers = self.get_placers(),
-                    controls = self.get_controls(),
-                    connectors = connectors,
-                    vector_handle_attachments=vector_handle_attachments,
-                    construction_inputs = self.construction_inputs)
+        part = Part(
+            name = self.name,
+            prefab_key = self.prefab_key,
+            side = self.side,
+            position = position,
+            rotation = rotation,
+            scale = scale,
+            handle_size = 1.0,
+            data_name = f'{gen.side_tag(self.side)}{self.name}',
+            scene_name = scene_name,
+            placers = self.get_placers(),
+            controls = self.get_controls(),
+            connectors = connectors,
+            vector_handle_attachments = vector_handle_attachments,
+            construction_inputs = self.construction_inputs
+        )
         return part

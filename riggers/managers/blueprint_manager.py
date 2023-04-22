@@ -48,6 +48,7 @@ class Blueprint:
     post_constraints: dict = field(default_factory=list)
     custom_constraints: Sequence = field(default_factory=list)
     kill_ctrls: Sequence = field(default_factory=list)
+    attribute_handoffs: dict = field(default_factory=list)
 
 
 ########################################################################################################################
@@ -79,7 +80,16 @@ class BlueprintManager:
         self.populate_blueprint_parts()
         self.populate_blueprint_custom_constraints()
         self.populate_blueprint_kill_ctrls()
+        self.populate_blueprint_attr_handoffs()
         self.save_blueprint_to_tempdisk()
+
+
+    def populate_blueprint_attr_handoffs(self):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.attr_handoffs'
+        attr_handoffs = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(attr_handoffs)
+        attr_handoffs_data = [vars(data) for data in attr_handoffs.inputs]
+        self.blueprint.attribute_handoffs = attr_handoffs_data
 
 
     def populate_blueprint_parts(self):
@@ -186,7 +196,6 @@ class BlueprintManager:
         part.scale = pm.getAttr(f'{scene_handle}.{"HandleSize"}')
         part = self.update_part_placers_from_scene(part)
         part = self.update_part_controls_from_scene(part)
-
         return part
 
 
@@ -231,6 +240,7 @@ class BlueprintManager:
             return ctrl
         scene_ctrl = pm.PyNode(ctrl.scene_name)
         ctrl_shape_data = gen.get_shape_data_from_obj(scene_ctrl)
+        print(ctrl_shape_data)
         ctrl.shape = ctrl_shape_data
         return ctrl
 

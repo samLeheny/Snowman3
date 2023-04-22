@@ -119,9 +119,7 @@ class BespokePartConstructor(PartConstructor):
                 name='IkFoot',
                 shape='cylinder',
                 color=self.colors[0],
-                size=[0.7, 7, 7],
-                up_direction = [1, 0, 0],
-                forward_direction = [0, 0, 1],
+                size=[7, 0.7, 7],
                 side=self.side
             ),
             ControlCreator(
@@ -221,7 +219,9 @@ class BespokePartConstructor(PartConstructor):
         world_pos = pm.xform(orienters['IkKnee'], q=1, worldSpace=1, rotatePivot=1)
         pm.delete(pm.orientConstraint(orienters['IkKnee'], pv_ctrl_buffer))
 
-        # ...Move contents of limb rig into biped_arm rig module's groups
+        self.reorient_ik_foot(ik_foot_ctrl=limb_rig.ctrls['ik_extrem'], side=part.side)
+
+        # ...Move contents of limb rig into biped_leg rig module's groups
         [child.setParent(transform_grp) for child in limb_rig.grps['transform'].getChildren()]
         [child.setParent(no_transform_grp) for child in limb_rig.grps['noTransform'].getChildren()]
 
@@ -260,8 +260,6 @@ class BespokePartConstructor(PartConstructor):
 
         ik_foot_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkFootFollow'], parent=transform_grp)
         pm.matchTransform(ik_foot_follow_ctrl_buffer, orienters['FootFollowSpace'])
-
-        self.reorient_ik_foot(ik_foot_ctrl=scene_ctrls["IkFoot"], side=part.side)
 
         pm.select(clear=1)
         return rig_part_container

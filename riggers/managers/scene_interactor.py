@@ -54,7 +54,7 @@ class SceneInteractor:
     def create_managers(self, asset_name, dirpath, prefab_key=None):
         self.blueprint_manager = BlueprintManager(asset_name=asset_name, dirpath=dirpath, prefab_key=prefab_key)
         self.armature_manager = ArmatureManager()
-        self.rig_manager = RigManager(blueprint_manager=self.blueprint_manager)
+        self.rig_manager = RigManager()
 
 
     def build_armature_from_blueprint(self):
@@ -134,7 +134,8 @@ class SceneInteractor:
 
 
     def build_rig(self):
-        self.rig_manager.build_rig_from_armature()
+        self.rig_manager.build_rig_from_armature(self.blueprint_manager.blueprint)
+        self.armature_manager.hide_armature()
 
 
     def update_selected_control_shapes(self):
