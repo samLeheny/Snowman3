@@ -42,6 +42,7 @@ class Control:
     position: list
     locks: dict = field(default_factory=lambda: {'v': 1})
     match_position: str = None
+    shape_offset: list = None
     side: str = None
     scene_name: str = None
 
@@ -60,6 +61,7 @@ class ControlCreator:
         size: Union[list, float] = 1.0,
         forward_direction: list[float, float, float] = None,
         up_direction: list[float, float, float] = None,
+        shape_offset: list[float, float, float] = None,
         match_position: str = None,
         side: str = None,
         scene_name: str = None
@@ -73,6 +75,7 @@ class ControlCreator:
         self.size = size
         self.forward_direction = forward_direction if forward_direction else [0, 0, 1]
         self.up_direction = up_direction if up_direction else [0, 1, 0]
+        self.shape_offset = shape_offset
         self.match_position = match_position
         self.side = side
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{control_tag}'
@@ -96,6 +99,7 @@ class ControlCreator:
             position = self.position,
             locks = self.locks,
             match_position = self.match_position,
+            shape_offset = self.shape_offset,
             side = self.side,
             scene_name = self.scene_name
         )
@@ -131,6 +135,7 @@ class SceneControlManager:
         self.create_scene_obj()
         if self.control.match_position:
             self.snap_position()
+        self.add_transform_lock_attributes()
         return self.scene_control
 
 
@@ -138,7 +143,8 @@ class SceneControlManager:
         self.scene_control = gen.curve_construct(
             name=self.get_scene_name(),
             color=self.control.color,
-            curves=self.control.shape
+            curves=self.control.shape,
+            shape_offset=self.control.shape_offset
         )
         return self.scene_control
 
@@ -149,3 +155,20 @@ class SceneControlManager:
 
     def get_scene_name(self):
         return f'{gen.side_tag(self.control.side)}{self.control.name}_{control_tag}'
+
+
+    def add_transform_lock_attributes(self):
+        if not self.control.locks:
+            return False
+        # ...Fill in missing entries with zeroed lists
+        for key in ('t', 'r', 's', 'v'):
+            if key not in self.control.locks:
+                self.control.locks[key] = [0, 0, 0] if key in ('t', 'r', 's') else 0
+        # ...Add compound attr to ctrl
+        pm.addAttr(self.scene_control, longName='LockAttrData', keyable=0, attributeType='compound', numberOfChildren=4)
+        for key in ('t', 'r', 's', 'v'):
+            pm.addAttr(self.scene_control, longName=f'LockAttrData{key.upper()}', keyable=0, dataType='string',
+                       parent='LockAttrData')
+        # ...Embed lock data values in new attrs
+        for key in ('t', 'r', 's', 'v'):
+            pm.setAttr(f'{self.scene_control}.LockAttrData{key.upper()}', str(self.control.locks[key]), type='string')

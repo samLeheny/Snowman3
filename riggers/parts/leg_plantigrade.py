@@ -13,6 +13,9 @@ import pymel.core as pm
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
+import Snowman3.utilities.node_utils as nodes
+importlib.reload(nodes)
+
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
@@ -87,32 +90,38 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_controls(self):
+        lengths = {'FkThigh': 42,
+                   'FkShin': 42,
+                   'FkFoot': 6.5}
         ctrl_creators = [
             ControlCreator(
                 name='FkThigh',
                 shape='body_section_tube',
                 color=self.colors[0],
-                size=[25, 8, 8],
+                size=[lengths['FkThigh'], 10, 10],
                 up_direction = [1, 0, 0],
                 forward_direction = [0, 0, 1],
+                shape_offset=[lengths['FkThigh']/2, 0, 0],
                 side=self.side
             ),
             ControlCreator(
                 name='FkShin',
                 shape='body_section_tube',
                 color=self.colors[0],
-                size=[25, 8, 8],
+                size=[lengths['FkShin'], 10, 10],
                 up_direction = [1, 0, 0],
                 forward_direction = [0, 0, 1],
+                shape_offset=[lengths['FkShin']/2, 0, 0],
                 side=self.side
             ),
             ControlCreator(
                 name='FkFoot',
                 shape='body_section_tube',
                 color=self.colors[0],
-                size=[6.5, 4, 8],
+                size=[lengths['FkFoot'], 4, 8],
                 up_direction = [1, 0, 0],
                 forward_direction = [0, 0, 1],
+                shape_offset=[lengths['FkFoot']/2, 0, 0],
                 side=self.side
             ),
             ControlCreator(
@@ -127,7 +136,8 @@ class BespokePartConstructor(PartConstructor):
                 shape='sphere',
                 color=self.colors[0],
                 size=2,
-                side=self.side
+                side=self.side,
+                locks={'r':[1, 1, 1], 's':[1, 1, 1]}
             ),
             ControlCreator(
                 name='Hip',
@@ -150,8 +160,9 @@ class BespokePartConstructor(PartConstructor):
                 shape='circle',
                 color=self.colors[0],
                 up_direction = [1, 0, 0],
-                size=5.5,
-                side=self.side
+                size=7,
+                side=self.side,
+                locks={'s':[1, 1, 1]}
             )
         ]
         for limb_segment in ('Thigh', 'Shin'):
@@ -211,8 +222,13 @@ class BespokePartConstructor(PartConstructor):
             socket_name='Hip',
             pv_name='Knee',
             orienters=[orienters[p] for p in ('Thigh', 'Shin', 'ShinEnd', 'AnkleEnd')],
-            pv_position=pm.xform(orienters['IkKnee'], q=1, worldSpace=1, rotatePivot=1)
+            pv_position=pm.xform(orienters['IkKnee'], q=1, worldSpace=1, rotatePivot=1),
+            tweak_scale_factor_node=connector
         )
+
+        limb_len_sum_outputs = pm.listConnections(limb_rig.total_limb_len_sum.output, s=0, d=1, plugs=1)
+        part_scale_mult = nodes.multDoubleLinear(input1=limb_rig.total_limb_len_sum.output, input2=connector.sy)
+        [part_scale_mult.output.connect(plug, f=1) for plug in limb_len_sum_outputs]
 
         # ...Conform LimbRig's PV ctrl orientation to that of PV orienter
         pv_ctrl_buffer = limb_rig.ctrls['ik_pv'].getParent()
@@ -248,18 +264,12 @@ class BespokePartConstructor(PartConstructor):
                 ctrl_pairs.append((f'{limb_segment}Tweak{j+1}', limb_rig.tweak_ctrls[i][j]))
 
         for ctrl_str, limb_setup_ctrl in ctrl_pairs:
-            scene_ctrl = scene_ctrls[ctrl_str]
-            scene_ctrl_name = gen.get_clean_name(str(scene_ctrl))
-            pm.rename(scene_ctrl, f'{scene_ctrl_name}_TEMP')
-            pm.rename(limb_setup_ctrl, scene_ctrl_name)
-            scene_ctrl.setParent(limb_setup_ctrl.getParent())
-            gen.zero_out(scene_ctrl)
-            pm.matchTransform(scene_ctrl, limb_setup_ctrl)
-            gen.copy_shapes(source_obj=scene_ctrl, destination_obj=limb_setup_ctrl, delete_existing_shapes=True)
-            scene_ctrls[ctrl_str] = limb_setup_ctrl
+            scene_ctrls[ctrl_str] = self.migrate_control_to_new_node(scene_ctrls[ctrl_str], limb_setup_ctrl)
 
         ik_foot_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkFootFollow'], parent=transform_grp)
         pm.matchTransform(ik_foot_follow_ctrl_buffer, orienters['FootFollowSpace'])
+
+        self.apply_all_control_transform_locks()
 
         pm.select(clear=1)
         return rig_part_container

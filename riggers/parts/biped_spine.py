@@ -139,7 +139,8 @@ class BespokePartConstructor(PartConstructor):
                 shape='circle',
                 color=color_code[self.side],
                 size=14,
-                side=self.side
+                side=self.side,
+                locks={'s': [1, 1, 1]}
             ),
             ControlCreator(
                 name='IkPelvis',
@@ -317,6 +318,7 @@ class BespokePartConstructor(PartConstructor):
         pm.delete(poly_strip)
         refined_curves = [self.refine_curve(curve) for curve in nurbs_curves]
         ribbon = self.surface_from_curves(refined_curves, name=f'{part.name}_SURF')
+        ribbon.visibility.set(0, lock=1)
 
         ribbons_grp = pm.group(name='SpineRibbons', p=no_transform_grp, em=1)
         ik_ctrls_grp = pm.group(name='IkSpineCtrls', em=1, p=no_transform_grp)
@@ -397,6 +399,8 @@ class BespokePartConstructor(PartConstructor):
             pm.addAttr(ctrl, longName=pivot_height_attr_name, keyable=1, attributeType='float', defaultValue=0)
             for node in target_nodes:
                 pm.connectAttr(f'{ctrl}.{pivot_height_attr_name}', f'{node}.rotatePivotY')
+
+        self.apply_all_control_transform_locks()
 
         return rig_part_container
 

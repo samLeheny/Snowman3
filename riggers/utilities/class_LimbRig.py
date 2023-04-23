@@ -123,6 +123,7 @@ class LimbRig:
         socket_name = None,
         pv_name = None,
         orienters = None,
+        tweak_scale_factor_node = None
     ):
         self.roll_jnt_resolution = roll_jnt_resolution
         self.limb_name = limb_name
@@ -164,6 +165,8 @@ class LimbRig:
         self.pin_ctrls = []
         self.total_limb_length = None
         self.namespace = f'LimbRig_{self.limb_name}'
+        self.total_limb_len_sum = None
+        self.tweak_scale_factor_node = tweak_scale_factor_node
 
         self.build_prefab(self.prefab)
 
@@ -551,7 +554,8 @@ class LimbRig:
                 end_node = segment.bend_jnts[-1],
                 bend_jnts = segment.bend_jnts,
                 length_ends = (length_end_1, length_end_2),
-                segment = segment
+                segment = segment,
+                scale_node = self.tweak_scale_factor_node
             )
 
 
@@ -607,7 +611,7 @@ class LimbRig:
                 up_axis = up_axis,
                 ctrl_color = ctrl_color,
                 side = self.side,
-                parent = self.grps['noTransform'],
+                parent = self.grps['transform'],
                 ctrl_size = ctrl_size
             )
 
@@ -1015,7 +1019,7 @@ class LimbRig:
         pm.addAttr(self.ctrls['socket'], longName='squash_ik', attributeType='float', minValue=0, maxValue=10,
                    defaultValue=0, keyable=1)
 
-        total_limb_len_sum = self.get_length_sum(ik_end_index)
+        self.total_limb_len_sum = total_limb_len_sum = self.get_length_sum(ik_end_index)
 
 
         ik_extrem_dist = self.ik_extrem_dist = nodes.distanceBetween(
@@ -1090,13 +1094,12 @@ class LimbRig:
 
         #...Combine initial two lengths in first sum
         first_sum = nodes.addDoubleLinear(input1=self.segments[0].segment_length,
-                                               input2=self.segments[1].segment_length)
+                                          input2=self.segments[1].segment_length)
         prev_sum, final_sum = first_sum, first_sum
 
         #...Add each sum as input to the next until all lengths have been added together
         for i in range(2, ik_end_index):
-            new_sum = nodes.addDoubleLinear(input1=prev_sum.output,
-                                                 input2=self.segments[i].segment_length)
+            new_sum = nodes.addDoubleLinear(input1=prev_sum.output, input2=self.segments[i].segment_length)
             prev_sum, final_sum = new_sum, new_sum
 
         return final_sum
@@ -1238,7 +1241,7 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def install_ribbon(self, start_node, end_node, bend_jnts, segment, length_ends):
+    def install_ribbon(self, start_node, end_node, bend_jnts, segment, length_ends, scale_node=None):
 
         ctrl_size = 0.04 * self.total_limb_length
         jnt_size = 0.0175 * self.total_limb_length
@@ -1256,6 +1259,7 @@ class LimbRig:
                                           density=self.roll_jnt_resolution,
                                           side=self.side,
                                           up_vector=ribbon_up_vector)
+        segment_ribbon['nurbsStrip'].visibility.set(0, lock=1)
         segment_ribbon["nurbsStrip"].setParent(self.grps['noTransform'])
         segment_ribbon["nurbsStrip"].scale.set(1, 1, 1)
 
@@ -1280,7 +1284,8 @@ class LimbRig:
                                                        ctrl_resolution = 5,
                                                        parent = self.grps['noTransform'],
                                                        ctrl_size = ctrl_size,
-                                                       jnt_size = jnt_size)
+                                                       jnt_size = jnt_size,
+                                                       scale_node = scale_node)
         self.tweak_ctrls.append(upperlimb_tweak_ctrls)
 
 

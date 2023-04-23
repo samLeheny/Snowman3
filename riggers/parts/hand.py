@@ -193,14 +193,16 @@ class BespokePartConstructor(PartConstructor):
                 color=self.colors[0],
                 size=1,
                 up_direction=[0, -1, 0],
-                side=self.side
+                side=self.side,
+                locks={'t':[1, 1, 1], 's':[1, 1, 1]}
             ),
             ControlCreator(
                 name='QuickPoseFingers',
                 shape='smooth_tetrahedron',
                 color=self.colors[1],
                 size=1,
-                side=self.side
+                side=self.side,
+                locks={'t': [1, 1, 0], 'r': [0, 1, 0], 's':[1, 1, 0]}
             )
         ]
         def create_digit_ctrls(digit_name, segment_count, include_metacarpals):
@@ -443,7 +445,6 @@ class BespokePartConstructor(PartConstructor):
                                                             weightA=metacarpal_flex_weight,
                                                             output=finger.metacarpal.ctrl.rotate)
 
-
         for digit in fingers + thumbs:
             install_joints(digit)
             position_ctrls(digit)
@@ -458,5 +459,6 @@ class BespokePartConstructor(PartConstructor):
             if self.include_metacarpals:
                 connect_palm_flexing(finger, self.finger_count)
 
+        self.apply_all_control_transform_locks()
 
         return rig_part_container

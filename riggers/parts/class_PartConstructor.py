@@ -8,10 +8,14 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import ast
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
+
+import Snowman3.utilities.attribute_utils as attr_utils
+importlib.reload(attr_utils)
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
@@ -44,6 +48,7 @@ class PartConstructor:
         self.part_name = part_name
         self.side = side
         self.colors = self.get_colors()
+        self.scene_ctrls = None
 
 
     def get_colors(self):
@@ -81,9 +86,12 @@ class PartConstructor:
 
     def create_rig_part_grps(self, part):
         rig_part_container = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_RIG', world=1, empty=1)
-        connector_node = pm.group(name=f'Connector', empty=1, parent=rig_part_container)
-        transform_grp = pm.group(name=f'Transform_GRP', empty=1, parent=connector_node)
-        no_transform_grp = pm.group(name=f'NoTransform_GRP', empty=1, parent=connector_node)
+        connector_node = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_CONNECTOR', empty=1,
+                                  parent=rig_part_container)
+        transform_grp = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_Transform_GRP', empty=1,
+                                 parent=connector_node)
+        no_transform_grp = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_NoTransform_GRP', empty=1,
+                                    parent=connector_node)
         if self.side == 'R':
             [gen.flip_obj(grp) for grp in (transform_grp, no_transform_grp)]
         no_transform_grp.inheritsTransform.set(0, lock=1)
@@ -104,5 +112,45 @@ class PartConstructor:
 
     def create_scene_ctrls(self, part):
         scene_ctrl_managers = {ctrl.name: SceneControlManager(ctrl) for ctrl in part.controls.values()}
-        scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
-        return scene_ctrls
+        self.scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
+        return self.scene_ctrls
+
+
+    def apply_all_control_transform_locks(self):
+        for scene_ctrl in self.scene_ctrls.values():
+            self.apply_control_transform_locks(scene_ctrl)
+
+
+    def apply_control_transform_locks(self, scene_ctrl):
+        transform_axis_letters = ('x', 'y', 'z')
+        for letter in ('t', 'r', 's'):
+            attr_name = f'LockAttrData{letter.upper()}'
+            if not pm.attributeQuery(attr_name, node=scene_ctrl, exists=1):
+                continue
+            if pm.getAttr(f'{scene_ctrl}.{attr_name}') in ('None', 'none', None):
+                continue
+            values = ast.literal_eval(pm.getAttr(f'{scene_ctrl}.{attr_name}'))
+            for i, value in enumerate(values):
+                pm.setAttr(f'{scene_ctrl}.{letter}{transform_axis_letters[i]}', keyable=0, lock=1) if value else None
+        vis_attr_name = f'LockAttrData{"V"}'
+        if not pm.attributeQuery(vis_attr_name, node=scene_ctrl, exists=1):
+            return
+        pm.setAttr(f'{scene_ctrl}.visibility', keyable=0, lock=1) \
+            if pm.getAttr(f'{scene_ctrl}.{vis_attr_name}') else None
+
+
+    def migrate_lock_data(self, scene_ctrl, new_node):
+        if pm.attributeQuery('LockAttrData', node=scene_ctrl, exists=1):
+            attr_utils.migrate_attr(scene_ctrl, new_node, 'LockAttrData', remove_original=False)
+
+
+    def migrate_control_to_new_node(self, scene_ctrl, new_ctrl):
+        scene_ctrl_name = gen.get_clean_name(str(scene_ctrl))
+        pm.rename(scene_ctrl, f'{scene_ctrl_name}_TEMP')
+        pm.rename(new_ctrl, scene_ctrl_name)
+        scene_ctrl.setParent(new_ctrl.getParent())
+        gen.zero_out(scene_ctrl)
+        pm.matchTransform(scene_ctrl, new_ctrl)
+        self.migrate_lock_data(scene_ctrl, new_ctrl)
+        gen.copy_shapes(source_obj=scene_ctrl, destination_obj=new_ctrl, delete_existing_shapes=True)
+        return new_ctrl

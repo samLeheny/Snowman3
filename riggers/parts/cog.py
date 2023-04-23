@@ -86,19 +86,14 @@ class BespokePartConstructor(PartConstructor):
 
     def build_rig_part(self, part):
         rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-
-        scene_ctrl_managers = {}
-        for ctrl in part.controls.values():
-            scene_ctrl_managers[ctrl.name] = SceneControlManager(ctrl)
-
-        scene_ctrls = {}
-        for key, manager in scene_ctrl_managers.items():
-            scene_ctrls[key] = manager.create_scene_control()
+        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
         scene_ctrls['Cog'].setParent(transform_grp)
 
         orienter_manager = OrienterManager(part.placers['Cog'])
         cog_orienter = orienter_manager.get_orienter()
         pm.matchTransform(scene_ctrls['Cog'], cog_orienter)
+
+        self.apply_all_control_transform_locks()
 
         return rig_part_container

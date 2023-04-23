@@ -88,6 +88,7 @@ class BespokePartConstructor(PartConstructor):
                 size=9,
                 forward_direction=[0, 0, 1],
                 up_direction=[0, 1, 0],
+                shape_offset=[5.4, 0, 0],
                 side=self.side
             )
         ]
@@ -118,6 +119,8 @@ class BespokePartConstructor(PartConstructor):
         gen.zero_out(clavicle_ctrl_buffer)
         pm.matchTransform(clavicle_ctrl_buffer, orienters['Clavicle'])
         pm.matchTransform(clavicle_end_jnt, orienters['ClavicleEnd'])
+
+        self.apply_all_control_transform_locks()
 
         pm.select(clear=1)
         return rig_part_container

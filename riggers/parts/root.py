@@ -96,14 +96,7 @@ class BespokePartConstructor(PartConstructor):
 
     def build_rig_part(self, part):
         rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-
-        scene_ctrl_managers = {}
-        for ctrl in part.controls.values():
-            scene_ctrl_managers[ctrl.name] = SceneControlManager(ctrl)
-
-        scene_ctrls = {}
-        for key, manager in scene_ctrl_managers.items():
-            scene_ctrls[key] = manager.create_scene_control()
+        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
         scene_ctrls['Root'].setParent(transform_grp)
         scene_ctrls['SubRoot'].setParent(scene_ctrls['Root'])
@@ -113,5 +106,7 @@ class BespokePartConstructor(PartConstructor):
         pm.matchTransform(scene_ctrls['Root'], root_orienter)
 
         gen.install_uniform_scale_attr(scene_ctrls['Root'], 'MasterScale', minValue=0.001)
+
+        self.apply_all_control_transform_locks()
 
         return rig_part_container

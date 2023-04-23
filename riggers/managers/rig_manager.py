@@ -13,6 +13,9 @@ import pymel.core as pm
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
+import Snowman3.utilities.attribute_utils as attr_utils
+importlib.reload(attr_utils)
+
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 OrienterManager = placer_utils.OrienterManager
@@ -57,6 +60,7 @@ class RigManager:
         self.perform_attribute_handoffs(blueprint.attribute_handoffs)
         self.make_custom_constraints(blueprint.custom_constraints)
         self.kill_unwanted_controls(blueprint.kill_ctrls)
+        self.make_rig_scalable(blueprint)
 
 
     def get_scene_root(self, scene_root_name):
@@ -85,38 +89,27 @@ class RigManager:
             rig_part_container.setParent(self.rig.scene_rig_container)
 
 
-    def make_custom_constraints(self, custom_constraints):
-        constraint_pairs = custom_constraints
-        for package in constraint_pairs:
+    def make_custom_constraints(self, constraint_data):
+        for package in constraint_data:
             self.make_custom_constraint(package)
         pm.select(clear=1)
 
 
     def make_custom_constraint(self, data):
-        driver_part = pm.PyNode(f'{data["driver_part_name"]}_RIG')
-        driven_part = pm.PyNode(f'{data["driven_part_name"]}_RIG')
-        driver_node, driven_node = None, None
-        for child in driver_part.getChildren(allDescendents=1):
-            if gen.get_clean_name(str(child)) == data['driver_node_name']:
-                driver_node = child
-                break
-        for child in driven_part.getChildren(allDescendents=1):
-            if gen.get_clean_name(str(child)) == data['driven_node_name']:
-                driven_node = child
-                break
-        if not all((driver_node, driven_node)):
-            return False
-        if data['match_transform']:
-            children = driven_node.getChildren()
-            for child in children:
-                child.setParent(world=1)
-            pm.matchTransform(driven_node, driver_node)
-            for child in children:
-                child.setParent(driven_node)
-        if data['constraint_type'] == 'parent':
-            pm.parentConstraint(driver_node, driven_node, mo=1)
-        elif data['constraint_type'] == 'point':
-            pm.pointConstraint(driver_node, driven_node, mo=1)
+        name = data['name']
+        parent_name = data['parent']
+        interpolation_type = data['interpType']
+        targets = [pm.PyNode(name) for name in data['target_list']]
+        driven_node = pm.PyNode(data['constrained_node'])
+        constraint_name = name
+        constraint_node = pm.parentConstraint(*targets, driven_node, mo=data['maintain_offset'])
+        if parent_name:
+            parent = pm.PyNode(parent_name)
+            get_parent = constraint_node.getParent()
+            if get_parent is None or get_parent != parent:
+                constraint_node.setParent(parent)
+        if interpolation_type:
+            constraint_node.interpType.set(interpolation_type)
 
 
     def kill_unwanted_controls(self, kill_ctrls):
@@ -151,13 +144,11 @@ class RigManager:
         return part_scene_name.replace(part_suffix, rig_suffix)
 
 
-    def get_rig_connector(self, rig_scene_part):
-        rig_part_connector_name = 'Connector'
-        return_node = None
-        for child in rig_scene_part.getChildren():
-            if gen.get_clean_name(str(child)) == rig_part_connector_name:
-                return_node = child
-        return return_node
+    def get_rig_connector(self, part):
+        rig_part_connector_name = f'{gen.side_tag(part.side)}{part.name}_CONNECTOR'
+        if not pm.objExists(rig_part_connector_name):
+            return None
+        return pm.PyNode(rig_part_connector_name)
 
 
     def perform_attribute_handoffs(self, attr_handoffs):
@@ -170,6 +161,36 @@ class RigManager:
         new_node = pm.PyNode(handoff_data['new_attr_node'])
         attrs = pm.listAttr(old_node, userDefined=1)
         [attrs.remove(a) if a in attrs else None for a in attr_exceptions]
-        [gen.migrate_attr(old_node, new_node, a) for a in attrs]
+        [attr_utils.migrate_attr(old_node, new_node, a) for a in attrs]
         if handoff_data['delete_old_node']:
             pm.delete(old_node)
+
+
+    def get_root_part(self, parts):
+        root_part = None
+        for part in parts.values():
+            if part.prefab_key == 'root':
+                root_part = part
+                break
+        return root_part
+
+
+    def get_non_root_parts(self, parts):
+        non_root_parts = parts
+        for key in parts:
+            if parts[key].prefab_key == 'root':
+                non_root_parts.pop(key)
+                break
+        return non_root_parts.values()
+
+
+    def make_rig_scalable(self, blueprint):
+        root_part = self.get_root_part(blueprint.parts)
+        if not root_part:
+            pm.error('No Root part found in scene')
+        non_root_parts = self.get_non_root_parts(blueprint.parts)
+        part_scale_driver_node = pm.PyNode(root_part.controls['SubRoot'].scene_name)
+        for part in non_root_parts:
+            driven_part = pm.PyNode(f'{part.data_name}_RIG')
+            part_connector_node = self.get_rig_connector(part)
+            pm.scaleConstraint(part_scale_driver_node, part_connector_node, mo=1)

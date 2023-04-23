@@ -207,7 +207,8 @@ class BespokePartConstructor(PartConstructor):
                                        side=part.side,
                                        ctrl_size=bend_ctrl_size,
                                        populate_ctrls=[0, 1, 0],
-                                       world_up_obj=stretch_socket)
+                                       world_up_obj=stretch_socket,
+                                       )
         # ...Ribbon
         ribbon_up_vector = (0, 0, -1)
         if part.side == nom.rightSideTag:
@@ -216,6 +217,7 @@ class BespokePartConstructor(PartConstructor):
         # ...Create ribbons
         neck_ribbon = rig.ribbon_plane(name='neck', start_obj=stretch_socket, end_obj=stretch_out_socket, up_obj=up_obj,
                                        density=jnt_resolution, side=part.side, up_vector=ribbon_up_vector)
+        neck_ribbon['nurbsStrip'].visibility.set(0, lock=1)
         neck_ribbon["nurbsStrip"].setParent(no_transform_grp)
         neck_ribbon["nurbsStrip"].scale.set(1, 1, 1)
 
@@ -237,7 +239,7 @@ class BespokePartConstructor(PartConstructor):
             ribbon=neck_ribbon['nurbsStrip'], ctrl_name='Neck', length_ends=(scene_ctrls['Neck'], scene_ctrls['Head']),
             length_attr=neck_length_node.output, attr_ctrl=scene_ctrls['NeckSettings'], side=part.side,
             ctrl_color=color_code['M'], ctrl_resolution=jnt_resolution, parent=no_transform_grp,
-            ctrl_size=neck_length * 0.4)
+            ctrl_size=neck_length * 0.4, scale_node=connector)
 
         ctrl_pairs = [('NeckBend', neck_roller['ctrls'][1])]
         for i, tweak_ctrl in enumerate(neck_tweak_ctrls):
@@ -253,6 +255,8 @@ class BespokePartConstructor(PartConstructor):
             pm.matchTransform(scene_ctrl, ribbon_setup_ctrl)
             gen.copy_shapes(source_obj=scene_ctrl, destination_obj=ribbon_setup_ctrl, delete_existing_shapes=True)
             scene_ctrls[ctrl_str] = ribbon_setup_ctrl
+
+        connector.scale.connect(scene_ctrls['NeckBend'].getParent().scale)
 
         # Adjustable biped_neck length ---------------------------------------------------------------------------------
         neck_len_start_node = pm.shadingNode('transform', name='neck_length_start', au=1)
@@ -288,6 +292,9 @@ class BespokePartConstructor(PartConstructor):
                                   translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
 
         # --------------------------------------------------------------------------------------------------------------
+
+        self.apply_all_control_transform_locks()
+
         pm.delete(temp_nodes_to_delete)
         pm.select(clear=1)
 

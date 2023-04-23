@@ -15,6 +15,9 @@ from typing import Sequence
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
+import Snowman3.utilities.attribute_utils as attr_utils
+importlib.reload(attr_utils)
+
 import Snowman3.utilities.rig_utils as rig
 importlib.reload(rig)
 
@@ -247,8 +250,8 @@ class ScenePartManager:
         pole_vector_position_loc.tz.set(pole_vector_distance)
         pm.pointConstraint(pole_vector_position_loc, pole_vector_scene_placer)
 
-        gen.add_attr(pole_vector_scene_placer, long_name='Distance', attribute_type='float', keyable=True,
-                     channel_box=True, min_value=0.001, default_value=pole_vector_distance)
+        attr_utils.add_attr(pole_vector_scene_placer, long_name='Distance', attribute_type='float', keyable=True,
+                            channel_box=True, min_value=0.001, default_value=pole_vector_distance)
         pm.connectAttr(f'{pole_vector_scene_placer}.{"Distance"}', pole_vector_position_loc.tz)
         for attr in ('translate', 'tx', 'ty', 'tz'):
             pm.setAttr(f'{pole_vector_scene_placer}.{attr}', keyable=0)
@@ -299,10 +302,10 @@ class ScenePartManager:
 
 
     def add_attributes(self):
-        gen.add_attr(obj=self.part_handle, long_name='VectorHandles', attribute_type='bool', keyable=True,
-                     channel_box=True)
-        gen.add_attr(obj=self.part_handle, long_name='Orienters', attribute_type='bool', keyable=True,
-                     channel_box=True)
+        attr_utils.add_attr(obj=self.part_handle, long_name='VectorHandles', attribute_type='bool', keyable=True,
+                            channel_box=True)
+        attr_utils.add_attr(obj=self.part_handle, long_name='Orienters', attribute_type='bool', keyable=True,
+                            channel_box=True)
 
 
     def connect_placer_attributes(self, scene_placer):
