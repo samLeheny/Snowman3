@@ -137,6 +137,11 @@ class PartConstructor:
             return
         pm.setAttr(f'{scene_ctrl}.visibility', keyable=0, lock=1) \
             if pm.getAttr(f'{scene_ctrl}.{vis_attr_name}') else None
+        self.remove_transform_lock_attributes(scene_ctrl)
+
+
+    def remove_transform_lock_attributes(self, scene_ctrl):
+        pm.deleteAttr(f'{scene_ctrl}.{"LockAttrData"}')
 
 
     def migrate_lock_data(self, scene_ctrl, new_node):

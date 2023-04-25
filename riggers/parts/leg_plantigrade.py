@@ -116,10 +116,10 @@ class BespokePartConstructor(PartConstructor):
             ),
             ControlCreator(
                 name='FkFoot',
-                shape='body_section_tube',
+                shape='biped_foot',
                 color=self.colors[0],
-                size=[lengths['FkFoot'], 4, 8],
-                up_direction = [1, 0, 0],
+                size=[lengths['FkFoot'], 9.5, 6.5],
+                up_direction = [-1, 0, 0],
                 forward_direction = [0, 0, 1],
                 shape_offset=[lengths['FkFoot']/2, 0, 0],
                 side=self.side

@@ -176,7 +176,7 @@ class RigManager:
 
 
     def get_non_root_parts(self, parts):
-        non_root_parts = parts
+        non_root_parts = parts.copy()
         for key in parts:
             if parts[key].prefab_key == 'root':
                 non_root_parts.pop(key)

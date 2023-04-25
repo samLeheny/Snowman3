@@ -28,6 +28,9 @@ PartCreator = part_utils.PartCreator
 import Snowman3.riggers.managers.rig_manager as rig_manager_util
 importlib.reload(rig_manager_util)
 RigManager = rig_manager_util.RigManager
+
+import Snowman3.riggers.utilities.constraint_utils as constraint_utils
+importlib.reload(constraint_utils)
 ###########################
 ###########################
 
@@ -64,11 +67,13 @@ class SceneInteractor:
     def build_armature_from_prefab(self):
         self.blueprint_manager.create_blueprint_from_prefab()
         self.blueprint_manager.run_prefab_post_actions()
+        self.update_working_blueprint_file()
         self.build_armature_from_blueprint()
 
 
     def update_blueprint_from_scene(self):
         self.blueprint_manager.update_blueprint_from_scene()
+        self.update_working_blueprint_file()
 
 
     def build_armature_from_latest_version(self):
@@ -85,6 +90,7 @@ class SceneInteractor:
         for part in self.blueprint_manager.blueprint.parts.values():
             if part.side == driver_side:
                 self.mirror_part(part)
+        self.update_working_blueprint_file()
 
 
     def create_part(self, name, prefab_key, side=None):
@@ -96,12 +102,14 @@ class SceneInteractor:
         part = self.create_part(name, prefab_key, side)
         self.blueprint_manager.add_part(part)
         self.armature_manager.add_part(part, parent=self.armature_manager.scene_root)
+        self.update_working_blueprint_file()
 
 
     def remove_part(self, part_key):
         part = self.blueprint_manager.get_part(part_key)
         self.armature_manager.remove_part(part)
         self.blueprint_manager.remove_part(part)
+        self.update_working_blueprint_file()
 
 
     def save_work(self):
@@ -126,11 +134,16 @@ class SceneInteractor:
         self.armature_manager.add_part(new_opposite_part)
         self.mirror_part(self.blueprint_manager.blueprint.parts[existing_part_key])
         self.blueprint_manager.update_blueprint_from_scene()
-        self.blueprint_manager.save_blueprint_to_tempdisk()
+        self.update_working_blueprint_file()
 
 
     def mirror_part(self, part):
         self.armature_manager.mirror_part(part)
+
+
+    def mirror_solo_part(self, part):
+        self.mirror_part(part)
+        self.update_working_blueprint_file()
 
 
     def build_rig(self):
@@ -146,6 +159,7 @@ class SceneInteractor:
             if not self.check_obj_is_control(obj):
                 continue
             self.update_control_shape(obj)
+        self.update_working_blueprint_file()
 
 
     def update_all_control_shapes(self):
@@ -154,6 +168,7 @@ class SceneInteractor:
             if not self.check_obj_is_control(obj):
                 continue
             self.update_control_shape(obj)
+        self.update_working_blueprint_file()
 
 
     def mirror_selected_control_shapes(self):
@@ -166,6 +181,7 @@ class SceneInteractor:
             if not self.check_obj_is_control(obj):
                 continue
             self.mirror_control_shape(obj)
+        self.update_working_blueprint_file()
 
 
     def mirror_all_control_shapes(self, side):
@@ -175,6 +191,7 @@ class SceneInteractor:
             if not self.check_obj_is_control(obj):
                 continue
             self.mirror_control_shape(obj)
+        self.update_working_blueprint_file()
 
 
     def check_obj_is_control(self, obj):
@@ -223,3 +240,24 @@ class SceneInteractor:
             if gen.get_clean_name(str(ctrl)) == control.scene_name:
                 return_node = control
         return return_node
+
+
+    def add_custom_constraint_from_selection(self):
+        #self.blueprint_manager.get_blueprint_from_working_dir()
+        constraint_types = ('pointConstraint', 'orientConstraint', 'parentConstraint', 'scaleConstraint',
+                            'aimConstraint', 'geometryConstraint')
+        selection = pm.ls(sl=1)
+        for node in selection:
+            if node.nodeType() not in constraint_types:
+                continue
+            self.add_custom_constraint(node)
+        self.update_working_blueprint_file()
+
+
+    def add_custom_constraint(self, constraint_node):
+        custom_constraint_data = constraint_utils.create_constraint_data(constraint_node)
+        self.blueprint_manager.add_custom_constraint(custom_constraint_data)
+
+
+    def update_working_blueprint_file(self):
+        self.blueprint_manager.save_blueprint_to_tempdisk()

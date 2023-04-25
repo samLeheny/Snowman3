@@ -51,3 +51,9 @@ interactor.build_armature_from_latest_version()
 interactor.build_rig()
 
 #interactor.mirror_all_control_shapes('L')
+
+#
+nodes = [pm.PyNode(i) for i in ('L_IkKnee_CTRL', 'L_IkFoot_CTRL')]
+constraint = pm.pointConstraint(nodes[0], nodes[1], mo=1)
+pm.select(constraint, replace=1)
+interactor.add_custom_constraint_from_selection()

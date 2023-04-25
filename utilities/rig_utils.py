@@ -37,6 +37,7 @@ embed_transform_lock_data
 ribbon_plane
 insert_nurbs_strip
 ribbon_tweak_ctrls
+mesh_to_skinClust_input
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -640,3 +641,9 @@ def transfer_locks_from_prelim(self, old_node, new_node):
         pm.addAttr(self.ctrl_transform, longName=f'{attr}{key}', dataType='string', parent=attr)
     for attr in (f'{attr}T', f'{attr}R', f'{attr}S', f'{attr}V'):
         pm.setAttr(f'{self.ctrl_transform}.{attr}', pm.getAttr(f'{self.prelim_ctrl}.{attr}'), type='string')
+
+
+
+########################################################################################################################
+def mesh_to_skinClust_input(mesh, skin_cluster):
+    mesh.worldSpace[0].connect(skin_cluster.input[0].inputGeometry, force=True)

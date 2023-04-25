@@ -81,7 +81,7 @@ class BlueprintManager:
         self.populate_blueprint_custom_constraints()
         self.populate_blueprint_kill_ctrls()
         self.populate_blueprint_attr_handoffs()
-        self.save_blueprint_to_tempdisk()
+        #self.save_blueprint_to_tempdisk() -----------------------------------------------------------------------------------------------
 
 
     def populate_blueprint_attr_handoffs(self):
@@ -103,8 +103,15 @@ class BlueprintManager:
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.custom_constraints'
         custom_constraints = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(custom_constraints)
-        constraint_data = [vars(data) for data in custom_constraints.inputs]
-        self.blueprint.custom_constraints = constraint_data
+        for constraint in custom_constraints.inputs:
+            self.add_custom_constraint(constraint)
+        #constraint_data = [vars(data) for data in custom_constraints.inputs]
+        #self.blueprint.custom_constraints = constraint_data
+
+
+    def add_custom_constraint(self, constraint):
+        constraint_data = vars(constraint)
+        self.blueprint.custom_constraints.append(constraint_data)
 
 
     def populate_blueprint_kill_ctrls(self):
@@ -120,7 +127,7 @@ class BlueprintManager:
         self.blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
         self.create_working_dir()
         self.create_versions_dir()
-        self.save_blueprint_to_tempdisk()
+        #self.save_blueprint_to_tempdisk() -----------------------------------------------------------------------------------------------------------
         return self.blueprint
 
 
@@ -172,7 +179,7 @@ class BlueprintManager:
 
     def save_work(self):
         print('Saving work...')
-        self.blueprint = self.get_blueprint_from_working_dir()
+        #self.blueprint = self.get_blueprint_from_working_dir() ----------------------------------------------------------------------------------
         self.update_blueprint_from_scene()
         self.save_blueprint_to_disk()
         self.save_blueprint_to_tempdisk()
@@ -240,7 +247,6 @@ class BlueprintManager:
             return ctrl
         scene_ctrl = pm.PyNode(ctrl.scene_name)
         ctrl_shape_data = gen.get_shape_data_from_obj(scene_ctrl)
-        print(ctrl_shape_data)
         ctrl.shape = ctrl_shape_data
         return ctrl
 
@@ -355,15 +361,13 @@ class BlueprintManager:
 
 
     def add_part(self, part):
-        self.blueprint = self.get_blueprint_from_working_dir()
+        #self.blueprint = self.get_blueprint_from_working_dir() -------------------------------------------------------------------
         self.blueprint.parts[part.data_name] = part
-        self.save_blueprint_to_tempdisk()
 
 
     def remove_part(self, part):
-        self.blueprint = self.get_blueprint_from_working_dir()
+        #self.blueprint = self.get_blueprint_from_working_dir() ---------------------------------------------------------------------
         self.blueprint.parts.pop(part.data_name)
-        self.save_blueprint_to_tempdisk()
 
 
     def get_part(self, part_key):
@@ -375,4 +379,4 @@ class BlueprintManager:
         prefab_post_actions = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_post_actions)
         self.blueprint = prefab_post_actions.run_post_actions(self.blueprint)
-        self.save_blueprint_to_tempdisk()
+        #self.save_blueprint_to_tempdisk() -------------------------------------------------------------------------------------------
