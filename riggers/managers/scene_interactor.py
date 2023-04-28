@@ -64,6 +64,12 @@ class SceneInteractor:
         self.armature_manager.build_armature_from_blueprint(blueprint=self.blueprint_manager.blueprint)
 
 
+    def build_blank_armature(self):
+        self.blueprint_manager.create_new_blueprint()
+        self.update_working_blueprint_file()
+        self.build_armature_from_blueprint()
+
+
     def build_armature_from_prefab(self):
         self.blueprint_manager.create_blueprint_from_prefab()
         self.blueprint_manager.run_prefab_post_actions()
@@ -242,8 +248,7 @@ class SceneInteractor:
         return return_node
 
 
-    def add_custom_constraint_from_selection(self):
-        #self.blueprint_manager.get_blueprint_from_working_dir()
+    def add_selected_constraints(self):
         constraint_types = ('pointConstraint', 'orientConstraint', 'parentConstraint', 'scaleConstraint',
                             'aimConstraint', 'geometryConstraint')
         selection = pm.ls(sl=1)
@@ -257,6 +262,23 @@ class SceneInteractor:
     def add_custom_constraint(self, constraint_node):
         custom_constraint_data = constraint_utils.create_constraint_data(constraint_node)
         self.blueprint_manager.add_custom_constraint(custom_constraint_data)
+
+
+    def remove_selected_constraints(self):
+        constraint_types = ('pointConstraint', 'orientConstraint', 'parentConstraint', 'scaleConstraint',
+                            'aimConstraint', 'geometryConstraint')
+        selection = pm.ls(sl=1)
+        for node in selection:
+            if node.nodeType() not in constraint_types:
+                continue
+            self.remove_custom_constraint(node.nodeName())
+        self.update_working_blueprint_file()
+
+
+    def remove_custom_constraint(self, constraint_name):
+        custom_constraints_list = self.blueprint_manager.blueprint.custom_constraints.copy()
+        constraint_utils.remove_constraint(constraint_name, custom_constraints_list)
+        self.blueprint_manager.blueprint.custom_constraints = custom_constraints_list
 
 
     def update_working_blueprint_file(self):

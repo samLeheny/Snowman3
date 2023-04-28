@@ -66,7 +66,7 @@ class BespokePartConstructor(PartConstructor):
             ['SoleInner', (-4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
             ['SoleOuter', (4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
             ['SoleHeel', (0, -10, -4), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
-            ['FootSettings', (6, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.7, False, None]
+            ['FootSettings', (6, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.7, False, None],
         ]
         placers = []
         for p in data_packs:

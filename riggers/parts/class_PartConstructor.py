@@ -43,12 +43,14 @@ class PartConstructor:
     def __init__(
         self,
         part_name: str,
-        side: str = None
+        side: str = None,
+        part_nodes: dict = {}
     ):
         self.part_name = part_name
         self.side = side
         self.colors = self.get_colors()
         self.scene_ctrls = None
+        self.part_nodes = part_nodes
 
 
     def get_colors(self):
@@ -62,6 +64,10 @@ class PartConstructor:
             for j in range(3):
                 new_positions[i].append(position[j] * (placer_size * scale_factor))
         return new_positions
+
+
+    def create_part_nodes_list(self):
+        return []
 
 
     def create_placers(self):
@@ -80,8 +86,19 @@ class PartConstructor:
         return {}
 
 
-    def build_rig_part(self, part):
+    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
+                               scene_ctrls):
         return None
+
+
+    def build_rig_part(self, part):
+        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+        rig_part_container = self.bespoke_build_rig_part(part, rig_part_container, connector, transform_grp,
+                                                         no_transform_grp, orienters, scene_ctrls)
+        self.apply_all_control_transform_locks()
+        pm.select(clear=1)
+        return rig_part_container
 
 
     def create_rig_part_grps(self, part):

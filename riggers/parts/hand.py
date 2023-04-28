@@ -266,6 +266,23 @@ class BespokePartConstructor(PartConstructor):
 
 
 
+    def create_part_nodes_list(self):
+        part_nodes = []
+        part_nodes.append('Wrist')
+        for i in range(self.finger_count):
+            digit_name = self.get_digit_name(i+1, self.finger_count, 'finger')
+            if self.include_metacarpals:
+                part_nodes.append(f'{digit_name}Meta')
+            for j in range(self.finger_segment_count):
+                part_nodes.append(f'{digit_name}Seg{j+1}')
+        for i in range(self.thumb_count):
+            digit_name = self.get_digit_name(i+1, self.thumb_count, 'thumb')
+            for j in range(self.thumb_segment_count):
+                part_nodes.append(f'{digit_name}Seg{j+1}')
+        return part_nodes
+
+
+
     def get_vector_handle_attachments(self):
         attachments = {}
 
@@ -298,9 +315,8 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
+                               scene_ctrls):
 
         wrist_jnt = rig.joint(name='Wrist', radius=0.7, side=part.side, parent=scene_ctrls['Wrist'])
         wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], parent=transform_grp)
@@ -459,6 +475,20 @@ class BespokePartConstructor(PartConstructor):
             if self.include_metacarpals:
                 connect_palm_flexing(finger, self.finger_count)
 
-        self.apply_all_control_transform_locks()
+        part_nodes = {'Wrist': wrist_jnt}
+        for i in range(self.finger_count):
+            digit_name = self.get_digit_name(i + 1, self.finger_count, 'finger')
+            if self.include_metacarpals:
+                key = f'{digit_name}Meta'
+                part_nodes[key] = scene_ctrls[key]
+            for j in range(self.finger_segment_count):
+                key = f'{digit_name}Seg{j + 1}'
+                part_nodes[key] = scene_ctrls[key]
+        for i in range(self.thumb_count):
+            digit_name = self.get_digit_name(i + 1, self.thumb_count, 'thumb')
+            for j in range(self.thumb_segment_count):
+                key = f'{digit_name}Seg{j + 1}'
+                part_nodes[key] = scene_ctrls[key]
+        self.part_nodes = part_nodes
 
         return rig_part_container

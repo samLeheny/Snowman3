@@ -29,10 +29,6 @@ class AttributeHandoffInput:
 
 
 inputs = [
-    AttributeHandoffInput('L_leg_attr_LOC', 'L_Hip_CTRL', True),
-    AttributeHandoffInput('R_leg_attr_LOC', 'R_Hip_CTRL', True),
-    AttributeHandoffInput('L_FootSettings_CTRL', 'L_IkFoot_CTRL', False),
-    AttributeHandoffInput('R_FootSettings_CTRL', 'R_IkFoot_CTRL', False),
     AttributeHandoffInput('M_SpineSettings_CTRL', 'Cog_CTRL', False),
     AttributeHandoffInput('M_NeckSettings_CTRL', 'M_Neck_CTRL', False),
 ]

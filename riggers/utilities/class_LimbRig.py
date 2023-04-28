@@ -439,6 +439,12 @@ class LimbRig:
             gen.flip_obj(self.grps['root'])
             gen.flip_obj(self.grps['noTransform'])
 
+        self.grps['stretch_rigs'] = pm.group(name=f'{self.side_tag}{self.limb_name}_StretchRigs',
+                                             p=self.grps['transform'], em=1)
+
+        self.grps['world_space_lengths'] = pm.group(name=f'{self.side_tag}{self.limb_name}_WorldSpaceLengths',
+                                                    p=self.grps['transform'], em=1)
+
         #...Rig Scale attribute
         pm.addAttr(self.grps['root'], longName="RigScale", minValue=0.001, defaultValue=1, keyable=0)
 
@@ -611,7 +617,7 @@ class LimbRig:
                 up_axis = up_axis,
                 ctrl_color = ctrl_color,
                 side = self.side,
-                parent = self.grps['transform'],
+                parent = self.grps['stretch_rigs'],
                 ctrl_size = ctrl_size
             )
 

@@ -107,6 +107,14 @@ class BespokePartConstructor(PartConstructor):
 
 
 
+    def create_part_nodes_list(self):
+        part_nodes = []
+        for i in range(self.jnt_count):
+            part_nodes.append(f'Spine{i+1}')
+        return part_nodes
+
+
+
     def create_controls(self):
         ctrl_creators = []
         ik_ctrl_creators = [
@@ -247,9 +255,8 @@ class BespokePartConstructor(PartConstructor):
                                  distance_weights[i], include_orientation=True)
 
 
-    def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
+                               scene_ctrls):
 
         segment_count = part.construction_inputs['segment_count']
         bind_jnt_count = segment_count + 1
@@ -318,6 +325,9 @@ class BespokePartConstructor(PartConstructor):
         bind_jnts = self.create_bind_joints(grp_parent=no_transform_grp, ctrls=scene_ctrls,
                                             bind_jnt_count=bind_jnt_count, ribbon=ik_output_ribbon['nurbsPlane'],
                                             rig_part_transform=transform_grp)
+        for i, jnt in enumerate(bind_jnts):
+            key = f'Spine{i+1}'
+            self.part_nodes[key] = jnt.nodeName()
 
         for ctrl, indices in zip((scene_ctrls['IkPelvis'], scene_ctrls['IkWaist'], scene_ctrls['IkChest']),
                                  ((0, 1), (2, 3, 4), (5,))):
@@ -382,8 +392,6 @@ class BespokePartConstructor(PartConstructor):
             pm.addAttr(ctrl, longName=pivot_height_attr_name, keyable=1, attributeType='float', defaultValue=0)
             for node in target_nodes:
                 pm.connectAttr(f'{ctrl}.{pivot_height_attr_name}', f'{node}.rotatePivotY')
-
-        self.apply_all_control_transform_locks()
 
         return rig_part_container
 

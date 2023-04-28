@@ -23,6 +23,7 @@ PartCreator = part_utils.PartCreator
 ###########################
 
 
+
 part_creators = [
     PartCreator(name='Root', prefab_key='root', side=None, position=(0, 0, 0), construction_inputs={}),
     PartCreator(name='Cog', prefab_key='cog', side=None, position=(0, 108, 0.39), construction_inputs={}),
@@ -49,9 +50,6 @@ part_creators = [
                                      'include_metacarpals': True}),
     PartCreator(name='Leg', prefab_key='leg_plantigrade', side='L', position=(8.5, 101, 0.39), construction_inputs={}),
     PartCreator(name='Leg', prefab_key='leg_plantigrade', side='R', position=(-8.5, 101, 0.39), construction_inputs={}),
-    PartCreator(name='Foot', prefab_key='foot_plantigrade', side='L', position=(8.5, 10, 0.39), construction_inputs={}),
-    PartCreator(name='Foot', prefab_key='foot_plantigrade', side='R', position=(-8.5, 10, 0.39),
-                construction_inputs={}),
 ]
 
 
@@ -59,3 +57,9 @@ parts = {}
 for part_creator in part_creators:
     new_part = part_creator.create_part()
     parts[new_part.data_name] = new_part
+
+
+
+'''PartCreator(name='Foot', prefab_key='foot_plantigrade', side='L', position=(8.5, 10, 0.39), construction_inputs={}),
+PartCreator(name='Foot', prefab_key='foot_plantigrade', side='R', position=(-8.5, 10, 0.39),
+            construction_inputs={}),------------------------------------------------------------------------------------------------------------'''

@@ -71,6 +71,8 @@ class Part:
     connectors: Sequence = field(default_factory=list)
     vector_handle_attachments: dict = field(default_factory=dict)
     construction_inputs: dict = field(default_factory=dict)
+    parent: str = None
+    part_nodes: list = field(default_factory=list)
 
 
 
@@ -355,6 +357,10 @@ class PartCreator:
         return placers_dict
 
 
+    def get_part_nodes(self):
+        return self.part_constructor.create_part_nodes_list()
+
+
     def get_controls(self):
         ctrls_dict = {}
         for ctrl in self.part_constructor.create_controls():
@@ -383,6 +389,7 @@ class PartCreator:
             controls = self.get_controls(),
             connectors = connectors,
             vector_handle_attachments = vector_handle_attachments,
-            construction_inputs = self.construction_inputs
+            construction_inputs = self.construction_inputs,
+            part_nodes = self.get_part_nodes()
         )
         return part

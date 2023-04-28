@@ -137,14 +137,20 @@ class BespokePartConstructor(PartConstructor):
         )
 
 
+    def create_part_nodes_list(self):
+        part_nodes = []
+        for name in ('Neck', 'Head'):
+            part_nodes.append(name)
+        return part_nodes
+
+
     def get_vector_handle_attachments(self):
         return{}
 
 
 
-    def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
+                               scene_ctrls):
 
         jnt_resolution = 5
 
@@ -273,29 +279,12 @@ class BespokePartConstructor(PartConstructor):
 
         scene_ctrls['Head'].getParent().setParent(neck_len_end_node)
 
-        # Finalize controls --------------------------------------------------------------------------------------------
-        '''ctrls["neckBend"] = ctrl_data["neckBend"].initialize_anim_ctrl(existing_obj=neck_roller["mid_ctrl"])
-
-
-        ctrl_pairs = (("neck",),
-                      ("neckBend", neck_roller["mid_ctrl"]),
-                      ("head",))
-
-        for key in ctrl_data:
-            ctrl_data[key].finalize_anim_ctrl(delete_existing_shapes=True)'''
-
         [gen.zero_offsetParentMatrix(ctrl) for ctrl in scene_ctrls.values()]
 
-        # ...Attach neck rig to greater rig ----------------------------------------------------------------------------
-        '''if rig_space_connector:
-            gen.matrix_constraint(objs=[rig_space_connector, rig_connector], decompose=True,
-                                  translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
-
-        # --------------------------------------------------------------------------------------------------------------
-
-        self.apply_all_control_transform_locks()
+        for key, node in (('Neck', neck_roller['jnts'][0]),
+                          ('Head', jnts['Head'])):
+            self.part_nodes[key] = node.nodeName()
 
         pm.delete(temp_nodes_to_delete)
-        pm.select(clear=1)
 
         return rig_part_container

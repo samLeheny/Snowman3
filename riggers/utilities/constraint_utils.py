@@ -148,25 +148,42 @@ def create_constraint_data(constraint):
 
 
 
-def create_constraint(constraint_type, *transforms, **kwargs):
-    name = kwargs.pop('name', None)
-    parent_name = kwargs.pop('parent', None)
-    interpolation_type = kwargs.pop('interpType', None)
-    targets = [pm.PyNode(obj) for obj in transforms]
-    clean_kwargs = dict()
-
-    for key in kwargs:
-        clean_kwargs[str(key)] = kwargs[key]
-    short_name = pm.__dict__[constraint_type](*targets, **clean_kwargs)[-1]
-    long_names = pm.ls(short_name, long=True)
-    constraint_name = long_names[-1]
-    constraint_node = pm.PyNode(constraint_name)
-    if parent_name:
-        parent = pm.PyNode(parent_name)
-        get_parent = constraint_node.getParent()
-        if get_parent is None or get_parent != parent:
-            constraint_node.setParent(parent)
-    if interpolation_type:
-        constraint_node.interpType.set(interpolation_type)
-
+def enact_constraint(data):
+    constraint_node = None
+    targets = [pm.PyNode(obj) for obj in data.target_list]
+    constrained_node = pm.PyNode(data.constrained_node)
+    if data.constraint_type == 'parentConstraint':
+        constraint_node = pm.parentConstraint(*targets, constrained_node, mo=data.maintain_offset)
+    elif data.constraint_type == 'pointConstraint':
+        constraint_node = pm.pointConstraint(*targets, constrained_node, mo=data.maintain_offset)
+    elif data.constraint_type == 'scaleConstraint':
+        constraint_node = pm.scaleConstraint(*targets, constrained_node, mo=data.maintain_offset)
+    ### Still more constraints to add!
+    if data.parent:
+        if pm.objExists(data.parent):
+            constraint_node.setParent(pm.PyNode(data.parent))
+    if data.interpType:
+        constraint_node.interpType.set(data.interpType)
+    pm.rename(constraint_node, data.name)
     return constraint_node
+
+
+
+def create_constraint_data_from_dict(constraint_dict):
+    constraint_data = CustomConstraint(**constraint_dict)
+    return constraint_data
+
+
+
+def remove_constraint(constraint_name, custom_constraint_list):
+    for item in custom_constraint_list:
+        if not item['name'] == constraint_name:
+            continue
+        custom_constraint_list.remove(item)
+        break
+    return custom_constraint_list
+
+
+
+def check_for_constraint(constraint_node):
+    pass

@@ -197,7 +197,6 @@ class BespokePartConstructor(PartConstructor):
         return controls
 
 
-
     def get_connection_pairs(self):
         return (
             ('Forearm', 'Upperarm'),
@@ -206,6 +205,13 @@ class BespokePartConstructor(PartConstructor):
             ('IkElbow', 'Forearm'),
             ('Upperarm', 'HandFollowSpace')
         )
+
+
+    def create_part_nodes_list(self):
+        part_nodes = []
+        for name in ('Upperarm', 'Forearm', 'Wrist', 'WristEnd', 'IkPoleVector'):
+            part_nodes.append(name)
+        return part_nodes
 
 
 
@@ -219,15 +225,14 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
+                               scene_ctrls):
 
         limb_rig = LimbRig(
             limb_name=part.name,
             side=part.side,
             prefab='plantigrade',
-            segment_names=['Upperarm', 'Forearm', 'Hand'],
+            segment_names=['Upperarm', 'Forearm', 'Wrist'],
             socket_name='Shoulder',
             pv_name='Elbow',
             orienters=[orienters[p] for p in ('Upperarm', 'Forearm', 'ForearmEnd', 'WristEnd')],
@@ -236,7 +241,9 @@ class BespokePartConstructor(PartConstructor):
         )
 
         limb_len_sum_outputs = pm.listConnections(limb_rig.total_limb_len_sum.output, s=0, d=1, plugs=1)
-        part_scale_mult = nodes.multDoubleLinear(input1=limb_rig.total_limb_len_sum.output, input2=connector.sy)
+        world_scale_matrix = nodes.decomposeMatrix(inputMatrix=rig_part_container.worldMatrix)
+        part_scale_mult = nodes.multDoubleLinear(input1=limb_rig.total_limb_len_sum.output,
+                                                 input2=world_scale_matrix.outputScale.outputScaleX)
         [part_scale_mult.output.connect(plug, f=1) for plug in limb_len_sum_outputs]
 
         # ...Conform LimbRig's PV ctrl orientation to that of PV orienter
@@ -248,13 +255,7 @@ class BespokePartConstructor(PartConstructor):
         [child.setParent(transform_grp) for child in limb_rig.grps['transform'].getChildren()]
         [child.setParent(no_transform_grp) for child in limb_rig.grps['noTransform'].getChildren()]
 
-        #...Migrate Rig Scale attr over to new rig group
-        rig_scale_attr_string = 'RigScale'
-        gen.install_uniform_scale_attr(rig_part_container, rig_scale_attr_string)
-        for plug in pm.listConnections(f'{limb_rig.grps["root"]}.{rig_scale_attr_string}', destination=1, plugs=1):
-            pm.connectAttr(f'{rig_part_container}.{rig_scale_attr_string}', plug, force=1)
-        for plug in pm.listConnections(f'{limb_rig.grps["root"]}.{rig_scale_attr_string}', source=1, plugs=1):
-            pm.connectAttr(plug, f'{rig_part_container}.{rig_scale_attr_string}', force=1)
+
         pm.delete(limb_rig.grps['root'])
 
         ctrl_pairs = [('FkUpperarm', limb_rig.fk_ctrls[0]),
@@ -276,7 +277,11 @@ class BespokePartConstructor(PartConstructor):
         ik_hand_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkHandFollow'], parent=transform_grp)
         pm.matchTransform(ik_hand_follow_ctrl_buffer, orienters['HandFollowSpace'])
 
-        self.apply_all_control_transform_locks()
+        for key, node in (('Upperarm', limb_rig.blend_jnts[0]),
+                          ('Forearm', limb_rig.blend_jnts[1]),
+                          ('Wrist', limb_rig.blend_jnts[-2]),
+                          ('WristEnd', limb_rig.blend_jnts[-1]),
+                          ('IkPoleVector', scene_ctrls['IkElbow'])):
+            self.part_nodes[key] = node.nodeName()
 
-        pm.select(clear=1)
         return rig_part_container

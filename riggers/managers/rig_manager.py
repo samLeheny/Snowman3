@@ -19,6 +19,9 @@ importlib.reload(attr_utils)
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 OrienterManager = placer_utils.OrienterManager
+
+import Snowman3.riggers.utilities.constraint_utils as constraint_utils
+importlib.reload(constraint_utils)
 ###########################
 ###########################
 
@@ -50,6 +53,7 @@ class RigManager:
     ):
         self.rig = rig
         self.scene_root = None
+        self.part_constructors = {}
 
 
     def build_rig_from_armature(self, blueprint):
@@ -60,7 +64,7 @@ class RigManager:
         self.perform_attribute_handoffs(blueprint.attribute_handoffs)
         self.make_custom_constraints(blueprint.custom_constraints)
         self.kill_unwanted_controls(blueprint.kill_ctrls)
-        self.make_rig_scalable(blueprint)
+        self.arrange_hierarchy(blueprint.parts)
 
 
     def get_scene_root(self, scene_root_name):
@@ -87,6 +91,7 @@ class RigManager:
         rig_part_container = part_manager.build_rig_part(part)
         if rig_part_container:
             rig_part_container.setParent(self.rig.scene_rig_container)
+        self.part_constructors[f'{gen.side_tag(part.side)}{part.name}'] = part_manager
 
 
     def make_custom_constraints(self, constraint_data):
@@ -95,8 +100,26 @@ class RigManager:
         pm.select(clear=1)
 
 
+    def arrange_hierarchy(self, parts):
+        for part in parts.values():
+            if not part.parent:
+                continue
+            parent_part_key, parent_node_key = part.parent
+            part_root_node = self.get_part_root_node(part)
+            parent_node_string = self.part_constructors[parent_part_key].part_nodes[parent_node_key]
+            if not pm.objExists(parent_node_string):
+                continue
+            parent_node = pm.PyNode(parent_node_string)
+            part_root_node.setParent(parent_node)
+        pm.select(clear=1)
+
+
     def make_custom_constraint(self, data):
-        name = data['name']
+        if type(data) == dict:
+            data = constraint_utils.create_constraint_data_from_dict(data)
+        constraint_utils.enact_constraint(data)
+
+        '''name = data['name']
         parent_name = data['parent']
         interpolation_type = data['interpType']
         targets = [pm.PyNode(name) for name in data['target_list']]
@@ -109,7 +132,7 @@ class RigManager:
             if get_parent is None or get_parent != parent:
                 constraint_node.setParent(parent)
         if interpolation_type:
-            constraint_node.interpType.set(interpolation_type)
+            constraint_node.interpType.set(interpolation_type)'''
 
 
     def kill_unwanted_controls(self, kill_ctrls):
@@ -149,6 +172,13 @@ class RigManager:
         if not pm.objExists(rig_part_connector_name):
             return None
         return pm.PyNode(rig_part_connector_name)
+
+
+    def get_part_root_node(self, part):
+        root_node_name = f'{gen.side_tag(part.side)}{part.name}_RIG'
+        if not pm.objExists(root_node_name):
+            return None
+        return pm.PyNode(root_node_name)
 
 
     def perform_attribute_handoffs(self, attr_handoffs):

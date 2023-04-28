@@ -81,7 +81,7 @@ class BlueprintManager:
         self.populate_blueprint_custom_constraints()
         self.populate_blueprint_kill_ctrls()
         self.populate_blueprint_attr_handoffs()
-        #self.save_blueprint_to_tempdisk() -----------------------------------------------------------------------------------------------
+        self.populate_blueprint_hierarchy()
 
 
     def populate_blueprint_attr_handoffs(self):
@@ -90,6 +90,16 @@ class BlueprintManager:
         importlib.reload(attr_handoffs)
         attr_handoffs_data = [vars(data) for data in attr_handoffs.inputs]
         self.blueprint.attribute_handoffs = attr_handoffs_data
+
+
+    def populate_blueprint_hierarchy(self):
+        dir_string = 'Snowman3.riggers.prefab_blueprints.{}.hierarchy'
+        hierarchy = importlib.import_module(dir_string.format(self.prefab_key))
+        importlib.reload(hierarchy)
+        for part_key, parent_node_name in hierarchy.inputs:
+            if part_key not in self.blueprint.parts:
+                continue
+            self.blueprint.parts[part_key].parent = parent_node_name
 
 
     def populate_blueprint_parts(self):
@@ -127,7 +137,6 @@ class BlueprintManager:
         self.blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
         self.create_working_dir()
         self.create_versions_dir()
-        #self.save_blueprint_to_tempdisk() -----------------------------------------------------------------------------------------------------------
         return self.blueprint
 
 
@@ -179,7 +188,6 @@ class BlueprintManager:
 
     def save_work(self):
         print('Saving work...')
-        #self.blueprint = self.get_blueprint_from_working_dir() ----------------------------------------------------------------------------------
         self.update_blueprint_from_scene()
         self.save_blueprint_to_disk()
         self.save_blueprint_to_tempdisk()
@@ -361,12 +369,10 @@ class BlueprintManager:
 
 
     def add_part(self, part):
-        #self.blueprint = self.get_blueprint_from_working_dir() -------------------------------------------------------------------
         self.blueprint.parts[part.data_name] = part
 
 
     def remove_part(self, part):
-        #self.blueprint = self.get_blueprint_from_working_dir() ---------------------------------------------------------------------
         self.blueprint.parts.pop(part.data_name)
 
 
@@ -379,4 +385,3 @@ class BlueprintManager:
         prefab_post_actions = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_post_actions)
         self.blueprint = prefab_post_actions.run_post_actions(self.blueprint)
-        #self.save_blueprint_to_tempdisk() -------------------------------------------------------------------------------------------

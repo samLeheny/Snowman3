@@ -33,8 +33,6 @@ class KillCtrlInput:
 inputs = [
     KillCtrlInput('L_Hand', 'L_Wrist_CTRL'),
     KillCtrlInput('R_Hand', 'R_Wrist_CTRL'),
-    KillCtrlInput('L_Foot', 'L_FootSettings_CTRL'),
-    KillCtrlInput('R_Foot', 'R_FootSettings_CTRL'),
     KillCtrlInput('M_Spine', 'M_SpineSettings_CTRL'),
     KillCtrlInput('M_Neck', 'M_NeckSettings_CTRL'),
 ]
