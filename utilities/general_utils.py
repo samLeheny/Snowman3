@@ -117,107 +117,99 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
     default_suffix = 'buffer'
     child_name = get_clean_name(str(child))
 
-
     # Ensure a valid naming method for new buffer obj
     if not name:
         if not suffix:
             suffix = default_suffix
-
         # If suffix came with its own underscore, remove it
         if suffix[0] == '_':
             suffix = suffix.split('_')[1]
-
 
     # Check if child's transforms are free to be cleaned (not receiving connections)
     connected_attrs = []
 
     for attr in all_transform_attrs:
-
         incoming_connection = pm.listConnections(f'{child}.{attr}', source=1, destination=0, plugs=1)
-
         if incoming_connection:
             connected_attrs.append(f'{child_name}.{attr}')
 
     if connected_attrs:
-
         error_string = ''
-
         for attr in connected_attrs:
             error_string += f'{attr}\n'
-
         pm.error("\nCould not clean child object transforms - The following transforms have incoming connections:"
                  f"\n{error_string}\n")
 
-
     # Check for locked attributes. If any are found, remember them, then unlock them for the duration of this function
     lock_memory = []
-
     for attr in all_transform_attrs:
         if pm.getAttr(child + "." + attr, lock=1):
-
             lock_memory.append(attr)
-
             pm.setAttr(child + "." + attr, lock=0)
-
 
     # Get child obj's parent
     world_is_original_parent = False
-
     if not parent:
         parent = child.getParent()
-
     if not parent:
         world_is_original_parent = True
-
 
     # Compose buffer obj name
     if name:
         buffer_name = name
-
     else:
         buffer_name = f'{child_name}_{suffix}'
-
 
     # Create buffer obj
     buffer_node = pm.shadingNode('transform', name=buffer_name, au=1)
 
+    # If obj is a joint, go through extra steps of recording joint's transforms, zeroing joint out, and reapplying
+    # transforms later. Necessary to avoid unwanted transform nodes from being generated (joints are weird.)
+    recorded_transforms = None
+    jnt_orientation = None
+    if child.nodeType() == 'joint':
+        recorded_transforms = pm.xform(child, q=1, matrix=1, objectSpace=1)
+        jnt_orientation = tuple(child.jointOrient.get())
+        child.setParent(world=1)
+        zero_out(child)
+        jnt_parent = child.getParent()
+        if jnt_parent:
+            zero_out(jnt_parent)
+            child.setParent(world=1)
+            pm.delete(jnt_parent)
 
     # Match buffer obj to child's transforms
     buffer_node.setParent(child)
-
     for attr in ('translate', 'rotate', 'shear'):
         pm.setAttr(f'{buffer_node}.{attr}', 0, 0, 0)
         buffer_node.scale.set(1, 1, 1)
-    if child.nodeType == 'joint':
+    if child.nodeType() == 'joint':
         child.jointOrient.set(0, 0, 0)
-
     buffer_node.setParent(world=1)
-
 
     # Parent child to buffer
     child.setParent(buffer_node)
 
-
     # Clean child's transforms
     for attr in ('translate', 'rotate', 'shear'):
         pm.setAttr(f'{child}.{attr}', 0, 0, 0)
-
     child.scale.set(1, 1, 1)
-
 
     # Parent buffer obj
     if not world_is_original_parent:
         buffer_node.setParent(parent)
 
+    # If joint, reapply recorded transforms from earlier
+    if child.nodeType() == 'joint':
+        pm.xform(buffer_name, matrix=recorded_transforms, objectSpace=1)
+        #child.jointOrient.set(jnt_orientation)
 
     # Re-lock any attributes on child obj that were locked previously
     if lock_memory:
         for attr in lock_memory:
             pm.setAttr(f'{child}.{attr}', lock=1)
 
-
     pm.select(clear=1)
-
     return buffer_node
 
 
@@ -1088,7 +1080,6 @@ def get_opposite_side_obj(obj):
     this_obj_clean_name = get_clean_name(str(obj))
 
     opp_side_tag = None
-    key = None
     for key in side_tags:
         if this_obj_clean_name.startswith(side_tags[key]):
             opp_side_tag = opp_side_tags[key]
@@ -1109,6 +1100,32 @@ def get_opposite_side_obj(obj):
         print(f"Unable to find opposite side object. Expected an object of name: '{opp_obj_check_string}'")
 
     return opp_obj
+
+
+
+########################################################################################################################
+def get_opposite_side_string(name):
+
+    # Get side of this object
+    side_tags = {nom.leftSideTag: f'{nom.leftSideTag}_',
+                 nom.rightSideTag: f'{nom.rightSideTag}_'}
+    opp_side_tags = {nom.leftSideTag: side_tags[nom.rightSideTag],
+                     nom.rightSideTag: side_tags[nom.leftSideTag]}
+
+    opp_side_tag = None
+    for key in side_tags:
+        if name.startswith(side_tags[key]):
+            opp_side_tag = opp_side_tags[key]
+            break
+
+    if not opp_side_tag:
+        print(f"String: '{name}' is not sided. Can't create opposite sided string.")
+        return None
+
+    # Get expected name of opposite string
+    opp_name = f'{opp_side_tag}{name[2:]}'
+
+    return opp_name
 
 
 
@@ -1993,3 +2010,13 @@ def lock_attrs_from_memory(obj, lock_memory):
     for attr in all_transform_attrs:
         if attr in lock_memory:
             pm.setAttr(f'{obj}.{attr}', lock=1)
+
+
+
+########################################################################################################################
+def match_pos_ori(target, source):
+    pm.matchTransform(target, source)
+    scales = tuple(target.scale.get())
+    for attr in ('sx', 'sy', 'sz'):
+        val = pm.getAttr(f'{target}.{attr}')
+        pm.setAttr(f'{target}.{attr}', val/abs(val))

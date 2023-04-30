@@ -275,7 +275,7 @@ class BespokePartConstructor(PartConstructor):
             scene_ctrls[ctrl_str] = self.migrate_control_to_new_node(scene_ctrls[ctrl_str], limb_setup_ctrl)
 
         ik_hand_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkHandFollow'], parent=transform_grp)
-        pm.matchTransform(ik_hand_follow_ctrl_buffer, orienters['HandFollowSpace'])
+        gen.match_pos_ori(ik_hand_follow_ctrl_buffer, orienters['HandFollowSpace'])
 
         for key, node in (('Upperarm', limb_rig.blend_jnts[0]),
                           ('Forearm', limb_rig.blend_jnts[1]),

@@ -135,7 +135,7 @@ class BespokePartConstructor(PartConstructor):
                                           ('FootSettings', transform_grp, 'FootSettings')):
             scene_ctrls[key].setParent(parent)
             buffer = gen.buffer_obj(scene_ctrls[key])
-            pm.matchTransform(buffer, orienters[orienter_key])
+            gen.match_pos_ori(buffer, orienters[orienter_key])
 
 
         foot_attr_node = scene_ctrls['FootSettings']
@@ -164,10 +164,10 @@ class BespokePartConstructor(PartConstructor):
             prev_jnt = jnt
         bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], parent=transform_grp)
         gen.zero_out(bind_chain_buffer)
-        pm.matchTransform(bind_chain_buffer, orienters['Tarsus'])
+        gen.match_pos_ori(bind_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(bind_jnt_keys):
             if i > 0:
-                pm.matchTransform(bind_jnts[key], orienters[key])
+                gen.match_pos_ori(bind_jnts[key], orienters[key])
 
         scene_ctrls['FootSettings'].getParent().setParent(bind_jnts['Tarsus'])
 
@@ -218,10 +218,10 @@ class BespokePartConstructor(PartConstructor):
             prev_jnt = jnt
         ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], parent=ik_grp)
         gen.zero_out(ik_chain_buffer)
-        pm.matchTransform(ik_chain_buffer, orienters['Tarsus'])
+        gen.match_pos_ori(ik_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(ik_jnt_keys):
             if i > 0:
-                pm.matchTransform(ik_jnts[key], orienters[key])
+                gen.match_pos_ori(ik_jnts[key], orienters[key])
 
 
         # ...Foot roll jnts---------------------------------------------------------------------------------------------
@@ -236,7 +236,7 @@ class BespokePartConstructor(PartConstructor):
         gen.zero_out(foot_roll_chain_buffer)
         pm.matchTransform(foot_roll_chain_buffer, ik_grp)
         for i, key in enumerate(foot_roll_keys):
-            pm.matchTransform(foot_roll_jnts[key], orienters[key])
+            gen.match_pos_ori(foot_roll_jnts[key], orienters[key])
         gen.buffer_obj(foot_roll_jnts['SoleHeel'])
         gen.zero_out(foot_roll_jnts['SoleHeel'])
 
@@ -349,7 +349,7 @@ class BespokePartConstructor(PartConstructor):
     def fk_foot(self, part, parent=None, ankle_orienter=None, fk_toe_ctrl=None):
         fk_foot_space = pm.shadingNode('transform', name=f'{gen.side_tag(part.side)}FkFootSpace', au=1)
         fk_foot_space.setParent(parent)
-        pm.matchTransform(fk_foot_space, ankle_orienter)
+        gen.match_pos_ori(fk_foot_space, ankle_orienter)
         fk_toe_ctrl.getParent().setParent(fk_foot_space)
         pm.select(clear=1)
         return {'fk_foot_space': fk_foot_space}

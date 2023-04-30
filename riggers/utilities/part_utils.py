@@ -60,9 +60,9 @@ class Part:
     name: str
     side: str = None
     handle_size: float = 1.6
+    part_scale: float = 1.0
     position: tuple = (0, 0, 0)
     rotation: tuple = (0, 0, 0)
-    scale: float = 1,
     placers: dict = field(default_factory=dict)
     controls: dict = field(default_factory=dict)
     data_name: str = None
@@ -159,20 +159,21 @@ class ScenePartManager:
     def position_part(self, handle):
         handle.translate.set(tuple(self.part.position))
         handle.rotate.set(tuple(self.part.rotation))
-        handle.scale.set(self.part.scale, self.part.scale, self.part.scale)
+        handle.scale.set(self.part.part_scale, self.part.part_scale, self.part.part_scale)
 
 
     def add_part_metadata(self):
         metadata_attrs = (
             MetaDataAttr(long_name='PartTag', attribute_type='string', keyable=0, default_value_attr='name'),
             MetaDataAttr(long_name='Side', attribute_type='string', keyable=0, default_value_attr='side'),
-            MetaDataAttr(long_name='HandleSize', attribute_type='float', keyable=1, default_value_attr='handle_size')
+            MetaDataAttr(long_name='HandleSize', attribute_type='float', keyable=1, default_value_attr='handle_size'),
+            MetaDataAttr(long_name='PartScale', attribute_type='float', keyable=1, default_value_attr='part_scale')
         )
         [attr.create(self.part, self.part_handle) for attr in metadata_attrs]
         pm.setAttr(f'{self.part_handle}.HandleSize', channelBox=1)
         pm.setAttr(f'{self.part_handle}.HandleSize', self.part_handle.sx.get())
         for a in ('sx', 'sy', 'sz'):
-            pm.connectAttr(f'{self.part_handle}.HandleSize', f'{self.part_handle}.{a}')
+            pm.connectAttr(f'{self.part_handle}.PartScale', f'{self.part_handle}.{a}')
             pm.setAttr(f'{self.part_handle}.{a}', keyable=0)
 
 
@@ -313,6 +314,12 @@ class ScenePartManager:
     def connect_placer_attributes(self, scene_placer):
         for attr in ('VectorHandles', 'Orienters'):
             pm.connectAttr(f'{self.part_handle}.{attr}', f'{scene_placer}.{attr}')
+        pm.setAttr(f'{scene_placer}.scale', lock=0)
+        for attr in ('sx', 'sy', 'sz'):
+            pm.setAttr(f'{scene_placer}.{attr}', lock=0)
+            pm.connectAttr(f'{self.part_handle}.{"HandleSize"}', f'{scene_placer}.{attr}')
+            pm.setAttr(f'{scene_placer}.{attr}', lock=1, keyable=0)
+        pm.setAttr(f'{scene_placer}.scale', lock=1)
 
 
 
@@ -325,7 +332,7 @@ class PartCreator:
         side: str = None,
         position: tuple[float, float, float] = (0, 0, 0),
         rotation: tuple[float, float, float] = (0, 0, 0),
-        scale: float = 1,
+        part_scale: float = 1,
         construction_inputs: dict = None
     ):
         self.name = name
@@ -333,13 +340,13 @@ class PartCreator:
         self.side = side
         self.position = position
         self.rotation = rotation
-        self.scale = scale
+        self.part_scale = part_scale
         self.construction_inputs = construction_inputs
         self.part_constructor = self.construct_part_constructor()
 
 
     def construct_part_constructor(self):
-        dir_string = f"Snowman3.riggers.parts.{self.prefab_key}"
+        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
         getter = importlib.import_module(dir_string)
         importlib.reload(getter)
         BespokePartConstructor = getter.BespokePartConstructor
@@ -371,17 +378,18 @@ class PartCreator:
     def create_part(self):
         position = self.position
         rotation = self.rotation
-        scale = self.scale
+        part_scale = self.part_scale
         scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
         connectors = self.part_constructor.get_connection_pairs()
         vector_handle_attachments = self.part_constructor.get_vector_handle_attachments()
+        self.construction_inputs = self.part_constructor.check_construction_inputs_integrity(self.construction_inputs)
         part = Part(
             name = self.name,
             prefab_key = self.prefab_key,
             side = self.side,
             position = position,
             rotation = rotation,
-            scale = scale,
+            part_scale = part_scale,
             handle_size = 1.0,
             data_name = f'{gen.side_tag(self.side)}{self.name}',
             scene_name = scene_name,

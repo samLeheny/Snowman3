@@ -320,12 +320,12 @@ class BespokePartConstructor(PartConstructor):
 
         wrist_jnt = rig.joint(name='Wrist', radius=0.7, side=part.side, parent=scene_ctrls['Wrist'])
         wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], parent=transform_grp)
-        pm.matchTransform(wrist_buffer, orienters['Wrist'])
+        gen.match_pos_ori(wrist_buffer, orienters['Wrist'])
 
         quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], parent=scene_ctrls['Wrist'])
         gen.zero_out(quick_pose_buffer)
 
-        pm.matchTransform(quick_pose_buffer, orienters['QuickPoseFingers'])
+        gen.match_pos_ori(quick_pose_buffer, orienters['QuickPoseFingers'])
         fingers_curl_weight = -1.25
         fingers_curl_mult_node = nodes.animBlendNodeAdditiveDA(inputA=scene_ctrls['QuickPoseFingers'].rz,
                                                                weightA=fingers_curl_weight)
@@ -338,7 +338,7 @@ class BespokePartConstructor(PartConstructor):
             palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], parent=scene_ctrls['Wrist'])
             gen.zero_out(palm_flex_buffer)
             last_finger_name = self.get_digit_name(self.finger_count, self.finger_count, 'finger')
-            pm.matchTransform(palm_flex_buffer, orienters[f'{last_finger_name}Meta'])
+            gen.match_pos_ori(palm_flex_buffer, orienters[f'{last_finger_name}Meta'])
 
 
         @dataclass
@@ -405,9 +405,9 @@ class BespokePartConstructor(PartConstructor):
 
         def position_ctrls(digit):
             if digit.metacarpal:
-                pm.matchTransform(digit.metacarpal.ctrl, orienters[digit.metacarpal.name])
+                gen.match_pos_ori(digit.metacarpal.ctrl, orienters[digit.metacarpal.name])
             for seg in digit.segments:
-                pm.matchTransform(seg.ctrl, orienters[seg.name])
+                gen.match_pos_ori(seg.ctrl, orienters[seg.name])
 
 
         def install_buffer_nodes(digit):

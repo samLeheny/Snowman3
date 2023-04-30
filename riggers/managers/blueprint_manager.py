@@ -13,6 +13,7 @@ from typing import Sequence
 import importlib
 import pymel.core as pm
 import json
+import copy
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -26,6 +27,8 @@ import Snowman3.riggers.utilities.poseConstraint_utils as postConstraint_utils
 importlib.reload(postConstraint_utils)
 PostConstraintManager = postConstraint_utils.PostConstraintManager
 PostConstraint = postConstraint_utils.PostConstraint
+
+import Snowman3.dictionaries.colorCode as colorCode
 ###########################
 ###########################
 
@@ -35,6 +38,7 @@ temp_files_dir = 'working'
 versions_dir = 'versions'
 core_data_filename = 'core_data'
 default_version_padding = 4
+colorCode = colorCode.sided_ctrl_color
 ###########################
 ###########################
 
@@ -96,10 +100,19 @@ class BlueprintManager:
         dir_string = 'Snowman3.riggers.prefab_blueprints.{}.hierarchy'
         hierarchy = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(hierarchy)
-        for part_key, parent_node_name in hierarchy.inputs:
-            if part_key not in self.blueprint.parts:
-                continue
-            self.blueprint.parts[part_key].parent = parent_node_name
+        for part_key, parent_data in hierarchy.create_hierarchy():
+            parent_part_key, parent_node_name = parent_data
+            self.assign_part_parent(part_key, parent_part_key, parent_node_name)
+
+
+    def assign_part_parent(self, part_key, parent_part_key, parent_node_name):
+        for key in (part_key, parent_part_key):
+            if key not in self.blueprint.parts:
+                return False
+        parent_part = self.blueprint.parts[parent_part_key]
+        if parent_node_name not in parent_part.part_nodes:
+            return False
+        self.blueprint.parts[part_key].parent = [parent_part_key, parent_node_name]
 
 
     def populate_blueprint_parts(self):
@@ -208,7 +221,7 @@ class BlueprintManager:
         scene_handle = pm.PyNode(part.scene_name)
         part.position = tuple(scene_handle.translate.get())
         part.rotation = tuple(scene_handle.rotate.get())
-        part.scale = pm.getAttr(f'{scene_handle}.{"HandleSize"}')
+        part.part_scale = pm.getAttr(f'{scene_handle}.{"PartScale"}')
         part = self.update_part_placers_from_scene(part)
         part = self.update_part_controls_from_scene(part)
         return part
@@ -385,3 +398,57 @@ class BlueprintManager:
         prefab_post_actions = importlib.import_module(dir_string.format(self.prefab_key))
         importlib.reload(prefab_post_actions)
         self.blueprint = prefab_post_actions.run_post_actions(self.blueprint)
+
+
+    def mirror_part(self, existing_part):
+        self.mirror_part_parent_data(existing_part)
+        self.mirror_controls_in_part(existing_part)
+        #self.mirror_placers_in_part(existing_part)
+
+
+    def mirror_placers_in_part(self, existing_part):
+        opposite_part = self.get_opposite_part(existing_part)
+        #opposite_part.placers = copy.deepcopy(existing_part.placers)
+
+
+    def mirror_part_parent_data(self, part):
+        opposite_part = self.get_opposite_part(part)
+        existing_part_parent_data = part.parent
+        parent_part_key = existing_part_parent_data[0]
+        parent_side = gen.get_obj_side(existing_part_parent_data[0])
+        if parent_side:
+            if parent_side in ('L', 'R'):
+                parent_part_key = gen.get_opposite_side_string(parent_part_key)
+        opposite_part_parent_data = [parent_part_key, existing_part_parent_data[1]]
+        opposite_part.parent = opposite_part_parent_data
+
+
+    def mirror_controls_in_part(self, part):
+        opposite_part = self.get_opposite_part(part)
+        opposite_ctrl_data = copy.deepcopy(part.controls)
+        for key, data in opposite_ctrl_data.items():
+
+            for shape in data.shape:
+                old_cvs = shape['cvs']
+                shape['cvs'] = [[-cv[0], cv[1], cv[2]] for cv in old_cvs]
+
+            opposing_sides = {'L': 'R', 'R': 'L'}
+
+            if data.side in opposing_sides:
+                data.side = opposing_sides[data.side]
+                data.scene_name = gen.get_opposite_side_string(data.scene_name)
+                data.color = colorCode[data.side]
+
+            data.position[0] *= -1
+
+        opposite_part.controls = opposite_ctrl_data
+
+
+    def get_opposite_part(self, part):
+        part_key = part.data_name
+        if not gen.get_obj_side(part_key) in ('L', 'R'):
+            return False
+        opposite_part_key = gen.get_opposite_side_string(part_key)
+        if opposite_part_key not in self.blueprint.parts:
+            return False
+        return self.blueprint.parts[opposite_part_key]

@@ -109,7 +109,7 @@ class BespokePartConstructor(PartConstructor):
 
         orienter_manager = OrienterManager(part.placers['Root'])
         root_orienter = orienter_manager.get_orienter()
-        pm.matchTransform(scene_ctrls['Root'], root_orienter)
+        gen.match_pos_ori(scene_ctrls['Root'], root_orienter)
 
         for key in ('Root', 'SubRoot'):
             self.part_nodes[key] = scene_ctrls[key].nodeName()

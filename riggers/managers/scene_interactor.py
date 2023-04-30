@@ -107,8 +107,9 @@ class SceneInteractor:
     def add_part(self, name, prefab_key, side=None):
         part = self.create_part(name, prefab_key, side)
         self.blueprint_manager.add_part(part)
-        self.armature_manager.add_part(part, parent=self.armature_manager.scene_root)
+        self.armature_manager.add_part(part)
         self.update_working_blueprint_file()
+        return part
 
 
     def remove_part(self, part_key):
@@ -127,24 +128,31 @@ class SceneInteractor:
         existing_part = self.blueprint_manager.get_part(existing_part_key)
         opposite_part_data = self.blueprint_manager.data_from_part(existing_part)
         opposite_part_data['side'] = gen.opposite_side(existing_part.side)
-
         new_opposing_part = self.create_part(
-            name=f"{opposite_part_data['name']}", side=opposite_part_data['side'],
-            prefab_key=opposite_part_data['prefab_key'])
+            name=f"{opposite_part_data['name']}",
+            side=opposite_part_data['side'],
+            prefab_key=opposite_part_data['prefab_key']
+        )
         return new_opposing_part
 
 
     def add_mirrored_part(self, existing_part_key):
-        new_opposite_part = self.create_mirrored_part(existing_part_key)
-        self.blueprint_manager.add_part(new_opposite_part)
-        self.armature_manager.add_part(new_opposite_part)
-        self.mirror_part(self.blueprint_manager.blueprint.parts[existing_part_key])
+        existing_part = self.blueprint_manager.get_part(existing_part_key)
+        new_part = self.create_mirrored_part(existing_part_key)
+        self.blueprint_manager.add_part(new_part)
+
+        self.blueprint_manager.mirror_part(existing_part)
+        self.armature_manager.add_part(new_part)
+        #self.mirror_part(self.blueprint_manager.blueprint.parts[existing_part_key])
+        # Mirror control shapes
+        self.armature_manager.mirror_part(existing_part)
         self.blueprint_manager.update_blueprint_from_scene()
         self.update_working_blueprint_file()
 
 
     def mirror_part(self, part):
         self.armature_manager.mirror_part(part)
+        self.blueprint_manager.mirror_part(part)
 
 
     def mirror_solo_part(self, part):
@@ -283,3 +291,8 @@ class SceneInteractor:
 
     def update_working_blueprint_file(self):
         self.blueprint_manager.save_blueprint_to_tempdisk()
+
+
+    def assign_part_parent(self, part_key, parent_part_key, parent_node_name):
+        self.blueprint_manager.assign_part_parent(part_key, parent_part_key, parent_node_name)
+        self.update_working_blueprint_file()

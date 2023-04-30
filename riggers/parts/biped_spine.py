@@ -99,6 +99,14 @@ class BespokePartConstructor(PartConstructor):
 
 
 
+    def check_construction_inputs_integrity(self, construction_inputs):
+        for key, value in (('segment_count', 6),):
+            if key not in construction_inputs:
+                construction_inputs[key] = value
+        return construction_inputs
+
+
+
     def get_vector_handle_attachments(self):
         attachments = {}
         for i in range(self.segment_count):
@@ -279,7 +287,7 @@ class BespokePartConstructor(PartConstructor):
             scene_ctrls[f'SpineTweak{i+1}'].setParent(transform_grp)
 
         def snap_ctrl_to_orienter(ctrl_key, orienter):
-            pm.matchTransform(scene_ctrls[ctrl_key], orienter)
+            gen.match_pos_ori(scene_ctrls[ctrl_key], orienter)
         snap_ctrl_to_orienter('IkPelvis', orienters[f'Spine1'])
         snap_ctrl_to_orienter('IkChest', orienters[f'Spine{segment_count + 1}'])
         spine_mid_num = self.find_mid_value(self.jnt_count)
@@ -289,7 +297,7 @@ class BespokePartConstructor(PartConstructor):
             pm.delete(pm.parentConstraint(spine_orienters[spine_mid_num[0]], spine_orienters[spine_mid_num[1]],
                                           scene_ctrls['IkWaist']))
 
-        pm.matchTransform(scene_ctrls['SpineSettings'], orienters['SpineSettings'])
+        gen.match_pos_ori(scene_ctrls['SpineSettings'], orienters['SpineSettings'])
         scene_ctrls['SpineSettings'].setParent(transform_grp)
 
         fk_spine_ctrls = [scene_ctrls[f'FkSpine{i+1}'] for i in range(3)]
@@ -299,7 +307,7 @@ class BespokePartConstructor(PartConstructor):
 
         for i in range(segment_count+1):
             tweak_ctrl = scene_ctrls[f'SpineTweak{i+1}']
-            pm.matchTransform(tweak_ctrl, orienters[f'Spine{i+1}'])
+            gen.match_pos_ori(tweak_ctrl, orienters[f'Spine{i+1}'])
 
         # Ribbon system ------------------------------------------------------------------------------------------------
         poly_strip = self.build_poly_strip_at_orienters(spine_orienters)
@@ -430,7 +438,7 @@ class BespokePartConstructor(PartConstructor):
         for i in range(len(orienters) - 1):
             segment_length = gen.distance_between(orienters[i], orienters[i + 1])
             cell = pm.polyPlane(h=segment_length, w=total_spine_length / 15, sx=1, sy=1, axis=(0, 0, 1))[0]
-            pm.matchTransform(cell, orienters[i])
+            gen.match_pos_ori(cell, orienters[i])
             offset = gen.buffer_obj(cell)
             cell.ty.set(segment_length / 2)
             cell.setParent(world=1)
@@ -677,24 +685,23 @@ class BespokePartConstructor(PartConstructor):
         def ik_rotate_jnt_sys(name, u_value, ctrl=None):
             grp = pm.group(name=f'spine_{name}_ik_rotate', p=ik_parent, em=1)
 
-            pin = gen.point_on_surface_matrix(ik_translate_ribbon.getShape() + ".worldSpace", parameter_U=u_value,
+            pin = gen.point_on_surface_matrix(f'{ik_translate_ribbon.getShape()}.worldSpace', parameter_U=u_value,
                                               parameter_V=0.5, decompose=True)
             pin.outputTranslate.connect(grp.translate)
             pin.outputRotate.connect(grp.rotate)
 
             jnt = rig.joint(name=f'spine_{name}_ik_rotate', joint_type='JNT')
-
             offset = gen.buffer_obj(jnt, parent=grp)
+            [gen.zero_out(node) for node in (jnt, offset)]
             pm.rename(offset, f'spine_{name}_ik_rotate_OFFSET')
 
             base_jnt = rig.joint(name=f'spine_{name}_ik_rotate_base', joint_type='JNT', parent=offset)
-
-            offset.translate.set(0, 0, 0)
-
             buffer = gen.buffer_obj(jnt)
+            [gen.zero_out(node) for node in (base_jnt, buffer)]
             if ctrl:
                 ctrl.rotate.connect(buffer.rotate)
 
+            offset.rx.set(-90)
             return grp, jnt, base_jnt
 
         ik_rotate_bottom_sys = ik_rotate_jnt_sys("pelvis", 1.0, ctrls["IkPelvis"])

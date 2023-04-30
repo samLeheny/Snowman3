@@ -91,6 +91,10 @@ class PartConstructor:
         return None
 
 
+    def check_construction_inputs_integrity(self, construction_inputs):
+        return construction_inputs
+
+
     def build_rig_part(self, part):
         rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
         orienters, scene_ctrls = self.get_scene_armature_nodes(part)

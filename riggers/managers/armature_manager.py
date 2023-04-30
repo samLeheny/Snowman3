@@ -70,9 +70,10 @@ class ArmatureManager:
 
 
     def add_part(self, part, parent=None):
+        parent = self.armature_grp
         scene_part_manager = ScenePartManager(part)
         scene_part = scene_part_manager.create_scene_part()
-        scene_part.setParent(parent) if parent else None
+        scene_part.setParent(parent)
         pm.select(clear=1)
         return scene_part
 
@@ -173,6 +174,7 @@ class ArmatureManager:
         transform_attrs = ('translate', 'rotate', 'scale', 'tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz')
         for attr in transform_attrs:
             pm.setAttr(f'{target}.{attr}', lock=0)
+            gen.break_connections(f'{target}.{attr}')
         pm.parentConstraint(source, target, mo=1)
         pm.scaleConstraint(source, target, mo=1)
 

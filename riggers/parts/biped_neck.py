@@ -155,7 +155,7 @@ class BespokePartConstructor(PartConstructor):
         jnt_resolution = 5
 
         pairs = (('Neck', 'Neck'), ('Head', 'Head'), ('NeckSettings', 'NeckSettings'))
-        [pm.matchTransform(scene_ctrls[pair[0]], orienters[pair[1]]) for pair in pairs]
+        [gen.match_pos_ori(scene_ctrls[pair[0]], orienters[pair[1]]) for pair in pairs]
 
         temp_nodes_to_delete = []
 
@@ -258,7 +258,7 @@ class BespokePartConstructor(PartConstructor):
             pm.rename(ribbon_setup_ctrl, scene_ctrl_name)
             scene_ctrl.setParent(ribbon_setup_ctrl.getParent())
             gen.zero_out(scene_ctrl)
-            pm.matchTransform(scene_ctrl, ribbon_setup_ctrl)
+            gen.match_pos_ori(scene_ctrl, ribbon_setup_ctrl)
             gen.copy_shapes(source_obj=scene_ctrl, destination_obj=ribbon_setup_ctrl, delete_existing_shapes=True)
             scene_ctrls[ctrl_str] = ribbon_setup_ctrl
 
