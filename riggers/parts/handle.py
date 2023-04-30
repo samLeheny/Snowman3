@@ -103,8 +103,7 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
-                               scene_ctrls):
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
         handle_ctrl_buffer = gen.buffer_obj(scene_ctrls['Handle'], parent=transform_grp)
         gen.match_pos_ori(handle_ctrl_buffer, orienters['Handle'])
         return rig_part_container

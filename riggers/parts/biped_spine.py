@@ -263,8 +263,7 @@ class BespokePartConstructor(PartConstructor):
                                  distance_weights[i], include_orientation=True)
 
 
-    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
-                               scene_ctrls):
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         segment_count = part.construction_inputs['segment_count']
         bind_jnt_count = segment_count + 1

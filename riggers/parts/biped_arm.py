@@ -225,8 +225,7 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
-                               scene_ctrls):
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         limb_rig = LimbRig(
             limb_name=part.name,
@@ -237,7 +236,7 @@ class BespokePartConstructor(PartConstructor):
             pv_name='Elbow',
             orienters=[orienters[p] for p in ('Upperarm', 'Forearm', 'ForearmEnd', 'WristEnd')],
             pv_position=pm.xform(orienters['IkElbow'], q=1, worldSpace=1, rotatePivot=1),
-            tweak_scale_factor_node=connector
+            tweak_scale_factor_node=rig_part_container
         )
 
         limb_len_sum_outputs = pm.listConnections(limb_rig.total_limb_len_sum.output, s=0, d=1, plugs=1)

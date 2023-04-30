@@ -86,7 +86,7 @@ class PartConstructor:
         return {}
 
 
-    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters,
                                scene_ctrls):
         return None
 
@@ -96,10 +96,10 @@ class PartConstructor:
 
 
     def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
         orienters, scene_ctrls = self.get_scene_armature_nodes(part)
-        rig_part_container = self.bespoke_build_rig_part(part, rig_part_container, connector, transform_grp,
-                                                         no_transform_grp, orienters, scene_ctrls)
+        rig_part_container = self.bespoke_build_rig_part(part, rig_part_container, transform_grp, no_transform_grp,
+                                                         orienters, scene_ctrls)
         self.apply_all_control_transform_locks()
         pm.select(clear=1)
         return rig_part_container
@@ -107,16 +107,14 @@ class PartConstructor:
 
     def create_rig_part_grps(self, part):
         rig_part_container = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_RIG', world=1, empty=1)
-        connector_node = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_CONNECTOR', empty=1,
-                                  parent=rig_part_container)
         transform_grp = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_Transform_GRP', empty=1,
-                                 parent=connector_node)
+                                 parent=rig_part_container)
         no_transform_grp = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_NoTransform_GRP', empty=1,
-                                    parent=connector_node)
+                                    parent=rig_part_container)
         if self.side == 'R':
             [gen.flip_obj(grp) for grp in (transform_grp, no_transform_grp)]
         no_transform_grp.inheritsTransform.set(0, lock=1)
-        return rig_part_container, connector_node, transform_grp, no_transform_grp
+        return rig_part_container, transform_grp, no_transform_grp
 
 
     def get_scene_armature_nodes(self, part):

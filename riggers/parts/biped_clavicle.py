@@ -114,8 +114,7 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
-                               scene_ctrls):
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         clavicle_jnt = rig.joint(name='Clavicle', side=part.side, joint_type=nom.bindJnt, radius=1.0)
         clavicle_end_jnt = rig.joint(name='ClavicleEnd', side=part.side, joint_type=nom.bindJnt, radius=0.6)

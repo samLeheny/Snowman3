@@ -315,8 +315,7 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
-                               scene_ctrls):
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         wrist_jnt = rig.joint(name='Wrist', radius=0.7, side=part.side, parent=scene_ctrls['Wrist'])
         wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], parent=transform_grp)

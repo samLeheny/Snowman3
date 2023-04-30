@@ -149,8 +149,7 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def bespoke_build_rig_part(self, part, rig_part_container, connector, transform_grp, no_transform_grp, orienters,
-                               scene_ctrls):
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         jnt_resolution = 5
 
@@ -245,7 +244,7 @@ class BespokePartConstructor(PartConstructor):
             ribbon=neck_ribbon['nurbsStrip'], ctrl_name='Neck', length_ends=(scene_ctrls['Neck'], scene_ctrls['Head']),
             length_attr=neck_length_node.output, attr_ctrl=scene_ctrls['NeckSettings'], side=part.side,
             ctrl_color=color_code['M'], ctrl_resolution=jnt_resolution, parent=no_transform_grp,
-            ctrl_size=neck_length * 0.4, scale_node=connector)
+            ctrl_size=neck_length * 0.4, scale_node=rig_part_container)
 
         ctrl_pairs = [('NeckBend', neck_roller['ctrls'][1])]
         for i, tweak_ctrl in enumerate(neck_tweak_ctrls):
@@ -262,7 +261,7 @@ class BespokePartConstructor(PartConstructor):
             gen.copy_shapes(source_obj=scene_ctrl, destination_obj=ribbon_setup_ctrl, delete_existing_shapes=True)
             scene_ctrls[ctrl_str] = ribbon_setup_ctrl
 
-        connector.scale.connect(scene_ctrls['NeckBend'].getParent().scale)
+        rig_part_container.scale.connect(scene_ctrls['NeckBend'].getParent().scale)
 
         # Adjustable biped_neck length ---------------------------------------------------------------------------------
         neck_len_start_node = pm.shadingNode('transform', name='neck_length_start', au=1)

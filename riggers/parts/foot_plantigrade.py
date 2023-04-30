@@ -127,7 +127,7 @@ class BespokePartConstructor(PartConstructor):
 
 
     def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
         orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
         for key, parent, orienter_key in (('FkToe', transform_grp, 'Ball'),
