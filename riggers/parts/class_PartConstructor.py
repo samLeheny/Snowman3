@@ -131,10 +131,10 @@ class PartConstructor:
 
     def create_scene_ctrls(self, part):
         scene_ctrl_managers = {ctrl.name: SceneControlManager(ctrl) for ctrl in part.controls.values()}
-        for manager in scene_ctrl_managers.values():
+        '''for manager in scene_ctrl_managers.values():
             for shape in manager.control.shape:
                 for i, cv in enumerate(shape['cvs']):
-                    shape['cvs'][i] = [cv[i] * part.part_scale for i in range(3)]
+                    shape['cvs'][i] = [cv[i] * part.part_scale for i in range(3)]'''
         self.scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
         return self.scene_ctrls
 

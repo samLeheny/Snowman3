@@ -60,7 +60,7 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['Handle', (0, 0, 0), [[0, 1, 0], [0, 0, 1]], [[0, 1, 0], [0, 0, 1]], 1.0, True, None],
+            [self.part_name, (0, 0, 0), [[0, 1, 0], [0, 0, 1]], [[0, 1, 0], [0, 0, 1]], 1.0, True, None],
         ]
         placers = []
         for p in data_packs:
@@ -83,7 +83,7 @@ class BespokePartConstructor(PartConstructor):
     def create_controls(self):
         ctrl_creators = [
             ControlCreator(
-                name='Handle',
+                name=self.part_name,
                 shape='cube',
                 color=self.colors[0],
                 size=[1, 1, 1],
@@ -98,12 +98,13 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_part_nodes_list(self):
-        part_nodes = ['Handle']
+        part_nodes = [self.part_name]
         return part_nodes
 
 
 
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
-        handle_ctrl_buffer = gen.buffer_obj(scene_ctrls['Handle'], parent=transform_grp)
-        gen.match_pos_ori(handle_ctrl_buffer, orienters['Handle'])
+        handle_ctrl_buffer = gen.buffer_obj(scene_ctrls[self.part_name], parent=transform_grp)
+        gen.match_pos_ori(handle_ctrl_buffer, orienters[self.part_name])
+        self.part_nodes[self.part_name] = scene_ctrls[self.part_name]
         return rig_part_container

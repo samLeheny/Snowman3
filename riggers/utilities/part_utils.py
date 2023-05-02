@@ -171,7 +171,7 @@ class ScenePartManager:
         )
         [attr.create(self.part, self.part_handle) for attr in metadata_attrs]
         pm.setAttr(f'{self.part_handle}.HandleSize', channelBox=1)
-        pm.setAttr(f'{self.part_handle}.HandleSize', self.part_handle.sx.get())
+        pm.setAttr(f'{self.part_handle}.HandleSize', pm.getAttr(f'{self.part_handle}.{"HandleSize"}'))
         for a in ('sx', 'sy', 'sz'):
             pm.connectAttr(f'{self.part_handle}.PartScale', f'{self.part_handle}.{a}')
             pm.setAttr(f'{self.part_handle}.{a}', keyable=0)

@@ -120,6 +120,7 @@ def get_sub_attr_data(node, attr_data):
 def add_attr(obj, long_name, nice_name='', attribute_type=None, keyable=False, channel_box=False, enum_name=None,
              default_value=0, min_value=None, max_value=None, lock=False, parent='', number_of_children=0,
              child_attributes=None):
+
     # ...String type
     if attribute_type == 'string':
         add_string_attr(obj, long_name, nice_name=nice_name, keyable=keyable,

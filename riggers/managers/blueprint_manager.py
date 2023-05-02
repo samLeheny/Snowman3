@@ -414,6 +414,8 @@ class BlueprintManager:
     def mirror_part_parent_data(self, part):
         opposite_part = self.get_opposite_part(part)
         existing_part_parent_data = part.parent
+        if not existing_part_parent_data:
+            print(f"Parent data is unusable: {existing_part_parent_data}")
         parent_part_key = existing_part_parent_data[0]
         parent_side = gen.get_obj_side(existing_part_parent_data[0])
         if parent_side:
@@ -427,10 +429,6 @@ class BlueprintManager:
         opposite_part = self.get_opposite_part(part)
         opposite_ctrl_data = copy.deepcopy(part.controls)
         for key, data in opposite_ctrl_data.items():
-
-            for shape in data.shape:
-                old_cvs = shape['cvs']
-                shape['cvs'] = [[-cv[0], cv[1], cv[2]] for cv in old_cvs]
 
             opposing_sides = {'L': 'R', 'R': 'L'}
 

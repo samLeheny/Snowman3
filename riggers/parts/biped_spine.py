@@ -100,6 +100,7 @@ class BespokePartConstructor(PartConstructor):
 
 
     def check_construction_inputs_integrity(self, construction_inputs):
+        if not construction_inputs: construction_inputs = {}
         for key, value in (('segment_count', 6),):
             if key not in construction_inputs:
                 construction_inputs[key] = value
