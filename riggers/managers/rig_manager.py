@@ -100,6 +100,12 @@ class RigManager:
         pm.select(clear=1)
 
 
+    def make_custom_constraint(self, data):
+        if type(data) == dict:
+            data = constraint_utils.create_constraint_data_from_dict(data)
+        constraint_utils.enact_constraint(data)
+
+
     def arrange_hierarchy(self, parts):
         for part in parts.values():
             if not part.parent:
@@ -112,27 +118,6 @@ class RigManager:
             parent_node = pm.PyNode(parent_node_string)
             part_root_node.setParent(parent_node)
         pm.select(clear=1)
-
-
-    def make_custom_constraint(self, data):
-        if type(data) == dict:
-            data = constraint_utils.create_constraint_data_from_dict(data)
-        constraint_utils.enact_constraint(data)
-
-        '''name = data['name']
-        parent_name = data['parent']
-        interpolation_type = data['interpType']
-        targets = [pm.PyNode(name) for name in data['target_list']]
-        driven_node = pm.PyNode(data['constrained_node'])
-        constraint_name = name
-        constraint_node = pm.parentConstraint(*targets, driven_node, mo=data['maintain_offset'])
-        if parent_name:
-            parent = pm.PyNode(parent_name)
-            get_parent = constraint_node.getParent()
-            if get_parent is None or get_parent != parent:
-                constraint_node.setParent(parent)
-        if interpolation_type:
-            constraint_node.interpType.set(interpolation_type)'''
 
 
     def kill_unwanted_controls(self, kill_ctrls):
