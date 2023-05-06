@@ -38,6 +38,7 @@ animBlendNodeAdditiveRotation
 animBlendNodeAdditiveDA
 animBlendNodeAdditiveRotation
 unitConversion
+quatToEuler
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -1080,5 +1081,40 @@ def unitConversion(name=None, input=None, output=None, conversionFactor=None):
     # ....Connect node's output attribute to its destination
     if output:
         node.output.connect(output)
+
+    return node
+
+
+
+########################################################################################################################
+def quatToEuler(name=None, inputQuatX=None, inputQuatY=None, inputQuatZ=None, inputQuatW=None, inputRotateOrder=None,
+                outputRotate=None, outputRotateX=None, outputRotateY=None, outputRotateZ=None):
+
+    inputRotateOrder = inputRotateOrder if inputRotateOrder else 0
+    # ...Create node
+    if name:
+        node = pm.shadingNode("quatToEuler", name=name, asUtility=1)
+    else:
+        node = pm.shadingNode("quatToEuler", asUtility=1)
+
+    input_pairs = ((inputQuatX, 'inputQuatX'), (inputQuatY, 'inputQuatY'), (inputQuatZ, 'inputQuatZ'),
+                   (inputQuatW, 'inputQuatW'))
+    for input, attr_name in input_pairs:
+        if not input:
+            continue
+        if isinstance(input, (int, float)):
+            pm.setAttr(f'{node}.{attr_name}', input)
+        else:
+            pm.connectAttr(input, f'{node}.{attr_name}')
+
+    output_pairs = ((outputRotate, 'outputRotate'), (outputRotateX, 'outputRotateX'), (outputRotateY, 'outputRotateY'),
+                    (outputRotateZ, 'outputRotateZ'))
+    for output, attr_name in output_pairs:
+        if not output:
+            continue
+        if isinstance(output, (int, float)):
+            pm.setAttr(f'{node}.{attr_name}', output)
+        else:
+            pm.connectAttr(output, f'{node}.{attr_name}')
 
     return node
