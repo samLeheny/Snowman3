@@ -53,8 +53,10 @@ class BespokePartConstructor(PartConstructor):
         self,
         part_name: str,
         side: str = None,
+        limb_type: str = 'plantigrade_doubleKnee'
     ):
         super().__init__(part_name, side)
+        self.limb_type = limb_type
 
 
 
@@ -63,8 +65,6 @@ class BespokePartConstructor(PartConstructor):
             ['HandFollowSpace', (6, 9.5, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None, False,
                 None],
             ['Upperarm', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25, True, None, False, None],
-            ['Forearm', (26.94, 0, -2.97), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25, True, None, False,
-                None],
             ['ForearmEnd', (52.64, 0, 0), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 1.25, True, None, False,
                 None],
             ['WristEnd', (59, 0, 0), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.7, False, 'ForearmEnd', False,
@@ -72,6 +72,17 @@ class BespokePartConstructor(PartConstructor):
             ['IkElbow', (26.94, 0, -35), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, None, True,
                 ('Upperarm', 'ForearmEnd', 'Forearm')]
         ]
+        forearm_position = (26.94, 0, -2.97)
+        forearm_index = 2
+        if self.limb_type == 'plantigrade':
+            pass
+        elif self.limb_type == 'plantigrade_doubleKnee':
+            forearm_position = (29.94, 0, -2.97)
+            forearm_index = 3
+            data_packs.insert(2, ['Elbow', (23.94, 0, -2.97), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25,
+                                  True, None, False, None])
+        data_packs.insert(forearm_index, ['Forearm', forearm_position, [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]],
+                                          1.25, True, None, False, None])
         placers = []
         for p in data_packs:
             placer_creator = PlacerCreator(
@@ -197,66 +208,110 @@ class BespokePartConstructor(PartConstructor):
         return controls
 
 
+
     def get_connection_pairs(self):
-        return (
-            ('Forearm', 'Upperarm'),
+        pairs = [
             ('ForearmEnd', 'Forearm'),
             ('WristEnd', 'ForearmEnd'),
             ('IkElbow', 'Forearm'),
             ('Upperarm', 'HandFollowSpace')
-        )
+        ]
+        if self.limb_type == 'plantigrade':
+            pairs.append(('Forearm', 'Upperarm'))
+        elif self.limb_type == 'plantigrade_doubleKnee':
+            [pairs.append(new_pair) for new_pair in (('Elbow', 'Upperarm'), ('Forearm', 'Elbow'))]
+        return pairs
+
 
 
     def create_part_nodes_list(self):
-        part_nodes = []
-        for name in ('Upperarm', 'Forearm', 'Wrist', 'WristEnd', 'IkPoleVector'):
-            part_nodes.append(name)
+        part_nodes = ['Upperarm', 'Forearm', 'Wrist', 'WristEnd', 'IkPoleVector']
+        if self.limb_type == 'plantigrade_doubleKnee':
+            part_nodes.insert(1, 'Elbow')
         return part_nodes
 
 
 
     def get_vector_handle_attachments(self):
-        return{
-            'Upperarm': ['Forearm', 'IkElbow'],
-            'Forearm': ['ForearmEnd', 'IkElbow'],
-            'ForearmEnd': ['WristEnd', None]
-        }
-
+        attachments = {'Forearm': ['ForearmEnd', 'IkElbow'],
+                       'ForearmEnd': ['WristEnd', None]}
+        if self.limb_type == 'plantigrade':
+            attachments['Upperarm'] = ['Forearm', 'IkElbow']
+        elif self.limb_type == 'plantigrade_doubleKnee':
+            attachments['Upperarm'] = ['Elbow', 'IkElbow']
+            attachments['Elbow'] = ['Forearm', 'IkElbow']
+        return attachments
 
 
 
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
+        segment_names = self.get_segment_names()
+        orienter_keys = self.get_orienter_keys()
+
         limb_rig = LimbRig(
             limb_name=part.name,
             side=part.side,
-            prefab='plantigrade',
-            segment_names=['Upperarm', 'Forearm', 'Wrist'],
+            prefab=self.limb_type,
+            segment_names=segment_names,
             socket_name='Shoulder',
             pv_name='Elbow',
-            orienters=[orienters[p] for p in ('Upperarm', 'Forearm', 'ForearmEnd', 'WristEnd')],
+            orienters=[orienters[p] for p in orienter_keys],
             pv_position=pm.xform(orienters['IkElbow'], q=1, worldSpace=1, rotatePivot=1),
             tweak_scale_factor_node=rig_part_container
         )
 
-        limb_len_sum_outputs = pm.listConnections(limb_rig.total_limb_len_sum.output, s=0, d=1, plugs=1)
-        world_scale_matrix = nodes.decomposeMatrix(inputMatrix=rig_part_container.worldMatrix)
-        part_scale_mult = nodes.multDoubleLinear(input1=limb_rig.total_limb_len_sum.output,
-                                                 input2=world_scale_matrix.outputScale.outputScaleX)
-        [part_scale_mult.output.connect(plug, f=1) for plug in limb_len_sum_outputs]
-
-        # ...Conform LimbRig's PV ctrl orientation to that of PV orienter
-        pv_ctrl_buffer = limb_rig.ctrls['ik_pv'].getParent()
-        world_pos = pm.xform(orienters['IkElbow'], q=1, worldSpace=1, rotatePivot=1)
-        pm.delete(pm.orientConstraint(orienters['IkElbow'], pv_ctrl_buffer))
-
+        self.connect_limb_default_world_length(limb_rig, rig_part_container)
+        self.conform_pv_ctrl_orientation(limb_rig.ctrls['ik_pv'], orienters['IkElbow'])
         # ...Move contents of limb rig into biped_arm rig module's groups
         [child.setParent(transform_grp) for child in limb_rig.grps['transform'].getChildren()]
         [child.setParent(no_transform_grp) for child in limb_rig.grps['noTransform'].getChildren()]
-
-
         pm.delete(limb_rig.grps['root'])
 
+        self.finalize_ctrl_shapes(limb_rig, scene_ctrls)
+
+        ik_hand_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkHandFollow'], parent=transform_grp)
+        gen.match_pos_ori(ik_hand_follow_ctrl_buffer, orienters['HandFollowSpace'])
+
+        self.update_part_nodes(limb_rig, scene_ctrls)
+
+        return rig_part_container
+
+
+
+    def get_segment_names(self):
+        segment_names = ['Upperarm', 'Forearm', 'Wrist']
+        if self.limb_type == 'plantigrade_doubleKnee':
+            segment_names.insert(1, 'Elbow')
+        return segment_names
+
+
+
+    def get_orienter_keys(self):
+        orienter_keys = ['Upperarm', 'Forearm', 'ForearmEnd', 'WristEnd']
+        if self.limb_type == 'plantigrade_doubleKnee':
+            orienter_keys.insert(1, 'Elbow')
+        return orienter_keys
+
+
+
+    def connect_limb_default_world_length(self, limb_rig, rig_part_container):
+        limb_len_sum_input_plugs = pm.listConnections(limb_rig.total_limb_len_sum.output, s=0, d=1, plugs=1)
+        rig_part_world_scale_matrix = nodes.decomposeMatrix(inputMatrix=rig_part_container.worldMatrix)
+        part_scale_mult = nodes.multDoubleLinear(input1=limb_rig.total_limb_len_sum.output,
+                                                 input2=rig_part_world_scale_matrix.outputScale.outputScaleX)
+        [part_scale_mult.output.connect(plug, f=1) for plug in limb_len_sum_input_plugs]
+
+
+
+    def conform_pv_ctrl_orientation(self, ik_ctrl, ik_orienter):
+        pv_ctrl_buffer = ik_ctrl.getParent()
+        world_pos = pm.xform(ik_orienter, q=1, worldSpace=1, rotatePivot=1)
+        pm.delete(pm.orientConstraint(ik_orienter, pv_ctrl_buffer))
+
+
+
+    def finalize_ctrl_shapes(self, limb_rig, scene_ctrls):
         ctrl_pairs = [('FkUpperarm', limb_rig.fk_ctrls[0]),
                       ('FkForearm', limb_rig.fk_ctrls[1]),
                       ('FkHand', limb_rig.fk_ctrls[2]),
@@ -264,23 +319,30 @@ class BespokePartConstructor(PartConstructor):
                       ('IkElbow', limb_rig.ctrls['ik_pv']),
                       ('Shoulder', limb_rig.ctrls['socket']),
                       ('Elbow', limb_rig.pin_ctrls[0])]
-        for i, limb_segment in enumerate(('Upperarm', 'Forearm')):
+
+        ribbon_ctrl_set_indices = (0, 1)
+        ribbon_segment_names = ('Upperarm', 'Forearm')
+        ribbon_segment_indices = (0, 1)
+        if self.limb_type == 'plantigrade_doubleKnee':
+            ribbon_segment_indices = (0, 2)
+
+        for i, limb_segment, tweak_i in zip(ribbon_segment_indices, ribbon_segment_names, ribbon_ctrl_set_indices):
             for j, name_tag in enumerate(('Start', 'Mid', 'End')):
-                ctrl_pairs.append((f'{limb_segment}Bend{name_tag}', limb_rig.segments[i].bend_ctrls[j]))
+                ctrl_pairs.append( (f'{limb_segment}Bend{name_tag}',
+                                    limb_rig.segments[i].bend_ctrls[j]) )
             for j, ctrl_list in enumerate(limb_rig.tweak_ctrls[0]):
-                ctrl_pairs.append((f'{limb_segment}Tweak{j+1}', limb_rig.tweak_ctrls[i][j]))
+                ctrl_pairs.append( (f'{limb_segment}Tweak{j + 1}',
+                                    limb_rig.tweak_ctrls[tweak_i][j]) )
 
         for ctrl_str, limb_setup_ctrl in ctrl_pairs:
             scene_ctrls[ctrl_str] = self.migrate_control_to_new_node(scene_ctrls[ctrl_str], limb_setup_ctrl)
 
-        ik_hand_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkHandFollow'], parent=transform_grp)
-        gen.match_pos_ori(ik_hand_follow_ctrl_buffer, orienters['HandFollowSpace'])
 
+
+    def update_part_nodes(self, limb_rig, scene_ctrls):
         for key, node in (('Upperarm', limb_rig.blend_jnts[0]),
                           ('Forearm', limb_rig.blend_jnts[1]),
                           ('Wrist', limb_rig.blend_jnts[-2]),
                           ('WristEnd', limb_rig.blend_jnts[-1]),
                           ('IkPoleVector', scene_ctrls['IkElbow'])):
             self.part_nodes[key] = node.nodeName()
-
-        return rig_part_container

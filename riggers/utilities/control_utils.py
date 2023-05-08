@@ -99,7 +99,7 @@ class ControlCreator:
             position = self.position,
             locks = self.locks,
             match_position = self.match_position,
-            shape_offset = self.shape_offset,
+            #shape_offset = self.shape_offset,
             side = self.side,
             scene_name = self.scene_name
         )

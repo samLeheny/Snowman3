@@ -403,6 +403,9 @@ class BlueprintManager:
     def mirror_part(self, existing_part):
         self.mirror_part_parent_data(existing_part)
         self.mirror_controls_in_part(existing_part)
+        new_opposite_part = self.get_opposite_part(existing_part)
+        for tag in ('part_scale', 'handle_size'):
+            setattr(new_opposite_part, tag, getattr(existing_part, tag))
         #self.mirror_placers_in_part(existing_part)
 
 

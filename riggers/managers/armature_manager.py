@@ -114,15 +114,27 @@ class ArmatureManager:
 
 
     def mirror_placer_position(self, placer_key, part):
+        placer = part.placers[placer_key]
+        if placer.is_pole_vector:
+            self.mirror_pole_vector_placer(placer_key, part)
+        else:
+            scene_placer = self.get_scene_placer(placer_key, part)
+            opposite_scene_placer = gen.get_opposite_side_obj(scene_placer)
+            if not opposite_scene_placer:
+                return False
+            if opposite_scene_placer.translate.get(lock=1):
+                return False
+            scene_placer_local_position = list(scene_placer.translate.get())
+            scene_placer_local_position[0] = -scene_placer_local_position[0]
+            opposite_scene_placer.translate.set(tuple(scene_placer_local_position))
+
+
+    def mirror_pole_vector_placer(self, placer_key, part):
+        distance_attr_name = 'Distance'
         scene_placer = self.get_scene_placer(placer_key, part)
         opposite_scene_placer = gen.get_opposite_side_obj(scene_placer)
-        if not opposite_scene_placer:
-            return False
-        if opposite_scene_placer.translate.get(lock=1):
-            return False
-        scene_placer_local_position = list(scene_placer.translate.get())
-        scene_placer_local_position[0] = -scene_placer_local_position[0]
-        opposite_scene_placer.translate.set(tuple(scene_placer_local_position))
+        scene_placer_pv_distance = pm.getAttr(f'{scene_placer}.{distance_attr_name}')
+        pm.setAttr(f'{opposite_scene_placer}.{distance_attr_name}', scene_placer_pv_distance)
 
 
     def mirror_vector_handle_positions(self, placer_key, part):

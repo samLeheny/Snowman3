@@ -476,27 +476,6 @@ class LimbRig:
         pm.addAttr(ctrl, longName='LimbScale', minValue=0.001, defaultValue=1, keyable=1)
         [pm.connectAttr(f'{ctrl}.LimbScale', f'{ctrl}.{a}') for a in ('sx', 'sy', 'sz')]
 
-        '''
-        #...Add settings attributes
-        pm.addAttr(ctrl, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0, maxValue=10,
-                   defaultValue=10, keyable=1)
-
-        pm.addAttr(ctrl, longName="upperlimb_length", attributeType="float", minValue=0.001, defaultValue=1,
-                   keyable=1)
-
-        pm.addAttr(ctrl, longName="lowerlimb_length", attributeType="float", minValue=0.001, defaultValue=1,
-                   keyable=1)
-
-        pm.addAttr(ctrl, longName="stretchy_ik", attributeType="float", minValue=0, maxValue=10, defaultValue=10,
-                   keyable=1)
-
-        pm.addAttr(ctrl, longName="Volume", attributeType="float", minValue=0, maxValue=10, defaultValue=0,
-                   keyable=1)
-
-        pm.addAttr(ctrl, longName="squash_ik", attributeType="float", minValue=0, maxValue=10, defaultValue=0,
-                   keyable=1)
-        '''
-
 
 
 
@@ -731,25 +710,26 @@ class LimbRig:
             if seg.double_jnt:
                 jnt_parent = self.segments[n-1].fk_jnt_cap
             jnt = seg.fk_jnt = rig.joint(name=f'{seg.segment_name}_fk', side=self.side, joint_type=nom.nonBindJnt,
-                                               radius=0.08, color=2, parent=jnt_parent)
+                                         radius=0.08, color=2, parent=jnt_parent)
             cap_jnt = seg.fk_jnt_cap = rig.joint(name=f'{seg.segment_name}_fkCap', side=self.side,
-                                                       joint_type=nom.nonBindJnt, radius=0.04, color=2, parent=jnt)
+                                                 joint_type=nom.nonBindJnt, radius=0.04, color=2, parent=jnt)
             cap_jnt.tx.set(seg.segment_length)
 
             #...Position control
             seg_start_node = jnt if seg.double_jnt else fk_ctrl
+            seg_start_node = gen.buffer_obj(seg_start_node)
             orig_parent = seg_start_node.getParent()
             seg_start_node.setParent(seg.blend_jnt)
             gen.zero_out(seg_start_node)
             seg_start_node.setParent(orig_parent) if orig_parent else seg_start_node.setParent(world=1)
-            gen.convert_offset(seg_start_node) if not seg.double_jnt else None
+            #gen.convert_offset(seg_start_node) if not seg.double_jnt else None
 
 
             if self.segments[n-1].double_jnt:
                 nodes.multiplyDivide(input1=fk_ctrl.rotate, input2=(0.5, 0.5, 0.5),
-                                          output=self.segments[n-1].fk_jnt.rotate)
+                                     output=self.segments[n-1].fk_jnt.rotate)
                 nodes.multiplyDivide(input1=fk_ctrl.rotate, input2=(-0.5, -0.5, -0.5),
-                                          output=self.segments[n-1].fk_jnt_cap.rotate)
+                                     output=self.segments[n-1].fk_jnt_cap.rotate)
 
 
         #...Wrap top of ctrl chain in buffer group --------------------------------------------------------------------
@@ -858,8 +838,7 @@ class LimbRig:
     ####################################################################################################################
     def get_pv_vector(self):
         #...Pole vector vector ----------------------------------------------------------------------------------------
-        self.pv_vector = gen.vector_between(obj_1=self.jnt_position_holders[1],
-                                                  obj_2=self.pv_position_holder)
+        self.pv_vector = gen.vector_between(obj_1=self.jnt_position_holders[1], obj_2=self.pv_position_holder)
 
 
 
@@ -912,11 +891,6 @@ class LimbRig:
         pm.delete(pm.parentConstraint(self.pv_position_holder, pv_buffer))
         pv_buffer.rotate.set(0, 0, 0)
         pv_buffer.scale.set(1, 1, 1)
-        '''gen.zero_out(pv_buffer)
-        pm.delete(pm.parentConstraint(self.segments[0].blend_jnt, self.segments[-2].blend_jnt, pv_buffer))
-        extrem_dist = gen.distance_between(position_1=self.segments[0].start_world_position,
-                                                 position_2=self.segments[-2].start_world_position)
-        pv_buffer.tz.set(pv_buffer.tz.get() + (-extrem_dist) * 0.8)'''
 
         if tarsus_index:
             tarsus_buffer.setParent(self.segments[-2].blend_jnt)
