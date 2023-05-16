@@ -8,6 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import logging
 from dataclasses import dataclass
 import pymel.core as pm
 
@@ -187,16 +188,26 @@ def create_constraint_data(constraint):
             data['worldUpObject'] = connected[0]
         return data
     else:
-        pass
-        # self.logger.info(f"Warning: Constraint type '{constraint_type}' not supported. skipping...")
+        logging.warning(f"Constraint type '{constraint_type}' not supported. skipping.")
     return data
 
 
 
 def enact_constraint(data):
     constraint_node = None
-    targets = [pm.PyNode(obj) for obj in data.target_list]
+
+    targets = []
+    for obj in data.target_list:
+        if not pm.objExists(obj):
+            logging.warning(f"Target object '{obj}' not found in scene. Skipping constraint.")
+            return None
+        targets.append(pm.PyNode(obj))
+
+    if not pm.objExists(data.constrained_node):
+        logging.warning(f"Destination object '{obj} not found in scene. Skipping constraint.")
+        return None
     constrained_node = pm.PyNode(data.constrained_node)
+
     if data.constraint_type == 'parentConstraint':
         constraint_node = pm.parentConstraint(*targets, constrained_node, mo=data.maintain_offset,
                                               skipTranslate=data.skip_translate, skipRotate=data.skip_rotate)
@@ -204,12 +215,14 @@ def enact_constraint(data):
         constraint_node = pm.pointConstraint(*targets, constrained_node, mo=data.maintain_offset, skip=data.skip)
     elif data.constraint_type == 'scaleConstraint':
         constraint_node = pm.scaleConstraint(*targets, constrained_node, mo=data.maintain_offset, skip=data.skip)
+
     ### Still more constraints to add!
     if data.parent:
         if pm.objExists(data.parent):
             constraint_node.setParent(pm.PyNode(data.parent))
     if data.interpType:
         constraint_node.interpType.set(data.interpType)
+
     pm.rename(constraint_node, data.name)
     return constraint_node
 

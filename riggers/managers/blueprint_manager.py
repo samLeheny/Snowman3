@@ -8,6 +8,7 @@
 ###########################
 ##### Import Commands #####
 import os
+import logging
 from dataclasses import dataclass, field
 from typing import Sequence
 import importlib
@@ -74,7 +75,7 @@ class BlueprintManager:
 
 
     def create_blueprint_from_prefab(self):
-        print(f"Creating blueprint from prefab: '{self.prefab_key}'...")
+        logging.info(f"Creating blueprint from prefab: '{self.prefab_key}'...")
         self.blueprint = self.create_new_blueprint()
         self.populate_prefab_blueprint()
         return self.blueprint
@@ -146,7 +147,7 @@ class BlueprintManager:
 
 
     def create_new_blueprint(self):
-        print(f"Creating new blueprint for asset '{self.asset_name}'...")
+        logging.info(f"Creating new blueprint for asset '{self.asset_name}'...")
         self.blueprint = Blueprint(asset_name=self.asset_name, dirpath=self.tempdir)
         self.create_working_dir()
         self.create_versions_dir()
@@ -189,18 +190,18 @@ class BlueprintManager:
 
     def create_working_dir(self):
         if not os.path.exists(self.tempdir):
-            print("Asset 'working' directory created.")
+            logging.info("Asset 'working' directory created.")
             os.mkdir(self.tempdir)
 
 
     def create_versions_dir(self):
         if not os.path.exists(self.versions_dir):
-            print("Asset 'versions' directory created.")
+            logging.info("Asset 'versions' directory created.")
             os.mkdir(self.versions_dir)
 
 
     def save_work(self):
-        print('Saving work...')
+        logging.info('Saving work...')
         self.update_blueprint_from_scene()
         self.save_blueprint_to_disk()
         self.save_blueprint_to_tempdisk()
@@ -240,14 +241,16 @@ class BlueprintManager:
         return part
 
 
-    def update_placer_from_scene(self, placer):
+    @staticmethod
+    def update_placer_from_scene(placer):
         scene_placer = pm.PyNode(placer.scene_name)
         placer.position = tuple(scene_placer.translate.get())
         placer.rotation = tuple(scene_placer.rotate.get())
         return placer
 
 
-    def update_vector_handles_from_scene(self, placer):
+    @staticmethod
+    def update_vector_handles_from_scene(placer):
         def process_handle(vector):
             handle_name = f'{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}'
             if not pm.objExists(handle_name):
@@ -263,7 +266,8 @@ class BlueprintManager:
         return placer
 
 
-    def update_control_shape_from_scene(self, ctrl):
+    @staticmethod
+    def update_control_shape_from_scene(ctrl):
         if not pm.objExists(ctrl.scene_name):
             return ctrl
         scene_ctrl = pm.PyNode(ctrl.scene_name)
@@ -273,7 +277,7 @@ class BlueprintManager:
 
 
     def save_blueprint_to_disk(self):
-        print("Saving work to disk...")
+        logging.info("Saving work to disk...")
         asset_name = self.blueprint.asset_name
         new_save_dir = self.create_new_numbered_directory(asset_name)
         self.save_blueprint(dirpath=new_save_dir)
@@ -313,7 +317,8 @@ class BlueprintManager:
         return self.blueprint
 
 
-    def data_from_file(self, filepath):
+    @staticmethod
+    def data_from_file(filepath):
         with open(filepath, 'r') as fh:
             data = json.load(fh)
         return data
@@ -326,7 +331,8 @@ class BlueprintManager:
         return self.blueprint
 
 
-    def parts_from_data(self, parts_data):
+    @staticmethod
+    def parts_from_data(parts_data):
         parts = {}
         for key, data in parts_data.items():
             new_part = Part(**data)
@@ -337,7 +343,8 @@ class BlueprintManager:
         return parts
 
 
-    def post_constraints_from_data(self, post_constraints_data):
+    @staticmethod
+    def post_constraints_from_data(post_constraints_data):
         post_constraints = []
         for data in post_constraints_data:
             post_constraints.append(PostConstraint(**data))
@@ -351,7 +358,8 @@ class BlueprintManager:
         return data
 
 
-    def parts_data_from_blueprint(self, parts):
+    @staticmethod
+    def parts_data_from_blueprint(parts):
         data = {}
         for key, part in parts.items():
             manager = PartManager(part)
@@ -359,15 +367,16 @@ class BlueprintManager:
         return data
 
 
-    def post_constraints_data_from_blueprints(self, post_constraints):
+    @staticmethod
+    def post_constraints_data_from_blueprints(post_constraints):
         data = []
         for post_constraint in post_constraints:
             manager = PostConstraintManager(post_constraint)
             data.append(manager.data_from_post_constraint())
         return data
 
-
-    def data_from_part(self, part):
+    @staticmethod
+    def data_from_part(part):
         part_manager = PartManager(part)
         return part_manager.data_from_part()
 
@@ -418,7 +427,7 @@ class BlueprintManager:
         opposite_part = self.get_opposite_part(part)
         existing_part_parent_data = part.parent
         if not existing_part_parent_data:
-            print(f"Parent data is unusable: {existing_part_parent_data}")
+            logging.error(f"Parent data is unusable: {existing_part_parent_data}")
         parent_part_key = existing_part_parent_data[0]
         parent_side = gen.get_obj_side(existing_part_parent_data[0])
         if parent_side:
@@ -453,3 +462,11 @@ class BlueprintManager:
         if opposite_part_key not in self.blueprint.parts:
             return False
         return self.blueprint.parts[opposite_part_key]
+
+
+    def check_for_part(self, name=None, side=None, part_key=None):
+        if not part_key:
+            part_key = f'{gen.side_tag(side)}{name}'
+        if part_key in self.blueprint.parts:
+            return True
+        return False

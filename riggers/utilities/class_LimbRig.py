@@ -934,11 +934,10 @@ class LimbRig:
 
 
         #...Display curve ---------------------------------------------------------------------------------------------
-        self.ik_display_crv = rig.connector_curve(name=f'{self.side_tag}ik_{self.segment_names[-2]}',
-                                                        end_driver_1=self.segments[1].ik_jnt,
-                                                        end_driver_2=self.ctrls['ik_pv'],
-                                                        override_display_type=1, line_width=-1.0,
-                                                        parent=self.grps['noTransform'])[0]
+        self.ik_display_crv = rig.connector_curve(
+            name=f'{self.side_tag}ik_{self.segment_names[-2]}', end_driver_1=self.segments[1].ik_jnt,
+            end_driver_2=self.ctrls['ik_pv'], override_display_type=1, line_width=-1.0,
+            parent=self.grps['noTransform'])[0]
 
         if self.side == nom.rightSideTag:
             [pm.setAttr(f'{self.ik_display_crv}.{a}', lock=0) for a in gen.all_transform_attrs]
@@ -1007,7 +1006,7 @@ class LimbRig:
             inMatrix2=self.ik_end_marker.worldMatrix)
 
         scaled_extrem_dist = nodes.floatMath(floatA=ik_extrem_dist.distance,
-                                                  floatB=f'{self.grps["root"]}.RigScale', operation=3)
+                                             floatB=f'{self.grps["root"]}.RigScale', operation=3)
 
         if not compensate_seg_indices:
             extrem_dist_output = scaled_extrem_dist.outFloat
@@ -1015,35 +1014,35 @@ class LimbRig:
         else:
             len_compensate = sum(
                 [gen.distance_between(obj_1=self.segments[i].ik_jnt,
-                                            obj_2=self.segments[i+1].ik_jnt) for i in compensate_seg_indices])
+                                      obj_2=self.segments[i+1].ik_jnt) for i in compensate_seg_indices])
             extrem_dist_output = nodes.floatMath(floatA=scaled_extrem_dist.outFloat, floatB=len_compensate,
-                                                      operation=1).outFloat
+                                                 operation=1).outFloat
             len_total_output = nodes.floatMath(floatA=total_limb_len_sum.output, floatB=len_compensate,
-                                                    operation=1).outFloat
+                                               operation=1).outFloat
 
 
         limb_straigtness_div = nodes.floatMath(floatA=extrem_dist_output,
-                                                    floatB=len_total_output, operation=3)
+                                               floatB=len_total_output, operation=3)
 
         straight_condition = nodes.condition(colorIfTrue=(limb_straigtness_div.outFloat, 0, 0),
-                                                  colorIfFalse=(1, 1, 1), operation=2,
-                                                  firstTerm=scaled_extrem_dist.outFloat,
-                                                  secondTerm=total_limb_len_sum.output)
+                                             colorIfFalse=(1, 1, 1), operation=2,
+                                             firstTerm=scaled_extrem_dist.outFloat,
+                                             secondTerm=total_limb_len_sum.output)
 
         [straight_condition.outColor.outColorR.connect(self.segments[i].ik_jnt.sx) for i in subject_indices]
 
         #...Make stretch optional -------------------------------------------------------------------------------------
         stretch_option_remap = nodes.remapValue(inputValue=f'{self.ctrls["socket"]}.stretchy_ik',
-                                                     outputMin=1, inputMax=10,
-                                                     outputMax=straight_condition.outColor.outColorR,)
+                                                outputMin=1, inputMax=10,
+                                                outputMax=straight_condition.outColor.outColorR,)
         [stretch_option_remap.outValue.connect(self.segments[i].ik_jnt.sx, force=1) for i in subject_indices]
 
 
         #...Squash option ---------------------------------------------------------------------------------------------
         if squash:
             nodes.remapValue(inputValue=f'{self.ctrls["socket"]}.squash_ik', inputMax=10, outputMin=1,
-                                  outputMax=limb_straigtness_div.outFloat,
-                                  outValue=straight_condition.colorIfFalse.colorIfFalseR)
+                             outputMax=limb_straigtness_div.outFloat,
+                             outValue=straight_condition.colorIfFalse.colorIfFalseR)
 
 
         #...Include Soft IK effect ------------------------------------------------------------------------------------
@@ -1058,10 +1057,10 @@ class LimbRig:
             anim_crv = self.soft_ik_curve(input=ratio_mult.output)
 
             soft_ik_weight_remap = nodes.remapValue(inputValue=f'{self.ctrls["socket"]}.soft_ik',
-                                                         outputMax=anim_crv.output, inputMax=10, outputMin=1)
+                                                    outputMax=anim_crv.output, inputMax=10, outputMin=1)
 
             soft_ik_weight_mult = nodes.multDoubleLinear(input1=stretch_option_remap.outValue,
-                                                              input2=soft_ik_weight_remap.outValue)
+                                                         input2=soft_ik_weight_remap.outValue)
             [soft_ik_weight_mult.output.connect(self.segments[i].ik_jnt.sx, force=1) for i in subject_indices]
 
 

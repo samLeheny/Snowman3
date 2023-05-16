@@ -340,9 +340,14 @@ class BespokePartConstructor(PartConstructor):
 
 
     def update_part_nodes(self, limb_rig, scene_ctrls):
-        for key, node in (('Upperarm', limb_rig.blend_jnts[0]),
-                          ('Forearm', limb_rig.blend_jnts[1]),
-                          ('Wrist', limb_rig.blend_jnts[-2]),
-                          ('WristEnd', limb_rig.blend_jnts[-1]),
-                          ('IkPoleVector', scene_ctrls['IkElbow'])):
+        pairings = [('Upperarm', limb_rig.blend_jnts[0]),
+                    ('Wrist', limb_rig.blend_jnts[-2]),
+                    ('WristEnd', limb_rig.blend_jnts[-1]),
+                    ('IkPoleVector', scene_ctrls['IkElbow'])]
+        if self.limb_type == 'plantigrade_doubleKnee':
+            pairings.append(('Elbow', limb_rig.blend_jnts[1]))
+            pairings.append(('Forearm', limb_rig.blend_jnts[2]))
+        else:
+            pairings.append(('Forearm', limb_rig.blend_jnts[1]))
+        for key, node in pairings:
             self.part_nodes[key] = node.nodeName()

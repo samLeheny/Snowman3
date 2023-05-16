@@ -39,6 +39,7 @@ animBlendNodeAdditiveDA
 animBlendNodeAdditiveRotation
 unitConversion
 quatToEuler
+closestPointOnSurface
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -667,24 +668,24 @@ def fourByFourMatrix(input=None, output=None, name=None):
 
 
     if name:
-        node = pm.shadingNode("fourByFourMatrix", name=name, au=1)
+        node = pm.shadingNode('fourByFourMatrix', name=name, au=1)
     else:
-        node = pm.shadingNode("fourByFourMatrix", au=1)
+        node = pm.shadingNode('fourByFourMatrix', au=1)
 
-    input_attrs = ["in00", "in01", "in02", "in03",
-                   "in10", "in11", "in12", "in13",
-                   "in20", "in21", "in22", "in23",
-                   "in30", "in31", "in32", "in33"]
+    input_attrs = ['in00', 'in01', 'in02', 'in03',
+                   'in10', 'in11', 'in12', 'in13',
+                   'in20', 'in21', 'in22', 'in23',
+                   'in30', 'in31', 'in32', 'in33']
 
     if input:
         for inp, a in zip(input, input_attrs):
             if isinstance(inp, (int, float)):
-                pm.setAttr(node + "." + a, inp)
+                pm.setAttr(f'{node}.{a}', inp)
             else:
-                pm.connectAttr(inp, node + "." + a)
+                pm.connectAttr(inp, f'{node}.{a}')
 
     if output:
-        pm.connectAttr(node + ".output", output)
+        pm.connectAttr(f'{node}.{output}', output)
 
 
     return node
@@ -697,9 +698,9 @@ def fourByFourMatrix(input=None, output=None, name=None):
 def distanceBetween(name=None, point1=None, point2=None, inMatrix1=None, inMatrix2=None, distance=None):
 
     if name:
-        node = pm.shadingNode("distanceBetween", name=name, au=1)
+        node = pm.shadingNode('distanceBetween', name=name, au=1)
     else:
-        node = pm.shadingNode("distanceBetween", au=1)
+        node = pm.shadingNode('distanceBetween', au=1)
 
     if point1:
         pm.connectAttr(point1, node.point1)
@@ -1093,9 +1094,9 @@ def quatToEuler(name=None, inputQuatX=None, inputQuatY=None, inputQuatZ=None, in
     inputRotateOrder = inputRotateOrder if inputRotateOrder else 0
     # ...Create node
     if name:
-        node = pm.shadingNode("quatToEuler", name=name, asUtility=1)
+        node = pm.shadingNode('quatToEuler', name=name, asUtility=1)
     else:
-        node = pm.shadingNode("quatToEuler", asUtility=1)
+        node = pm.shadingNode('quatToEuler', asUtility=1)
 
     input_pairs = ((inputQuatX, 'inputQuatX'), (inputQuatY, 'inputQuatY'), (inputQuatZ, 'inputQuatZ'),
                    (inputQuatW, 'inputQuatW'))
@@ -1116,5 +1117,57 @@ def quatToEuler(name=None, inputQuatX=None, inputQuatY=None, inputQuatZ=None, in
             pm.setAttr(f'{node}.{attr_name}', output)
         else:
             pm.connectAttr(output, f'{node}.{attr_name}')
+
+    return node
+
+
+
+########################################################################################################################
+def closestPointOnSurface(name=None, inputSurface=None, inPosition=None, position=None, parameterU=None,
+                          parameterV=None):
+    # ...Create node
+    if name:
+        node = pm.shadingNode('quatToEuler', name=name, asUtility=1)
+    else:
+        node = pm.shadingNode('quatToEuler', asUtility=1)
+
+    if inputSurface:
+        pm.connectAttr(inputSurface, node.inputSurface)
+
+    if inPosition:
+        if isinstance(inPosition, (tuple, list)):
+            inPosition = tuple(inPosition) if isinstance(inPosition, list) else None
+            sub_attrs = ('inPositionX', 'inPositionY', 'inPositionZ')
+            for i in range(3):
+                if isinstance(inPosition[i], (int, float)):
+                    pm.setAttr(f'{node}.{sub_attrs[i]}', inPosition[i])
+                else:
+                    pm.connectAttr(inPosition[i], f'{node}.{sub_attrs[i]}')
+        else:
+            pm.connectAttr(inPosition, node.inPosition)
+
+    if position:
+        if isinstance(position, (tuple, list)):
+            position = tuple(position) if isinstance(position, list) else None
+            sub_attrs = ('positionX', 'positionY', 'positionZ')
+            for i in range(3):
+                if isinstance(position[i], (int, float)):
+                    pm.setAttr(f'{node}.result.position.{position[i]}', position[i])
+                else:
+                    pm.connectAttr(position[i], f'{node}.result.position.{sub_attrs[i]}')
+        else:
+            pm.connectAttr(position, node.position)
+
+    if parameterU:
+        if isinstance(parameterU, (int, float)):
+            pm.setAttr(f'{node}.result.parameterU', parameterU)
+        else:
+            pm.connectAttr(parameterU, f'{node}.result.parameterU')
+
+    if parameterV:
+        if isinstance(parameterV, (int, float)):
+            pm.setAttr(f'{node}.result.parameterU', parameterV)
+        else:
+            pm.connectAttr(parameterV, f'{node}.result.parameterU')
 
     return node

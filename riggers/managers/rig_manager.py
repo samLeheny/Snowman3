@@ -100,7 +100,8 @@ class RigManager:
         pm.select(clear=1)
 
 
-    def make_custom_constraint(self, data):
+    @staticmethod
+    def make_custom_constraint(data):
         if type(data) == dict:
             data = constraint_utils.create_constraint_data_from_dict(data)
         constraint_utils.enact_constraint(data)
@@ -124,7 +125,8 @@ class RigManager:
         [self.kill_unwanted_control(package) for package in kill_ctrls]
 
 
-    def kill_unwanted_control(self, data):
+    @staticmethod
+    def kill_unwanted_control(data):
         part = pm.PyNode(f'{data["part_name"]}_RIG')
         ctrl = None
         for child in part.getChildren(allDescendents=1):
@@ -146,20 +148,23 @@ class RigManager:
             pm.rename(ctrl, new_name)
 
 
-    def get_rig_part_scene_name(self, part):
+    @staticmethod
+    def get_rig_part_scene_name(part):
         part_suffix, rig_suffix = 'PART', 'RIG'
         part_scene_name = part.scene_name
         return part_scene_name.replace(part_suffix, rig_suffix)
 
 
-    def get_rig_connector(self, part):
+    @staticmethod
+    def get_rig_connector(part):
         rig_part_connector_name = f'{gen.side_tag(part.side)}{part.name}_CONNECTOR'
         if not pm.objExists(rig_part_connector_name):
             return None
         return pm.PyNode(rig_part_connector_name)
 
 
-    def get_part_root_node(self, part):
+    @staticmethod
+    def get_part_root_node(part):
         root_node_name = f'{gen.side_tag(part.side)}{part.name}_RIG'
         if not pm.objExists(root_node_name):
             return None
@@ -170,7 +175,8 @@ class RigManager:
         [self.perform_attr_handoff(package) for package in attr_handoffs]
 
 
-    def perform_attr_handoff(self, handoff_data):
+    @staticmethod
+    def perform_attr_handoff(handoff_data):
         attr_exceptions = ("LockAttrData", "LockAttrDataT", "LockAttrDataR", "LockAttrDataS", "LockAttrDataV")
         old_node = pm.PyNode(handoff_data['old_attr_node'])
         new_node = pm.PyNode(handoff_data['new_attr_node'])
@@ -181,7 +187,8 @@ class RigManager:
             pm.delete(old_node)
 
 
-    def get_root_part(self, parts):
+    @staticmethod
+    def get_root_part(parts):
         root_part = None
         for part in parts.values():
             if part.prefab_key == 'root':
@@ -190,7 +197,8 @@ class RigManager:
         return root_part
 
 
-    def get_non_root_parts(self, parts):
+    @staticmethod
+    def get_non_root_parts(parts):
         non_root_parts = parts.copy()
         for key in parts:
             if parts[key].prefab_key == 'root':
@@ -206,6 +214,5 @@ class RigManager:
         non_root_parts = self.get_non_root_parts(blueprint.parts)
         part_scale_driver_node = pm.PyNode(root_part.controls['SubRoot'].scene_name)
         for part in non_root_parts:
-            driven_part = pm.PyNode(f'{part.data_name}_RIG')
             part_connector_node = self.get_rig_connector(part)
             pm.scaleConstraint(part_scale_driver_node, part_connector_node, mo=1)

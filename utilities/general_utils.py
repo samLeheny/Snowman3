@@ -88,6 +88,11 @@ matrix_to_list
 list_to_matrix
 get_obj_matrix
 drive_attr
+create_lock_memory
+lock_attrs_from_memory
+match_pose_ori
+create_follicle
+get_closest_uv_on_surface
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -2016,7 +2021,68 @@ def lock_attrs_from_memory(obj, lock_memory):
 ########################################################################################################################
 def match_pos_ori(target, source):
     pm.matchTransform(target, source)
-    scales = tuple(target.scale.get())
     for attr in ('sx', 'sy', 'sz'):
         val = pm.getAttr(f'{target}.{attr}')
         pm.setAttr(f'{target}.{attr}', val/abs(val))
+
+
+
+########################################################################################################################
+def create_follicle(surface, uPos=0.0, vPos=0.0):
+
+    if surface.type() == 'transform':
+        surface = surface.getShape()
+    if surface.type() not in ('nurbsSurface', 'mesh'):
+        pm.warning("Provided node must be a nurbsSurface or mesh")
+
+    follicle_name = f'{surface.shortName()}_{"FOL"}'
+
+    follicle = pm.createNode('follicle', name=follicle_name)
+
+    if surface.nodeType() == 'nurbsSurface':
+        surface.local.connect(follicle.inputSurface)
+    elif surface.nodeType() == 'mesh':
+        surface.outMesh.connect(follicle.inputMesh)
+
+    surface.worldMatrix[0].connect(follicle.inputWorldMatrix)
+    follicle.outRotate.connect(follicle.getParent().rotate)
+    follicle.outTranslate.connect(follicle.getParent().translate)
+    follicle.parameterU.set(uPos)
+    follicle.parameterV.set(vPos)
+    follicle.getParent().t.lock()
+    follicle.getParent().r.lock()
+
+    return follicle
+
+
+
+########################################################################################################################
+def get_closest_uv_on_surface(obj, surface):
+
+    if obj.nodeType() == 'locator':
+        obj_output = obj.worldPosition
+    else:
+        matrix_node = pm.shadingNode('decomposeMatrix', au=1)
+        obj.worldMatrix.connect(matrix_node.inputMatrix)
+        obj_output = matrix_node.outputTranslate
+
+    point_node = pm.shadingNode('closestPointOnSurface', au=1)
+    obj_output.connect(point_node.inPosition)
+
+    if surface.nodetype() == 'transform':
+        surface = surface.getShape()
+    surface.worldSpace.connect(point_node.inputSurface)
+
+    div_node = pm.shadingNode('multiplyDivide', au=1)
+    div_node.operation.set(2)
+    point_node.result.parameterU.connect(div_node.input1.input1X)
+    point_node.result.parameterV.connect(div_node.input1.input1Y)
+    surface.minMaxRangeU.maxValueU.connect(div_node.input2.input2X)
+    surface.minMaxRangeV.maxValueV.connect(div_node.input2.input2Y)
+
+    u_value = div_node.output.outputX.get()
+    v_value = div_node.output.outputV.get()
+
+    pm.delete(point_node)
+
+    return u_value, v_value

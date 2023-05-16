@@ -8,6 +8,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import logging
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
@@ -99,12 +100,16 @@ class SceneInteractor:
         self.update_working_blueprint_file()
 
 
-    def create_part(self, name, prefab_key, side=None):
+    @staticmethod
+    def create_part(name, prefab_key, side=None):
         part_creator = PartCreator(name=name, prefab_key=prefab_key, side=side)
         return part_creator.create_part()
 
 
     def add_part(self, name, prefab_key, side=None):
+        if self.check_for_part(name=name, side=side):
+            logging.error(f"Part already exists.")
+            return False
         part = self.create_part(name, prefab_key, side)
         self.blueprint_manager.add_part(part)
         self.armature_manager.add_part(part)
@@ -112,7 +117,15 @@ class SceneInteractor:
         return part
 
 
+    def check_for_part(self, name=None, side=None, part_key=None):
+        if self.blueprint_manager.check_for_part(name=name, side=side, part_key=part_key):
+            return True
+        return False
+
+
     def remove_part(self, part_key):
+        if not self.check_for_part(part_key=part_key):
+            return False
         part = self.blueprint_manager.get_part(part_key)
         self.armature_manager.remove_part(part)
         self.blueprint_manager.remove_part(part)
@@ -125,6 +138,8 @@ class SceneInteractor:
 
 
     def create_mirrored_part(self, existing_part_key):
+        if not self.check_for_part(part_key=existing_part_key):
+            return False
         existing_part = self.blueprint_manager.get_part(existing_part_key)
         opposite_part_data = self.blueprint_manager.data_from_part(existing_part)
         opposite_part_data['side'] = gen.opposite_side(existing_part.side)
@@ -139,6 +154,8 @@ class SceneInteractor:
     def add_mirrored_part(self, existing_part_key):
         existing_part = self.blueprint_manager.get_part(existing_part_key)
         new_part = self.create_mirrored_part(existing_part_key)
+        if not new_part:
+            return False
         self.blueprint_manager.add_part(new_part)
 
         self.blueprint_manager.mirror_part(existing_part)
@@ -208,7 +225,8 @@ class SceneInteractor:
         self.update_working_blueprint_file()
 
 
-    def check_obj_is_control(self, obj):
+    @staticmethod
+    def check_obj_is_control(obj):
         if not gen.get_clean_name(str(obj)).endswith('_CTRL'):
             return False
         if not obj.getShape():
@@ -221,7 +239,8 @@ class SceneInteractor:
         self.blueprint_manager.update_control_shape_from_scene(blueprint_ctrl)
 
 
-    def mirror_control_shape(self, ctrl):
+    @staticmethod
+    def mirror_control_shape(ctrl):
         transform_attrs = ('translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz')
         if not gen.get_obj_side(ctrl) in ('L', 'R'):
             return False
@@ -272,7 +291,7 @@ class SceneInteractor:
         self.blueprint_manager.add_custom_constraint(custom_constraint_data)
 
 
-    def remove_selected_constraints(self):
+    def remove_selected_constraints(self, delete=True):
         constraint_types = ('pointConstraint', 'orientConstraint', 'parentConstraint', 'scaleConstraint',
                             'aimConstraint', 'geometryConstraint')
         selection = pm.ls(sl=1)
@@ -280,6 +299,7 @@ class SceneInteractor:
             if node.nodeType() not in constraint_types:
                 continue
             self.remove_custom_constraint(node.nodeName())
+            pm.delete(node) if delete else None
         self.update_working_blueprint_file()
 
 
