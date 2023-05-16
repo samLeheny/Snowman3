@@ -84,18 +84,17 @@ class PartManager:
     ):
         self.part = part
 
-    def data_from_part(self):
-        data = vars(self.part).copy()
+    @classmethod
+    def data_from_part(cls, part):
+        data = vars(part).copy()
 
         data['placers'] = {}
-        for key, placer in self.part.placers.items():
-            manager = PlacerManager(placer)
-            data['placers'][key] = manager.data_from_placer()
+        for key, placer in part.placers.items():
+            data['placers'][key] = PlacerManager.data_from_placer(placer)
 
         data['controls'] = {}
-        for key, control in self.part.controls.items():
-            manager = ControlManager(control)
-            data['controls'][key] = manager.data_from_control()
+        for key, control in part.controls.items():
+            data['controls'][key] = ControlManager.data_from_control(control)
 
         return data
 

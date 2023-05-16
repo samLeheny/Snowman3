@@ -31,10 +31,11 @@ multiplyDivide
 plusMinusAverage
 condition
 fourByFourMatrix
+distanceBetween
 multMatrix
+decomposeMatrix
 clamp
 blendMatrix
-animBlendNodeAdditiveRotation
 animBlendNodeAdditiveDA
 animBlendNodeAdditiveRotation
 unitConversion
@@ -49,7 +50,7 @@ closestPointOnSurface
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
     """
         Creates a floatMath utility node to specifications provided in arguments.
@@ -132,8 +133,7 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def floatConstant(name=None, inFloat=None, outFloat=None):
     """
         Creates a floatConstant utility node to specifications provided in arguments.
@@ -177,8 +177,7 @@ def floatConstant(name=None, inFloat=None, outFloat=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=False):
     """
         Creates a addDoubleLinear utility node to specifications provided in arguments.
@@ -239,8 +238,7 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def multDoubleLinear(name=None, input1=None, input2=None, output=None):
     """
         Creates a multDoubleLinear utility node to specifications provided in arguments.
@@ -295,8 +293,7 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def remapValue(name=None, inputValue=0, inputMin=0, inputMax=1, outputMin=0, outputMax=1, outValue=None):
 
 
@@ -355,8 +352,7 @@ def remapValue(name=None, inputValue=0, inputMin=0, inputMax=1, outputMin=0, out
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def reverse(name=None, input=None, output=None, output_x=None, output_y=None, output_z=None):
 
     if name:
@@ -388,24 +384,21 @@ def reverse(name=None, input=None, output=None, output_x=None, output_y=None, ou
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def curveInfo():
     pass
 
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def pointOnCurveInfo():
     pass
 
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercentage=True, parameterV=1, parameterU=1,
                        resultPosition=None, resultNormal=None, resultNormalizedNormal=None, resultTangentU=None,
                        resultNormalizedTangentU=None, resultTangentV=None, resultNormalizedTangentV=None):
@@ -467,8 +460,7 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=None):
 
 
@@ -549,16 +541,14 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def plusMinusAverage():
     pass
 
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFalse=None, operation=0, outColor=None):
     """
 
@@ -662,8 +652,7 @@ def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFal
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def fourByFourMatrix(input=None, output=None, name=None):
 
 
@@ -693,8 +682,7 @@ def fourByFourMatrix(input=None, output=None, name=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def distanceBetween(name=None, point1=None, point2=None, inMatrix1=None, inMatrix2=None, distance=None):
 
     if name:
@@ -721,8 +709,7 @@ def distanceBetween(name=None, point1=None, point2=None, inMatrix1=None, inMatri
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def multMatrix(name=None, matrixIn=None, matrixSum=None):
 
     if name:
@@ -752,8 +739,7 @@ def multMatrix(name=None, matrixIn=None, matrixSum=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslate=None, outputRotate=None,
                     outputScale=None, outputShear=None, force=False):
 
@@ -814,8 +800,7 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), output=(None, None, None)):
 
 
@@ -867,8 +852,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, weight=None, useScale=None,
                 useTranslate=None, useShear=None, useRotate=None, outputMatrix=None):
 
@@ -935,7 +919,7 @@ def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, 
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def animBlendNodeAdditiveDA(name=None, inputA=None, inputB=None, weightA=None, weightB=None, output=None):
 
 
@@ -990,7 +974,7 @@ def animBlendNodeAdditiveDA(name=None, inputA=None, inputB=None, weightA=None, w
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def animBlendNodeAdditiveRotation(name=None, inputA=None, inputB=None, weightA=None, weightB=None, output=None):
 
 
@@ -1054,7 +1038,7 @@ def animBlendNodeAdditiveRotation(name=None, inputA=None, inputB=None, weightA=N
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def unitConversion(name=None, input=None, output=None, conversionFactor=None):
 
     conversionFactor = conversionFactor if conversionFactor else 1
@@ -1087,7 +1071,7 @@ def unitConversion(name=None, input=None, output=None, conversionFactor=None):
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def quatToEuler(name=None, inputQuatX=None, inputQuatY=None, inputQuatZ=None, inputQuatW=None, inputRotateOrder=None,
                 outputRotate=None, outputRotateX=None, outputRotateY=None, outputRotateZ=None):
 
@@ -1122,7 +1106,13 @@ def quatToEuler(name=None, inputQuatX=None, inputQuatY=None, inputQuatZ=None, in
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
+def EulerToQuat(name=None):
+    pass
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
 def closestPointOnSurface(name=None, inputSurface=None, inPosition=None, position=None, parameterU=None,
                           parameterV=None):
     # ...Create node

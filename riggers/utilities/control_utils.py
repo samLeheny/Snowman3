@@ -1,13 +1,14 @@
 # Title: control_utils.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
-import copy
+
 # Description:
 
 
 ###########################
 ##### Import Commands #####
 import importlib
+import copy
 import pymel.core as pm
 from dataclasses import dataclass, field
 from typing import Union
@@ -115,9 +116,9 @@ class ControlManager:
     ):
         self.control = control
 
-
-    def data_from_control(self):
-        return vars(self.control).copy()
+    @classmethod
+    def data_from_control(cls, control):
+        return vars(control).copy()
 
 
 

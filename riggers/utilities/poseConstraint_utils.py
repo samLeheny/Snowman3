@@ -40,5 +40,6 @@ class PostConstraintManager:
         self.post_constraint = post_constraint
 
 
-    def data_from_post_constraint(self):
-        return vars(self.post_constraint).copy()
+    @classmethod
+    def data_from_post_constraint(cls, post_constraint):
+        return vars(post_constraint).copy()

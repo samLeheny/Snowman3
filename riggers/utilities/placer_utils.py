@@ -138,9 +138,9 @@ class PlacerManager:
     ):
         self.placer = placer
 
-
-    def data_from_placer(self):
-        return vars(self.placer).copy()
+    @classmethod
+    def data_from_placer(cls, placer):
+        return vars(placer).copy()
 
 
 

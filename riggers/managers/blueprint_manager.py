@@ -362,8 +362,7 @@ class BlueprintManager:
     def parts_data_from_blueprint(parts):
         data = {}
         for key, part in parts.items():
-            manager = PartManager(part)
-            data[key] = manager.data_from_part()
+            data[key] = PartManager.data_from_part(part)
         return data
 
 
@@ -371,14 +370,12 @@ class BlueprintManager:
     def post_constraints_data_from_blueprints(post_constraints):
         data = []
         for post_constraint in post_constraints:
-            manager = PostConstraintManager(post_constraint)
-            data.append(manager.data_from_post_constraint())
+            data.append(PostConstraintManager.data_from_post_constraint(post_constraint))
         return data
 
     @staticmethod
     def data_from_part(part):
-        part_manager = PartManager(part)
-        return part_manager.data_from_part()
+        return PartManager.data_from_part(part)
 
 
     def save_blueprint(self, dirpath=None):
