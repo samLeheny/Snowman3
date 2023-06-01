@@ -6,6 +6,7 @@
 ###########################
 ##### Import Commands #####
 import pymel.core as pm
+import maya.cmds as mc
 from dataclasses import dataclass
 ###########################
 ###########################
@@ -15,6 +16,7 @@ from dataclasses import dataclass
 ######## Variables ########
 ANIM_CURVE_NODE_TYPE = ('animCurveUA', 'animCurveUL', 'animCurveUT', 'animCurveUU',
                          'animCurveTA', 'animCurveTL', 'animCurveTT', 'animCurveTU')
+TRANSFORM_ATTRS = ('tx', 'ty', 'tz', 'rx', 'ry', 'rz')
 ###########################
 ###########################
 
@@ -331,44 +333,85 @@ def check_if_curve_node_empty(node):
 # ----------------------------------------------------------------------------------------------------------------------
 class BlendposeManager:
 
-    BLENDPOSE_SUFFIX = 'Blendpose'
-
     def __init__(self):
         self.blendposes = {}
+        self.blendpose_order = []
 
 
 
-    def add_blendpose(self, name):
+    def populate_manager_from_scene(self):
+        all_hook_nodes = self.get_hook_nodes_in_scene()
+        [self.add_existing_blendpose(hook_node=node) for node in all_hook_nodes]
+
+
+
+    def add_blendpose(self, name=None):
+        if not name:
+            name = self.generate_new_blendpose_name()
         new_blendpose = Blendpose(name)
+        if name not in self.blendpose_order:
+            self.blendpose_order.append(name)
         self.blendposes[name] = new_blendpose
         new_blendpose.create_hook_node()
+
+
+
+    def generate_new_blendpose_name(self):
+        first_part = 'blendpose'
+        existing_named_nodes = pm.ls(f'{first_part}*')
+        numerically_named_nodes = []
+        for node_name in existing_named_nodes:
+            end_particle = node_name.split(first_part)[1]
+            if end_particle.isnumeric():
+                numerically_named_nodes.append(end_particle)
+        first_available_number = 1
+        for i in range(1, len(numerically_named_nodes)):
+            if i not in numerically_named_nodes:
+                first_available_number = i
+                break
+        return f'{first_part}{first_available_number}'
 
 
 
     def add_existing_blendpose(self, name=None, hook_node=None):
         if not name:
             if hook_node:
-                name = hook_node.nodeName().split(f'_{self.BLENDPOSE_SUFFIX}')[0]
+                name = hook_node.nodeName()
+        if name not in self.blendpose_order:
+            self.blendpose_order.append(name)
         self.blendposes[name] = Blendpose.create_blendpose(name=name, hook_node=hook_node)
 
 
 
-    def add_target_pose(self, blendpose_key, new_target_pose_key):
+    def add_target_pose(self, blendpose_key, new_target_pose_key=None):
         blendpose = self.blendposes[blendpose_key]
+        if not new_target_pose_key:
+            new_target_pose_key = self.generate_new_target_pose_name(blendpose)
         blendpose.add_target_pose(new_target_pose_key)
 
 
 
-    def rename_target_pose(self, new_target_name, current_target_name, blendpose_node):
-        if isinstance(blendpose_node, str):
-            blendpose_node = pm.PyNode(blendpose_node)
-        new_name = pm.renameAttr(f'{blendpose_node}.{current_target_name}', new_target_name)
+    def rename_blendpose(self, new_name, blendpose_key):
+        old_name = blendpose_key
+        blendpose = self.blendposes[blendpose_key]
+        new_name = blendpose.rename(new_name)
+        self.blendpose_order[self.blendpose_order.index(old_name)] = new_name
+        self.blendposes[new_name] = blendpose
+        del self.blendposes[old_name]
+        return new_name
+
+
+
+    def rename_target_pose(self, current_target_name, new_target_name, blendpose_key):
+        blendpose = self.blendposes[blendpose_key]
+        new_name = blendpose.rename_target_pose(current_target_name, new_target_name)
         return new_name
 
 
     def add_output_objs(self, blendpose_key, *objs):
         blendpose = self.blendposes[blendpose_key]
         blendpose.add_output_objs(*objs)
+        print(f'Output objects update for blendpose: {blendpose_key}')
 
 
 
@@ -386,10 +429,44 @@ class BlendposeManager:
 
 
 
+    @staticmethod
+    def generate_new_target_pose_name(blendpose):
+        first_part = 'targetPose'
+        existing_named_targets = blendpose.get_target_poses_from_node(blendpose.hook_node)
+        if not existing_named_targets:
+            return f'{first_part}1'
+        numerically_named_targets = []
+        for target_name in existing_named_targets:
+            if first_part not in target_name:
+                continue
+            end_particle = target_name.split(first_part)[1]
+            if end_particle.isnumeric():
+                numerically_named_targets.append(end_particle)
+        first_available_number = 0
+        i = 1
+        while first_available_number == 0:
+            if str(i) not in numerically_named_targets:
+                first_available_number = i
+            i += 1
+        return f'{first_part}{first_available_number}'
+
+
+
+    @staticmethod
+    def get_hook_nodes_in_scene():
+        blendpose_identifier = 'IsBlendposeNode'
+        all_nodes = pm.ls(dependencyNodes=1)
+        hook_nodes = []
+        for node in all_nodes:
+            if pm.attributeQuery(blendpose_identifier, node=node, exists=1):
+                hook_nodes.append(node)
+        return hook_nodes
+
+
+
 class Blendpose:
 
     ANIM_CURVE_NODE_TYPES = ANIM_CURVE_NODE_TYPE
-    BLENDPOSE_SUFFIX = 'Blendpose'
 
     def __init__(
         self,
@@ -424,7 +501,7 @@ class Blendpose:
 
     @classmethod
     def get_hook_node_from_blendpose_name(cls, name):
-        hook_node_name = f'{name}_{cls.BLENDPOSE_SUFFIX}'
+        hook_node_name = name
         if not pm.objExists(hook_node_name):
             pm.error(f"Node: '{hook_node_name}' not found in scene")
         return pm.PyNode(hook_node_name)
@@ -433,22 +510,19 @@ class Blendpose:
 
     @classmethod
     def get_blendpose_name_from_hook_node(cls, node):
-        return node.shortName().split(f'_{cls.BLENDPOSE_SUFFIX}')[0]
+        return node.shortName()
 
 
 
     def get_output_objs_from_connections(self, node):
-        output_objs = []
-        anim_curve_nodes = self.get_anim_curve_nodes_from_hook_node(node)
-        for anim_curve_node in anim_curve_nodes:
-            found_nodes = self.get_output_objs_from_anim_curve(anim_curve_node)
-            if found_nodes:
-                output_objs += found_nodes
+        output_attr_name = 'OutputObjs'
+        output_objs = pm.listConnections(f'{self.hook_node}.{output_attr_name}', s=0, d=1)
         return output_objs
 
 
 
     def get_target_pose_range(self, target_pose_name):
+        default_pose_range = (0, 1)
         if target_pose_name not in self.target_poses:
             return False
         target_pose_attr = f'{self.hook_node.nodeName()}.{target_pose_name}'
@@ -459,7 +533,7 @@ class Blendpose:
                 anim_curve = node
                 break
         if not anim_curve:
-            return False
+            return default_pose_range
         pose_range = self.get_anim_curve_float_range(anim_curve)
         return pose_range
 
@@ -474,19 +548,50 @@ class Blendpose:
 
     def create_hook_node(self):
         node_type = 'transform'
-        node_name = f'{self.name}_{self.BLENDPOSE_SUFFIX}'
+        node_name = self.name
         self.hook_node = pm.shadingNode(node_type, name=node_name, au=1)
+        self.add_attrs_to_hook_node()
+        self.mark_hook_node()
+
+
+
+    def add_attrs_to_hook_node(self):
+        attr_names = {'weight': 'Weight',
+                      'output objs': 'OutputObjs'}
+        pm.addAttr(self.hook_node, longName=attr_names['weight'], attributeType='float', multi=1, keyable=1)
+        pm.addAttr(self.hook_node, longName=attr_names['output objs'], dataType='string', keyable=0)
+
+
+
+    def mark_hook_node(self):
+        attr_name = 'IsBlendposeNode'
+        pm.addAttr(self.hook_node, longName=attr_name, attributeType=bool, keyable=0)
+        pm.setAttr(f'{self.hook_node}.{attr_name}', 1, lock=1)
 
 
 
     def add_target_pose(self, name):
+        weight_attr_name = 'Weight'
         self.target_poses[name] = []
-        pm.addAttr(self.hook_node, longName=name, attributeType='float', defaultValue=0, keyable=1)
+        indices = pm.getAttr(f'{self.hook_node}.{weight_attr_name}', multiIndices=1)
+        next_index = max(indices) + 1 if indices else 0
+        pm.aliasAttr(name, f'{self.hook_node}.{weight_attr_name}[{next_index}]')
+        pm.setAttr(f'{self.hook_node}.{weight_attr_name}[{next_index}]', 1)
 
 
 
     def add_output_objs(self, *objs):
         self.output_objs = self.output_objs + list(objs)
+        for obj in objs:
+            self.connect_output_obj(obj)
+
+
+
+    def connect_output_obj(self, obj):
+        input_attr_name = 'BlendposeDriver'
+        output_attr_name = 'OutputObjs'
+        pm.addAttr(obj, longName=input_attr_name, dataType='string', keyable=0)
+        pm.connectAttr(f'{self.hook_node}.{output_attr_name}', f'{obj}.{input_attr_name}')
 
 
 
@@ -505,16 +610,16 @@ class Blendpose:
 
 
     def get_target_poses_from_node(self, node):
-        user_defined_attrs = pm.listAttr(node, userDefined=1)
+        empty = {}
+        pose_weight_attr_name = 'Weight'
+        pose_weight_attr = f'{node}.{pose_weight_attr_name}'
+        indices = pm.getAttr(pose_weight_attr, multiIndices=1)
+        if not indices:
+            return empty
         pose_attrs = {}
-        for attr in user_defined_attrs:
-            out_connections = pm.listConnections(f'{node}.{attr}', s=0, d=1)
-            if not out_connections:
-                continue
-            for connected_node in out_connections:
-                if pm.nodeType(connected_node) in self.ANIM_CURVE_NODE_TYPES:
-                    pose_attrs[attr] = []
-                    break
+        for i in indices:
+            attr_alias = pm.aliasAttr(f'{pose_weight_attr}[{i}]', q=1)
+            pose_attrs[attr_alias] = []
         return pose_attrs
 
 
@@ -528,7 +633,7 @@ class Blendpose:
         return output_objs
 
 
-
+    # Obsolete? --------------------------------------------------------------------------------------------------------------------------------------
     def get_anim_curve_nodes_from_hook_node(self, hook_node):
         target_poses = self.get_target_poses_from_node(hook_node)
         hook_node_output_plugs = [f'{hook_node}.{pose_name}' for pose_name in target_poses]
@@ -545,14 +650,14 @@ class Blendpose:
         driver_node = self.hook_node
         driver_attr_name = target_pose_key
         driver_plug = f'{driver_node}.{driver_attr_name}'
-        blend_value = pm.getAttr(driver_plug)
-        self.new_sub_target_at_blend_value(target_pose_key, blend_value)
+        blend_val = pm.getAttr(driver_plug)
+        self.new_sub_target_at_blend_val(target_pose_key, blend_val)
         self.update_sub_target_from_transforms(driver_plug)
 
 
 
-    def new_sub_target_at_blend_value(self, target_pose_key, blend_value):
-        self.target_poses[target_pose_key].append(blend_value)
+    def new_sub_target_at_blend_value(self, target_pose_key, blend_val):
+        self.target_poses[target_pose_key].append(blend_val)
 
 
 
@@ -562,13 +667,23 @@ class Blendpose:
 
 
 
-    def bake_obj_to_sub_target(self, obj, source_plug):
-        transform_attrs = ('tx', 'ty', 'tz', 'rx', 'ry', 'rz')
-        for attr in transform_attrs:
-            transform_value = pm.getAttr(f'{obj}.{attr}')
-            if -0.00001 < transform_value < 0.00001:
+    def bake_obj_to_sub_target(self, obj, source_plug, cull_zeroes=False):
+        transform_vals = {attr: pm.getAttr(f'{obj}.{attr}') for attr in TRANSFORM_ATTRS}
+        if self.all_transforms_are_zero(transform_vals):
+            return False
+        for key, val in transform_vals.items():
+            #transform_value = pm.getAttr(f'{obj}.{attr}')
+            if cull_zeroes and -0.00001 < val < 0.00001:
                 continue
-            self.bake_transform_attr_to_sub_target(obj, attr, source_plug, transform_value)
+            self.bake_transform_attr_to_sub_target(obj, key, source_plug, val)
+
+
+
+    def all_transforms_are_zero(self, transform_vals):
+        for v in list(transform_vals.values()):
+            if not -0.00001 < v < 0.00001:
+                return False
+        return True
 
 
 
@@ -681,7 +796,7 @@ class Blendpose:
 
 
 
-    def rename_hook_node(self, new_name):
+    def rename(self, new_name):
         actual_new_name = self.hook_node.rename(new_name).nodeName()
         self.name = actual_new_name
         return actual_new_name
@@ -689,10 +804,21 @@ class Blendpose:
 
 
     def rename_target_pose(self, old_name, new_name):
-        actual_new_name = pm.renameAttr(f'{self.hook_node}.{old_name}', new_name)
-        self.target_poses[actual_new_name] = self.target_poses[old_name]
-        del self.target_poses[old_name]
-        return actual_new_name
+        this_target_attr = None
+        weight_attr = f'{self.hook_node}.{"Weight"}'
+        weight_indices = pm.getAttr(weight_attr, multiIndices=1)
+        for i in weight_indices:
+            attr_alias = pm.aliasAttr(f'{weight_attr}[{i}]', q=1)
+            if not attr_alias == old_name:
+                continue
+            this_target_attr = f'{weight_attr}[{i}]'
+            break
+        if not this_target_attr:
+            return False
+        pm.aliasAttr(new_name, this_target_attr)
+        self.target_poses[new_name] = self.target_poses[old_name]
+        del(self.target_poses[old_name])
+        return new_name
 
 
 

@@ -280,3 +280,24 @@ def migrate_connections(old_attr, new_attr):
     plugs = pm.listConnections(old_attr, source=0, destination=1, plugs=1)
     for plug in plugs:
         pm.connectAttr(new_attr, plug, force=1)
+
+
+
+########################################################################################################################
+def add_attr_from_data(node, attr_data):
+    add_attr(
+        node,
+        long_name=attr_data['longName'],
+        nice_name=attr_data['niceName'],
+        attribute_type=attr_data['attributeType'],
+        keyable=attr_data['keyable'],
+        channel_box=attr_data['channelBox'],
+        enum_name=attr_data['enumName'],
+        default_value=attr_data['defaultValue'],
+        min_value=attr_data['minValue'],
+        max_value=attr_data['maxValue'],
+        parent=attr_data['parent'],
+        number_of_children=attr_data['numberOfChildren'],
+        child_attributes=attr_data['child_attributes']
+    )
+    return f'{node}.{attr_data["longName"]}'
