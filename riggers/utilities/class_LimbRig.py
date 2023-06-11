@@ -123,6 +123,7 @@ class LimbRig:
         socket_name = None,
         pv_name = None,
         orienters = None,
+        tweak_scale_factor_node = None
     ):
         self.roll_jnt_resolution = roll_jnt_resolution
         self.limb_name = limb_name
@@ -164,6 +165,8 @@ class LimbRig:
         self.pin_ctrls = []
         self.total_limb_length = None
         self.namespace = f'LimbRig_{self.limb_name}'
+        self.total_limb_len_sum = None
+        self.tweak_scale_factor_node = tweak_scale_factor_node
 
         self.build_prefab(self.prefab)
 
@@ -436,6 +439,12 @@ class LimbRig:
             gen.flip_obj(self.grps['root'])
             gen.flip_obj(self.grps['noTransform'])
 
+        self.grps['stretch_rigs'] = pm.group(name=f'{self.side_tag}{self.limb_name}_StretchRigs',
+                                             p=self.grps['transform'], em=1)
+
+        self.grps['world_space_lengths'] = pm.group(name=f'{self.side_tag}{self.limb_name}_WorldSpaceLengths',
+                                                    p=self.grps['transform'], em=1)
+
         #...Rig Scale attribute
         pm.addAttr(self.grps['root'], longName="RigScale", minValue=0.001, defaultValue=1, keyable=0)
 
@@ -466,27 +475,6 @@ class LimbRig:
         #...Rig Scale attribute
         pm.addAttr(ctrl, longName='LimbScale', minValue=0.001, defaultValue=1, keyable=1)
         [pm.connectAttr(f'{ctrl}.LimbScale', f'{ctrl}.{a}') for a in ('sx', 'sy', 'sz')]
-
-        '''
-        #...Add settings attributes
-        pm.addAttr(ctrl, longName="fkIk", niceName="FK / IK", attributeType="float", minValue=0, maxValue=10,
-                   defaultValue=10, keyable=1)
-
-        pm.addAttr(ctrl, longName="upperlimb_length", attributeType="float", minValue=0.001, defaultValue=1,
-                   keyable=1)
-
-        pm.addAttr(ctrl, longName="lowerlimb_length", attributeType="float", minValue=0.001, defaultValue=1,
-                   keyable=1)
-
-        pm.addAttr(ctrl, longName="stretchy_ik", attributeType="float", minValue=0, maxValue=10, defaultValue=10,
-                   keyable=1)
-
-        pm.addAttr(ctrl, longName="Volume", attributeType="float", minValue=0, maxValue=10, defaultValue=0,
-                   keyable=1)
-
-        pm.addAttr(ctrl, longName="squash_ik", attributeType="float", minValue=0, maxValue=10, defaultValue=0,
-                   keyable=1)
-        '''
 
 
 
@@ -551,7 +539,8 @@ class LimbRig:
                 end_node = segment.bend_jnts[-1],
                 bend_jnts = segment.bend_jnts,
                 length_ends = (length_end_1, length_end_2),
-                segment = segment
+                segment = segment,
+                scale_node = self.tweak_scale_factor_node
             )
 
 
@@ -607,7 +596,7 @@ class LimbRig:
                 up_axis = up_axis,
                 ctrl_color = ctrl_color,
                 side = self.side,
-                parent = self.grps['noTransform'],
+                parent = self.grps['stretch_rigs'],
                 ctrl_size = ctrl_size
             )
 
@@ -721,25 +710,26 @@ class LimbRig:
             if seg.double_jnt:
                 jnt_parent = self.segments[n-1].fk_jnt_cap
             jnt = seg.fk_jnt = rig.joint(name=f'{seg.segment_name}_fk', side=self.side, joint_type=nom.nonBindJnt,
-                                               radius=0.08, color=2, parent=jnt_parent)
+                                         radius=0.08, color=2, parent=jnt_parent)
             cap_jnt = seg.fk_jnt_cap = rig.joint(name=f'{seg.segment_name}_fkCap', side=self.side,
-                                                       joint_type=nom.nonBindJnt, radius=0.04, color=2, parent=jnt)
+                                                 joint_type=nom.nonBindJnt, radius=0.04, color=2, parent=jnt)
             cap_jnt.tx.set(seg.segment_length)
 
             #...Position control
             seg_start_node = jnt if seg.double_jnt else fk_ctrl
+            seg_start_node = gen.buffer_obj(seg_start_node)
             orig_parent = seg_start_node.getParent()
             seg_start_node.setParent(seg.blend_jnt)
             gen.zero_out(seg_start_node)
             seg_start_node.setParent(orig_parent) if orig_parent else seg_start_node.setParent(world=1)
-            gen.convert_offset(seg_start_node) if not seg.double_jnt else None
+            #gen.convert_offset(seg_start_node) if not seg.double_jnt else None
 
 
             if self.segments[n-1].double_jnt:
                 nodes.multiplyDivide(input1=fk_ctrl.rotate, input2=(0.5, 0.5, 0.5),
-                                          output=self.segments[n-1].fk_jnt.rotate)
+                                     output=self.segments[n-1].fk_jnt.rotate)
                 nodes.multiplyDivide(input1=fk_ctrl.rotate, input2=(-0.5, -0.5, -0.5),
-                                          output=self.segments[n-1].fk_jnt_cap.rotate)
+                                     output=self.segments[n-1].fk_jnt_cap.rotate)
 
 
         #...Wrap top of ctrl chain in buffer group --------------------------------------------------------------------
@@ -848,8 +838,7 @@ class LimbRig:
     ####################################################################################################################
     def get_pv_vector(self):
         #...Pole vector vector ----------------------------------------------------------------------------------------
-        self.pv_vector = gen.vector_between(obj_1=self.jnt_position_holders[1],
-                                                  obj_2=self.pv_position_holder)
+        self.pv_vector = gen.vector_between(obj_1=self.jnt_position_holders[1], obj_2=self.pv_position_holder)
 
 
 
@@ -902,11 +891,6 @@ class LimbRig:
         pm.delete(pm.parentConstraint(self.pv_position_holder, pv_buffer))
         pv_buffer.rotate.set(0, 0, 0)
         pv_buffer.scale.set(1, 1, 1)
-        '''gen.zero_out(pv_buffer)
-        pm.delete(pm.parentConstraint(self.segments[0].blend_jnt, self.segments[-2].blend_jnt, pv_buffer))
-        extrem_dist = gen.distance_between(position_1=self.segments[0].start_world_position,
-                                                 position_2=self.segments[-2].start_world_position)
-        pv_buffer.tz.set(pv_buffer.tz.get() + (-extrem_dist) * 0.8)'''
 
         if tarsus_index:
             tarsus_buffer.setParent(self.segments[-2].blend_jnt)
@@ -950,11 +934,10 @@ class LimbRig:
 
 
         #...Display curve ---------------------------------------------------------------------------------------------
-        self.ik_display_crv = rig.connector_curve(name=f'{self.side_tag}ik_{self.segment_names[-2]}',
-                                                        end_driver_1=self.segments[1].ik_jnt,
-                                                        end_driver_2=self.ctrls['ik_pv'],
-                                                        override_display_type=1, line_width=-1.0,
-                                                        parent=self.grps['noTransform'])[0]
+        self.ik_display_crv = rig.connector_curve(
+            name=f'{self.side_tag}ik_{self.segment_names[-2]}', end_driver_1=self.segments[1].ik_jnt,
+            end_driver_2=self.ctrls['ik_pv'], override_display_type=1, line_width=-1.0,
+            parent=self.grps['noTransform'])[0]
 
         if self.side == nom.rightSideTag:
             [pm.setAttr(f'{self.ik_display_crv}.{a}', lock=0) for a in gen.all_transform_attrs]
@@ -1015,7 +998,7 @@ class LimbRig:
         pm.addAttr(self.ctrls['socket'], longName='squash_ik', attributeType='float', minValue=0, maxValue=10,
                    defaultValue=0, keyable=1)
 
-        total_limb_len_sum = self.get_length_sum(ik_end_index)
+        self.total_limb_len_sum = total_limb_len_sum = self.get_length_sum(ik_end_index)
 
 
         ik_extrem_dist = self.ik_extrem_dist = nodes.distanceBetween(
@@ -1023,7 +1006,7 @@ class LimbRig:
             inMatrix2=self.ik_end_marker.worldMatrix)
 
         scaled_extrem_dist = nodes.floatMath(floatA=ik_extrem_dist.distance,
-                                                  floatB=f'{self.grps["root"]}.RigScale', operation=3)
+                                             floatB=f'{self.grps["root"]}.RigScale', operation=3)
 
         if not compensate_seg_indices:
             extrem_dist_output = scaled_extrem_dist.outFloat
@@ -1031,35 +1014,35 @@ class LimbRig:
         else:
             len_compensate = sum(
                 [gen.distance_between(obj_1=self.segments[i].ik_jnt,
-                                            obj_2=self.segments[i+1].ik_jnt) for i in compensate_seg_indices])
+                                      obj_2=self.segments[i+1].ik_jnt) for i in compensate_seg_indices])
             extrem_dist_output = nodes.floatMath(floatA=scaled_extrem_dist.outFloat, floatB=len_compensate,
-                                                      operation=1).outFloat
+                                                 operation=1).outFloat
             len_total_output = nodes.floatMath(floatA=total_limb_len_sum.output, floatB=len_compensate,
-                                                    operation=1).outFloat
+                                               operation=1).outFloat
 
 
         limb_straigtness_div = nodes.floatMath(floatA=extrem_dist_output,
-                                                    floatB=len_total_output, operation=3)
+                                               floatB=len_total_output, operation=3)
 
         straight_condition = nodes.condition(colorIfTrue=(limb_straigtness_div.outFloat, 0, 0),
-                                                  colorIfFalse=(1, 1, 1), operation=2,
-                                                  firstTerm=scaled_extrem_dist.outFloat,
-                                                  secondTerm=total_limb_len_sum.output)
+                                             colorIfFalse=(1, 1, 1), operation=2,
+                                             firstTerm=scaled_extrem_dist.outFloat,
+                                             secondTerm=total_limb_len_sum.output)
 
         [straight_condition.outColor.outColorR.connect(self.segments[i].ik_jnt.sx) for i in subject_indices]
 
         #...Make stretch optional -------------------------------------------------------------------------------------
         stretch_option_remap = nodes.remapValue(inputValue=f'{self.ctrls["socket"]}.stretchy_ik',
-                                                     outputMin=1, inputMax=10,
-                                                     outputMax=straight_condition.outColor.outColorR,)
+                                                outputMin=1, inputMax=10,
+                                                outputMax=straight_condition.outColor.outColorR,)
         [stretch_option_remap.outValue.connect(self.segments[i].ik_jnt.sx, force=1) for i in subject_indices]
 
 
         #...Squash option ---------------------------------------------------------------------------------------------
         if squash:
             nodes.remapValue(inputValue=f'{self.ctrls["socket"]}.squash_ik', inputMax=10, outputMin=1,
-                                  outputMax=limb_straigtness_div.outFloat,
-                                  outValue=straight_condition.colorIfFalse.colorIfFalseR)
+                             outputMax=limb_straigtness_div.outFloat,
+                             outValue=straight_condition.colorIfFalse.colorIfFalseR)
 
 
         #...Include Soft IK effect ------------------------------------------------------------------------------------
@@ -1074,10 +1057,10 @@ class LimbRig:
             anim_crv = self.soft_ik_curve(input=ratio_mult.output)
 
             soft_ik_weight_remap = nodes.remapValue(inputValue=f'{self.ctrls["socket"]}.soft_ik',
-                                                         outputMax=anim_crv.output, inputMax=10, outputMin=1)
+                                                    outputMax=anim_crv.output, inputMax=10, outputMin=1)
 
             soft_ik_weight_mult = nodes.multDoubleLinear(input1=stretch_option_remap.outValue,
-                                                              input2=soft_ik_weight_remap.outValue)
+                                                         input2=soft_ik_weight_remap.outValue)
             [soft_ik_weight_mult.output.connect(self.segments[i].ik_jnt.sx, force=1) for i in subject_indices]
 
 
@@ -1090,13 +1073,12 @@ class LimbRig:
 
         #...Combine initial two lengths in first sum
         first_sum = nodes.addDoubleLinear(input1=self.segments[0].segment_length,
-                                               input2=self.segments[1].segment_length)
+                                          input2=self.segments[1].segment_length)
         prev_sum, final_sum = first_sum, first_sum
 
         #...Add each sum as input to the next until all lengths have been added together
         for i in range(2, ik_end_index):
-            new_sum = nodes.addDoubleLinear(input1=prev_sum.output,
-                                                 input2=self.segments[i].segment_length)
+            new_sum = nodes.addDoubleLinear(input1=prev_sum.output, input2=self.segments[i].segment_length)
             prev_sum, final_sum = new_sum, new_sum
 
         return final_sum
@@ -1238,7 +1220,7 @@ class LimbRig:
 
 
     ####################################################################################################################
-    def install_ribbon(self, start_node, end_node, bend_jnts, segment, length_ends):
+    def install_ribbon(self, start_node, end_node, bend_jnts, segment, length_ends, scale_node=None):
 
         ctrl_size = 0.04 * self.total_limb_length
         jnt_size = 0.0175 * self.total_limb_length
@@ -1256,6 +1238,7 @@ class LimbRig:
                                           density=self.roll_jnt_resolution,
                                           side=self.side,
                                           up_vector=ribbon_up_vector)
+        segment_ribbon['nurbsStrip'].visibility.set(0, lock=1)
         segment_ribbon["nurbsStrip"].setParent(self.grps['noTransform'])
         segment_ribbon["nurbsStrip"].scale.set(1, 1, 1)
 
@@ -1280,7 +1263,8 @@ class LimbRig:
                                                        ctrl_resolution = 5,
                                                        parent = self.grps['noTransform'],
                                                        ctrl_size = ctrl_size,
-                                                       jnt_size = jnt_size)
+                                                       jnt_size = jnt_size,
+                                                       scale_node = scale_node)
         self.tweak_ctrls.append(upperlimb_tweak_ctrls)
 
 

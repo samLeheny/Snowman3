@@ -15,6 +15,9 @@ from typing import Sequence
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
+import Snowman3.utilities.attribute_utils as attr_utils
+importlib.reload(attr_utils)
+
 import Snowman3.utilities.rig_utils as rig
 importlib.reload(rig)
 
@@ -57,9 +60,9 @@ class Part:
     name: str
     side: str = None
     handle_size: float = 1.6
+    part_scale: float = 1.0
     position: tuple = (0, 0, 0)
     rotation: tuple = (0, 0, 0)
-    scale: float = 1,
     placers: dict = field(default_factory=dict)
     controls: dict = field(default_factory=dict)
     data_name: str = None
@@ -68,6 +71,8 @@ class Part:
     connectors: Sequence = field(default_factory=list)
     vector_handle_attachments: dict = field(default_factory=dict)
     construction_inputs: dict = field(default_factory=dict)
+    parent: str = None
+    part_nodes: list = field(default_factory=list)
 
 
 
@@ -79,18 +84,17 @@ class PartManager:
     ):
         self.part = part
 
-    def data_from_part(self):
-        data = vars(self.part).copy()
+    @classmethod
+    def data_from_part(cls, part):
+        data = vars(part).copy()
 
         data['placers'] = {}
-        for key, placer in self.part.placers.items():
-            manager = PlacerManager(placer)
-            data['placers'][key] = manager.data_from_placer()
+        for key, placer in part.placers.items():
+            data['placers'][key] = PlacerManager.data_from_placer(placer)
 
         data['controls'] = {}
-        for key, control in self.part.controls.items():
-            manager = ControlManager(control)
-            data['controls'][key] = manager.data_from_control()
+        for key, control in part.controls.items():
+            data['controls'][key] = ControlManager.data_from_control(control)
 
         return data
 
@@ -154,20 +158,21 @@ class ScenePartManager:
     def position_part(self, handle):
         handle.translate.set(tuple(self.part.position))
         handle.rotate.set(tuple(self.part.rotation))
-        handle.scale.set(self.part.scale, self.part.scale, self.part.scale)
+        handle.scale.set(self.part.part_scale, self.part.part_scale, self.part.part_scale)
 
 
     def add_part_metadata(self):
         metadata_attrs = (
             MetaDataAttr(long_name='PartTag', attribute_type='string', keyable=0, default_value_attr='name'),
             MetaDataAttr(long_name='Side', attribute_type='string', keyable=0, default_value_attr='side'),
-            MetaDataAttr(long_name='HandleSize', attribute_type='float', keyable=1, default_value_attr='handle_size')
+            MetaDataAttr(long_name='HandleSize', attribute_type='float', keyable=1, default_value_attr='handle_size'),
+            MetaDataAttr(long_name='PartScale', attribute_type='float', keyable=1, default_value_attr='part_scale')
         )
         [attr.create(self.part, self.part_handle) for attr in metadata_attrs]
         pm.setAttr(f'{self.part_handle}.HandleSize', channelBox=1)
-        pm.setAttr(f'{self.part_handle}.HandleSize', self.part_handle.sx.get())
+        pm.setAttr(f'{self.part_handle}.HandleSize', pm.getAttr(f'{self.part_handle}.{"HandleSize"}'))
         for a in ('sx', 'sy', 'sz'):
-            pm.connectAttr(f'{self.part_handle}.HandleSize', f'{self.part_handle}.{a}')
+            pm.connectAttr(f'{self.part_handle}.PartScale', f'{self.part_handle}.{a}')
             pm.setAttr(f'{self.part_handle}.{a}', keyable=0)
 
 
@@ -247,8 +252,8 @@ class ScenePartManager:
         pole_vector_position_loc.tz.set(pole_vector_distance)
         pm.pointConstraint(pole_vector_position_loc, pole_vector_scene_placer)
 
-        gen.add_attr(pole_vector_scene_placer, long_name='Distance', attribute_type='float', keyable=True,
-                     channel_box=True, min_value=0.001, default_value=pole_vector_distance)
+        attr_utils.add_attr(pole_vector_scene_placer, long_name='Distance', attribute_type='float', keyable=True,
+                            channel_box=True, min_value=0.001, default_value=pole_vector_distance)
         pm.connectAttr(f'{pole_vector_scene_placer}.{"Distance"}', pole_vector_position_loc.tz)
         for attr in ('translate', 'tx', 'ty', 'tz'):
             pm.setAttr(f'{pole_vector_scene_placer}.{attr}', keyable=0)
@@ -299,15 +304,21 @@ class ScenePartManager:
 
 
     def add_attributes(self):
-        gen.add_attr(obj=self.part_handle, long_name='VectorHandles', attribute_type='bool', keyable=True,
-                     channel_box=True)
-        gen.add_attr(obj=self.part_handle, long_name='Orienters', attribute_type='bool', keyable=True,
-                     channel_box=True)
+        attr_utils.add_attr(obj=self.part_handle, long_name='VectorHandles', attribute_type='bool', keyable=True,
+                            channel_box=True)
+        attr_utils.add_attr(obj=self.part_handle, long_name='Orienters', attribute_type='bool', keyable=True,
+                            channel_box=True)
 
 
     def connect_placer_attributes(self, scene_placer):
         for attr in ('VectorHandles', 'Orienters'):
             pm.connectAttr(f'{self.part_handle}.{attr}', f'{scene_placer}.{attr}')
+        pm.setAttr(f'{scene_placer}.scale', lock=0)
+        for attr in ('sx', 'sy', 'sz'):
+            pm.setAttr(f'{scene_placer}.{attr}', lock=0)
+            pm.connectAttr(f'{self.part_handle}.{"HandleSize"}', f'{scene_placer}.{attr}')
+            pm.setAttr(f'{scene_placer}.{attr}', lock=1, keyable=0)
+        pm.setAttr(f'{scene_placer}.scale', lock=1)
 
 
 
@@ -320,7 +331,7 @@ class PartCreator:
         side: str = None,
         position: tuple[float, float, float] = (0, 0, 0),
         rotation: tuple[float, float, float] = (0, 0, 0),
-        scale: float = 1,
+        part_scale: float = 1,
         construction_inputs: dict = None
     ):
         self.name = name
@@ -328,13 +339,13 @@ class PartCreator:
         self.side = side
         self.position = position
         self.rotation = rotation
-        self.scale = scale
+        self.part_scale = part_scale
         self.construction_inputs = construction_inputs
         self.part_constructor = self.construct_part_constructor()
 
 
     def construct_part_constructor(self):
-        dir_string = f"Snowman3.riggers.parts.{self.prefab_key}"
+        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
         getter = importlib.import_module(dir_string)
         importlib.reload(getter)
         BespokePartConstructor = getter.BespokePartConstructor
@@ -352,6 +363,10 @@ class PartCreator:
         return placers_dict
 
 
+    def get_part_nodes(self):
+        return self.part_constructor.create_part_nodes_list()
+
+
     def get_controls(self):
         ctrls_dict = {}
         for ctrl in self.part_constructor.create_controls():
@@ -362,17 +377,18 @@ class PartCreator:
     def create_part(self):
         position = self.position
         rotation = self.rotation
-        scale = self.scale
+        part_scale = self.part_scale
         scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
         connectors = self.part_constructor.get_connection_pairs()
         vector_handle_attachments = self.part_constructor.get_vector_handle_attachments()
+        self.construction_inputs = self.part_constructor.check_construction_inputs_integrity(self.construction_inputs)
         part = Part(
             name = self.name,
             prefab_key = self.prefab_key,
             side = self.side,
             position = position,
             rotation = rotation,
-            scale = scale,
+            part_scale = part_scale,
             handle_size = 1.0,
             data_name = f'{gen.side_tag(self.side)}{self.name}',
             scene_name = scene_name,
@@ -380,6 +396,7 @@ class PartCreator:
             controls = self.get_controls(),
             connectors = connectors,
             vector_handle_attachments = vector_handle_attachments,
-            construction_inputs = self.construction_inputs
+            construction_inputs = self.construction_inputs,
+            part_nodes = self.get_part_nodes()
         )
         return part

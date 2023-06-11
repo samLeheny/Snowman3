@@ -8,7 +8,6 @@
 ###########################
 ##### Import Commands #####
 import importlib
-from dataclasses import dataclass
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
@@ -49,13 +48,13 @@ class ArmatureManager:
     def build_armature_from_blueprint(self, blueprint):
         print("Building armature in scene from blueprint...")
         self.create_scene_armature_root(blueprint.asset_name)
-        self.add_parts_from_blueprint(blueprint=blueprint, parent=self.armature_grp)
+        self.add_parts_from_blueprint(blueprint=blueprint)
         self.add_post_constraints(blueprint.post_constraints, blueprint.parts)
 
 
-    def add_parts_from_blueprint(self, blueprint, parent=None):
+    def add_parts_from_blueprint(self, blueprint):
         for part in blueprint.parts.values():
-            self.add_part(part, parent)
+            self.add_part(part)
 
 
     def add_post_constraints(self, post_constraints, parts):
@@ -69,15 +68,17 @@ class ArmatureManager:
                 self.hide_placer(data.target_placer, parts[data.target_part])
 
 
-    def add_part(self, part, parent=None):
+    def add_part(self, part):
+        parent = self.armature_grp
         scene_part_manager = ScenePartManager(part)
         scene_part = scene_part_manager.create_scene_part()
-        scene_part.setParent(parent) if parent else None
+        scene_part.setParent(parent)
         pm.select(clear=1)
         return scene_part
 
 
-    def remove_part(self, part):
+    @staticmethod
+    def remove_part(part):
         pm.delete(pm.PyNode(part.scene_name))
 
 
@@ -86,7 +87,8 @@ class ArmatureManager:
         self.mirror_part_placers(part)
 
 
-    def mirror_part_handle(self, part, scale_attr='HandleSize'):
+    @staticmethod
+    def mirror_part_handle(part, scale_attr='HandleSize'):
         scene_part_handle = pm.PyNode(part.scene_name)
         opposite_scene_part_handle = gen.get_opposite_side_obj(scene_part_handle)
         if not opposite_scene_part_handle:
@@ -113,15 +115,27 @@ class ArmatureManager:
 
 
     def mirror_placer_position(self, placer_key, part):
+        placer = part.placers[placer_key]
+        if placer.is_pole_vector:
+            self.mirror_pole_vector_placer(placer_key, part)
+        else:
+            scene_placer = self.get_scene_placer(placer_key, part)
+            opposite_scene_placer = gen.get_opposite_side_obj(scene_placer)
+            if not opposite_scene_placer:
+                return False
+            if opposite_scene_placer.translate.get(lock=1):
+                return False
+            scene_placer_local_position = list(scene_placer.translate.get())
+            scene_placer_local_position[0] = -scene_placer_local_position[0]
+            opposite_scene_placer.translate.set(tuple(scene_placer_local_position))
+
+
+    def mirror_pole_vector_placer(self, placer_key, part):
+        distance_attr_name = 'Distance'
         scene_placer = self.get_scene_placer(placer_key, part)
         opposite_scene_placer = gen.get_opposite_side_obj(scene_placer)
-        if not opposite_scene_placer:
-            return False
-        if opposite_scene_placer.translate.get(lock=1):
-            return False
-        scene_placer_local_position = list(scene_placer.translate.get())
-        scene_placer_local_position[0] = -scene_placer_local_position[0]
-        opposite_scene_placer.translate.set(tuple(scene_placer_local_position))
+        scene_placer_pv_distance = pm.getAttr(f'{scene_placer}.{distance_attr_name}')
+        pm.setAttr(f'{opposite_scene_placer}.{distance_attr_name}', scene_placer_pv_distance)
 
 
     def mirror_vector_handle_positions(self, placer_key, part):
@@ -150,7 +164,8 @@ class ArmatureManager:
         opposite_scene_orienter.rotate.set(tuple(scene_orienter_rotation))
 
 
-    def get_placer(self, placer_key, part):
+    @staticmethod
+    def get_placer(placer_key, part):
         return part.placers[placer_key]
 
 
@@ -169,10 +184,12 @@ class ArmatureManager:
         return pm.PyNode(orienter_name)
 
 
-    def constrain_placer(self, source, target):
+    @staticmethod
+    def constrain_placer(source, target):
         transform_attrs = ('translate', 'rotate', 'scale', 'tx', 'ty', 'tz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz')
         for attr in transform_attrs:
             pm.setAttr(f'{target}.{attr}', lock=0)
+            gen.break_connections(f'{target}.{attr}')
         pm.parentConstraint(source, target, mo=1)
         pm.scaleConstraint(source, target, mo=1)
 

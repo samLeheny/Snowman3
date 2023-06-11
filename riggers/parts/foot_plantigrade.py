@@ -58,7 +58,7 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['Foot', (0, 0, 0), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['Tarsus', (0, 0, 0), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
             ['Ball', (0, -7.5, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
             ['BallEnd', (0, -7.5, 16.73), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, 'Ball'],
             ['SoleToe', (0, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
@@ -66,7 +66,7 @@ class BespokePartConstructor(PartConstructor):
             ['SoleInner', (-4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
             ['SoleOuter', (4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
             ['SoleHeel', (0, -10, -4), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
-            ['FootSettings', (6, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.7, False, None]
+            ['FootSettings', (6, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.7, False, None],
         ]
         placers = []
         for p in data_packs:
@@ -120,14 +120,14 @@ class BespokePartConstructor(PartConstructor):
 
     def get_connection_pairs(self):
         return (
-            ('Ball', 'Foot'),
+            ('Ball', 'Tarsus'),
             ('BallEnd', 'Ball')
         )
 
 
 
     def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
+        rig_part_container, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
         orienters, scene_ctrls = self.get_scene_armature_nodes(part)
 
         for key, parent, orienter_key in (('FkToe', transform_grp, 'Ball'),
@@ -135,7 +135,7 @@ class BespokePartConstructor(PartConstructor):
                                           ('FootSettings', transform_grp, 'FootSettings')):
             scene_ctrls[key].setParent(parent)
             buffer = gen.buffer_obj(scene_ctrls[key])
-            pm.matchTransform(buffer, orienters[orienter_key])
+            gen.match_pos_ori(buffer, orienters[orienter_key])
 
 
         foot_attr_node = scene_ctrls['FootSettings']
@@ -156,7 +156,7 @@ class BespokePartConstructor(PartConstructor):
 
         # ...Bind joints -----------------------------------------------------------------------------------------------
         bind_jnts = {}
-        bind_jnt_keys = ('Foot', 'Ball', 'BallEnd')
+        bind_jnt_keys = ('Tarsus', 'Ball', 'BallEnd')
         prev_jnt = None
         for i, key in enumerate(bind_jnt_keys):
             jnt = bind_jnts[key] = rig.joint(name=key, side=part.side, radius=0.5, joint_type='BIND')
@@ -164,12 +164,12 @@ class BespokePartConstructor(PartConstructor):
             prev_jnt = jnt
         bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], parent=transform_grp)
         gen.zero_out(bind_chain_buffer)
-        pm.matchTransform(bind_chain_buffer, orienters['Foot'])
+        gen.match_pos_ori(bind_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(bind_jnt_keys):
             if i > 0:
-                pm.matchTransform(bind_jnts[key], orienters[key])
+                gen.match_pos_ori(bind_jnts[key], orienters[key])
 
-        scene_ctrls['FootSettings'].getParent().setParent(bind_jnts['Foot'])
+        scene_ctrls['FootSettings'].getParent().setParent(bind_jnts['Tarsus'])
 
         # ...IK rig
         ik_foot_rig = self.ik_foot(part=part, parent=transform_grp, bind_jnt_keys=bind_jnt_keys,
@@ -180,12 +180,12 @@ class BespokePartConstructor(PartConstructor):
         foot_roll_jnts = ik_foot_rig['foot_roll_jnts']
 
         # ...FK rig
-        fk_foot_rig = self.fk_foot(part, parent=transform_grp, ankle_orienter=orienters["Foot"],
-                                   fk_toe_ctrl=scene_ctrls["FkToe"])
+        fk_foot_rig = self.fk_foot(part, parent=transform_grp, ankle_orienter=orienters['Tarsus'],
+                                   fk_toe_ctrl=scene_ctrls['FkToe'])
 
         # ...Blending --------------------------------------------------------------------------------------------------
-        rotate_constraint = gen.matrix_constraint(objs=[fk_foot_rig["fk_foot_space"], ik_jnts["Foot"],
-                                                        bind_jnts["Foot"]], decompose=True, translate=False,
+        rotate_constraint = gen.matrix_constraint(objs=[fk_foot_rig["fk_foot_space"], ik_jnts['Tarsus'],
+                                                        bind_jnts['Tarsus']], decompose=True, translate=False,
                                                   rotate=True, scale=True, shear=False)
         kinematic_blend_mult.connect(rotate_constraint["weights"][0])
 
@@ -194,6 +194,8 @@ class BespokePartConstructor(PartConstructor):
                                                   decompose=True, translate=False, rotate=True, scale=True, shear=False)
         kinematic_blend_mult.connect(rotate_constraint["weights"][0])
         bind_jnts["Ball"].translate.set(t_values)
+
+        self.apply_all_control_transform_locks()
 
         return rig_part_container
 
@@ -204,7 +206,7 @@ class BespokePartConstructor(PartConstructor):
         # ...IK joints -------------------------------------------------------------------------------------------------
         ik_grp = pm.group(name=f'{gen.side_tag(part.side)}ikConnector', em=1, p=parent)
         gen.zero_out(ik_grp)
-        foot_pos = pm.xform(orienters['Foot'], q=1, worldSpace=1, rotatePivot=1)
+        foot_pos = pm.xform(orienters['Tarsus'], q=1, worldSpace=1, rotatePivot=1)
         pm.move(foot_pos[0], foot_pos[1], foot_pos[2], ik_grp)
 
         ik_jnts = {}
@@ -216,15 +218,15 @@ class BespokePartConstructor(PartConstructor):
             prev_jnt = jnt
         ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], parent=ik_grp)
         gen.zero_out(ik_chain_buffer)
-        pm.matchTransform(ik_chain_buffer, orienters['Foot'])
+        gen.match_pos_ori(ik_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(ik_jnt_keys):
             if i > 0:
-                pm.matchTransform(ik_jnts[key], orienters[key])
+                gen.match_pos_ori(ik_jnts[key], orienters[key])
 
 
         # ...Foot roll jnts---------------------------------------------------------------------------------------------
         foot_roll_jnts = {}
-        foot_roll_keys = ('SoleHeel', 'SoleToe', 'SoleOuter', 'SoleInner', 'SoleToeEnd', 'Ball', 'Foot')
+        foot_roll_keys = ('SoleHeel', 'SoleToe', 'SoleOuter', 'SoleInner', 'SoleToeEnd', 'Ball', 'Tarsus')
         prev_jnt = None
         for i, key in enumerate(foot_roll_keys):
             jnt = foot_roll_jnts[key] = rig.joint(name=f'FootRoll{key}', side=part.side, radius=1.5, joint_type='JNT')
@@ -234,19 +236,19 @@ class BespokePartConstructor(PartConstructor):
         gen.zero_out(foot_roll_chain_buffer)
         pm.matchTransform(foot_roll_chain_buffer, ik_grp)
         for i, key in enumerate(foot_roll_keys):
-            pm.matchTransform(foot_roll_jnts[key], orienters[key])
+            gen.match_pos_ori(foot_roll_jnts[key], orienters[key])
         gen.buffer_obj(foot_roll_jnts['SoleHeel'])
         gen.zero_out(foot_roll_jnts['SoleHeel'])
 
         ctrls['IkToe'].getParent().setParent(foot_roll_jnts['SoleToeEnd'])
 
-        pm.parentConstraint(foot_roll_jnts['Foot'], ik_chain_buffer, mo=1)
+        pm.parentConstraint(foot_roll_jnts['Tarsus'], ik_chain_buffer, mo=1)
 
         # ...IK handles ------------------------------------------------------------------------------------------------
         ik_handles = {}
         ik_effectors = {}
 
-        for tag, jnts, parent in (("Foot", (ik_jnts["Foot"], ik_jnts["Ball"]), foot_roll_jnts["Ball"]),
+        for tag, jnts, parent in (("Tarsus", (ik_jnts["Tarsus"], ik_jnts["Ball"]), foot_roll_jnts["Ball"]),
                                   ("Toe", (ik_jnts["Ball"], ik_jnts["BallEnd"]), ctrls["IkToe"])):
             ik_handles[tag], ik_effectors[tag] = pm.ikHandle(name=f'{gen.side_tag(part.side)}{tag}_IKH',
                                                              startJoint=jnts[0], endEffector=jnts[1],
@@ -347,7 +349,7 @@ class BespokePartConstructor(PartConstructor):
     def fk_foot(self, part, parent=None, ankle_orienter=None, fk_toe_ctrl=None):
         fk_foot_space = pm.shadingNode('transform', name=f'{gen.side_tag(part.side)}FkFootSpace', au=1)
         fk_foot_space.setParent(parent)
-        pm.matchTransform(fk_foot_space, ankle_orienter)
+        gen.match_pos_ori(fk_foot_space, ankle_orienter)
         fk_toe_ctrl.getParent().setParent(fk_foot_space)
         pm.select(clear=1)
         return {'fk_foot_space': fk_foot_space}

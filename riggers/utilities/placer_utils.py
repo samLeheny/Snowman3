@@ -15,6 +15,9 @@ from typing import Sequence
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 
+import Snowman3.utilities.attribute_utils as attr_utils
+importlib.reload(attr_utils)
+
 import Snowman3.utilities.rig_utils as rig
 importlib.reload(rig)
 
@@ -135,9 +138,9 @@ class PlacerManager:
     ):
         self.placer = placer
 
-
-    def data_from_placer(self):
-        return vars(self.placer).copy()
+    @classmethod
+    def data_from_placer(cls, placer):
+        return vars(placer).copy()
 
 
 
@@ -226,10 +229,10 @@ class ScenePlacerManager:
 
 
     def add_attributes(self):
-        gen.add_attr(obj=self.scene_placer, long_name='VectorHandles', attribute_type='bool', keyable=False,
-                     channel_box=False)
-        gen.add_attr(obj=self.scene_placer, long_name='Orienters', attribute_type='bool', keyable=False,
-                     channel_box=False)
+        attr_utils.add_attr(obj=self.scene_placer, long_name='VectorHandles', attribute_type='bool', keyable=False,
+                            channel_box=False)
+        attr_utils.add_attr(obj=self.scene_placer, long_name='Orienters', attribute_type='bool', keyable=False,
+                            channel_box=False)
 
 
 

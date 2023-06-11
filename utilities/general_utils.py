@@ -1,7 +1,6 @@
 # Title: general_utils.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
-import copy
 # Description: We generally want to avoid importing utility files into one another as it quickly leads to infinite
 # recursion errors. 'general_utils' is an exception to this rule; A function belongs here if it is general enough that
 # it's likely to be useful in the bodies of other utility functions.
@@ -10,6 +9,7 @@ import copy
 ###########################
 ##### Import Commands #####
 import importlib
+import copy
 import pymel.core as pm
 import maya.OpenMaya as om
 import maya.api.OpenMaya as om2
@@ -87,11 +87,12 @@ get_shape_data_from_obj
 matrix_to_list
 list_to_matrix
 get_obj_matrix
-add_attr
-get_attr_data
-migrate_attr
-migrate_connections
 drive_attr
+create_lock_memory
+lock_attrs_from_memory
+match_pose_ori
+create_follicle
+get_closest_uv_on_surface
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -121,107 +122,99 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
     default_suffix = 'buffer'
     child_name = get_clean_name(str(child))
 
-
     # Ensure a valid naming method for new buffer obj
     if not name:
         if not suffix:
             suffix = default_suffix
-
         # If suffix came with its own underscore, remove it
         if suffix[0] == '_':
             suffix = suffix.split('_')[1]
-
 
     # Check if child's transforms are free to be cleaned (not receiving connections)
     connected_attrs = []
 
     for attr in all_transform_attrs:
-
         incoming_connection = pm.listConnections(f'{child}.{attr}', source=1, destination=0, plugs=1)
-
         if incoming_connection:
             connected_attrs.append(f'{child_name}.{attr}')
 
     if connected_attrs:
-
         error_string = ''
-
         for attr in connected_attrs:
             error_string += f'{attr}\n'
-
         pm.error("\nCould not clean child object transforms - The following transforms have incoming connections:"
                  f"\n{error_string}\n")
 
-
     # Check for locked attributes. If any are found, remember them, then unlock them for the duration of this function
     lock_memory = []
-
     for attr in all_transform_attrs:
         if pm.getAttr(child + "." + attr, lock=1):
-
             lock_memory.append(attr)
-
             pm.setAttr(child + "." + attr, lock=0)
-
 
     # Get child obj's parent
     world_is_original_parent = False
-
     if not parent:
         parent = child.getParent()
-
     if not parent:
         world_is_original_parent = True
-
 
     # Compose buffer obj name
     if name:
         buffer_name = name
-
     else:
         buffer_name = f'{child_name}_{suffix}'
-
 
     # Create buffer obj
     buffer_node = pm.shadingNode('transform', name=buffer_name, au=1)
 
+    # If obj is a joint, go through extra steps of recording joint's transforms, zeroing joint out, and reapplying
+    # transforms later. Necessary to avoid unwanted transform nodes from being generated (joints are weird.)
+    recorded_transforms = None
+    jnt_orientation = None
+    if child.nodeType() == 'joint':
+        recorded_transforms = pm.xform(child, q=1, matrix=1, objectSpace=1)
+        jnt_orientation = tuple(child.jointOrient.get())
+        child.setParent(world=1)
+        zero_out(child)
+        jnt_parent = child.getParent()
+        if jnt_parent:
+            zero_out(jnt_parent)
+            child.setParent(world=1)
+            pm.delete(jnt_parent)
 
     # Match buffer obj to child's transforms
     buffer_node.setParent(child)
-
     for attr in ('translate', 'rotate', 'shear'):
         pm.setAttr(f'{buffer_node}.{attr}', 0, 0, 0)
         buffer_node.scale.set(1, 1, 1)
-    if child.nodeType == 'joint':
+    if child.nodeType() == 'joint':
         child.jointOrient.set(0, 0, 0)
-
     buffer_node.setParent(world=1)
-
 
     # Parent child to buffer
     child.setParent(buffer_node)
 
-
     # Clean child's transforms
     for attr in ('translate', 'rotate', 'shear'):
         pm.setAttr(f'{child}.{attr}', 0, 0, 0)
-
     child.scale.set(1, 1, 1)
-
 
     # Parent buffer obj
     if not world_is_original_parent:
         buffer_node.setParent(parent)
 
+    # If joint, reapply recorded transforms from earlier
+    if child.nodeType() == 'joint':
+        pm.xform(buffer_name, matrix=recorded_transforms, objectSpace=1)
+        #child.jointOrient.set(jnt_orientation)
 
     # Re-lock any attributes on child obj that were locked previously
     if lock_memory:
         for attr in lock_memory:
             pm.setAttr(f'{child}.{attr}', lock=1)
 
-
     pm.select(clear=1)
-
     return buffer_node
 
 
@@ -1092,7 +1085,6 @@ def get_opposite_side_obj(obj):
     this_obj_clean_name = get_clean_name(str(obj))
 
     opp_side_tag = None
-    key = None
     for key in side_tags:
         if this_obj_clean_name.startswith(side_tags[key]):
             opp_side_tag = opp_side_tags[key]
@@ -1113,6 +1105,32 @@ def get_opposite_side_obj(obj):
         print(f"Unable to find opposite side object. Expected an object of name: '{opp_obj_check_string}'")
 
     return opp_obj
+
+
+
+########################################################################################################################
+def get_opposite_side_string(name):
+
+    # Get side of this object
+    side_tags = {nom.leftSideTag: f'{nom.leftSideTag}_',
+                 nom.rightSideTag: f'{nom.rightSideTag}_'}
+    opp_side_tags = {nom.leftSideTag: side_tags[nom.rightSideTag],
+                     nom.rightSideTag: side_tags[nom.leftSideTag]}
+
+    opp_side_tag = None
+    for key in side_tags:
+        if name.startswith(side_tags[key]):
+            opp_side_tag = opp_side_tags[key]
+            break
+
+    if not opp_side_tag:
+        print(f"String: '{name}' is not sided. Can't create opposite sided string.")
+        return None
+
+    # Get expected name of opposite string
+    opp_name = f'{opp_side_tag}{name[2:]}'
+
+    return opp_name
 
 
 
@@ -1919,206 +1937,6 @@ def get_obj_matrix(obj):
 
 
 ########################################################################################################################
-def add_attr(obj, long_name, nice_name="", attribute_type=None, keyable=False, channel_box=False, enum_name=None,
-             default_value=0, min_value=None, max_value=None, lock=False, parent="", number_of_children=0):
-
-    # ...String type
-    if attribute_type == "string":
-
-        if parent:
-            pm.addAttr(
-                obj,
-                longName=long_name,
-                niceName=nice_name,
-                dataType=attribute_type,
-                keyable=keyable,
-                parent=parent
-            )
-        else:
-            pm.addAttr(
-                obj,
-                longName=long_name,
-                niceName=nice_name,
-                dataType=attribute_type,
-                keyable=keyable
-            )
-
-        if default_value:
-            pm.setAttr(obj + "." + long_name, default_value, type="string", lock=lock)
-
-    else:
-
-    # ...Non-string type
-        # ...Compound type
-        if attribute_type == "compound":
-            pm.addAttr(
-                obj,
-                longName=long_name,
-                niceName=nice_name,
-                attributeType=attribute_type,
-                keyable=keyable,
-                numberOfChildren=number_of_children
-            )
-        else:
-            if parent:
-                pm.addAttr(
-                    obj,
-                    longName=long_name,
-                    niceName=nice_name,
-                    attributeType=attribute_type,
-                    keyable=keyable,
-                    enumName=enum_name,
-                    parent=parent
-                )
-            else:
-                pm.addAttr(
-                    obj,
-                    longName=long_name,
-                    niceName=nice_name,
-                    attributeType=attribute_type,
-                    keyable=keyable,
-                    enumName=enum_name,
-                )
-
-        attr = obj+f'.{long_name}'
-        if default_value:
-            pm.addAttr(attr, e=1, defaultValue=default_value)
-            try:
-                pm.setAttr(attr, default_value)
-            except Exception:
-                pass
-        if min_value:
-            pm.addAttr(attr, e=1, minValue=min_value)
-        if max_value:
-            pm.addAttr(attr, e=1, maxValue=max_value)
-
-        if lock:
-            pm.setAttr(obj+f'.{long_name}', lock=True)
-
-
-    if channel_box and not keyable:
-        pm.setAttr(obj+f'.{long_name}', channelBox=True)
-
-
-    return f'{str(obj.name)}.{long_name}'
-
-
-
-########################################################################################################################
-def get_attr_data(attr, node):
-    """
-    Given an attribute, and a node, will compose and return a dictionary of queried data from that attribute. This
-        dictionary can be used to recreate the attribute one-to-one elsewhere.
-    Args:
-        attr (str): The name of the targeted attribute.
-        node (mObj): The node the attribute is on.
-    Returns:
-        (dict): Queried attribute information.
-    """
-
-    #...Check attribute exists
-    if not pm.attributeQuery(attr, node=node, exists=1):
-        print("Attribute '{}' does not exist".format(node + "." + attr))
-        return None
-
-    #...Query attribute information and compose into a dictionary
-    attr_data = {
-        "longName": pm.attributeQuery(attr, node=node, longName=1),
-        "niceName": pm.attributeQuery(attr, node=node, niceName=1),
-        "attributeType": pm.attributeQuery(attr, node=node, attributeType=1),
-        "keyable": pm.attributeQuery(attr, node=node, keyable=1),
-        "channelBox": pm.attributeQuery(attr, node=node, channelBox=1),
-        "enumName": pm.attributeQuery(attr, node=node, listEnum=1),
-        "hasMin": pm.attributeQuery(attr, node=node, minExists=1),
-        "hasMax": pm.attributeQuery(attr, node=node, maxExists=1),
-        "lock": pm.getAttr(node + "." + attr, lock=1),
-        "currentValue": pm.getAttr(node + "." + attr),
-        "parent": pm.attributeQuery(attr, node=node, listParent=1),
-        "children": pm.attributeQuery(attr, node=node, listChildren=1),
-        "numberOfChildren": pm.attributeQuery(attr, node=node, numberOfChildren=1),
-        "readable": pm.attributeQuery(attr, node=node, readable=1),
-        "writable": pm.attributeQuery(attr, node=node, writable=1),
-        "shortName": pm.attributeQuery(attr, node=node, shortName=1),
-    }
-
-    #...Add condition-dependant data
-    if attr_data["attributeType"] == "typed":
-        attr_data["attributeType"] = "string"
-
-    attr_data["minValue"] = pm.attributeQuery(attr, node=node, minimum=1)[0] if attr_data["hasMin"] else None
-    attr_data["maxValue"] = pm.attributeQuery(attr, node=node, maximum=1)[0] if attr_data["hasMax"] else None
-
-    try:
-        attr_data["defaultValue"] = pm.attributeQuery(attr, node=node, listDefault=1)[0]
-    except Exception:
-        attr_data["defaultValue"] = None
-
-
-    return attr_data
-
-
-
-########################################################################################################################
-def migrate_attr(old_node, new_node, attr, include_connections=True, remove_original=True):
-
-    #...Get channel box status of attribute, so it can be preserved in its new location
-    channel_box_status = pm.getAttr(f'{old_node}.{attr}', channelBox=1)
-
-    #...If attribute conflicts with an attribute already on new node, merge them
-    if pm.attributeQuery(attr, node=new_node, exists=1):
-        migrate_connections(f'{old_node}.{attr}', f'{new_node}.{attr}')
-        return
-
-    attr_data = get_attr_data(attr, old_node)
-
-    recreated_attr = add_attr(
-        new_node,
-        long_name=attr_data["longName"],
-        nice_name=attr_data["niceName"],
-        attribute_type=attr_data["attributeType"],
-        keyable=attr_data["keyable"],
-        channel_box=attr_data["channelBox"],
-        enum_name=attr_data["enumName"],
-        default_value=attr_data["defaultValue"],
-        min_value=attr_data["minValue"],
-        max_value=attr_data["maxValue"],
-        parent=attr_data["parent"],
-        number_of_children=attr_data["numberOfChildren"]
-    )
-
-    pm.setAttr(new_node + "." + attr, attr_data["currentValue"])
-
-    if attr_data["lock"]:
-        pm.setAttr(new_node + "." + attr, lock=1)
-
-    #...Migrate connections
-    if include_connections:
-        migrate_connections(f'{old_node}.{attr}', f'{new_node}.{attr}')
-
-    #...Delete attribute in original location to complete apparent migration
-    if remove_original:
-        pm.deleteAttr(old_node + "." + attr)
-
-    if channel_box_status:
-        pm.setAttr(f'{new_node}.{attr}', channelBox=1)
-
-
-
-########################################################################################################################
-def migrate_connections(old_attr, new_attr):
-
-    plugs = pm.listConnections(old_attr, source=1, destination=0, plugs=1)
-    for plug in plugs:
-        pm.connectAttr(plug, new_attr, force=1)
-        pm.disconnectAttr(plug, old_attr)
-
-    plugs = pm.listConnections(old_attr, source=0, destination=1, plugs=1)
-    for plug in plugs:
-        pm.connectAttr(new_attr, plug, force=1)
-
-
-
-########################################################################################################################
 def drive_attr(obj_1, obj_2, attr):
     if not isinstance(attr, (list, tuple)):
         attr = (attr,)
@@ -2197,3 +2015,74 @@ def lock_attrs_from_memory(obj, lock_memory):
     for attr in all_transform_attrs:
         if attr in lock_memory:
             pm.setAttr(f'{obj}.{attr}', lock=1)
+
+
+
+########################################################################################################################
+def match_pos_ori(target, source):
+    pm.matchTransform(target, source)
+    for attr in ('sx', 'sy', 'sz'):
+        val = pm.getAttr(f'{target}.{attr}')
+        pm.setAttr(f'{target}.{attr}', val/abs(val))
+
+
+
+########################################################################################################################
+def create_follicle(surface, uPos=0.0, vPos=0.0):
+
+    if surface.type() == 'transform':
+        surface = surface.getShape()
+    if surface.type() not in ('nurbsSurface', 'mesh'):
+        pm.warning("Provided node must be a nurbsSurface or mesh")
+
+    follicle_name = f'{surface.shortName()}_{"FOL"}'
+
+    follicle = pm.createNode('follicle', name=follicle_name)
+
+    if surface.nodeType() == 'nurbsSurface':
+        surface.local.connect(follicle.inputSurface)
+    elif surface.nodeType() == 'mesh':
+        surface.outMesh.connect(follicle.inputMesh)
+
+    surface.worldMatrix[0].connect(follicle.inputWorldMatrix)
+    follicle.outRotate.connect(follicle.getParent().rotate)
+    follicle.outTranslate.connect(follicle.getParent().translate)
+    follicle.parameterU.set(uPos)
+    follicle.parameterV.set(vPos)
+    follicle.getParent().t.lock()
+    follicle.getParent().r.lock()
+
+    return follicle
+
+
+
+########################################################################################################################
+def get_closest_uv_on_surface(obj, surface):
+
+    if obj.nodeType() == 'locator':
+        obj_output = obj.worldPosition
+    else:
+        matrix_node = pm.shadingNode('decomposeMatrix', au=1)
+        obj.worldMatrix.connect(matrix_node.inputMatrix)
+        obj_output = matrix_node.outputTranslate
+
+    point_node = pm.shadingNode('closestPointOnSurface', au=1)
+    obj_output.connect(point_node.inPosition)
+
+    if surface.nodetype() == 'transform':
+        surface = surface.getShape()
+    surface.worldSpace.connect(point_node.inputSurface)
+
+    div_node = pm.shadingNode('multiplyDivide', au=1)
+    div_node.operation.set(2)
+    point_node.result.parameterU.connect(div_node.input1.input1X)
+    point_node.result.parameterV.connect(div_node.input1.input1Y)
+    surface.minMaxRangeU.maxValueU.connect(div_node.input2.input2X)
+    surface.minMaxRangeV.maxValueV.connect(div_node.input2.input2Y)
+
+    u_value = div_node.output.outputX.get()
+    v_value = div_node.output.outputV.get()
+
+    pm.delete(point_node)
+
+    return u_value, v_value

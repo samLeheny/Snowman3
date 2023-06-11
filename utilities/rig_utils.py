@@ -37,6 +37,7 @@ embed_transform_lock_data
 ribbon_plane
 insert_nurbs_strip
 ribbon_tweak_ctrls
+mesh_to_skinClust_input
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -550,9 +551,8 @@ def insert_nurbs_strip(name, start_obj, end_obj, up_obj, up_vector=(0, 1, 0), si
 
 ########################################################################################################################
 def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, side=None, ctrl_color=14,
-                       ctrl_resolution=5, parent=None, ctrl_size=1, jnt_size=0.1):
+                       ctrl_resolution=5, parent=None, ctrl_size=1, jnt_size=0.1, scale_node=None):
 
-    side_tag = '{}_'.format(side) if side else ''
     live_length_node = nodes.distanceBetween(inMatrix1=length_ends[0].worldMatrix, inMatrix2=length_ends[1].worldMatrix)
     stretch_output = nodes.floatMath(floatA=live_length_node.distance, floatB=length_attr, operation=3)
     squash_output = nodes.floatMath(floatA=length_attr, floatB=live_length_node.distance, operation=3)
@@ -561,11 +561,12 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
     thick_attr_string = f'{ctrl_name}_thick'
     pm.addAttr(attr_ctrl, longName=thick_attr_string, attributeType='float', minValue=0.001, defaultValue=1, keyable=1)
     #...Group for tweak controls, parented under segment bend control
-    tweak_ctrls_grp = pm.group(name=f'{side_tag}{ctrl_name}_tweak_ctrls', em=1,
+    tweak_ctrls_grp = pm.group(name=f'{gen.side_tag(side)}{ctrl_name}_tweak_ctrls', em=1,
                                p=parent)
     if side == nom.rightSideTag:
         gen.flip_obj(tweak_ctrls_grp)
     tweak_ctrls = []
+    offsets = []
     #...Bend controls visibility attribute ------------------------------------------------------------------------
     tweak_ctrl_vis_attr_string = 'TweakCtrls'
     if not pm.attributeQuery(tweak_ctrl_vis_attr_string, node=attr_ctrl, exists=1):
@@ -594,6 +595,7 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
         pin.outputRotate.connect(attach.rotate)
 
         offset = gen.buffer_obj(mod, suffix='OFFSET')
+        offsets.append(offset)
         offset.setParent(ribbon)
         gen.zero_out(offset)
         offset.setParent(attach)
@@ -607,6 +609,14 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
         [pm.connectAttr(f'{attr_ctrl}.{thick_attr_string}', f'{mod}.{a}') for a in ('sy', 'sz')]
 
         tweak_ctrls.append(ctrl)
+
+    if scale_node:
+        distance_node_plugs = pm.listConnections(live_length_node.distance, s=0, d=1, plugs=1)
+        div_node = nodes.floatMath(operation=3, floatA=live_length_node.distance, floatB=scale_node.sx)
+        [div_node.outFloat.connect(plug, f=1) for plug in distance_node_plugs]
+        for offset in offsets:
+            [pm.connectAttr(scale_node.sx, f'{offset}.{attr}')for attr in ('sx', 'sy', 'sz')]
+
     return tweak_ctrls
 
 
@@ -618,3 +628,22 @@ def joint_rot_to_ori(joint):
         pm.setAttr(f'{joint}.{jointOrient_attrs[i]}',
                    pm.getAttr(f'{joint}.{jointOrient_attrs[i]}') + pm.getAttr(f'{joint}.{gen.rotate_attrs[i]}'))
     pm.setAttr(joint.rotate, 0, 0, 0)
+
+
+
+########################################################################################################################
+def transfer_locks_from_prelim(self, old_node, new_node):
+    attr = 'LockAttrData'
+    if not pm.attributeQuery(attr, node=self.prelim_ctrl, exists=1):
+        return False
+    pm.addAttr(self.ctrl_transform, longName=attr, keyable=0, attributeType='compound', numberOfChildren=4)
+    for key in ('T', 'R', 'S', 'V'):
+        pm.addAttr(self.ctrl_transform, longName=f'{attr}{key}', dataType='string', parent=attr)
+    for attr in (f'{attr}T', f'{attr}R', f'{attr}S', f'{attr}V'):
+        pm.setAttr(f'{self.ctrl_transform}.{attr}', pm.getAttr(f'{self.prelim_ctrl}.{attr}'), type='string')
+
+
+
+########################################################################################################################
+def mesh_to_skinClust_input(mesh, skin_cluster):
+    mesh.worldSpace[0].connect(skin_cluster.input[0].inputGeometry, force=True)

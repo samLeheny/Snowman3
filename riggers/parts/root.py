@@ -46,8 +46,9 @@ class BespokePartConstructor(PartConstructor):
         self,
         part_name: str,
         side: str = None,
+        part_nodes: dict = {}
     ):
-        super().__init__(part_name, side)
+        super().__init__(part_name, side, part_nodes)
 
 
 
@@ -93,24 +94,24 @@ class BespokePartConstructor(PartConstructor):
         return controls
 
 
+    def create_part_nodes_list(self):
+        part_nodes = []
+        for name in ('Root', 'SubRoot'):
+            part_nodes.append(name)
+        return part_nodes
 
-    def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
 
-        scene_ctrl_managers = {}
-        for ctrl in part.controls.values():
-            scene_ctrl_managers[ctrl.name] = SceneControlManager(ctrl)
-
-        scene_ctrls = {}
-        for key, manager in scene_ctrl_managers.items():
-            scene_ctrls[key] = manager.create_scene_control()
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         scene_ctrls['Root'].setParent(transform_grp)
         scene_ctrls['SubRoot'].setParent(scene_ctrls['Root'])
 
         orienter_manager = OrienterManager(part.placers['Root'])
         root_orienter = orienter_manager.get_orienter()
-        pm.matchTransform(scene_ctrls['Root'], root_orienter)
+        gen.match_pos_ori(scene_ctrls['Root'], root_orienter)
+
+        for key in ('Root', 'SubRoot'):
+            self.part_nodes[key] = scene_ctrls[key].nodeName()
 
         gen.install_uniform_scale_attr(scene_ctrls['Root'], 'MasterScale', minValue=0.001)
 

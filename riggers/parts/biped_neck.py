@@ -137,19 +137,24 @@ class BespokePartConstructor(PartConstructor):
         )
 
 
+    def create_part_nodes_list(self):
+        part_nodes = []
+        for name in ('Neck', 'Head'):
+            part_nodes.append(name)
+        return part_nodes
+
+
     def get_vector_handle_attachments(self):
         return{}
 
 
 
-    def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         jnt_resolution = 5
 
         pairs = (('Neck', 'Neck'), ('Head', 'Head'), ('NeckSettings', 'NeckSettings'))
-        [pm.matchTransform(scene_ctrls[pair[0]], orienters[pair[1]]) for pair in pairs]
+        [gen.match_pos_ori(scene_ctrls[pair[0]], orienters[pair[1]]) for pair in pairs]
 
         temp_nodes_to_delete = []
 
@@ -207,7 +212,8 @@ class BespokePartConstructor(PartConstructor):
                                        side=part.side,
                                        ctrl_size=bend_ctrl_size,
                                        populate_ctrls=[0, 1, 0],
-                                       world_up_obj=stretch_socket)
+                                       world_up_obj=stretch_socket,
+                                       )
         # ...Ribbon
         ribbon_up_vector = (0, 0, -1)
         if part.side == nom.rightSideTag:
@@ -216,6 +222,7 @@ class BespokePartConstructor(PartConstructor):
         # ...Create ribbons
         neck_ribbon = rig.ribbon_plane(name='neck', start_obj=stretch_socket, end_obj=stretch_out_socket, up_obj=up_obj,
                                        density=jnt_resolution, side=part.side, up_vector=ribbon_up_vector)
+        neck_ribbon['nurbsStrip'].visibility.set(0, lock=1)
         neck_ribbon["nurbsStrip"].setParent(no_transform_grp)
         neck_ribbon["nurbsStrip"].scale.set(1, 1, 1)
 
@@ -237,7 +244,7 @@ class BespokePartConstructor(PartConstructor):
             ribbon=neck_ribbon['nurbsStrip'], ctrl_name='Neck', length_ends=(scene_ctrls['Neck'], scene_ctrls['Head']),
             length_attr=neck_length_node.output, attr_ctrl=scene_ctrls['NeckSettings'], side=part.side,
             ctrl_color=color_code['M'], ctrl_resolution=jnt_resolution, parent=no_transform_grp,
-            ctrl_size=neck_length * 0.4)
+            ctrl_size=neck_length * 0.4, scale_node=rig_part_container)
 
         ctrl_pairs = [('NeckBend', neck_roller['ctrls'][1])]
         for i, tweak_ctrl in enumerate(neck_tweak_ctrls):
@@ -250,9 +257,11 @@ class BespokePartConstructor(PartConstructor):
             pm.rename(ribbon_setup_ctrl, scene_ctrl_name)
             scene_ctrl.setParent(ribbon_setup_ctrl.getParent())
             gen.zero_out(scene_ctrl)
-            pm.matchTransform(scene_ctrl, ribbon_setup_ctrl)
+            gen.match_pos_ori(scene_ctrl, ribbon_setup_ctrl)
             gen.copy_shapes(source_obj=scene_ctrl, destination_obj=ribbon_setup_ctrl, delete_existing_shapes=True)
             scene_ctrls[ctrl_str] = ribbon_setup_ctrl
+
+        rig_part_container.scale.connect(scene_ctrls['NeckBend'].getParent().scale)
 
         # Adjustable biped_neck length ---------------------------------------------------------------------------------
         neck_len_start_node = pm.shadingNode('transform', name='neck_length_start', au=1)
@@ -269,26 +278,12 @@ class BespokePartConstructor(PartConstructor):
 
         scene_ctrls['Head'].getParent().setParent(neck_len_end_node)
 
-        # Finalize controls --------------------------------------------------------------------------------------------
-        '''ctrls["neckBend"] = ctrl_data["neckBend"].initialize_anim_ctrl(existing_obj=neck_roller["mid_ctrl"])
-
-
-        ctrl_pairs = (("neck",),
-                      ("neckBend", neck_roller["mid_ctrl"]),
-                      ("head",))
-
-        for key in ctrl_data:
-            ctrl_data[key].finalize_anim_ctrl(delete_existing_shapes=True)'''
-
         [gen.zero_offsetParentMatrix(ctrl) for ctrl in scene_ctrls.values()]
 
-        # ...Attach neck rig to greater rig ----------------------------------------------------------------------------
-        '''if rig_space_connector:
-            gen.matrix_constraint(objs=[rig_space_connector, rig_connector], decompose=True,
-                                  translate=True, rotate=True, scale=False, shear=False, maintain_offset=True)'''
+        for key, node in (('Neck', neck_roller['jnts'][0]),
+                          ('Head', jnts['Head'])):
+            self.part_nodes[key] = node.nodeName()
 
-        # --------------------------------------------------------------------------------------------------------------
         pm.delete(temp_nodes_to_delete)
-        pm.select(clear=1)
 
         return rig_part_container

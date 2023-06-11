@@ -193,14 +193,16 @@ class BespokePartConstructor(PartConstructor):
                 color=self.colors[0],
                 size=1,
                 up_direction=[0, -1, 0],
-                side=self.side
+                side=self.side,
+                locks={'t':[1, 1, 1], 's':[1, 1, 1]}
             ),
             ControlCreator(
                 name='QuickPoseFingers',
                 shape='smooth_tetrahedron',
                 color=self.colors[1],
                 size=1,
-                side=self.side
+                side=self.side,
+                locks={'t': [1, 1, 0], 'r': [0, 1, 0], 's':[1, 1, 0]}
             )
         ]
         def create_digit_ctrls(digit_name, segment_count, include_metacarpals):
@@ -264,6 +266,23 @@ class BespokePartConstructor(PartConstructor):
 
 
 
+    def create_part_nodes_list(self):
+        part_nodes = []
+        part_nodes.append('Wrist')
+        for i in range(self.finger_count):
+            digit_name = self.get_digit_name(i+1, self.finger_count, 'finger')
+            if self.include_metacarpals:
+                part_nodes.append(f'{digit_name}Meta')
+            for j in range(self.finger_segment_count):
+                part_nodes.append(f'{digit_name}Seg{j+1}')
+        for i in range(self.thumb_count):
+            digit_name = self.get_digit_name(i+1, self.thumb_count, 'thumb')
+            for j in range(self.thumb_segment_count):
+                part_nodes.append(f'{digit_name}Seg{j+1}')
+        return part_nodes
+
+
+
     def get_vector_handle_attachments(self):
         attachments = {}
 
@@ -296,18 +315,16 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         wrist_jnt = rig.joint(name='Wrist', radius=0.7, side=part.side, parent=scene_ctrls['Wrist'])
         wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], parent=transform_grp)
-        pm.matchTransform(wrist_buffer, orienters['Wrist'])
+        gen.match_pos_ori(wrist_buffer, orienters['Wrist'])
 
         quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], parent=scene_ctrls['Wrist'])
         gen.zero_out(quick_pose_buffer)
 
-        pm.matchTransform(quick_pose_buffer, orienters['QuickPoseFingers'])
+        gen.match_pos_ori(quick_pose_buffer, orienters['QuickPoseFingers'])
         fingers_curl_weight = -1.25
         fingers_curl_mult_node = nodes.animBlendNodeAdditiveDA(inputA=scene_ctrls['QuickPoseFingers'].rz,
                                                                weightA=fingers_curl_weight)
@@ -320,7 +337,7 @@ class BespokePartConstructor(PartConstructor):
             palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], parent=scene_ctrls['Wrist'])
             gen.zero_out(palm_flex_buffer)
             last_finger_name = self.get_digit_name(self.finger_count, self.finger_count, 'finger')
-            pm.matchTransform(palm_flex_buffer, orienters[f'{last_finger_name}Meta'])
+            gen.match_pos_ori(palm_flex_buffer, orienters[f'{last_finger_name}Meta'])
 
 
         @dataclass
@@ -387,9 +404,9 @@ class BespokePartConstructor(PartConstructor):
 
         def position_ctrls(digit):
             if digit.metacarpal:
-                pm.matchTransform(digit.metacarpal.ctrl, orienters[digit.metacarpal.name])
+                gen.match_pos_ori(digit.metacarpal.ctrl, orienters[digit.metacarpal.name])
             for seg in digit.segments:
-                pm.matchTransform(seg.ctrl, orienters[seg.name])
+                gen.match_pos_ori(seg.ctrl, orienters[seg.name])
 
 
         def install_buffer_nodes(digit):
@@ -443,7 +460,6 @@ class BespokePartConstructor(PartConstructor):
                                                             weightA=metacarpal_flex_weight,
                                                             output=finger.metacarpal.ctrl.rotate)
 
-
         for digit in fingers + thumbs:
             install_joints(digit)
             position_ctrls(digit)
@@ -458,5 +474,20 @@ class BespokePartConstructor(PartConstructor):
             if self.include_metacarpals:
                 connect_palm_flexing(finger, self.finger_count)
 
+        part_nodes = {'Wrist': wrist_jnt}
+        for i in range(self.finger_count):
+            digit_name = self.get_digit_name(i + 1, self.finger_count, 'finger')
+            if self.include_metacarpals:
+                key = f'{digit_name}Meta'
+                part_nodes[key] = scene_ctrls[key]
+            for j in range(self.finger_segment_count):
+                key = f'{digit_name}Seg{j + 1}'
+                part_nodes[key] = scene_ctrls[key]
+        for i in range(self.thumb_count):
+            digit_name = self.get_digit_name(i + 1, self.thumb_count, 'thumb')
+            for j in range(self.thumb_segment_count):
+                key = f'{digit_name}Seg{j + 1}'
+                part_nodes[key] = scene_ctrls[key]
+        self.part_nodes = part_nodes
 
         return rig_part_container

@@ -11,6 +11,9 @@ import importlib
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
+
+import Snowman3.utilities.attribute_utils as attr_utils
+importlib.reload(attr_utils)
 ###########################
 ###########################
 
@@ -38,8 +41,8 @@ class MetaDataAttr:
 
     def create(self, obj, scene_obj):
         default_value = self.get_default_value(obj)
-        gen.add_attr(scene_obj, long_name=self.long_name, attribute_type=self.attribute_type, keyable=self.keyable,
-                     default_value=default_value)
+        attr_utils.add_attr(scene_obj, long_name=self.long_name, attribute_type=self.attribute_type,
+                            keyable=self.keyable, default_value=default_value)
 
 
     def get_default_value(self, obj):

@@ -88,6 +88,7 @@ class BespokePartConstructor(PartConstructor):
                 size=9,
                 forward_direction=[0, 0, 1],
                 up_direction=[0, 1, 0],
+                shape_offset=[5.4, 0, 0],
                 side=self.side
             )
         ]
@@ -101,14 +102,19 @@ class BespokePartConstructor(PartConstructor):
         )
 
 
+    def create_part_nodes_list(self):
+        part_nodes = []
+        for name in ('Clavicle', 'ClavicleEnd'):
+            part_nodes.append(name)
+        return part_nodes
+
+
     def get_vector_handle_attachments(self):
         return{}
 
 
 
-    def build_rig_part(self, part):
-        rig_part_container, connector, transform_grp, no_transform_grp = self.create_rig_part_grps(part)
-        orienters, scene_ctrls = self.get_scene_armature_nodes(part)
+    def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         clavicle_jnt = rig.joint(name='Clavicle', side=part.side, joint_type=nom.bindJnt, radius=1.0)
         clavicle_end_jnt = rig.joint(name='ClavicleEnd', side=part.side, joint_type=nom.bindJnt, radius=0.6)
@@ -116,8 +122,11 @@ class BespokePartConstructor(PartConstructor):
         clavicle_jnt.setParent(scene_ctrls['Clavicle'])
         clavicle_ctrl_buffer = gen.buffer_obj(scene_ctrls['Clavicle'], parent=transform_grp)
         gen.zero_out(clavicle_ctrl_buffer)
-        pm.matchTransform(clavicle_ctrl_buffer, orienters['Clavicle'])
-        pm.matchTransform(clavicle_end_jnt, orienters['ClavicleEnd'])
+        gen.match_pos_ori(clavicle_ctrl_buffer, orienters['Clavicle'])
+        gen.match_pos_ori(clavicle_end_jnt, orienters['ClavicleEnd'])
 
-        pm.select(clear=1)
+        for key, node in (('Clavicle', clavicle_jnt),
+                          ('ClavicleEnd', clavicle_end_jnt)):
+            self.part_nodes[key] = node.nodeName()
+
         return rig_part_container

@@ -31,13 +31,16 @@ multiplyDivide
 plusMinusAverage
 condition
 fourByFourMatrix
+distanceBetween
 multMatrix
+decomposeMatrix
 clamp
 blendMatrix
-animBlendNodeAdditiveRotation
 animBlendNodeAdditiveDA
 animBlendNodeAdditiveRotation
 unitConversion
+quatToEuler
+closestPointOnSurface
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -47,7 +50,7 @@ unitConversion
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
     """
         Creates a floatMath utility node to specifications provided in arguments.
@@ -130,8 +133,7 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def floatConstant(name=None, inFloat=None, outFloat=None):
     """
         Creates a floatConstant utility node to specifications provided in arguments.
@@ -175,8 +177,7 @@ def floatConstant(name=None, inFloat=None, outFloat=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=False):
     """
         Creates a addDoubleLinear utility node to specifications provided in arguments.
@@ -237,8 +238,7 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def multDoubleLinear(name=None, input1=None, input2=None, output=None):
     """
         Creates a multDoubleLinear utility node to specifications provided in arguments.
@@ -293,8 +293,7 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def remapValue(name=None, inputValue=0, inputMin=0, inputMax=1, outputMin=0, outputMax=1, outValue=None):
 
 
@@ -353,8 +352,7 @@ def remapValue(name=None, inputValue=0, inputMin=0, inputMax=1, outputMin=0, out
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def reverse(name=None, input=None, output=None, output_x=None, output_y=None, output_z=None):
 
     if name:
@@ -386,24 +384,21 @@ def reverse(name=None, input=None, output=None, output_x=None, output_y=None, ou
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def curveInfo():
     pass
 
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def pointOnCurveInfo():
     pass
 
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercentage=True, parameterV=1, parameterU=1,
                        resultPosition=None, resultNormal=None, resultNormalizedNormal=None, resultTangentU=None,
                        resultNormalizedTangentU=None, resultTangentV=None, resultNormalizedTangentV=None):
@@ -465,8 +460,7 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=None):
 
 
@@ -547,16 +541,14 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def plusMinusAverage():
     pass
 
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFalse=None, operation=0, outColor=None):
     """
 
@@ -660,30 +652,29 @@ def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFal
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def fourByFourMatrix(input=None, output=None, name=None):
 
 
     if name:
-        node = pm.shadingNode("fourByFourMatrix", name=name, au=1)
+        node = pm.shadingNode('fourByFourMatrix', name=name, au=1)
     else:
-        node = pm.shadingNode("fourByFourMatrix", au=1)
+        node = pm.shadingNode('fourByFourMatrix', au=1)
 
-    input_attrs = ["in00", "in01", "in02", "in03",
-                   "in10", "in11", "in12", "in13",
-                   "in20", "in21", "in22", "in23",
-                   "in30", "in31", "in32", "in33"]
+    input_attrs = ['in00', 'in01', 'in02', 'in03',
+                   'in10', 'in11', 'in12', 'in13',
+                   'in20', 'in21', 'in22', 'in23',
+                   'in30', 'in31', 'in32', 'in33']
 
     if input:
         for inp, a in zip(input, input_attrs):
             if isinstance(inp, (int, float)):
-                pm.setAttr(node + "." + a, inp)
+                pm.setAttr(f'{node}.{a}', inp)
             else:
-                pm.connectAttr(inp, node + "." + a)
+                pm.connectAttr(inp, f'{node}.{a}')
 
     if output:
-        pm.connectAttr(node + ".output", output)
+        pm.connectAttr(f'{node}.{output}', output)
 
 
     return node
@@ -691,14 +682,13 @@ def fourByFourMatrix(input=None, output=None, name=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def distanceBetween(name=None, point1=None, point2=None, inMatrix1=None, inMatrix2=None, distance=None):
 
     if name:
-        node = pm.shadingNode("distanceBetween", name=name, au=1)
+        node = pm.shadingNode('distanceBetween', name=name, au=1)
     else:
-        node = pm.shadingNode("distanceBetween", au=1)
+        node = pm.shadingNode('distanceBetween', au=1)
 
     if point1:
         pm.connectAttr(point1, node.point1)
@@ -719,8 +709,7 @@ def distanceBetween(name=None, point1=None, point2=None, inMatrix1=None, inMatri
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def multMatrix(name=None, matrixIn=None, matrixSum=None):
 
     if name:
@@ -750,8 +739,7 @@ def multMatrix(name=None, matrixIn=None, matrixSum=None):
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslate=None, outputRotate=None,
                     outputScale=None, outputShear=None, force=False):
 
@@ -812,8 +800,7 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), output=(None, None, None)):
 
 
@@ -865,8 +852,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
 
 
 
-
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, weight=None, useScale=None,
                 useTranslate=None, useShear=None, useRotate=None, outputMatrix=None):
 
@@ -933,7 +919,7 @@ def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, 
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def animBlendNodeAdditiveDA(name=None, inputA=None, inputB=None, weightA=None, weightB=None, output=None):
 
 
@@ -988,7 +974,7 @@ def animBlendNodeAdditiveDA(name=None, inputA=None, inputB=None, weightA=None, w
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def animBlendNodeAdditiveRotation(name=None, inputA=None, inputB=None, weightA=None, weightB=None, output=None):
 
 
@@ -1052,7 +1038,7 @@ def animBlendNodeAdditiveRotation(name=None, inputA=None, inputB=None, weightA=N
 
 
 
-########################################################################################################################
+#-----------------------------------------------------------------------------------------------------------------------
 def unitConversion(name=None, input=None, output=None, conversionFactor=None):
 
     conversionFactor = conversionFactor if conversionFactor else 1
@@ -1080,5 +1066,98 @@ def unitConversion(name=None, input=None, output=None, conversionFactor=None):
     # ....Connect node's output attribute to its destination
     if output:
         node.output.connect(output)
+
+    return node
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+def quatToEuler(name=None, inputQuatX=None, inputQuatY=None, inputQuatZ=None, inputQuatW=None, inputRotateOrder=None,
+                outputRotate=None, outputRotateX=None, outputRotateY=None, outputRotateZ=None):
+
+    inputRotateOrder = inputRotateOrder if inputRotateOrder else 0
+    # ...Create node
+    if name:
+        node = pm.shadingNode('quatToEuler', name=name, asUtility=1)
+    else:
+        node = pm.shadingNode('quatToEuler', asUtility=1)
+
+    input_pairs = ((inputQuatX, 'inputQuatX'), (inputQuatY, 'inputQuatY'), (inputQuatZ, 'inputQuatZ'),
+                   (inputQuatW, 'inputQuatW'))
+    for input, attr_name in input_pairs:
+        if not input:
+            continue
+        if isinstance(input, (int, float)):
+            pm.setAttr(f'{node}.{attr_name}', input)
+        else:
+            pm.connectAttr(input, f'{node}.{attr_name}')
+
+    output_pairs = ((outputRotate, 'outputRotate'), (outputRotateX, 'outputRotateX'), (outputRotateY, 'outputRotateY'),
+                    (outputRotateZ, 'outputRotateZ'))
+    for output, attr_name in output_pairs:
+        if not output:
+            continue
+        if isinstance(output, (int, float)):
+            pm.setAttr(f'{node}.{attr_name}', output)
+        else:
+            pm.connectAttr(output, f'{node}.{attr_name}')
+
+    return node
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+def EulerToQuat(name=None):
+    pass
+
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+def closestPointOnSurface(name=None, inputSurface=None, inPosition=None, position=None, parameterU=None,
+                          parameterV=None):
+    # ...Create node
+    if name:
+        node = pm.shadingNode('quatToEuler', name=name, asUtility=1)
+    else:
+        node = pm.shadingNode('quatToEuler', asUtility=1)
+
+    if inputSurface:
+        pm.connectAttr(inputSurface, node.inputSurface)
+
+    if inPosition:
+        if isinstance(inPosition, (tuple, list)):
+            inPosition = tuple(inPosition) if isinstance(inPosition, list) else None
+            sub_attrs = ('inPositionX', 'inPositionY', 'inPositionZ')
+            for i in range(3):
+                if isinstance(inPosition[i], (int, float)):
+                    pm.setAttr(f'{node}.{sub_attrs[i]}', inPosition[i])
+                else:
+                    pm.connectAttr(inPosition[i], f'{node}.{sub_attrs[i]}')
+        else:
+            pm.connectAttr(inPosition, node.inPosition)
+
+    if position:
+        if isinstance(position, (tuple, list)):
+            position = tuple(position) if isinstance(position, list) else None
+            sub_attrs = ('positionX', 'positionY', 'positionZ')
+            for i in range(3):
+                if isinstance(position[i], (int, float)):
+                    pm.setAttr(f'{node}.result.position.{position[i]}', position[i])
+                else:
+                    pm.connectAttr(position[i], f'{node}.result.position.{sub_attrs[i]}')
+        else:
+            pm.connectAttr(position, node.position)
+
+    if parameterU:
+        if isinstance(parameterU, (int, float)):
+            pm.setAttr(f'{node}.result.parameterU', parameterU)
+        else:
+            pm.connectAttr(parameterU, f'{node}.result.parameterU')
+
+    if parameterV:
+        if isinstance(parameterV, (int, float)):
+            pm.setAttr(f'{node}.result.parameterU', parameterV)
+        else:
+            pm.connectAttr(parameterV, f'{node}.result.parameterU')
 
     return node
