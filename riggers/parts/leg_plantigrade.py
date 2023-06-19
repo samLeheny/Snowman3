@@ -30,7 +30,6 @@ PartConstructor = class_PartConstructor.PartConstructor
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.dictionaries.colorCode as color_code
@@ -109,8 +108,8 @@ class BespokePartConstructor(PartConstructor):
         lengths = {'FkThigh': 42,
                    'FkShin': 42,
                    'FkFoot': 6.5}
-        ctrl_creators = [
-            ControlCreator(
+        ctrls = [
+            self.initialize_ctrl(
                 name='FkThigh',
                 shape='body_section_tube',
                 color=self.colors[0],
@@ -120,7 +119,7 @@ class BespokePartConstructor(PartConstructor):
                 shape_offset=[lengths['FkThigh']/2, 0, 0],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='FkShin',
                 shape='body_section_tube',
                 color=self.colors[0],
@@ -130,7 +129,7 @@ class BespokePartConstructor(PartConstructor):
                 shape_offset=[lengths['FkShin']/2, 0, 0],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='FkFoot',
                 shape='biped_foot',
                 color=self.colors[0],
@@ -140,14 +139,14 @@ class BespokePartConstructor(PartConstructor):
                 shape_offset=[lengths['FkFoot']/2, 0, 0],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='IkFoot',
                 shape='cylinder',
                 color=self.colors[0],
                 size=[7, 0.7, 7],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='IkKnee',
                 shape='sphere',
                 color=self.colors[0],
@@ -155,7 +154,7 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side,
                 locks={'r':[1, 1, 1], 's':[1, 1, 1]}
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='Hip',
                 shape='tag_hexagon',
                 color=self.colors[0],
@@ -164,14 +163,14 @@ class BespokePartConstructor(PartConstructor):
                 forward_direction = [0, 0, 1],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='IkFootFollow',
                 shape='tetrahedron',
                 color=self.colors[1],
                 size=1.5,
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='Knee',
                 shape='circle',
                 color=self.colors[0],
@@ -180,7 +179,7 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side,
                 locks={'s':[1, 1, 1]}
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='FkToe',
                 shape='toe',
                 color=self.colors[0],
@@ -189,7 +188,7 @@ class BespokePartConstructor(PartConstructor):
                 forward_direction=[0, 0, 1],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='IkToe',
                 shape='toe',
                 color=self.colors[0],
@@ -201,8 +200,8 @@ class BespokePartConstructor(PartConstructor):
         ]
         for limb_segment in ('Thigh', 'Shin'):
             for name_tag in ('Start', 'Mid', 'End'):
-                ctrl_creators.append(
-                    ControlCreator(
+                ctrls.append(
+                    self.initialize_ctrl(
                         name=f'{limb_segment}Bend{name_tag}',
                         shape='circle',
                         color=self.colors[1],
@@ -212,8 +211,8 @@ class BespokePartConstructor(PartConstructor):
                     )
                 )
             for i in range(5):
-                ctrl_creators.append(
-                    ControlCreator(
+                ctrls.append(
+                    self.initialize_ctrl(
                         name=f'{limb_segment}Tweak{i+1}',
                         shape='square',
                         color=self.colors[2],
@@ -222,8 +221,7 @@ class BespokePartConstructor(PartConstructor):
                         side=self.side
                     )
                 )
-        controls = [creator.create_control() for creator in ctrl_creators]
-        return controls
+        return ctrls
 
 
     def get_connection_pairs(self):
@@ -302,7 +300,7 @@ class BespokePartConstructor(PartConstructor):
         for ctrl_str, limb_setup_ctrl in ctrl_pairs:
             scene_ctrls[ctrl_str] = self.migrate_control_to_new_node(scene_ctrls[ctrl_str], limb_setup_ctrl)
 
-        ik_foot_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkFootFollow'], parent=transform_grp)
+        ik_foot_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkFootFollow'], _parent=transform_grp)
         gen.match_pos_ori(ik_foot_follow_ctrl_buffer, orienters['FootFollowSpace'])
 
         ###
@@ -329,7 +327,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = bind_jnts[key] = rig.joint(name=key, side=part.side, radius=0.5, joint_type='BIND')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], parent=limb_rig.blend_jnts[-2])
+        bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], _parent=limb_rig.blend_jnts[-2])
         gen.zero_out(bind_chain_buffer)
         gen.match_pos_ori(bind_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(bind_jnt_keys):
@@ -423,7 +421,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = ik_jnts[key] = rig.joint(name=f'Ik{key}', side=part.side, radius=1.0, joint_type='JNT')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], parent=parent)
+        ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], _parent=parent)
         gen.zero_out(ik_chain_buffer)
         gen.match_pos_ori(ik_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(ik_jnt_keys):
@@ -439,7 +437,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = foot_roll_jnts[key] = rig.joint(name=f'FootRoll{key}', side=part.side, radius=1.5, joint_type='JNT')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        foot_roll_chain_buffer = gen.buffer_obj(list(foot_roll_jnts.values())[0], suffix='OFFSET', parent=parent)
+        foot_roll_chain_buffer = gen.buffer_obj(list(foot_roll_jnts.values())[0], suffix='OFFSET', _parent=parent)
         gen.zero_out(foot_roll_chain_buffer)
         #pm.matchTransform(foot_roll_chain_buffer, parent)
         for i, key in enumerate(foot_roll_keys):

@@ -28,24 +28,49 @@ importlib.reload(prefab_curve_shapes)
 ###########################
 ######## Variables ########
 control_tag = 'CTRL'
-prefab_ctrl_shapes = prefab_curve_shapes.create_dict()
+PREFAB_CTRL_SHAPES = prefab_curve_shapes.create_dict()
 ###########################
 ###########################
 
 
 ########################################################################################################################
-@dataclass
 class Control:
-    name: str
-    data_name: str
-    shape: str
-    color: Union[list, int]
-    position: list
-    locks: dict = field(default_factory=lambda: {'v': 1})
-    match_position: str = None
-    shape_offset: list = None
-    side: str = None
-    scene_name: str = None
+    def __init__(
+        self,
+        name: str,
+        data_name: str,
+        shape: str,
+        color: Union[list, int],
+        position: list,
+        locks: dict = None,
+        match_position: str = None,
+        shape_offset: list = None,
+        side: str = None,
+        scene_name: str = None,
+        part_name: str = None
+    ):
+        self.name = name
+        self.data_name = data_name
+        self.shape = shape
+        self.color = color
+        self.position = position
+        self.locks = locks if locks else {'v': 1}
+        self.match_position = match_position
+        self.shape_offset = shape_offset
+        self.side = side
+        self.scene_name = scene_name
+        self.part_name = part_name
+
+
+    @classmethod
+    def create_in_part(cls, part_name, **data):
+        ctrl = Control(**data)
+        ctrl.part_name = part_name
+        return ctrl
+
+
+    def get_data_dict(self):
+        return vars(self).copy()
 
 
 
@@ -65,7 +90,8 @@ class ControlCreator:
         shape_offset: list[float, float, float] = None,
         match_position: str = None,
         side: str = None,
-        scene_name: str = None
+        scene_name: str = None,
+        part_name: str = None
     ):
         self.name = name
         self.data_name = data_name if data_name else name
@@ -81,9 +107,10 @@ class ControlCreator:
         self.side = side
         self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{name}_{control_tag}'
         self.cv_data = self.compose_cvs()
+        self.part_name = part_name
 
 
-    def compose_cvs(self, prefabs_dict=prefab_ctrl_shapes):
+    def compose_cvs(self, prefabs_dict=PREFAB_CTRL_SHAPES):
         prefab_curve_data = copy.deepcopy(prefabs_dict[self.shape])
         composed_cv_data = gen.compose_curve_construct_cvs(
             curve_data=prefab_curve_data, scale=self.size, shape_offset=None, up_direction=self.up_direction,
@@ -100,25 +127,11 @@ class ControlCreator:
             position = self.position,
             locks = self.locks,
             match_position = self.match_position,
-            #shape_offset = self.shape_offset,
             side = self.side,
-            scene_name = self.scene_name
+            scene_name = self.scene_name,
+            part_name = self.part_name
         )
         return control
-
-
-
-########################################################################################################################
-class ControlManager:
-    def __init__(
-        self,
-        control
-    ):
-        self.control = control
-
-    @classmethod
-    def data_from_control(cls, control):
-        return vars(control).copy()
 
 
 
@@ -155,7 +168,7 @@ class SceneControlManager:
 
 
     def get_scene_name(self):
-        return f'{gen.side_tag(self.control.side)}{self.control.name}_{control_tag}'
+        return f'{gen.side_tag(self.control.side)}{self.control.part_name}_{self.control.name}_{control_tag}'
 
 
     def add_transform_lock_attributes(self):
@@ -173,3 +186,32 @@ class SceneControlManager:
         # ...Embed lock data values in new attrs
         for key in ('t', 'r', 's', 'v'):
             pm.setAttr(f'{self.scene_control}.LockAttrData{key.upper()}', str(self.control.locks[key]), type='string')
+
+
+
+########################################################################################################################
+class CurveShape:
+    def __init__(
+        self,
+        shape: str,
+        size: Union[list, float] = 1.0,
+        forward_direction: list[float, float, float] = None,
+        up_direction: list[float, float, float] = None,
+        shape_offset: list[float, float, float] = None,
+    ):
+        self.shape = shape
+        self.size = size
+        self.forward_direction = forward_direction
+        self.up_direction = up_direction
+        self.shape_offset = shape_offset
+
+
+    def compose_cvs(self, prefabs_dict=PREFAB_CTRL_SHAPES):
+        prefab_curve_data = copy.deepcopy(prefabs_dict[self.shape])
+        composed_cv_data = gen.compose_curve_construct_cvs(
+            curve_data=prefab_curve_data,
+            scale=self.size,
+            shape_offset=self.shape_offset,
+            up_direction=self.up_direction,
+            forward_direction=self.forward_direction)
+        return composed_cv_data

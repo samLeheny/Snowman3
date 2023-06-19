@@ -5,9 +5,12 @@
 
 ###########################
 ##### Import Commands #####
+import importlib
 import pymel.core as pm
 import Snowman3.utilities.general_utils as gen
+importlib.reload(gen)
 import Snowman3.riggers.utilities.animCurve_utils as acrv
+importlib.reload(acrv)
 ###########################
 ###########################
 
@@ -221,6 +224,22 @@ class BlendposeManager:
 
 
 
+    def get_hook_node(self, blendpose_key):
+        blendpose = self.blendposes[blendpose_key]
+        return blendpose.hook_node.get_node()
+
+
+    def select_hook_node(self, blendpose_key):
+        hook_node = self.get_hook_node(blendpose_key)
+        pm.select(hook_node, replace=1)
+
+
+
+    def get_all_target_objs(self, blendpose_key):
+        return self.blendposes[blendpose_key].get_all_target_objs()
+
+
+
     @staticmethod
     def get_hook_nodes_in_scene():
         blendpose_identifier = 'IsBlendposeNode'
@@ -309,30 +328,6 @@ class Blendpose:
 
 
 
-    '''def get_output_objs_from_anim_curve(self, anim_curve_node):
-        output_objs = []
-        output_connections = pm.listConnections(anim_curve_node.output, s=0, d=1, scn=1)
-        for obj in output_connections:
-            if obj.nodeType() in self.ANIM_CURVE_NODE_TYPES:
-                output_objs.append(obj)
-            elif obj.nodeType() == 'blendWeighted':
-                found_objs = self.get_output_objs_from_blend_node(obj)
-                if found_objs:
-                    output_objs += found_objs
-        return output_objs
-
-
-
-    def get_output_objs_from_blend_node(self, blend_node):
-        output_objs = []
-        output_connections = pm.listConnections(blend_node.output, s=0, d=1, scn=1)
-        for obj in output_connections:
-            if obj.nodeType() in self.ANIM_CURVE_NODE_TYPES:
-                output_objs.append(obj)
-        return output_objs'''
-
-
-
     def get_anim_curve_nodes_from_target_pose(self, target_pose_key):
         return self.hook_node.get_connected_nodes_from_target(target_pose_key)
 
@@ -375,73 +370,11 @@ class Blendpose:
         destination_plug = f'{destination_obj}.{destination_attr}'
         needed_anim_curve = acrv.find_existing_anim_curve(source_plug, destination_plug)
         if needed_anim_curve:
-            acrv.update_anim_curve_node(needed_anim_curve, destination_plug, source_plug, transform_value, needed_anim_curve)
+            acrv.update_anim_curve_node(needed_anim_curve, destination_plug, source_plug, transform_value)
         else:
             acrv.initialize_anim_curve(destination_plug, source_plug, transform_value, transform_attr)
         if not destination_obj == destination_obj:
             self.reset_plug(f'{destination_obj}.{destination_attr}')
-
-
-
-    '''def process_connected_destination_plug(self, destination_input, destination_plug, source_plug, transform_value,
-                                           transform_attr):
-        destination_input_node_type = destination_input.nodeType()
-        if destination_input_node_type in self.ANIM_CURVE_NODE_TYPES:
-            self.process_connection_from_anim_curve(destination_plug, source_plug, destination_input, transform_value,
-                                                    transform_attr)
-        elif destination_input_node_type == 'blendWeighted':
-            self.process_connection_from_blend_node(destination_input, source_plug, transform_value, transform_attr)
-
-
-
-    def process_connection_from_blend_node(self, destination_input, source_plug, transform_value, transform_attr):
-        blend_node = destination_input
-        blend_node_input = pm.listConnections(blend_node.input, s=1, d=0, scn=1)
-        if blend_node_input:
-            self.process_connection_to_blend_node(blend_node, source_plug, transform_value, blend_node_input,
-                                                  transform_attr)
-        else:
-            initialize_anim_curve(blend_node, get_next_free_multi_index(blend_node.input), source_plug,
-                                       transform_value, transform_attr)
-
-
-
-    def process_connection_to_blend_node(self, blend_node, source_plug, transform_value, blend_node_input,
-                                         transform_attr):
-        needed_anim_curve = None
-        input_index = None
-        for i in range(pm.getAttr(blend_node.input, size=1)):
-            if self.needed_anim_curve_node_exists(blend_node.input[i], source_plug):
-                needed_anim_curve = pm.listConnections(blend_node.input[i], s=1, d=0, scn=1)[0]
-                input_index = i
-        if needed_anim_curve:
-            update_anim_curve_node(needed_anim_curve, blend_node.input[input_index], source_plug, transform_value,
-                                        needed_anim_curve)
-        else:
-            existing_anim_curves = blend_node_input
-            new_anim_curve_node = self.new_anim_curve(source_plug, transform_attr)
-            combine_anim_curves(*existing_anim_curves, new_anim_curve_node)
-            source_float = pm.getAttr(source_plug)
-            destination_plug = pm.listConnections(new_anim_curve_node.output, s=0, d=1, plugs=1, scn=1)[0]
-            set_key_on_anim_curve(destination_plug, 0, 0, new_anim_curve_node)
-            set_key_on_anim_curve(destination_plug, source_float, transform_value, new_anim_curve_node)
-
-
-
-    def process_connection_from_anim_curve(self, destination_plug, source_plug, destination_input, transform_value,
-                                           transform_attr):
-        if self.needed_anim_curve_node_exists(destination_plug, source_plug):
-            anim_curve_node = pm.listConnections(destination_plug, s=1, d=0, scn=1)[0]
-            update_anim_curve_node(destination_input, destination_plug, source_plug, transform_value,
-                                        anim_curve_node)
-        else:
-            existing_anim_curve = destination_input
-            new_anim_curve_node = self.new_anim_curve(source_plug, transform_attr)
-            blend_node = combine_anim_curves(existing_anim_curve, new_anim_curve_node)
-            blend_node.output.connect(destination_plug, f=1)
-            source_float = pm.getAttr(source_plug)
-            set_key_on_anim_curve(blend_node.input[1], 0, 0, new_anim_curve_node)
-            set_key_on_anim_curve(blend_node.input[1], source_float, transform_value, new_anim_curve_node)'''
 
 
 
@@ -570,12 +503,8 @@ class Blendpose:
 
 
 
-    '''@staticmethod
-    def get_float_range_from_anim_curve(anim_curve):
-        
-        keyframe_count = pm.keyframe(anim_curve, q=1, keyframeCount=1)
-        float_range = pm.keyframe(anim_curve, q=1, index=(0, keyframe_count), floatChange=1)
-        return min(float_range), max(float_range)'''
+    def get_all_target_objs(self):
+        return self.output_objs
 
 
 
@@ -591,21 +520,6 @@ class Blendpose:
     @staticmethod
     def reset_plug(plug):
         pm.setAttr(plug, 0)
-
-
-
-    '''@staticmethod
-    def needed_anim_curve_node_exists(destination_plug, source_plug):
-        connected_nodes = pm.listConnections(destination_plug, s=1, d=0, scn=1)
-        if not connected_nodes:
-            return False
-        anim_curve_node = connected_nodes[0]
-        node_inputs = pm.listConnections(anim_curve_node.input, s=1, d=0, plugs=1, scn=1)
-        if not node_inputs:
-            return False
-        if node_inputs[0] == source_plug:
-            return True
-        return False'''
 
 
 
@@ -954,7 +868,7 @@ class TargetPose:
         driven_output_objs = self.get_driven_output_objs(hook_node)
         pose_weight_attr = hook_node.get_target_pose_attr(self.name)
         attr_destination_pairs = self.assemble_attr_pairs_list(pose_weight_attr, driven_output_objs)
-        [acrv.switch_curve_connection(curve, old_attr, new_attr) for curve, new_attr, old_attr in attr_destination_pairs]
+        [acrv.redirect_curve_connection(crv, old_attr, new_attr) for crv, new_attr, old_attr in attr_destination_pairs]
 
 
 
@@ -968,7 +882,7 @@ class TargetPose:
             transform_attr = new_plug.split('.')[-1]
             needed_anim_curve = acrv.find_existing_anim_curve(driver_plug, new_plug)
             if needed_anim_curve:
-                acrv.update_anim_curve_node(needed_anim_curve, new_plug, driver_plug, value, needed_anim_curve)
+                acrv.update_anim_curve_node(needed_anim_curve, new_plug, driver_plug, value)
             else:
                 acrv.initialize_anim_curve(new_plug, driver_plug, value, transform_attr)
 
@@ -1015,8 +929,7 @@ class TargetPose:
 
     def delete_anim_curves(self, hook_node):
         for node in self.get_anim_curve_nodes(hook_node):
-            for plug in pm.listConnections(node.output, s=0, d=1, plugs=1, scn=1):
-                acrv.disconnect_anim_curve(node, plug)
+            self.sever_attr_outputs(node.output)
             pm.delete(node)
 
 
@@ -1029,3 +942,11 @@ class TargetPose:
     @staticmethod
     def get_opposite_obj_via_name(obj):
         return gen.get_opposite_side_obj(obj)
+
+
+
+    @staticmethod
+    def sever_attr_outputs(attr):
+        node = acrv.get_node_from_attr(attr)
+        for plug in pm.listConnections(attr, s=0, d=1, plugs=1, scn=1):
+            acrv.disconnect_anim_curve(node, plug)

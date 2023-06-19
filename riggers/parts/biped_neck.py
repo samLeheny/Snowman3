@@ -31,7 +31,6 @@ PartConstructor = class_PartConstructor.PartConstructor
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.dictionaries.colorCode as color_code
@@ -84,22 +83,22 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_controls(self):
-        ctrl_creators = [
-            ControlCreator(
+        ctrls = [
+            self.initialize_ctrl(
                 name='Neck',
                 shape='circle',
                 color=color_code['M2'],
                 size=7,
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='Head',
                 shape='cylinder',
                 color=color_code['M2'],
                 size=[9, 0.65, 9],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='NeckSettings',
                 shape='gear',
                 color=color_code['settings'],
@@ -107,7 +106,7 @@ class BespokePartConstructor(PartConstructor):
                 locks={'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]},
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='NeckBend',
                 shape='circle',
                 color=color_code['M2'],
@@ -116,8 +115,8 @@ class BespokePartConstructor(PartConstructor):
             )
         ]
         for i in range(5):
-            ctrl_creators.append(
-                ControlCreator(
+            ctrls.append(
+                self.initialize_ctrl(
                     name=f'NeckTweak{i+1}',
                     shape='square',
                     color=self.colors[3],
@@ -126,8 +125,7 @@ class BespokePartConstructor(PartConstructor):
                     side=self.side
                 )
             )
-        controls = [creator.create_control() for creator in ctrl_creators]
-        return controls
+        return ctrls
 
 
     def get_connection_pairs(self):

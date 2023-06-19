@@ -31,7 +31,6 @@ PartConstructor = class_PartConstructor.PartConstructor
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.dictionaries.colorCode as color_code
@@ -125,16 +124,16 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_controls(self):
-        ctrl_creators = []
-        ik_ctrl_creators = [
-            ControlCreator(
+        ctrls = []
+        ik_ctrls = [
+            self.initialize_ctrl(
                 name = 'IkChest',
                 shape = 'circle',
                 color = color_code[self.side],
                 size = 14,
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='IkWaist',
                 shape='circle',
                 color=color_code[self.side],
@@ -142,7 +141,7 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side,
                 locks={'s': [1, 1, 1]}
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='IkPelvis',
                 shape='circle',
                 color=color_code[self.side],
@@ -150,9 +149,9 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side
             )
         ]
-        ctrl_creators += ik_ctrl_creators
-        fk_ctrl_creators = [
-            ControlCreator(
+        ctrls += ik_ctrls
+        fk_ctrls = [
+            self.initialize_ctrl(
                 name='FkSpine1',
                 shape='directional_circle',
                 color=color_code['M2'],
@@ -160,7 +159,7 @@ class BespokePartConstructor(PartConstructor):
                 up_direction = [0, -1, 0],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='FkSpine2',
                 shape='directional_circle',
                 color=color_code['M2'],
@@ -168,7 +167,7 @@ class BespokePartConstructor(PartConstructor):
                 up_direction = [0, -1, 0],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='FkSpine3',
                 shape='directional_circle',
                 color=color_code['M2'],
@@ -176,7 +175,7 @@ class BespokePartConstructor(PartConstructor):
                 up_direction = [0, -1, 0],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='FkHips',
                 shape='directional_circle',
                 color=color_code['M2'],
@@ -184,9 +183,9 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side
             )
         ]
-        ctrl_creators += fk_ctrl_creators
-        tweak_ctrl_creators = [
-            ControlCreator(
+        ctrls += fk_ctrls
+        tweak_ctrls = [
+            self.initialize_ctrl(
                 name=f'SpineTweak{i+1}',
                 shape='square',
                 color=color_code['M3'],
@@ -194,19 +193,18 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side
             ) for i in range(self.segment_count+1)
         ]
-        ctrl_creators += tweak_ctrl_creators
-        ctrl_creators.append(
-            ControlCreator(
+        ctrls += tweak_ctrls
+        ctrls.append(
+            self.initialize_ctrl(
                 name='SpineSettings',
                 shape='gear',
                 color=color_code['settings'],
                 size=1,
                 locks={'v': 1, 't': [1, 1, 1], 'r': [1, 1, 1], 's': [1, 1, 1]},
-                side=self.side
+                side=self.side,
             )
         )
-        controls = [creator.create_control() for creator in ctrl_creators]
-        return controls
+        return ctrls
 
 
 
@@ -517,7 +515,7 @@ class BespokePartConstructor(PartConstructor):
         setup_ribbon = ribbon
 
         fk_ribbon = pm.duplicate(setup_ribbon, name='FkSpineRibbon_SURF')[0]
-        for attr in gen.all_transform_attrs:
+        for attr in gen.ALL_TRANSFORM_ATTRS:
             pm.setAttr(f'{fk_ribbon}.{attr}', lock=0)
         fk_ribbon.setParent(world=1)
 
@@ -600,7 +598,7 @@ class BespokePartConstructor(PartConstructor):
     def ik_translate_ribbon(self, ctrls, fk_ribbon, ribbon_parent, ik_parent):
         # ...IK Translate nurbs plane
         ik_translate_ribbon = pm.duplicate(fk_ribbon, name='IkTranslateSpineRibbon_SURF')[0]
-        for attr in gen.all_transform_attrs:
+        for attr in gen.ALL_TRANSFORM_ATTRS:
             pm.setAttr(f'{ik_translate_ribbon}.{attr}', lock=0)
         ik_translate_ribbon.setParent(world=1)
         ik_translate_ribbon.setParent(ribbon_parent)
@@ -675,7 +673,7 @@ class BespokePartConstructor(PartConstructor):
 
     def ik_rotate_ribbon(self, ctrls, ik_translate_ribbon, ribbon_parent, ik_parent):
         ik_rotate_ribbon = pm.duplicate(ik_translate_ribbon, name='IkRotateSpineRibbon_SURF')[0]
-        for attr in gen.all_transform_attrs:
+        for attr in gen.ALL_TRANSFORM_ATTRS:
             pm.setAttr(f'{ik_rotate_ribbon}.{attr}', lock=0)
         ik_rotate_ribbon.setParent(world=1)
 
@@ -691,7 +689,7 @@ class BespokePartConstructor(PartConstructor):
             pin.outputRotate.connect(grp.rotate)
 
             jnt = rig.joint(name=f'spine_{name}_ik_rotate', joint_type='JNT')
-            offset = gen.buffer_obj(jnt, parent=grp)
+            offset = gen.buffer_obj(jnt, _parent=grp)
             [gen.zero_out(node) for node in (jnt, offset)]
             pm.rename(offset, f'spine_{name}_ik_rotate_OFFSET')
 
@@ -746,7 +744,7 @@ class BespokePartConstructor(PartConstructor):
     def ik_output_ribbon(self, ctrls, ik_rotate_ribbon, ribbon_parent, jnt_parent):
         # ...IK Output nurbs plane
         ik_output_ribbon = pm.duplicate(ik_rotate_ribbon["nurbsPlane"], name="IkOutputSpineRibbon_SURF")[0]
-        for attr in gen.all_transform_attrs:
+        for attr in gen.ALL_TRANSFORM_ATTRS:
             pm.setAttr(ik_output_ribbon + "." + attr, lock=0)
         ik_output_ribbon.setParent(world=1)
 

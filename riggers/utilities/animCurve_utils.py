@@ -204,7 +204,7 @@ class AnimCurveManager:
 # ----------------------------------------------------------------------------------------------------------------------
 def get_true_transform_value(attr):
     apparent_value = pm.getAttr(attr)
-    possible_driver_plugs = pm.listConnections(attr, s=1, d=0, plugs=1)
+    possible_driver_plugs = pm.listConnections(attr, s=1, d=0, plugs=1, scn=1)
     if not possible_driver_plugs:
         return apparent_value
     else:
@@ -275,7 +275,7 @@ def disconnect_anim_curve(anim_curve, dest_plug):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def switch_curve_connection(curve, old_attr, new_attr):
+def redirect_curve_connection(curve, old_attr, new_attr):
     disconnect_anim_curve(curve, old_attr)
     connect_anim_curve(curve, new_attr)
 
@@ -316,14 +316,12 @@ def get_next_free_multi_index(attr_plug):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def find_existing_anim_curve(source_plug, dest_plug):
+    downstream_connections = pm.listConnections(source_plug, s=0, d=1)
     upstream_connections = pm.listConnections(dest_plug, s=1, d=0)
-    if not upstream_connections:
+    if not all((downstream_connections, upstream_connections)):
         return None
-    upstream_connection = upstream_connections[0]
-    downstream_nodes = pm.listHistory(source_plug, future=1)
-    upstream_nodes = pm.listHistory(upstream_connection)
-    if not downstream_nodes:
-        return None
+    downstream_nodes = get_downstream_nodes(source_plug)
+    upstream_nodes = pm.listHistory(upstream_connections[0])
     for node in downstream_nodes:
         if node not in upstream_nodes:
             continue
@@ -331,6 +329,17 @@ def find_existing_anim_curve(source_plug, dest_plug):
             continue
         return node
     return None
+
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def get_downstream_nodes(source_plug):
+    downstream_nodes = []
+    downstream_connections = pm.listConnections(source_plug, s=0, d=1)
+    for node in downstream_connections:
+        downstream_nodes += pm.listHistory(node, future=1)
+    return downstream_nodes
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -457,10 +466,10 @@ def set_key_on_anim_curve(destination_plug, source_float, key_value, anim_curve_
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def update_anim_curve_node(node, destination_plug, source_plug, transform_value, anim_curve_node):
+def update_anim_curve_node(node, destination_plug, source_plug, transform_value):
     source_float = pm.getAttr(source_plug)
     total_transform_value = transform_value + pm.getAttr(node.output)
-    set_key_on_anim_curve(destination_plug, source_float, total_transform_value, anim_curve_node)
+    set_key_on_anim_curve(destination_plug, source_float, total_transform_value, node)
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -23,8 +23,9 @@ OrienterManager = placer_utils.OrienterManager
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
+Control = control_utils.Control
 SceneControlManager = control_utils.SceneControlManager
+CurveShape = control_utils.CurveShape
 
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
@@ -131,10 +132,6 @@ class PartConstructor:
 
     def create_scene_ctrls(self, part):
         scene_ctrl_managers = {ctrl.name: SceneControlManager(ctrl) for ctrl in part.controls.values()}
-        '''for manager in scene_ctrl_managers.values():
-            for shape in manager.control.shape:
-                for i, cv in enumerate(shape['cvs']):
-                    shape['cvs'][i] = [cv[i] * part.part_scale for i in range(3)]'''
         self.scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
         return self.scene_ctrls
 
@@ -182,3 +179,25 @@ class PartConstructor:
         self.migrate_lock_data(scene_ctrl, new_ctrl)
         gen.copy_shapes(source_obj=scene_ctrl, destination_obj=new_ctrl, delete_existing_shapes=True)
         return new_ctrl
+
+
+    def initialize_ctrl(self, name, shape, color, locks=None, data_name=None, position=None, size=1.0,
+                        forward_direction=None, up_direction=None, shape_offset=None, match_position=None, side=None,
+                        scene_name=None):
+        curve_shape = CurveShape( shape=shape, size=size, forward_direction=forward_direction,
+                                  up_direction=up_direction, shape_offset=shape_offset )
+        curve_shape = curve_shape.compose_cvs()
+        ctrl_data = {
+            'name': name,
+            'color': color,
+            'locks': locks,
+            'data_name': data_name,
+            'position': position,
+            'match_position': match_position,
+            'side': side,
+            'scene_name': scene_name,
+            'part_name': self.part_name,
+            'shape': curve_shape
+        }
+        ctrl = Control.create_in_part(self.part_name, **ctrl_data)
+        return ctrl

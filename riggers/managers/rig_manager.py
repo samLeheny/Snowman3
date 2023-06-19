@@ -57,10 +57,16 @@ class RigManager:
 
 
     def build_rig_from_armature(self, blueprint):
+        print('@')
+        for part in blueprint.parts.values():
+            for key, values in part.controls.items():
+                print(key)
+                print(values)
+        print('@')
         self.rig = Rig(name=blueprint.asset_name)
         self.get_scene_root(blueprint.asset_name)
         self.build_rig_root_structure()
-        self.build_rig_parts(blueprint.parts)
+        self.build_all_rig_parts(blueprint.parts)
         self.perform_attribute_handoffs(blueprint.attribute_handoffs)
         self.make_custom_constraints(blueprint.custom_constraints)
         self.kill_unwanted_controls(blueprint.kill_ctrls)
@@ -77,7 +83,7 @@ class RigManager:
         self.rig.scene_rig_container = pm.group(name='Rig', em=1, p=self.scene_root)
 
 
-    def build_rig_parts(self, parts):
+    def build_all_rig_parts(self, parts):
         for key, part in parts.items():
             self.build_rig_part(part)
 
@@ -100,13 +106,6 @@ class RigManager:
         pm.select(clear=1)
 
 
-    @staticmethod
-    def make_custom_constraint(data):
-        if type(data) == dict:
-            data = constraint_utils.create_constraint_data_from_dict(data)
-        constraint_utils.enact_constraint(data)
-
-
     def arrange_hierarchy(self, parts):
         for part in parts.values():
             if not part.parent:
@@ -123,6 +122,24 @@ class RigManager:
 
     def kill_unwanted_controls(self, kill_ctrls):
         [self.kill_unwanted_control(package) for package in kill_ctrls]
+
+
+    def make_rig_scalable(self, blueprint):
+        root_part = self.get_root_part(blueprint.parts)
+        if not root_part:
+            pm.error('No Root part found in scene')
+        non_root_parts = self.get_non_root_parts(blueprint.parts)
+        part_scale_driver_node = pm.PyNode(root_part.controls['SubRoot'].scene_name)
+        for part in non_root_parts:
+            part_connector_node = self.get_rig_connector(part)
+            pm.scaleConstraint(part_scale_driver_node, part_connector_node, mo=1)
+
+
+    @staticmethod
+    def make_custom_constraint(data):
+        if type(data) == dict:
+            data = constraint_utils.create_constraint_data_from_dict(data)
+        constraint_utils.enact_constraint(data)
 
 
     @staticmethod
@@ -205,14 +222,3 @@ class RigManager:
                 non_root_parts.pop(key)
                 break
         return non_root_parts.values()
-
-
-    def make_rig_scalable(self, blueprint):
-        root_part = self.get_root_part(blueprint.parts)
-        if not root_part:
-            pm.error('No Root part found in scene')
-        non_root_parts = self.get_non_root_parts(blueprint.parts)
-        part_scale_driver_node = pm.PyNode(root_part.controls['SubRoot'].scene_name)
-        for part in non_root_parts:
-            part_connector_node = self.get_rig_connector(part)
-            pm.scaleConstraint(part_scale_driver_node, part_connector_node, mo=1)

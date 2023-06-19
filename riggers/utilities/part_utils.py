@@ -33,7 +33,6 @@ ScenePlacerManager = placer_utils.ScenePlacerManager
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
 Control = control_utils.Control
-ControlManager = control_utils.ControlManager
 
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
@@ -94,7 +93,7 @@ class PartManager:
 
         data['controls'] = {}
         for key, control in part.controls.items():
-            data['controls'][key] = ControlManager.data_from_control(control)
+            data['controls'][key] = control.get_data_dict()
 
         return data
 
@@ -110,7 +109,81 @@ class PartManager:
         if not controls_data:
             controls_data = self.part.controls
         for key, data in controls_data.items():
-            self.part.controls[key] = Control(**data)
+            self.part.controls[key] = Control.create_in_part(self.part.name, **data)
+
+
+
+########################################################################################################################
+class PartCreator:
+    def __init__(
+        self,
+        name: str,
+        prefab_key: str,
+        side: str = None,
+        position: tuple[float, float, float] = (0, 0, 0),
+        rotation: tuple[float, float, float] = (0, 0, 0),
+        part_scale: float = 1,
+        construction_inputs: dict = None
+    ):
+        self.name = name
+        self.prefab_key = prefab_key
+        self.side = side
+        self.position = position
+        self.rotation = rotation
+        self.part_scale = part_scale
+        self.construction_inputs = construction_inputs
+        self.part_constructor = self._construct_part_constructor()
+
+
+    def _construct_part_constructor(self):
+        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
+        getter = importlib.import_module(dir_string)
+        importlib.reload(getter)
+        BespokePartConstructor = getter.BespokePartConstructor
+        args = self.construction_inputs if self.construction_inputs else {}
+        for key, value in (('part_name', self.name), ('side', self.side)):
+            args[key] = value
+        part_constructor = BespokePartConstructor(**args)
+        return part_constructor
+
+
+    def _get_placers(self):
+        placers_dict = {}
+        for placer in self.part_constructor.create_placers():
+            placers_dict[placer.data_name] = placer
+        return placers_dict
+
+
+    def _get_part_nodes(self):
+        return self.part_constructor.create_part_nodes_list()
+
+
+    def _get_controls(self):
+        ctrls_dict = {}
+        for ctrl in self.part_constructor.create_controls():
+            ctrls_dict[ctrl.data_name] = ctrl
+        return ctrls_dict
+
+
+    def create_part(self):
+        part = Part(
+            name = self.name,
+            prefab_key = self.prefab_key,
+            side = self.side,
+            position = self.position,
+            rotation = self.rotation,
+            part_scale = self.part_scale,
+            handle_size = 1.0,
+            data_name = f'{gen.side_tag(self.side)}{self.name}',
+            scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}',
+            placers = self._get_placers(),
+            controls = self._get_controls(),
+            connectors = self.part_constructor.get_connection_pairs(),
+            vector_handle_attachments = self.part_constructor.get_vector_handle_attachments(),
+            construction_inputs = self.part_constructor.check_construction_inputs_integrity(self.construction_inputs),
+            part_nodes = self._get_part_nodes()
+        )
+        return part
 
 
 
@@ -319,84 +392,3 @@ class ScenePartManager:
             pm.connectAttr(f'{self.part_handle}.{"HandleSize"}', f'{scene_placer}.{attr}')
             pm.setAttr(f'{scene_placer}.{attr}', lock=1, keyable=0)
         pm.setAttr(f'{scene_placer}.scale', lock=1)
-
-
-
-########################################################################################################################
-class PartCreator:
-    def __init__(
-        self,
-        name: str,
-        prefab_key: str,
-        side: str = None,
-        position: tuple[float, float, float] = (0, 0, 0),
-        rotation: tuple[float, float, float] = (0, 0, 0),
-        part_scale: float = 1,
-        construction_inputs: dict = None
-    ):
-        self.name = name
-        self.prefab_key = prefab_key
-        self.side = side
-        self.position = position
-        self.rotation = rotation
-        self.part_scale = part_scale
-        self.construction_inputs = construction_inputs
-        self.part_constructor = self.construct_part_constructor()
-
-
-    def construct_part_constructor(self):
-        dir_string = f'Snowman3.riggers.parts.{self.prefab_key}'
-        getter = importlib.import_module(dir_string)
-        importlib.reload(getter)
-        BespokePartConstructor = getter.BespokePartConstructor
-        args = self.construction_inputs if self.construction_inputs else {}
-        for key, value in (('part_name', self.name), ('side', self.side)):
-            args[key] = value
-        part_constructor = BespokePartConstructor(**args)
-        return part_constructor
-
-
-    def get_placers(self):
-        placers_dict = {}
-        for placer in self.part_constructor.create_placers():
-            placers_dict[placer.data_name] = placer
-        return placers_dict
-
-
-    def get_part_nodes(self):
-        return self.part_constructor.create_part_nodes_list()
-
-
-    def get_controls(self):
-        ctrls_dict = {}
-        for ctrl in self.part_constructor.create_controls():
-            ctrls_dict[ctrl.data_name] = ctrl
-        return ctrls_dict
-
-
-    def create_part(self):
-        position = self.position
-        rotation = self.rotation
-        part_scale = self.part_scale
-        scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
-        connectors = self.part_constructor.get_connection_pairs()
-        vector_handle_attachments = self.part_constructor.get_vector_handle_attachments()
-        self.construction_inputs = self.part_constructor.check_construction_inputs_integrity(self.construction_inputs)
-        part = Part(
-            name = self.name,
-            prefab_key = self.prefab_key,
-            side = self.side,
-            position = position,
-            rotation = rotation,
-            part_scale = part_scale,
-            handle_size = 1.0,
-            data_name = f'{gen.side_tag(self.side)}{self.name}',
-            scene_name = scene_name,
-            placers = self.get_placers(),
-            controls = self.get_controls(),
-            connectors = connectors,
-            vector_handle_attachments = vector_handle_attachments,
-            construction_inputs = self.construction_inputs,
-            part_nodes = self.get_part_nodes()
-        )
-        return part

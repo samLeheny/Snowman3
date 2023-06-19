@@ -28,19 +28,19 @@ nom = nameConventions.create_dict()
 
 
 # Global variables ########
-all_transform_attrs = ["translate", "tx", "ty", "tz", "rotate", "rx", "ry", "rz", "scale", "sx", "sy", "sz", "shear",
-                       "shearXY", "shearXZ", "shearYZ"]
-keyable_attrs = ["translate", "tx", "ty", "tz", "rotate", "rx", "ry", "rz", "scale", "sx", "sy", "sz", "visibility"]
-keyable_transform_attrs = ["translate", "tx", "ty", "tz", "rotate", "rx", "ry", "rz", "scale", "sx", "sy", "sz"]
-translate_attrs = ["tx", "ty", "tz"]
-all_translate_attrs = ["translate", "tx", "ty", "tz"]
-rotate_attrs = ["rx", "ry", "rz"]
-all_rotate_attrs = ["rotate", "rx", "ry", "rz"]
-scale_attrs = ["sx", "sy", "sz"]
-all_scale_attrs = ["scale", "sx", "sy", "sz"]
-shear_attrs = ["shearXY", "shearXZ", "shearYZ"]
-all_shear_attrs = ["shear", "shearXY", "shearXZ", "shearYZ"]
-vis_attrs = ["visibility"]
+ALL_TRANSFORM_ATTRS = ['translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz', 'shear',
+                       'shearXY', 'shearXZ', 'shearYZ']
+KEYABLE_ATTRS = ['translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz', 'visibility']
+KEYABLE_TRANSFORM_ATTRS = ['translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz']
+TRANSLATE_ATTRS = ['tx', 'ty', 'tz']
+ALL_TRANSLATE_ATTRS = ['translate', 'tx', 'ty', 'tz']
+ROTATE_ATTRS = ['rx', 'ry', 'rz']
+ALL_ROTATE_ATTRS = ['rotate', 'rx', 'ry', 'rz']
+SCALE_ATTRS = ['sx', 'sy', 'sz']
+ALL_SCALE_ATTRS = ['scale', 'sx', 'sy', 'sz']
+SHEAR_ATTRS = ['shearXY', 'shearXZ', 'shearYZ']
+ALL_SHEAR_ATTRS = ['shear', 'shearXY', 'shearXZ', 'shearYZ']
+VIS_ATTRS = ['visibility']
 ###########################
 
 
@@ -93,6 +93,8 @@ lock_attrs_from_memory
 match_pose_ori
 create_follicle
 get_closest_uv_on_surface
+parent_jnt
+safe_parent
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -101,7 +103,7 @@ get_closest_uv_on_surface
 
 
 ########################################################################################################################
-def buffer_obj(child, suffix=None, name=None, parent=None):
+def buffer_obj(child, suffix=None, name=None, _parent=None):
     """
         Creates a new transform object above provided object and moves provided object's dirty transforms into the new
             parent, allowing the child's transforms to be clean (zeroed) while maintaining its world transforms.
@@ -110,30 +112,33 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
             suffix (string): String to be appended to child object's name to produce the name of the new buffer obj.
             name (string): (Optional) If provided, suffix parameter will be ignored and instead the new buffer obj's
                 name will be determined by this argument.
-            parent (dagNode): (Optional) Specifies object to parent new buffer node to. If argument not provided, will
+            _parent (dagNode): (Optional) Specifies object to parent new buffer node to. If argument not provided, will
                 default to parenting new buffer obj to child obj's original parent.
         Returns:
             (transform node) The newly created buffer obj.
     """
 
+    def remove_leading_underscore(_string):
+        if _string[0] == '_':
+            _suffix = _string.split('_')[1]
+        return _string
+
+
     pm.select(clear=1)
 
     # Variables
     default_suffix = 'buffer'
-    child_name = get_clean_name(str(child))
+    child_name = get_clean_name(child.nodeName())
 
     # Ensure a valid naming method for new buffer obj
     if not name:
-        if not suffix:
-            suffix = default_suffix
-        # If suffix came with its own underscore, remove it
-        if suffix[0] == '_':
-            suffix = suffix.split('_')[1]
+        suffix = suffix if suffix else default_suffix
+        suffix = remove_leading_underscore(suffix)
 
     # Check if child's transforms are free to be cleaned (not receiving connections)
     connected_attrs = []
 
-    for attr in all_transform_attrs:
+    for attr in ALL_TRANSFORM_ATTRS:
         incoming_connection = pm.listConnections(f'{child}.{attr}', source=1, destination=0, plugs=1)
         if incoming_connection:
             connected_attrs.append(f'{child_name}.{attr}')
@@ -147,72 +152,42 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
 
     # Check for locked attributes. If any are found, remember them, then unlock them for the duration of this function
     lock_memory = []
-    for attr in all_transform_attrs:
-        if pm.getAttr(child + "." + attr, lock=1):
+    for attr in ALL_TRANSFORM_ATTRS:
+        if pm.getAttr(f'{child}.{attr}', lock=1):
             lock_memory.append(attr)
-            pm.setAttr(child + "." + attr, lock=0)
+            pm.setAttr(f'{child}.{attr}', lock=0)
 
     # Get child obj's parent
     world_is_original_parent = False
-    if not parent:
-        parent = child.getParent()
-    if not parent:
+    if not _parent:
+        _parent = child.getParent()
+    if not _parent:
         world_is_original_parent = True
 
-    # Compose buffer obj name
-    if name:
-        buffer_name = name
-    else:
-        buffer_name = f'{child_name}_{suffix}'
+    buffer_name = name if name else f'{child_name}_{suffix}'
 
-    # Create buffer obj
     buffer_node = pm.shadingNode('transform', name=buffer_name, au=1)
-
-    # If obj is a joint, go through extra steps of recording joint's transforms, zeroing joint out, and reapplying
-    # transforms later. Necessary to avoid unwanted transform nodes from being generated (joints are weird.)
-    recorded_transforms = None
-    jnt_orientation = None
-    if child.nodeType() == 'joint':
-        recorded_transforms = pm.xform(child, q=1, matrix=1, objectSpace=1)
-        jnt_orientation = tuple(child.jointOrient.get())
-        child.setParent(world=1)
-        zero_out(child)
-        jnt_parent = child.getParent()
-        if jnt_parent:
-            zero_out(jnt_parent)
-            child.setParent(world=1)
-            pm.delete(jnt_parent)
 
     # Match buffer obj to child's transforms
     buffer_node.setParent(child)
     for attr in ('translate', 'rotate', 'shear'):
         pm.setAttr(f'{buffer_node}.{attr}', 0, 0, 0)
         buffer_node.scale.set(1, 1, 1)
-    if child.nodeType() == 'joint':
-        child.jointOrient.set(0, 0, 0)
     buffer_node.setParent(world=1)
 
-    # Parent child to buffer
-    child.setParent(buffer_node)
+    safe_parent(child, buffer_node)
 
     # Clean child's transforms
-    for attr in ('translate', 'rotate', 'shear'):
-        pm.setAttr(f'{child}.{attr}', 0, 0, 0)
+    [pm.setAttr(f'{child}.{attr}', 0, 0, 0) for attr in ('translate', 'rotate', 'shear')]
     child.scale.set(1, 1, 1)
 
     # Parent buffer obj
     if not world_is_original_parent:
-        buffer_node.setParent(parent)
-
-    # If joint, reapply recorded transforms from earlier
-    if child.nodeType() == 'joint':
-        pm.xform(buffer_name, matrix=recorded_transforms, objectSpace=1)
-        #child.jointOrient.set(jnt_orientation)
+        safe_parent(buffer_node, _parent)
 
     # Re-lock any attributes on child obj that were locked previously
     if lock_memory:
-        for attr in lock_memory:
-            pm.setAttr(f'{child}.{attr}', lock=1)
+        [pm.setAttr(f'{child}.{attr}', lock=1) for attr in lock_memory]
 
     pm.select(clear=1)
     return buffer_node
@@ -241,7 +216,7 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
                   'scale' : True,
                   'shear' : True}
 
-    transform_attrs = all_transform_attrs
+    transform_attrs = ALL_TRANSFORM_ATTRS
 
 
     if translate is None and rotate is None and scale is None and shear is None:
@@ -256,16 +231,16 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
 
         transform_attrs = []
         if transforms['translate']:
-            for attr in all_translate_attrs:
+            for attr in ALL_TRANSLATE_ATTRS:
                 transform_attrs.append(attr)
         if transforms['rotate']:
-            for attr in all_rotate_attrs:
+            for attr in ALL_ROTATE_ATTRS:
                 transform_attrs.append(attr)
         if transforms['scale']:
-            for attr in all_scale_attrs:
+            for attr in ALL_SCALE_ATTRS:
                 transform_attrs.append(attr)
         if transforms['shear']:
-            for attr in all_shear_attrs:
+            for attr in ALL_SHEAR_ATTRS:
                 transform_attrs.append(attr)
 
 
@@ -1193,8 +1168,8 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
         source_obj = pm.duplicate(source_obj, name=str(source_obj) + '_TEMP', renameChildren=1)[0]
 
     #...Unlock all transform attributes on source object(s) to avoid the shapes jumping when re-parented
-    [pm.setAttr(source_obj + "." + attr, lock=0, channelBox=1) for attr in all_transform_attrs]
-    [break_connections(source_obj + "." + attr) for attr in all_transform_attrs + ["offsetParentMatrix"]]
+    [pm.setAttr(f'{source_obj}.{attr}', lock=0, channelBox=1) for attr in ALL_TRANSFORM_ATTRS]
+    [break_connections(f'{source_obj}.{attr}') for attr in ALL_TRANSFORM_ATTRS + ['offsetParentMatrix']]
 
     source_obj.inheritsTransform.set(lock=0)
     source_obj.inheritsTransform.set(1)
@@ -1206,7 +1181,7 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
     for source_shape in source_obj.getShapes():
 
         # Assign dummy names to source shapes to avoid naming conflicts during re_parenting process
-        source_shape.rename("TEMP_shapeName" + get_clean_name(str(source_obj)) + "_")
+        source_shape.rename(f'TEMP_shapeName{get_clean_name(str(source_obj))}_')
 
         # Re-parent source shape to destination object
         pm.parent(source_shape, destination_obj, relative=1, shape=1)
@@ -1751,11 +1726,11 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
     else:
         decompose_node = pm.shadingNode('decomposeMatrix', au=1)
         pm.connectAttr(offset_parent_matrix_input, decompose_node+'.inputMatrix')
-        if not translate in [False, 0]:
+        if translate not in [False, 0]:
             pm.connectAttr(decompose_node+'.outputTranslate', target_obj+'.translate')
-        if not rotate in [False, 0]:
+        if rotate not in [False, 0]:
             pm.connectAttr(decompose_node+'.outputRotate', target_obj+'.rotate')
-        if not scale in [False, 0]:
+        if scale not in [False, 0]:
             pm.connectAttr(decompose_node+'.outputScale', target_obj+'.scale')
 
 
@@ -2001,7 +1976,7 @@ def get_obj_side(obj):
 ########################################################################################################################
 def create_lock_memory(obj, unlock=True):
     lock_memory = []
-    for attr in all_transform_attrs:
+    for attr in ALL_TRANSFORM_ATTRS:
         if pm.getAttr(f'{obj}.{attr}', lock=1):
             lock_memory.append(attr)
             if unlock:
@@ -2012,7 +1987,7 @@ def create_lock_memory(obj, unlock=True):
 
 ########################################################################################################################
 def lock_attrs_from_memory(obj, lock_memory):
-    for attr in all_transform_attrs:
+    for attr in ALL_TRANSFORM_ATTRS:
         if attr in lock_memory:
             pm.setAttr(f'{obj}.{attr}', lock=1)
 
@@ -2086,3 +2061,31 @@ def get_closest_uv_on_surface(obj, surface):
     pm.delete(point_node)
 
     return u_value, v_value
+
+
+
+########################################################################################################################
+def parent_jnt(jnt, _parent):
+    if not jnt.nodeType() == 'joint':
+        pm.error("Provided object must be of type 'joint'")
+        return False
+    recorded_transforms = pm.xform(jnt, q=1, matrix=1, worldSpace=1)
+    jnt.setParent(_parent)
+    offset = jnt.getParent()
+    if offset == _parent:
+        return
+    zero_out(offset)
+    jnt.setParent(_parent)
+    pm.xform(jnt, matrix=recorded_transforms, worldSpace=1)
+    pm.delete(offset)
+    pm.select(clear=1)
+
+
+
+########################################################################################################################
+def safe_parent(obj, _parent):
+    if obj.nodeType() == 'joint':
+        parent_jnt(obj, _parent)
+        return
+    obj.setParent(_parent)
+    pm.select(clear=1)

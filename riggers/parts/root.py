@@ -21,7 +21,6 @@ OrienterManager = placer_utils.OrienterManager
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
@@ -72,8 +71,8 @@ class BespokePartConstructor(PartConstructor):
     def create_controls(self):
         root_ctrl_size = 60
         sub_root_ctrl_size = root_ctrl_size * 0.833
-        ctrl_creators = [
-            ControlCreator(
+        ctrls = [
+            self.initialize_ctrl(
                 name = 'Root',
                 shape = 'COG',
                 color = color_code['root'],
@@ -81,7 +80,7 @@ class BespokePartConstructor(PartConstructor):
                 size = root_ctrl_size,
                 match_position = None
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='SubRoot',
                 shape='circle',
                 color=color_code['root'],
@@ -90,8 +89,7 @@ class BespokePartConstructor(PartConstructor):
                 match_position=None
             )
         ]
-        controls = [creator.create_control() for creator in ctrl_creators]
-        return controls
+        return ctrls
 
 
     def create_part_nodes_list(self):

@@ -72,7 +72,7 @@ def connector_curve(name=None, end_driver_1=None, end_driver_2=None, override_di
     # Create curve
     curve = pm.curve(name=crv_name, degree=1, point=[[0, 0, 0], [1, 0, 0]])
     curve.getShape().lineWidth.set(line_width)
-    [pm.setAttr(f'{curve}.{attr}', lock=1, keyable=0) for attr in gen.keyable_transform_attrs]
+    [pm.setAttr(f'{curve}.{attr}', lock=1, keyable=0) for attr in gen.KEYABLE_TRANSFORM_ATTRS]
 
     # Make curve selectable if desired
     if override_display_type:
@@ -360,7 +360,7 @@ def limb_rollers(start_node, end_node, roller_name, world_up_obj, side=None, par
         jnt = joint(name=f'{roller_name}bend_{tag}', side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)
         jnt.setParent(ctrl)
         mod = gen.buffer_obj(ctrl, suffix='MOD')
-        buffer = gen.buffer_obj(mod, suffix='BUFFER', parent=stretch_rig_grp)
+        buffer = gen.buffer_obj(mod, suffix='BUFFER', _parent=stretch_rig_grp)
         gen.zero_out(buffer)
         pm.delete(pm.pointConstraint(match_node, buffer))
         buffer.scale.set(1, 1, 1)
