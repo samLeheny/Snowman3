@@ -9,6 +9,7 @@
 ##### Import Commands #####
 import importlib
 import pymel.core as pm
+import copy
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -27,6 +28,10 @@ MetaDataAttr = metadata_utils.MetaDataAttr
 
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
+
+import Snowman3.riggers.utilities.curve_utils as crv_utils
+importlib.reload(crv_utils)
+CurveConstruct = crv_utils.CurveConstruct
 ###########################
 ###########################
 
@@ -174,8 +179,8 @@ class ScenePlacerManager:
         else:
             shape_prefab = 'sphere_placer'
             size = self.placer.size
-        self.scene_placer = gen.prefab_curve_construct(prefab=shape_prefab, name=self.placer.scene_name,
-                                                       scale=size)
+        crv_construct = CurveConstruct.create_prefab(self.placer.scene_name, shape_prefab, size=size)
+        self.scene_placer = crv_construct.create_scene_obj()
         buffer_grp = pm.group(name=self.placer.scene_name.replace(placer_tag, 'BUFFER'), em=1, world=1)
         if parent:
             buffer_grp.setParent(parent)
@@ -273,8 +278,9 @@ class VectorHandleManager:
                  'up': ('UP', 'tetrahedron', self.vector_handles_size * 1.6)}
         vector_type, handle_shape, shape_scaler_factor = types[self.vector]
         self.scene_name = f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.name}_{vector_type}'
-        self.scene_handle = gen.prefab_curve_construct(prefab=handle_shape, name=self.scene_name,
-                                                       scale=self.size * shape_scaler_factor)
+        crv_construct = CurveConstruct.create_prefab(name=self.scene_name, prefab_shape=handle_shape,
+                                                     size=self.size * shape_scaler_factor)
+        self.scene_handle = crv_construct.create_scene_obj()
         self.color_scene_handle()
         self.connect_attributes_to_placer()
         self.lock_transforms()

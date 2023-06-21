@@ -9,6 +9,7 @@
 ##### Import Commands #####
 import importlib
 import ast
+import copy
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
@@ -29,13 +30,21 @@ CurveShape = control_utils.CurveShape
 
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
+
+import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
+importlib.reload(prefab_curve_shapes)
+
+import Snowman3.riggers.utilities.curve_utils as crv_utils
+importlib.reload(crv_utils)
+CurveConstruct = crv_utils.CurveConstruct
 ###########################
 ###########################
 
 
 ###########################
 ######## Variables ########
-color_code = color_code.sided_ctrl_color
+COLOR_CODE = color_code.sided_ctrl_color
+PREFAB_CTRL_SHAPES = prefab_curve_shapes.create_dict()
 ###########################
 ###########################
 
@@ -56,15 +65,7 @@ class PartConstructor:
 
     def get_colors(self):
         side_key = self.side if self.side else 'M'
-        return [color_code[side_key]] + [color_code[f'{side_key}{i}'] for i in range(2, 5)]
-    
-
-    def proportionalize_vector_handle_positions(self, positions, placer_size, scale_factor=4.0):
-        new_positions = [[], []]
-        for i, position in enumerate(positions):
-            for j in range(3):
-                new_positions[i].append(position[j] * (placer_size * scale_factor))
-        return new_positions
+        return [COLOR_CODE[side_key]] + [COLOR_CODE[f'{side_key}{i}'] for i in range(2, 5)]
 
 
     def create_part_nodes_list(self):
@@ -124,12 +125,6 @@ class PartConstructor:
         return orienters, ctrls
 
 
-    def get_scene_orienters(self, part):
-        orienter_managers = {key: OrienterManager(placer) for (key, placer) in part.placers.items()}
-        scene_orienters = {key: manager.get_orienter() for (key, manager) in orienter_managers.items()}
-        return scene_orienters
-
-
     def create_scene_ctrls(self, part):
         scene_ctrl_managers = {ctrl.name: SceneControlManager(ctrl) for ctrl in part.controls.values()}
         self.scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
@@ -160,15 +155,6 @@ class PartConstructor:
         self.remove_transform_lock_attributes(scene_ctrl)
 
 
-    def remove_transform_lock_attributes(self, scene_ctrl):
-        pm.deleteAttr(f'{scene_ctrl}.{"LockAttrData"}')
-
-
-    def migrate_lock_data(self, scene_ctrl, new_node):
-        if pm.attributeQuery('LockAttrData', node=scene_ctrl, exists=1):
-            attr_utils.migrate_attr(scene_ctrl, new_node, 'LockAttrData', remove_original=False)
-
-
     def migrate_control_to_new_node(self, scene_ctrl, new_ctrl):
         scene_ctrl_name = gen.get_clean_name(str(scene_ctrl))
         pm.rename(scene_ctrl, f'{scene_ctrl_name}_TEMP')
@@ -184,20 +170,41 @@ class PartConstructor:
     def initialize_ctrl(self, name, shape, color, locks=None, data_name=None, position=None, size=1.0,
                         forward_direction=None, up_direction=None, shape_offset=None, match_position=None, side=None,
                         scene_name=None):
-        curve_shape = CurveShape( shape=shape, size=size, forward_direction=forward_direction,
-                                  up_direction=up_direction, shape_offset=shape_offset )
-        curve_shape = curve_shape.compose_cvs()
-        ctrl_data = {
-            'name': name,
-            'color': color,
-            'locks': locks,
-            'data_name': data_name,
-            'position': position,
-            'match_position': match_position,
-            'side': side,
-            'scene_name': scene_name,
-            'part_name': self.part_name,
-            'shape': curve_shape
-        }
-        ctrl = Control.create_in_part(self.part_name, **ctrl_data)
-        return ctrl
+        curve_shape = crv_utils.compose_curve_construct_cvs(
+            curve_data=copy.deepcopy(PREFAB_CTRL_SHAPES[shape]),
+            scale=size,
+            shape_offset=shape_offset,
+            up_direction=up_direction,
+            forward_direction=forward_direction
+        )
+        ctrl_data = { 'name': name, 'color': color, 'locks': locks, 'data_name': data_name, 'position': position,
+                      'match_position': match_position, 'side': side, 'scene_name': scene_name,
+                      'part_name': self.part_name, 'shape': curve_shape }
+        return Control.create_from_data(**ctrl_data)
+
+
+    @staticmethod
+    def proportionalize_vector_handle_positions(positions, placer_size, scale_factor=4.0):
+        new_positions = [[], []]
+        for i, position in enumerate(positions):
+            for j in range(3):
+                new_positions[i].append(position[j] * (placer_size * scale_factor))
+        return new_positions
+
+
+    @staticmethod
+    def remove_transform_lock_attributes(scene_ctrl):
+        pm.deleteAttr(f'{scene_ctrl}.{"LockAttrData"}')
+
+
+    @staticmethod
+    def migrate_lock_data(scene_ctrl, new_node):
+        if pm.attributeQuery('LockAttrData', node=scene_ctrl, exists=1):
+            attr_utils.migrate_attr(scene_ctrl, new_node, 'LockAttrData', remove_original=False)
+
+
+    @staticmethod
+    def get_scene_orienters(part):
+        orienter_managers = {key: OrienterManager(placer) for (key, placer) in part.placers.items()}
+        scene_orienters = {key: manager.get_orienter() for (key, manager) in orienter_managers.items()}
+        return scene_orienters

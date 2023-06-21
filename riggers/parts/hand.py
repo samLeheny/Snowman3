@@ -265,8 +265,7 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_part_nodes_list(self):
-        part_nodes = []
-        part_nodes.append('Wrist')
+        part_nodes = ['Wrist']
         for i in range(self.finger_count):
             digit_name = self.get_digit_name(i+1, self.finger_count, 'finger')
             if self.include_metacarpals:

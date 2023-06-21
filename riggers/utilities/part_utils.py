@@ -30,6 +30,9 @@ Placer = placer_utils.Placer
 PlacerManager = placer_utils.PlacerManager
 ScenePlacerManager = placer_utils.ScenePlacerManager
 
+import Snowman3.riggers.utilities.curve_utils as crv_utils
+importlib.reload(crv_utils)
+
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
 Control = control_utils.Control
@@ -93,7 +96,7 @@ class PartManager:
 
         data['controls'] = {}
         for key, control in part.controls.items():
-            data['controls'][key] = control.get_data_dict()
+            data['controls'][key] = control.data_dict()
 
         return data
 
@@ -109,7 +112,8 @@ class PartManager:
         if not controls_data:
             controls_data = self.part.controls
         for key, data in controls_data.items():
-            self.part.controls[key] = Control.create_in_part(self.part.name, **data)
+            data['part_name'] = self.part.name
+            self.part.controls[key] = Control.create_from_data(**data)
 
 
 
@@ -212,8 +216,8 @@ class ScenePartManager:
 
 
     def create_part_handle(self):
-        self.part_handle = gen.prefab_curve_construct(prefab='cube', name=self.part.scene_name,
-                                                      scale=self.part.handle_size)
+        self.part_handle = crv_utils.prefab_curve_construct(prefab='cube', name=self.part.scene_name,
+                                                            scale=self.part.handle_size)
         self.color_part_handle()
         self.lock_transforms()
         self.add_attributes()

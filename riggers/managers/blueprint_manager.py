@@ -345,10 +345,7 @@ class BlueprintManager:
 
     @staticmethod
     def post_constraints_from_data(post_constraints_data):
-        post_constraints = []
-        for data in post_constraints_data:
-            post_constraints.append(PostConstraint(**data))
-        return post_constraints
+        return [ PostConstraint(**data) for data in post_constraints_data ]
 
 
     def data_from_blueprint(self):
@@ -368,10 +365,8 @@ class BlueprintManager:
 
     @staticmethod
     def post_constraints_data_from_blueprints(post_constraints):
-        data = []
-        for post_constraint in post_constraints:
-            data.append(PostConstraintManager.data_from_post_constraint(post_constraint))
-        return data
+        return [ PostConstraintManager.data_from_post_constraint(pc) for pc in post_constraints ]
+
 
     @staticmethod
     def data_from_part(part):

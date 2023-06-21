@@ -101,16 +101,16 @@ class SceneInteractor:
 
 
     @staticmethod
-    def create_part(name, prefab_key, side=None):
-        part_creator = PartCreator(name=name, prefab_key=prefab_key, side=side)
+    def create_part(name, prefab_key, side=None, construction_inputs=None):
+        part_creator = PartCreator(name=name, prefab_key=prefab_key, side=side, construction_inputs=construction_inputs)
         return part_creator.create_part()
 
 
-    def add_part(self, name, prefab_key, side=None):
+    def add_part(self, name, prefab_key, side=None, construction_inputs=None):
         if self.check_for_part(name=name, side=side):
             logging.error(f"Part already exists.")
             return False
-        part = self.create_part(name, prefab_key, side)
+        part = self.create_part(name, prefab_key, side, construction_inputs)
         self.blueprint_manager.add_part(part)
         self.armature_manager.add_part(part)
         self.update_working_blueprint_file()

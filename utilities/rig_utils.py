@@ -19,6 +19,10 @@ importlib.reload(nodes)
 import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
+
+import Snowman3.riggers.utilities.curve_utils as crv_utils
+importlib.reload(crv_utils)
+CurveConstruct = crv_utils.CurveConstruct
 ###########################
 ###########################
 
@@ -146,7 +150,9 @@ def orienter(name=None, scale=1):
     curve_count = len(cvs)
     curves = [{'cvs': cvs[i], 'degree': degrees[i], 'form': forms[i]} for i in range(curve_count)]
     # Compose orienter name
-    orienter = gen.curve_construct(curves=curves, name=name, color=None, scale=scale)
+    cv_data = crv_utils.compose_curve_construct_cvs(curve_data=curves, scale=scale)
+    crv_construct = CurveConstruct(name=name, shape=cv_data)
+    orienter = crv_construct.create_scene_obj()
     # Color orienter
     shapes = orienter.getShapes()
     for s, c in zip(shapes, colors):
@@ -299,29 +305,24 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 
     # Determine control colour
     if not color:
-        color = [ ctrl_info["color"] if "color" in ctrl_info else None ][0]
+        color = [ ctrl_info['color'] if 'color' in ctrl_info else None ][0]
 
     # Determine scale factor
     if not scale:
-        scale = [ ctrl_info["scale"] if "scale" in ctrl_info else None ][0]
+        scale = [ ctrl_info['scale'] if 'scale' in ctrl_info else None ][0]
 
     # Determine shape offset factor
-    shape_offset = [ ctrl_info["offset"] if "offset" in ctrl_info else [0, 0, 0] ][0]
+    shape_offset = [ ctrl_info['offset'] if 'offset' in ctrl_info else [0, 0, 0] ][0]
 
     # Determine forward and up direction
-    forward_direction = ctrl_info["forward_direction"] if "forward_direction" in ctrl_info else [0, 0, 1]
-    up_direction = ctrl_info["up_direction"] if "up_direction" in ctrl_info else [0, 1, 0]
+    forward_direction = ctrl_info['forward_direction'] if 'forward_direction' in ctrl_info else [0, 0, 1]
+    up_direction = ctrl_info['up_direction'] if 'up_direction' in ctrl_info else [0, 1, 0]
 
     # Create the control's curve shape based on control info
-    ctrl = gen.prefab_curve_construct(
-        prefab=ctrl_info["shape"],
-        name=ctrl_name,
-        color=color,
-        scale=scale,
-        shape_offset=shape_offset,
-        forward_direction=forward_direction,
-        up_direction=up_direction
-    )
+    ctrl = CurveConstruct.create_prefab(
+        name=ctrl_name, prefab_shape=ctrl_info['shape'], color=color, size=scale, shape_offset=shape_offset,
+        forward_direction=forward_direction, up_direction=up_direction
+    ).create_scene_obj()
 
     # Embed lock information into hidden attributes on control
     embed_transform_lock_data(ctrl, ctrl_info)

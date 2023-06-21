@@ -61,9 +61,8 @@ class BespokePartConstructor(PartConstructor):
             ['Clavicle', (0, 0, 0), [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
             ['ClavicleEnd', (12, 0, 0), [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, 'Clavicle'],
         ]
-        placers = []
-        for p in data_packs:
-            placer_creator = PlacerCreator(
+        return [
+            PlacerCreator(
                 name=p[0],
                 side=self.side,
                 parent_part_name=self.part_name,
@@ -73,9 +72,8 @@ class BespokePartConstructor(PartConstructor):
                 orientation=p[3],
                 match_orienter=p[6],
                 has_vector_handles=p[5]
-            )
-            placers.append(placer_creator.create_placer())
-        return placers
+            ).create_placer() for p in data_packs
+        ]
 
 
     def create_controls(self):

@@ -29,9 +29,6 @@ import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
 SceneControlManager = control_utils.SceneControlManager
 
-import Snowman3.dictionaries.colorCode as color_code
-importlib.reload(color_code)
-
 import Snowman3.riggers.utilities.class_LimbRig as class_LimbRig
 importlib.reload(class_LimbRig)
 LimbRig = class_LimbRig.LimbRig
@@ -41,7 +38,7 @@ LimbRig = class_LimbRig.LimbRig
 
 ###########################
 ######## Variables ########
-color_code = color_code.sided_ctrl_color
+
 ###########################
 ###########################
 

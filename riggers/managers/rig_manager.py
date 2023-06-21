@@ -57,12 +57,6 @@ class RigManager:
 
 
     def build_rig_from_armature(self, blueprint):
-        print('@')
-        for part in blueprint.parts.values():
-            for key, values in part.controls.items():
-                print(key)
-                print(values)
-        print('@')
         self.rig = Rig(name=blueprint.asset_name)
         self.get_scene_root(blueprint.asset_name)
         self.build_rig_root_structure()
