@@ -24,6 +24,7 @@ ArmatureManager = armature_manager_util.ArmatureManager
 
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
+Part = part_utils.Part
 PartCreator = part_utils.PartCreator
 
 import Snowman3.riggers.managers.rig_manager as rig_manager_util
@@ -55,20 +56,24 @@ class SceneInteractor:
         self.rig_manager = rig_manager
 
 
+
     def create_managers(self, asset_name, dirpath, prefab_key=None):
         self.blueprint_manager = BlueprintManager(asset_name=asset_name, dirpath=dirpath, prefab_key=prefab_key)
         self.armature_manager = ArmatureManager()
         self.rig_manager = RigManager()
 
 
+
     def build_armature_from_blueprint(self):
         self.armature_manager.build_armature_from_blueprint(blueprint=self.blueprint_manager.blueprint)
+
 
 
     def build_blank_armature(self):
         self.blueprint_manager.create_new_blueprint()
         self.update_working_blueprint_file()
         self.build_armature_from_blueprint()
+
 
 
     def build_armature_from_prefab(self):
@@ -78,9 +83,11 @@ class SceneInteractor:
         self.build_armature_from_blueprint()
 
 
+
     def update_blueprint_from_scene(self):
         self.blueprint_manager.update_blueprint_from_scene()
         self.update_working_blueprint_file()
+
 
 
     def build_armature_from_latest_version(self):
@@ -88,9 +95,11 @@ class SceneInteractor:
         self.build_armature_from_blueprint()
 
 
+
     def build_armature_from_version_number(self, number):
         self.blueprint_manager.load_blueprint_from_numbered_version(number)
         self.build_armature_from_blueprint()
+
 
 
     def mirror_armature(self, driver_side):
@@ -100,27 +109,40 @@ class SceneInteractor:
         self.update_working_blueprint_file()
 
 
+
     @staticmethod
-    def create_part(name, prefab_key, side=None, construction_inputs=None):
+    def create_part(**args):
+        return Part.create_from_data(**args)
+
+
+    @staticmethod
+    def create_prefab_part(name, prefab_key, side=None, construction_inputs=None):
         part_creator = PartCreator(name=name, prefab_key=prefab_key, side=side, construction_inputs=construction_inputs)
         return part_creator.create_part()
 
 
-    def add_part(self, name, prefab_key, side=None, construction_inputs=None):
-        if self.check_for_part(name=name, side=side):
-            logging.error(f"Part already exists.")
+
+    def add_part(self, part):
+        if self.check_for_part(name=part.name, side=part.side):
+            logging.error("Part already exists.")
             return False
-        part = self.create_part(name, prefab_key, side, construction_inputs)
         self.blueprint_manager.add_part(part)
         self.armature_manager.add_part(part)
         self.update_working_blueprint_file()
         return part
 
 
+
     def check_for_part(self, name=None, side=None, part_key=None):
         if self.blueprint_manager.check_for_part(name=name, side=side, part_key=part_key):
             return True
         return False
+
+
+
+    def get_part(self, part_key):
+        return self.blueprint_manager.get_part(part_key)
+
 
 
     def remove_part(self, part_key):
@@ -315,4 +337,10 @@ class SceneInteractor:
 
     def assign_part_parent(self, part_key, parent_part_key, parent_node_name):
         self.blueprint_manager.assign_part_parent(part_key, parent_part_key, parent_node_name)
+        self.update_working_blueprint_file()
+
+
+    def revise_part(self, part, new_data):
+        new_part = self.create_part(**new_data)
+        self.blueprint_manager.replace_part(part, new_part)
         self.update_working_blueprint_file()

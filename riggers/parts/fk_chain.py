@@ -56,7 +56,7 @@ class BespokePartConstructor(PartConstructor):
             placer_creator = PlacerCreator(
                 name=f'{self.part_name}{n}',
                 side=self.side,
-                parent_part_name=self.part_name,
+                part_name=self.part_name,
                 position=(0, spacing*i, 0),
                 size=CTRL_SHAPE_SIZE,
                 vector_handle_positions=self.proportionalize_vector_handle_positions([[0, 1, 0], [0, 0, 1]], 1.0),

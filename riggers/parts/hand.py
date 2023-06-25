@@ -100,7 +100,7 @@ class BespokePartConstructor(PartConstructor):
             PlacerCreator(
                 name='Wrist',
                 side=self.side,
-                parent_part_name=self.part_name,
+                part_name=self.part_name,
                 position=(0, 0, 0),
                 size=size,
                 vector_handle_positions=self.proportionalize_vector_handle_positions([[1, 0, 0], [0, 1, 0]], size),
@@ -110,7 +110,7 @@ class BespokePartConstructor(PartConstructor):
             PlacerCreator(
                 name='QuickPoseFingers',
                 side=self.side,
-                parent_part_name=self.part_name,
+                part_name=self.part_name,
                 position=(wrist_length+(metacarpal_length/2), metacarpal_length, 0),
                 size=size*0.7,
                 vector_handle_positions=self.proportionalize_vector_handle_positions([[1, 0, 0], [0, 1, 0]], size),
@@ -155,7 +155,7 @@ class BespokePartConstructor(PartConstructor):
                 placer_creator = PlacerCreator(
                     name=p[0],
                     side=self.side,
-                    parent_part_name=self.part_name,
+                    part_name=self.part_name,
                     position=(p[1], 0, z_position),
                     size=size,
                     vector_handle_positions=self.proportionalize_vector_handle_positions(vector_handle_positions, size),

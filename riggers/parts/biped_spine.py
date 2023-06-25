@@ -76,7 +76,7 @@ class BespokePartConstructor(PartConstructor):
             placer_creator = PlacerCreator(
                 name=f'Spine{n}',
                 side=self.side,
-                parent_part_name=self.part_name,
+                part_name=self.part_name,
                 position=(0, spine_seg_length * i, 0),
                 size=size,
                 vector_handle_positions=self.proportionalize_vector_handle_positions([[0, 1, 0], [0, 0, 1]], size),
@@ -87,7 +87,7 @@ class BespokePartConstructor(PartConstructor):
         placer_creator = PlacerCreator(
             name=f'SpineSettings',
             side=self.side,
-            parent_part_name=self.part_name,
+            part_name=self.part_name,
             position=(15, 0, 0),
             size=size*0.8,
             has_vector_handles=False

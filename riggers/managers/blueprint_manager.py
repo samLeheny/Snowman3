@@ -21,7 +21,6 @@ importlib.reload(gen)
 
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
-PartManager = part_utils.PartManager
 Part = part_utils.Part
 
 import Snowman3.riggers.utilities.poseConstraint_utils as postConstraint_utils
@@ -45,15 +44,31 @@ colorCode = colorCode.sided_ctrl_color
 
 
 ########################################################################################################################
-@dataclass
 class Blueprint:
-    asset_name: str
-    dirpath: str = None
-    parts: dict = field(default_factory=dict)
-    post_constraints: dict = field(default_factory=list)
-    custom_constraints: Sequence = field(default_factory=list)
-    kill_ctrls: Sequence = field(default_factory=list)
-    attribute_handoffs: dict = field(default_factory=list)
+    def __init__(
+        self,
+        asset_name: str,
+        dirpath: str = None,
+        parts: dict = field(default_factory=dict),
+        post_constraints: dict = field(default_factory=list),
+        custom_constraints: Sequence = field(default_factory=list),
+        kill_ctrls: Sequence = field(default_factory=list),
+        attribute_handoffs: dict = field(default_factory=list)
+    ):
+        self.asset_name = asset_name
+        self.dirpath = dirpath
+        self.parts = parts
+        self.post_constraints = post_constraints
+        self.custom_constraints = custom_constraints
+        self.kill_ctrls = kill_ctrls
+        self.attribute_handoffs = attribute_handoffs
+
+
+    @classmethod
+    def create_from_data(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        return Blueprint(**inst_inputs)
 
 
 ########################################################################################################################
@@ -252,7 +267,7 @@ class BlueprintManager:
     @staticmethod
     def update_vector_handles_from_scene(placer):
         def process_handle(vector):
-            handle_name = f'{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}'
+            handle_name = f'{gen.side_tag(placer.side)}{placer.part_name}_{placer.name}_{vector}'
             if not pm.objExists(handle_name):
                 return False
             scene_vector_handle = pm.PyNode(handle_name)
@@ -325,7 +340,7 @@ class BlueprintManager:
 
 
     def blueprint_from_data(self, data):
-        self.blueprint = Blueprint(**data)
+        self.blueprint = Blueprint.create_from_data(**data)
         self.blueprint.parts = self.parts_from_data(self.blueprint.parts)
         self.blueprint.post_constraints = self.post_constraints_from_data(self.blueprint.post_constraints)
         return self.blueprint
@@ -335,11 +350,8 @@ class BlueprintManager:
     def parts_from_data(parts_data):
         parts = {}
         for key, data in parts_data.items():
-            new_part = Part(**data)
-            manager = PartManager(new_part)
-            manager.create_placers_from_data(new_part.placers)
-            manager.create_controls_from_data(new_part.controls)
-            parts[key] = manager.part
+            new_part = Part.create_from_data(**data)
+            parts[key] = new_part
         return parts
 
 
@@ -359,7 +371,7 @@ class BlueprintManager:
     def parts_data_from_blueprint(parts):
         data = {}
         for key, part in parts.items():
-            data[key] = PartManager.data_from_part(part)
+            data[key] = part.data_dict()
         return data
 
 
@@ -370,7 +382,7 @@ class BlueprintManager:
 
     @staticmethod
     def data_from_part(part):
-        return PartManager.data_from_part(part)
+        return part.data_dict()
 
 
     def save_blueprint(self, dirpath=None):
@@ -462,3 +474,24 @@ class BlueprintManager:
         if part_key in self.blueprint.parts:
             return True
         return False
+
+
+    def replace_part(self, old_part, new_part):
+        if not old_part.name == new_part.name:
+            self.transfer_parentage_to_new_part(old_part, new_part)
+        self.remove_part(old_part)
+        self.add_part(new_part)
+
+
+    def transfer_parentage_to_new_part(self, old_part, new_part):
+        exempt_parts = (old_part, new_part)
+        for part in self.blueprint.parts.values():
+            print('-'*150)
+            if part in exempt_parts:
+                continue
+            if not part.parent:
+                continue
+            print(part.parent[0])
+            if part.parent[0] == old_part.data_name:
+                part.parent[0] = new_part.data_name
+            print(part.parent[0])

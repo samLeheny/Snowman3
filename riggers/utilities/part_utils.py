@@ -27,7 +27,6 @@ importlib.reload(nodes)
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
 Placer = placer_utils.Placer
-PlacerManager = placer_utils.PlacerManager
 ScenePlacerManager = placer_utils.ScenePlacerManager
 
 import Snowman3.riggers.utilities.curve_utils as crv_utils
@@ -57,63 +56,88 @@ color_code = color_code.sided_ctrl_color
 
 
 ########################################################################################################################
-@dataclass
 class Part:
-    name: str
-    side: str = None
-    handle_size: float = 1.6
-    part_scale: float = 1.0
-    position: tuple = (0, 0, 0)
-    rotation: tuple = (0, 0, 0)
-    placers: dict = field(default_factory=dict)
-    controls: dict = field(default_factory=dict)
-    data_name: str = None
-    scene_name: str = None
-    prefab_key: str = None
-    connectors: Sequence = field(default_factory=list)
-    vector_handle_attachments: dict = field(default_factory=dict)
-    construction_inputs: dict = field(default_factory=dict)
-    parent: str = None
-    part_nodes: list = field(default_factory=list)
-
-
-
-########################################################################################################################
-class PartManager:
     def __init__(
         self,
-        part
+        name: str,
+        side: str = None,
+        handle_size: float = 1.6,
+        part_scale: float = 1.0,
+        position: tuple = (0, 0, 0),
+        rotation: tuple = (0, 0, 0),
+        placers: dict = field(default_factory=dict),
+        controls: dict = field(default_factory=dict),
+        prefab_key: str = None,
+        connectors: Sequence = field(default_factory=list),
+        vector_handle_attachments: dict = field(default_factory=dict),
+        construction_inputs: dict = field(default_factory=dict),
+        parent: list[str, str] = None,
+        part_nodes: list = field(default_factory=list)
     ):
-        self.part = part
+        self.name = name
+        self.side = side
+        self.handle_size = handle_size
+        self.part_scale = part_scale
+        self.position = position
+        self.rotation = rotation
+        self.prefab_key = prefab_key
+        self.connectors = connectors
+        self.vector_handle_attachments = vector_handle_attachments
+        self.construction_inputs = construction_inputs
+        self.parent = parent
+        self.part_nodes = part_nodes
+        self.data_name = self._create_data_name()
+        self.scene_name = self._create_scene_name()
+        self.placers = self._format_placers_to_part(placers) if placers else None
+        self.controls = self._format_controls_to_part(controls) if controls else None
+
 
     @classmethod
-    def data_from_part(cls, part):
-        data = vars(part).copy()
+    def create_from_data(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        inst_inputs['controls'] = cls.controls_from_data(inst_inputs['controls'])
+        inst_inputs['placers'] = cls.placers_from_data(inst_inputs['placers'])
+        return Part(**inst_inputs)
 
-        data['placers'] = {}
-        for key, placer in part.placers.items():
-            data['placers'][key] = PlacerManager.data_from_placer(placer)
 
-        data['controls'] = {}
-        for key, control in part.controls.items():
-            data['controls'][key] = control.data_dict()
+    def _create_data_name(self):
+        return f'{gen.side_tag(self.side)}{self.name}'
 
+
+    def _create_scene_name(self):
+        return f'{gen.side_tag(self.side)}{self.name}_{part_tag}'
+
+
+    def _format_placers_to_part(self, placers):
+        [placers[k].format_data_to_part(self.name) for k in placers]
+        return placers
+
+
+    def _format_controls_to_part(self, controls):
+        [controls[k].format_data_to_part(self.name) for k in controls]
+        return controls
+
+
+    def data_dict(self):
+        data = vars(self).copy()
+        data['placers'] = {k: v.data_dict() for k, v in self.placers.items()}
+        data['controls'] = {k: v.data_dict() for k, v in self.controls.items()}
         return data
 
 
-    def create_placers_from_data(self, placers_data=None):
-        if not placers_data:
-            placers_data = self.part.placers
-        for key, data in placers_data.items():
-            self.part.placers[key] = Placer(**data)
+    @staticmethod
+    def controls_from_data(controls):
+        for k, v in controls.items():
+            controls[k] = Control.create_from_data(**v)
+        return controls
 
 
-    def create_controls_from_data(self, controls_data=None):
-        if not controls_data:
-            controls_data = self.part.controls
-        for key, data in controls_data.items():
-            data['part_name'] = self.part.name
-            self.part.controls[key] = Control.create_from_data(**data)
+    @staticmethod
+    def placers_from_data(placers):
+        for k, v in placers.items():
+            placers[k] = Placer.create_from_data(**v)
+        return placers
 
 
 
@@ -127,6 +151,7 @@ class PartCreator:
         position: tuple[float, float, float] = (0, 0, 0),
         rotation: tuple[float, float, float] = (0, 0, 0),
         part_scale: float = 1,
+        parent: list[str, str] = None,
         construction_inputs: dict = None
     ):
         self.name = name
@@ -136,6 +161,7 @@ class PartCreator:
         self.rotation = rotation
         self.part_scale = part_scale
         self.construction_inputs = construction_inputs
+        self.parent = parent
         self.part_constructor = self._construct_part_constructor()
 
 
@@ -170,24 +196,22 @@ class PartCreator:
 
 
     def create_part(self):
-        part = Part(
-            name = self.name,
-            prefab_key = self.prefab_key,
-            side = self.side,
-            position = self.position,
-            rotation = self.rotation,
-            part_scale = self.part_scale,
-            handle_size = 1.0,
-            data_name = f'{gen.side_tag(self.side)}{self.name}',
-            scene_name = f'{gen.side_tag(self.side)}{self.name}_{part_tag}',
-            placers = self._get_placers(),
-            controls = self._get_controls(),
-            connectors = self.part_constructor.get_connection_pairs(),
-            vector_handle_attachments = self.part_constructor.get_vector_handle_attachments(),
-            construction_inputs = self.part_constructor.check_construction_inputs_integrity(self.construction_inputs),
-            part_nodes = self._get_part_nodes()
-        )
-        return part
+        args = { 'name': self.name,
+                 'prefab_key': self.prefab_key,
+                 'side': self.side,
+                 'position': self.position,
+                 'rotation': self.rotation,
+                 'part_scale': self.part_scale,
+                 'handle_size': 1.0,
+                 'placers': self._get_placers(),
+                 'controls': self._get_controls(),
+                 'connectors': self.part_constructor.get_connection_pairs(),
+                 'vector_handle_attachments': self.part_constructor.get_vector_handle_attachments(),
+                 'construction_inputs': self.part_constructor.check_construction_inputs_integrity(
+                     self.construction_inputs),
+                 'parent': self.parent,
+                 'part_nodes': self._get_part_nodes() }
+        return Part.create_from_data(**args)
 
 
 

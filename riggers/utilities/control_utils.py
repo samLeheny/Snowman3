@@ -59,8 +59,8 @@ class Control:
         self.match_position = match_position
         self.side = side
         self.part_name = part_name
-        self.data_name = f'{gen.side_tag(side)}{self.name}'
-        self.scene_name = self._create_scene_name()
+        self.data_name = self.create_data_name()
+        self.scene_name = self.create_scene_name()
 
 
     @classmethod
@@ -70,12 +70,23 @@ class Control:
         return Control(**inst_inputs)
 
 
-    def _create_scene_name(self):
+    def create_scene_name(self):
         return f'{gen.side_tag(self.side)}{self.part_name}_{self.name}_{CTRL_TAG}'
+
+
+    def create_data_name(self):
+        return f'{gen.side_tag(self.side)}{self.name}'
 
 
     def data_dict(self):
         return vars(self).copy()
+
+
+    def format_data_to_part(self, part_key):
+        self.part_name = part_key
+        self.side = self.side
+        self.scene_name = self.create_scene_name()
+        self.data_name = self.create_data_name()
 
 
 

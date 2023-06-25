@@ -52,7 +52,7 @@ class BespokePartConstructor(PartConstructor):
         placer_creator = PlacerCreator(
             name=self.part_name,
             side=self.side,
-            parent_part_name=self.part_name,
+            part_name=self.part_name,
             position=(0, 0, 0),
             size=1.0,
             vector_handle_positions=self.proportionalize_vector_handle_positions([[0, 1, 0], [0, 0, 1]], 1.0),

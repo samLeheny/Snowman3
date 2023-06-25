@@ -65,7 +65,7 @@ class BespokePartConstructor(PartConstructor):
             PlacerCreator(
                 name=p[0],
                 side=self.side,
-                parent_part_name=self.part_name,
+                part_name=self.part_name,
                 position=p[1],
                 size=p[4],
                 vector_handle_positions=self.proportionalize_vector_handle_positions(p[2], p[4]),
