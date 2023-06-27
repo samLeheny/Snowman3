@@ -11,6 +11,7 @@ import importlib
 from dataclasses import dataclass, field
 import pymel.core as pm
 from typing import Sequence
+import copy
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -63,10 +64,10 @@ class Part:
         side: str = None,
         handle_size: float = 1.6,
         part_scale: float = 1.0,
-        position: tuple = (0, 0, 0),
-        rotation: tuple = (0, 0, 0),
-        placers: dict = field(default_factory=dict),
-        controls: dict = field(default_factory=dict),
+        position: list = None,
+        rotation: list = None,
+        placers: dict = None,
+        controls: dict = None,
         prefab_key: str = None,
         connectors: Sequence = field(default_factory=list),
         vector_handle_attachments: dict = field(default_factory=dict),
@@ -78,8 +79,8 @@ class Part:
         self.side = side
         self.handle_size = handle_size
         self.part_scale = part_scale
-        self.position = position
-        self.rotation = rotation
+        self.position = position or [0, 0, 0]
+        self.rotation = rotation or [0, 0, 0]
         self.prefab_key = prefab_key
         self.connectors = connectors
         self.vector_handle_attachments = vector_handle_attachments
@@ -88,17 +89,29 @@ class Part:
         self.part_nodes = part_nodes
         self.data_name = self._create_data_name()
         self.scene_name = self._create_scene_name()
-        self.placers = self._format_placers_to_part(placers) if placers else None
-        self.controls = self._format_controls_to_part(controls) if controls else None
+        self.placers = self._format_placers_to_part(placers) if placers else {}
+        self.controls = self._format_controls_to_part(controls) if controls else {}
+
+
+    @classmethod
+    def create(cls, **kwargs):
+        inst_inputs = Part._get_inst_inputs(**kwargs)
+        return Part(**inst_inputs)
 
 
     @classmethod
     def create_from_data(cls, **kwargs):
-        class_params = cls.__init__.__code__.co_varnames
-        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        inst_inputs = Part._get_inst_inputs(**kwargs)
         inst_inputs['controls'] = cls.controls_from_data(inst_inputs['controls'])
         inst_inputs['placers'] = cls.placers_from_data(inst_inputs['placers'])
         return Part(**inst_inputs)
+
+
+    @classmethod
+    def _get_inst_inputs(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        return inst_inputs
 
 
     def _create_data_name(self):
@@ -126,18 +139,23 @@ class Part:
         return data
 
 
+    def create_opposite_part_data(self):
+        part_copy = copy.deepcopy(self)
+        part_copy.side = gen.opposite_side(part_copy.side)
+        part_copy.position[0] = -part_copy.position[0]
+        [ctrl.flip() for ctrl in part_copy.controls.values()]
+        [placer.flip() for placer in part_copy.placers.values()]
+        return vars(part_copy)
+
+
     @staticmethod
     def controls_from_data(controls):
-        for k, v in controls.items():
-            controls[k] = Control.create_from_data(**v)
-        return controls
+        return {k: Control.create_from_data(**v) for k, v in controls.items()}
 
 
     @staticmethod
     def placers_from_data(placers):
-        for k, v in placers.items():
-            placers[k] = Placer.create_from_data(**v)
-        return placers
+        return {k: Placer.create_from_data(**v) for k, v in placers.items()}
 
 
 
@@ -148,8 +166,8 @@ class PartCreator:
         name: str,
         prefab_key: str,
         side: str = None,
-        position: tuple[float, float, float] = (0, 0, 0),
-        rotation: tuple[float, float, float] = (0, 0, 0),
+        position: list[float, float, float] = None,
+        rotation: list[float, float, float] = None,
         part_scale: float = 1,
         parent: list[str, str] = None,
         construction_inputs: dict = None
@@ -157,8 +175,8 @@ class PartCreator:
         self.name = name
         self.prefab_key = prefab_key
         self.side = side
-        self.position = position
-        self.rotation = rotation
+        self.position = position or [0, 0, 0]
+        self.rotation = rotation or [0, 0, 0]
         self.part_scale = part_scale
         self.construction_inputs = construction_inputs
         self.parent = parent
@@ -170,7 +188,7 @@ class PartCreator:
         getter = importlib.import_module(dir_string)
         importlib.reload(getter)
         BespokePartConstructor = getter.BespokePartConstructor
-        args = self.construction_inputs if self.construction_inputs else {}
+        args = self.construction_inputs or {}
         for key, value in (('part_name', self.name), ('side', self.side)):
             args[key] = value
         part_constructor = BespokePartConstructor(**args)
@@ -211,7 +229,7 @@ class PartCreator:
                      self.construction_inputs),
                  'parent': self.parent,
                  'part_nodes': self._get_part_nodes() }
-        return Part.create_from_data(**args)
+        return Part.create(**args)
 
 
 
@@ -257,7 +275,7 @@ class ScenePartManager:
 
 
     def position_part(self, handle):
-        handle.translate.set(tuple(self.part.position))
+        handle.translate.set(self.part.position)
         handle.rotate.set(tuple(self.part.rotation))
         handle.scale.set(self.part.part_scale, self.part.part_scale, self.part.part_scale)
 

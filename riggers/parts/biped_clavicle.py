@@ -58,8 +58,8 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['Clavicle', (0, 0, 0), [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
-            ['ClavicleEnd', (12, 0, 0), [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, 'Clavicle'],
+            ['Clavicle', [0, 0, 0], [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['ClavicleEnd', [12, 0, 0], [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, 'Clavicle'],
         ]
         return [
             PlacerCreator(

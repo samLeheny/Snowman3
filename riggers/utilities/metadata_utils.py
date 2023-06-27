@@ -28,10 +28,10 @@ importlib.reload(attr_utils)
 class MetaDataAttr:
     def __init__(
         self,
-        long_name=None,
-        attribute_type=None,
-        keyable=None,
-        default_value_attr=None,
+        long_name = None,
+        attribute_type = None,
+        keyable = None,
+        default_value_attr = None,
     ):
         self.long_name = long_name
         self.attribute_type = attribute_type

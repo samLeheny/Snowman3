@@ -141,7 +141,7 @@ class AnimCurveManager:
 
 
     def data_from_node(self, node=None):
-        node = node if node else self.node
+        node = node or self.node
 
         output_plugs = pm.listConnections(node.output, s=0, d=1, plugs=1, scn=1)
         output_plug = output_plugs[0] if output_plugs else None

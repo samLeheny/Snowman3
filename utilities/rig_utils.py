@@ -162,7 +162,7 @@ def orienter(name=None, scale=1):
 
 
 ########################################################################################################################
-def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_type="JNT", side=None, draw_style=None,
+def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_type='JNT', side=None, draw_style=None,
           visibility=True):
     """
         Creates a joint. More robust than Maya's native joint command. Allows for more aspects of the joint to be
@@ -213,7 +213,7 @@ def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_t
         gen.set_color(jnt, color)
     # Parent joint (if parent argument provided)
     if parent:
-        jnt.setParent(parent)
+        gen.safe_parent(jnt, parent)
     # Set joint's visibility and draw style
     if draw_style in [1, 2]:
         jnt.drawStyle.set(draw_style)

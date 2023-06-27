@@ -102,32 +102,13 @@ class SceneInteractor:
 
 
 
-    def mirror_armature(self, driver_side):
-        for part in self.blueprint_manager.blueprint.parts.values():
-            if part.side == driver_side:
-                self.mirror_part(part)
-        self.update_working_blueprint_file()
-
-
-
-    @staticmethod
-    def create_part(**args):
-        return Part.create_from_data(**args)
-
-
-    @staticmethod
-    def create_prefab_part(name, prefab_key, side=None, construction_inputs=None):
-        part_creator = PartCreator(name=name, prefab_key=prefab_key, side=side, construction_inputs=construction_inputs)
-        return part_creator.create_part()
-
-
-
     def add_part(self, part):
         if self.check_for_part(name=part.name, side=part.side):
             logging.error("Part already exists.")
             return False
         self.blueprint_manager.add_part(part)
         self.armature_manager.add_part(part)
+        self.blueprint_manager.update_blueprint_from_scene()
         self.update_working_blueprint_file()
         return part
 
@@ -154,54 +135,28 @@ class SceneInteractor:
         self.update_working_blueprint_file()
 
 
+
     def save_work(self):
         self.update_blueprint_from_scene()
         self.blueprint_manager.save_work()
 
 
+
     def create_mirrored_part(self, existing_part_key):
+        self.blueprint_manager.update_blueprint_from_scene()
         if not self.check_for_part(part_key=existing_part_key):
             return False
         existing_part = self.blueprint_manager.get_part(existing_part_key)
-        opposite_part_data = self.blueprint_manager.data_from_part(existing_part)
-        opposite_part_data['side'] = gen.opposite_side(existing_part.side)
-        new_opposing_part = self.create_part(
-            name=f"{opposite_part_data['name']}",
-            side=opposite_part_data['side'],
-            prefab_key=opposite_part_data['prefab_key']
-        )
+        opposite_part_data = existing_part.create_opposite_part_data()
+        new_opposing_part = Part.create(**opposite_part_data)
         return new_opposing_part
 
-
-    def add_mirrored_part(self, existing_part_key):
-        existing_part = self.blueprint_manager.get_part(existing_part_key)
-        new_part = self.create_mirrored_part(existing_part_key)
-        if not new_part:
-            return False
-        self.blueprint_manager.add_part(new_part)
-
-        self.blueprint_manager.mirror_part(existing_part)
-        self.armature_manager.add_part(new_part)
-        #self.mirror_part(self.blueprint_manager.blueprint.parts[existing_part_key])
-        # Mirror control shapes
-        self.armature_manager.mirror_part(existing_part)
-        self.blueprint_manager.update_blueprint_from_scene()
-        self.update_working_blueprint_file()
-
-
-    def mirror_part(self, part):
-        self.armature_manager.mirror_part(part)
-        self.blueprint_manager.mirror_part(part)
-
-
-    def mirror_solo_part(self, part):
-        self.mirror_part(part)
-        self.update_working_blueprint_file()
 
 
     def build_rig(self):
         self.rig_manager.build_rig_from_armature(self.blueprint_manager.blueprint)
         self.armature_manager.hide_armature()
+
 
 
     def update_selected_control_shapes(self):
@@ -215,6 +170,7 @@ class SceneInteractor:
         self.update_working_blueprint_file()
 
 
+
     def update_all_control_shapes(self):
         possible_ctrls = pm.ls('*_CTRL', type='transform')
         for obj in possible_ctrls:
@@ -222,6 +178,7 @@ class SceneInteractor:
                 continue
             self.update_control_shape(obj)
         self.update_working_blueprint_file()
+
 
 
     def mirror_selected_control_shapes(self):
@@ -237,6 +194,7 @@ class SceneInteractor:
         self.update_working_blueprint_file()
 
 
+
     def mirror_all_control_shapes(self, side):
         side_tags = {'L': 'L_', 'R': 'R_'}
         possible_ctrls = pm.ls(f'{side_tags[side]}*_CTRL', type='transform')
@@ -247,18 +205,93 @@ class SceneInteractor:
         self.update_working_blueprint_file()
 
 
-    @staticmethod
-    def check_obj_is_control(obj):
-        if not gen.get_clean_name(str(obj)).endswith('_CTRL'):
-            return False
-        if not obj.getShape():
-            return False
-        return True
-
 
     def update_control_shape(self, ctrl):
         blueprint_ctrl = self.find_scene_control_in_blueprint(ctrl)
         self.blueprint_manager.update_control_shape_from_scene(blueprint_ctrl)
+
+
+
+    def find_scene_control_in_blueprint(self, ctrl):
+        return_node = None
+        blueprint_ctrls = []
+        blueprint = self.blueprint_manager.blueprint
+        for part in blueprint.parts.values():
+            for control in part.controls.values():
+                blueprint_ctrls.append(control)
+        for control in blueprint_ctrls:
+            if gen.get_clean_name(str(ctrl)) == control.scene_name:
+                return_node = control
+        return return_node
+
+
+
+    def add_selected_constraints(self):
+        constraint_types = ('pointConstraint', 'orientConstraint', 'parentConstraint', 'scaleConstraint',
+                            'aimConstraint', 'geometryConstraint')
+        selection = pm.ls(sl=1)
+        for node in selection:
+            if node.nodeType() not in constraint_types:
+                continue
+            self.add_custom_constraint(node)
+        self.update_working_blueprint_file()
+
+
+
+    def add_custom_constraint(self, constraint_node):
+        custom_constraint_data = constraint_utils.create_constraint_data(constraint_node)
+        self.blueprint_manager.add_custom_constraint(custom_constraint_data)
+
+
+
+    def remove_selected_constraints(self, delete=True):
+        constraint_types = ('pointConstraint', 'orientConstraint', 'parentConstraint', 'scaleConstraint',
+                            'aimConstraint', 'geometryConstraint')
+        selection = pm.ls(sl=1)
+        for node in selection:
+            if node.nodeType() not in constraint_types:
+                continue
+            self.remove_custom_constraint(node.nodeName())
+            pm.delete(node) if delete else None
+        self.update_working_blueprint_file()
+
+
+
+    def remove_custom_constraint(self, constraint_name):
+        custom_constraints_list = self.blueprint_manager.blueprint.custom_constraints.copy()
+        constraint_utils.remove_constraint(constraint_name, custom_constraints_list)
+        self.blueprint_manager.blueprint.custom_constraints = custom_constraints_list
+
+
+
+    def update_working_blueprint_file(self):
+        self.blueprint_manager.save_blueprint_to_tempdisk()
+
+
+
+    def assign_part_parent(self, part_key, parent_part_key, parent_node_name):
+        self.blueprint_manager.assign_part_parent(part_key, parent_part_key, parent_node_name)
+        self.update_working_blueprint_file()
+
+
+
+    def revise_part(self, part, new_data):
+        new_part = self.create_part(**new_data)
+        self.blueprint_manager.replace_part(part, new_part)
+        self.update_working_blueprint_file()
+
+
+
+    @staticmethod
+    def create_part(**args):
+        return Part.create_from_data(**args)
+
+
+    @staticmethod
+    def create_prefab_part(name, prefab_key, side=None, construction_inputs=None):
+        part_creator = PartCreator(name=name, prefab_key=prefab_key, side=side, construction_inputs=construction_inputs)
+        return part_creator.create_part()
+
 
 
     @staticmethod
@@ -284,63 +317,11 @@ class SceneInteractor:
         pm.delete(temp_offset)
 
 
-    def find_scene_control_in_blueprint(self, ctrl):
-        return_node = None
-        blueprint_ctrls = []
-        blueprint = self.blueprint_manager.blueprint
-        for part in blueprint.parts.values():
-            for control in part.controls.values():
-                blueprint_ctrls.append(control)
-        for control in blueprint_ctrls:
-            if gen.get_clean_name(str(ctrl)) == control.scene_name:
-                return_node = control
-        return return_node
 
-
-    def add_selected_constraints(self):
-        constraint_types = ('pointConstraint', 'orientConstraint', 'parentConstraint', 'scaleConstraint',
-                            'aimConstraint', 'geometryConstraint')
-        selection = pm.ls(sl=1)
-        for node in selection:
-            if node.nodeType() not in constraint_types:
-                continue
-            self.add_custom_constraint(node)
-        self.update_working_blueprint_file()
-
-
-    def add_custom_constraint(self, constraint_node):
-        custom_constraint_data = constraint_utils.create_constraint_data(constraint_node)
-        self.blueprint_manager.add_custom_constraint(custom_constraint_data)
-
-
-    def remove_selected_constraints(self, delete=True):
-        constraint_types = ('pointConstraint', 'orientConstraint', 'parentConstraint', 'scaleConstraint',
-                            'aimConstraint', 'geometryConstraint')
-        selection = pm.ls(sl=1)
-        for node in selection:
-            if node.nodeType() not in constraint_types:
-                continue
-            self.remove_custom_constraint(node.nodeName())
-            pm.delete(node) if delete else None
-        self.update_working_blueprint_file()
-
-
-    def remove_custom_constraint(self, constraint_name):
-        custom_constraints_list = self.blueprint_manager.blueprint.custom_constraints.copy()
-        constraint_utils.remove_constraint(constraint_name, custom_constraints_list)
-        self.blueprint_manager.blueprint.custom_constraints = custom_constraints_list
-
-
-    def update_working_blueprint_file(self):
-        self.blueprint_manager.save_blueprint_to_tempdisk()
-
-
-    def assign_part_parent(self, part_key, parent_part_key, parent_node_name):
-        self.blueprint_manager.assign_part_parent(part_key, parent_part_key, parent_node_name)
-        self.update_working_blueprint_file()
-
-
-    def revise_part(self, part, new_data):
-        new_part = self.create_part(**new_data)
-        self.blueprint_manager.replace_part(part, new_part)
-        self.update_working_blueprint_file()
+    @staticmethod
+    def check_obj_is_control(obj):
+        if not gen.get_clean_name(str(obj)).endswith('_CTRL'):
+            return False
+        if not obj.getShape():
+            return False
+        return True

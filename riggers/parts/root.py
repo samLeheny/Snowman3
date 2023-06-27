@@ -58,7 +58,7 @@ class BespokePartConstructor(PartConstructor):
             name='Root',
             side=self.side,
             part_name=self.part_name,
-            position=(0, 0, 0),
+            position=[0, 0, 0],
             size=size,
             vector_handle_positions=self.proportionalize_vector_handle_positions([[0, 0, 1], [0, 1, 0]], size),
             orientation=[[0, 0, 1], [0, 1, 0]],

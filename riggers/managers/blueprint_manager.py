@@ -38,7 +38,7 @@ temp_files_dir = 'working'
 versions_dir = 'versions'
 core_data_filename = 'core_data'
 default_version_padding = 4
-colorCode = colorCode.sided_ctrl_color
+COLOR_CODE = colorCode.sided_ctrl_color
 ###########################
 ###########################
 
@@ -235,8 +235,8 @@ class BlueprintManager:
 
     def update_part_from_scene(self, part):
         scene_handle = pm.PyNode(part.scene_name)
-        part.position = tuple(scene_handle.translate.get())
-        part.rotation = tuple(scene_handle.rotate.get())
+        part.position = list(scene_handle.translate.get())
+        part.rotation = list(scene_handle.rotate.get())
         part.part_scale = pm.getAttr(f'{scene_handle}.{"PartScale"}')
         part = self.update_part_placers_from_scene(part)
         part = self.update_part_controls_from_scene(part)
@@ -413,21 +413,21 @@ class BlueprintManager:
         self.blueprint = prefab_post_actions.run_post_actions(self.blueprint)
 
 
-    def mirror_part(self, existing_part):
+    '''def mirror_part(self, existing_part):
         self.mirror_part_parent_data(existing_part)
         self.mirror_controls_in_part(existing_part)
         new_opposite_part = self.get_opposite_part(existing_part)
         for tag in ('part_scale', 'handle_size'):
             setattr(new_opposite_part, tag, getattr(existing_part, tag))
-        #self.mirror_placers_in_part(existing_part)
+        #self.mirror_placers_in_part(existing_part)'''
 
 
-    def mirror_placers_in_part(self, existing_part):
+    '''def mirror_placers_in_part(self, existing_part):
         opposite_part = self.get_opposite_part(existing_part)
-        #opposite_part.placers = copy.deepcopy(existing_part.placers)
+        #opposite_part.placers = copy.deepcopy(existing_part.placers)'''
 
 
-    def mirror_part_parent_data(self, part):
+    '''def mirror_part_parent_data(self, part):
         opposite_part = self.get_opposite_part(part)
         existing_part_parent_data = part.parent
         if not existing_part_parent_data:
@@ -438,24 +438,12 @@ class BlueprintManager:
             if parent_side in ('L', 'R'):
                 parent_part_key = gen.get_opposite_side_string(parent_part_key)
         opposite_part_parent_data = [parent_part_key, existing_part_parent_data[1]]
-        opposite_part.parent = opposite_part_parent_data
+        opposite_part.parent = opposite_part_parent_data'''
 
 
-    def mirror_controls_in_part(self, part):
-        opposite_part = self.get_opposite_part(part)
-        opposite_ctrl_data = copy.deepcopy(part.controls)
-        for key, data in opposite_ctrl_data.items():
-
-            opposing_sides = {'L': 'R', 'R': 'L'}
-
-            if data.side in opposing_sides:
-                data.side = opposing_sides[data.side]
-                data.scene_name = gen.get_opposite_side_string(data.scene_name)
-                data.color = colorCode[data.side]
-
-            data.position[0] *= -1
-
-        opposite_part.controls = opposite_ctrl_data
+    '''def mirror_controls_in_part(self, part):
+        for ctrl in part.controls.values():
+            ctrl.flip()'''
 
 
     def get_opposite_part(self, part):

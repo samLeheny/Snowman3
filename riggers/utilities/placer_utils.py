@@ -39,7 +39,7 @@ CurveConstruct = crv_utils.CurveConstruct
 ###########################
 ######## Variables ########
 PLACER_TAG = 'PLC'
-color_code = color_code.sided_ctrl_color
+COLOR_CODE = color_code.sided_ctrl_color
 ###########################
 ###########################
 
@@ -50,12 +50,12 @@ class Placer:
         self,
         name: str,
         side: str = None,
-        position: Sequence = (0, 0, 0),
-        rotation: Sequence = (0, 0, 0),
+        position: Sequence = None,
+        rotation: Sequence = None,
         size: float = 1.0,
         has_vector_handles: bool = True,
-        vector_handle_positions: list[list, list] = ((0, 0, 1), (0, 1, 0)),
-        orientation: list[list, list] = ((0, 0, 1), (0, 1, 0)),
+        vector_handle_positions: list[list, list] = None,
+        orientation: list[list, list] = None,
         match_orienter: str = None,
         data_name: str = None,
         scene_name: str = None,
@@ -65,12 +65,12 @@ class Placer:
     ):
         self.name = name
         self.side = side
-        self.position = position
-        self.rotation = rotation
+        self.position = position or [0, 0, 0]
+        self.rotation = rotation or [0, 0, 0]
         self.size = size
         self.has_vector_handles = has_vector_handles
-        self.vector_handle_positions = vector_handle_positions
-        self.orientation = orientation
+        self.vector_handle_positions = vector_handle_positions or [[0, 0, 1], [0, 1, 0]]
+        self.orientation = orientation or [[0, 0, 1], [0, 1, 0]]
         self.match_orienter = match_orienter
         self.data_name = data_name
         self.scene_name = scene_name
@@ -105,6 +105,18 @@ class Placer:
         self.data_name = self.create_data_name()
 
 
+    def flip(self):
+        if self.side not in ('L', 'R'):
+            return False
+        self.side = gen.opposite_side(self.side)
+        self.data_name = self.create_data_name()
+        self.scene_name = self.create_scene_name()
+        if not isinstance(self.position, list):
+            self.position = list(self.position)
+        if self.position:
+            self.position[0] = -self.position[0]
+
+
 
 ########################################################################################################################
 class PlacerCreator:
@@ -112,8 +124,8 @@ class PlacerCreator:
         self,
         name: str,
         part_name: str,
-        position: tuple,
-        rotation: tuple = (0, 0, 0),
+        position: list = None,
+        rotation: list = None,
         side: str = None,
         size: float = None,
         has_vector_handles: bool = True,
@@ -126,17 +138,17 @@ class PlacerCreator:
         pole_vector_partners: list = None
     ):
         self.name = name
-        self.data_name = data_name if data_name else name
+        self.data_name = data_name or name
         self.part_name = part_name
-        self.position = position
-        self.rotation = rotation
+        self.position = position or [0, 0, 0]
+        self.rotation = rotation or [0, 0, 0]
         self.side = side
-        self.size = size if size else 1.25
+        self.size = size or 1.25
         self.has_vector_handles = has_vector_handles
         self.vector_handle_positions = self.initialize_vector_handle_positions(vector_handle_positions)
-        self.orientation = orientation if orientation else [[1, 0, 0], [0, 1, 0]]
+        self.orientation = orientation or [[1, 0, 0], [0, 1, 0]]
         self.match_orienter = match_orienter
-        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{part_name}_{name}_{PLACER_TAG}'
+        self.scene_name = scene_name or f'{gen.side_tag(side)}{part_name}_{name}_{PLACER_TAG}'
         self.is_pole_vector = is_pole_vector
         self.pole_vector_partners = pole_vector_partners
 
@@ -235,7 +247,7 @@ class ScenePlacerManager:
 
     def color_scene_handle(self, color=None):
         if not color:
-            color = color_code[self.placer.side] if self.placer.side else color_code['M']
+            color = COLOR_CODE[self.placer.side] if self.placer.side else COLOR_CODE['M']
         gen.set_color(self.scene_placer, color)
 
 
@@ -285,8 +297,8 @@ class VectorHandleManager:
         self.name = name
         self.scene_name = None
         self.vector = vector
-        self.position = position if position else (0, 0, 0)
-        self.size = size if size else 0.25
+        self.position = position or (0, 0, 0)
+        self.size = size or 0.25
         self.side = side
         self.parent = parent
         self.placer = placer
@@ -316,7 +328,7 @@ class VectorHandleManager:
 
     def color_scene_handle(self, color=None):
         if not color:
-            colors = {'L': color_code['L4'], 'R': color_code['R4'], 'M': color_code['M4']}
+            colors = {'L': COLOR_CODE['L4'], 'R': COLOR_CODE['R4'], 'M': COLOR_CODE['M4']}
             color = colors[self.placer.side] if self.placer.side else colors['M']
         gen.set_color(self.scene_handle, color)
 

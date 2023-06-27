@@ -25,6 +25,8 @@ importlib.reload(prefab_curve_shapes)
 import Snowman3.riggers.utilities.curve_utils as crv_utils
 importlib.reload(crv_utils)
 CurveConstruct = crv_utils.CurveConstruct
+
+import Snowman3.dictionaries.colorCode as colorCode
 ###########################
 ###########################
 
@@ -33,6 +35,7 @@ CurveConstruct = crv_utils.CurveConstruct
 ######## Variables ########
 CTRL_TAG = 'CTRL'
 PREFAB_CTRL_SHAPES = prefab_curve_shapes.create_dict()
+COLOR_CODE = colorCode.sided_ctrl_color
 ###########################
 ###########################
 
@@ -55,7 +58,7 @@ class Control:
         self.shape = shape
         self.color = color
         self.position = position
-        self.locks = locks if locks else {'v': 1}
+        self.locks = locks or {'v': 1}
         self.match_position = match_position
         self.side = side
         self.part_name = part_name
@@ -87,6 +90,17 @@ class Control:
         self.side = self.side
         self.scene_name = self.create_scene_name()
         self.data_name = self.create_data_name()
+
+
+    def flip(self):
+        if self.side not in ('L', 'R'):
+            return False
+        self.side = gen.opposite_side(self.side)
+        self.color = COLOR_CODE[self.side]
+        self.data_name = self.create_data_name()
+        self.scene_name = self.create_scene_name()
+        if self.position:
+            self.position[0] = -self.position[0]
 
 
 

@@ -55,35 +55,47 @@ class BespokePartConstructor(PartConstructor):
         self,
         part_name: str,
         side: str = None,
+        limb_type: str = 'plantigrade_doubleKnee'
     ):
         super().__init__(part_name, side)
+        self.limb_type = limb_type
 
 
     def create_placers(self):
         data_packs = [
-            ['FootFollowSpace', (12, -7.5, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None,
-                False, None],
-            ['Thigh', (0, 0, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
-            ['Shin', (0, -45, 4.57), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
-            ['Tarsus', (0, -91, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
-            ['AnkleEnd', (0, -101, 0), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, False, 'Tarsus',
-                False, None],
-            ['Ball', (0, -98.5, 11.8), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
-            ['BallEnd', (0, -98.5, 16.73), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, False, 'Ball', False,
+            ['FootFollowSpace', [12, -7.5, 0], [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None,
+             False, None],
+            ['Thigh', [0, 0, 0], [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
+            ['Tarsus', [0, -91, 0], [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
+            ['AnkleEnd', [0, -101, 0], [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, False, 'Tarsus',
+             False, None],
+            ['Ball', [0, -98.5, 11.8], [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None, False, None],
+            ['BallEnd', [0, -98.5, 16.73], [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, False, 'Ball', False,
              None],
-            ['IkKnee', (0, -45, 40), [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 1, 0]], 1.25, False, None, True,
-                ('Thigh', 'Tarsus', 'Shin')],
-            ['SoleToe', (0, -101, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
-                None],
-            ['SoleToeEnd', (0, -101, 19), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
-                None],
-            ['SoleInner', (-4.5, -101, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
-                None],
-            ['SoleOuter', (4.5, -101, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
-                None],
-            ['SoleHeel', (0, -101, -4), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
+            ['IkKnee', [0, -45, 40], [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 1, 0]], 1.25, False, None, True,
+             ('Thigh', 'Tarsus', 'Shin')],
+            ['SoleToe', [0, -101, 11.8], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
+             None],
+            ['SoleToeEnd', [0, -101, 19], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
+             None],
+            ['SoleInner', [-4.5, -101, 11.8], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
+             None],
+            ['SoleOuter', [4.5, -101, 11.8], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
+             None],
+            ['SoleHeel', [0, -101, -4], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball', False,
              None],
         ]
+        shin_position = [0, -45, 4.57]
+        shin_index = 2
+        if self.limb_type == 'plantigrade':
+            pass
+        elif self.limb_type == 'plantigrade_doubleKnee':
+            shin_position = [0, -49, 4.57]
+            shin_index = 3
+            data_packs.insert(2, ['Knee', [0, -43, 4.57], [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True,
+                                  None, False, None])
+        data_packs.insert(shin_index, ['Shin', shin_position, [[0, -1, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25,
+                                       True, None, False, None])
         placers = []
         for p in data_packs:
             placer_creator = PlacerCreator(
@@ -224,31 +236,42 @@ class BespokePartConstructor(PartConstructor):
         return ctrls
 
 
+
     def get_connection_pairs(self):
-        return (
-            ('Shin', 'Thigh'),
+        pairs = [
+            ('BallEnd', 'Ball'),
+            ('Ball', 'Tarsus'),
             ('Tarsus', 'Shin'),
             ('AnkleEnd', 'Tarsus'),
-            ('Ball', 'Tarsus'),
-            ('BallEnd', 'Ball'),
             ('IkKnee', 'Shin'),
-            ('Thigh', 'FootFollowSpace'),
-        )
+            ('Thigh', 'FootFollowSpace')
+        ]
+        if self.limb_type == 'plantigrade':
+            pairs.append(('Shin', 'Thigh'))
+        elif self.limb_type == 'plantigrade_doubleKnee':
+            [pairs.append(new_pair) for new_pair in (('Knee', 'Thigh'), ('Shin', 'Knee'))]
+        return pairs
+
 
 
     def create_part_nodes_list(self):
-        part_nodes = []
-        for name in ('Thigh', 'Shin', 'Ankle', 'AnkleEnd', 'Tarsus', 'Ball', 'BallEnd'):
-            part_nodes.append(name)
+        part_nodes = ['Thigh', 'Shin', 'Ankle', 'AnkleEnd', 'IkPoleVector']
+        if self.limb_type == 'plantigrade_doubleKnee':
+            part_nodes.insert(1, 'Knee')
         return part_nodes
 
 
+
     def get_vector_handle_attachments(self):
-        return {
-            'Thigh': ['Shin', 'IkKnee'],
-            'Shin': ['Tarsus', 'IkKnee'],
-            'Tarsus': ['AnkleEnd', None]
-        }
+        attachments = {'Shin': ['Tarsus', 'IkKnee'],
+                       'Tarsus': ['AnkleEnd', None]}
+        if self.limb_type == 'plantigrade':
+            attachments['Thigh'] = ['Shin', 'IkKnee']
+        elif self.limb_type == 'plantigrade_doubleKnee':
+            attachments['Thigh'] = ['Knee', 'IkKnee']
+            attachments['Knee'] = ['Shin', 'IkKnee']
+        return attachments
+
 
 
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
@@ -256,11 +279,11 @@ class BespokePartConstructor(PartConstructor):
         limb_rig = LimbRig(
             limb_name=part.name,
             side=part.side,
-            prefab='plantigrade',
-            segment_names=['Thigh', 'Shin', 'Ankle'],
+            prefab=self.limb_type,
+            segment_names=self.get_segment_names(),
             socket_name='Hip',
             pv_name='Knee',
-            orienters=[orienters[p] for p in ('Thigh', 'Shin', 'Tarsus', 'AnkleEnd')],
+            orienters=[orienters[p] for p in self.get_orienter_keys()],
             pv_position=pm.xform(orienters['IkKnee'], q=1, worldSpace=1, rotatePivot=1),
             tweak_scale_factor_node=rig_part_container
         )
@@ -281,43 +304,20 @@ class BespokePartConstructor(PartConstructor):
         # ...Move contents of limb rig into biped_leg rig module's groups
         [child.setParent(transform_grp) for child in limb_rig.grps['transform'].getChildren()]
         [child.setParent(no_transform_grp) for child in limb_rig.grps['noTransform'].getChildren()]
-
         pm.delete(limb_rig.grps['root'])
 
-        ctrl_pairs = [('FkThigh', limb_rig.fk_ctrls[0]),
-                      ('FkShin', limb_rig.fk_ctrls[1]),
-                      ('FkFoot', limb_rig.fk_ctrls[2]),
-                      ('IkFoot', limb_rig.ctrls['ik_extrem']),
-                      ('IkKnee', limb_rig.ctrls['ik_pv']),
-                      ('Hip', limb_rig.ctrls['socket']),
-                      ('Knee', limb_rig.pin_ctrls[0])]
-        for i, limb_segment in enumerate(('Thigh', 'Shin')):
-            for j, name_tag in enumerate(('Start', 'Mid', 'End')):
-                ctrl_pairs.append((f'{limb_segment}Bend{name_tag}', limb_rig.segments[i].bend_ctrls[j]))
-            for j, ctrl_list in enumerate(limb_rig.tweak_ctrls[0]):
-                ctrl_pairs.append((f'{limb_segment}Tweak{j+1}', limb_rig.tweak_ctrls[i][j]))
-
-        for ctrl_str, limb_setup_ctrl in ctrl_pairs:
-            scene_ctrls[ctrl_str] = self.migrate_control_to_new_node(scene_ctrls[ctrl_str], limb_setup_ctrl)
+        self.finalize_ctrl_shapes(limb_rig, scene_ctrls)
 
         ik_foot_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkFootFollow'], _parent=transform_grp)
         gen.match_pos_ori(ik_foot_follow_ctrl_buffer, orienters['FootFollowSpace'])
 
         ###
+        # ...Match Toe ctrls to Toe orienters
         for key, parent, orienter_key in (('FkToe', transform_grp, 'Ball'),
                                           ('IkToe', transform_grp, 'Ball')):
             scene_ctrls[key].setParent(parent)
             buffer = gen.buffer_obj(scene_ctrls[key])
             gen.match_pos_ori(buffer, orienters[orienter_key])
-
-        foot_attr_node = scene_ctrls['IkFoot']
-        kinematic_blend_mult = gen.create_attr_blend_nodes(attr="fkIk", node=scene_ctrls['Hip'])
-        kinematic_blend_rev = gen.create_attr_blend_nodes(attr="fkIk", node=scene_ctrls['Hip'], reverse=True)
-
-        kinematic_blend_mult = gen.get_attr_blend_nodes(attr="fkIk", node=scene_ctrls['Hip'], mult=True)
-        kinematic_blend_rev = gen.get_attr_blend_nodes(attr="fkIk", node=scene_ctrls['Hip'], reverse=True)
-        kinematic_blend_mult.connect(scene_ctrls["IkToe"].visibility)
-        kinematic_blend_rev.connect(scene_ctrls["FkToe"].visibility)
 
         # ...Bind joints -----------------------------------------------------------------------------------------------
         bind_jnts = {}
@@ -335,6 +335,7 @@ class BespokePartConstructor(PartConstructor):
                 gen.match_pos_ori(bind_jnts[key], orienters[key])
 
         # ...IK rig
+        foot_attr_node = scene_ctrls['IkFoot']
         ik_foot_rig = self.ik_foot(part=part, parent=limb_rig.ik_jnts[-2], bind_jnt_keys=bind_jnt_keys,
                                    orienters=orienters, ctrls=scene_ctrls, foot_roll_ctrl=foot_attr_node)
         ik_jnts = ik_foot_rig['ik_jnts']
@@ -347,6 +348,96 @@ class BespokePartConstructor(PartConstructor):
                                    fk_toe_ctrl=scene_ctrls['FkToe'])
 
         # ...Blending
+        self.connect_foot_blend_vis(scene_ctrls, fk_foot_rig, ik_jnts, bind_jnts)
+
+        limb_rig.ik_handles['extrem'].getParent().setParent(foot_roll_jnts['Tarsus'])
+
+        self.update_part_nodes(limb_rig, scene_ctrls)
+
+        return rig_part_container
+
+
+
+    def get_segment_names(self):
+        segment_names = ['Thigh', 'Shin', 'Ankle']
+        if self.limb_type == 'plantigrade_doubleKnee':
+            segment_names.insert(1, 'Knee')
+        return segment_names
+
+
+
+    def get_orienter_keys(self):
+        orienter_keys = ['Thigh', 'Shin', 'Tarsus', 'AnkleEnd']
+        if self.limb_type == 'plantigrade_doubleKnee':
+            orienter_keys.insert(1, 'Knee')
+        return orienter_keys
+
+
+
+    def finalize_ctrl_shapes(self, limb_rig, scene_ctrls):
+        ctrl_pairs = [('FkThigh', limb_rig.fk_ctrls[0]),
+                      ('FkShin', limb_rig.fk_ctrls[1]),
+                      ('FkFoot', limb_rig.fk_ctrls[2]),
+                      ('IkFoot', limb_rig.ctrls['ik_extrem']),
+                      ('IkKnee', limb_rig.ctrls['ik_pv']),
+                      ('Hip', limb_rig.ctrls['socket']),
+                      ('Knee', limb_rig.pin_ctrls[0])]
+
+        ribbon_ctrl_set_indices = (0, 1)
+        ribbon_segment_names = ('Thigh', 'Shin')
+        ribbon_segment_indices = (0, 1)
+        if self.limb_type == 'plantigrade_doubleKnee':
+            ribbon_segment_indices = (0, 2)
+
+        for i, limb_segment, tweak_i in zip(ribbon_segment_indices, ribbon_segment_names, ribbon_ctrl_set_indices):
+            for j, name_tag in enumerate(('Start', 'Mid', 'End')):
+                ctrl_pairs.append( (f'{limb_segment}Bend{name_tag}',
+                                    limb_rig.segments[i].bend_ctrls[j]) )
+            for j, ctrl_list in enumerate(limb_rig.tweak_ctrls[0]):
+                ctrl_pairs.append( (f'{limb_segment}Tweak{j + 1}',
+                                    limb_rig.tweak_ctrls[tweak_i][j]) )
+
+        for ctrl_str, limb_setup_ctrl in ctrl_pairs:
+            scene_ctrls[ctrl_str] = self.migrate_control_to_new_node(scene_ctrls[ctrl_str], limb_setup_ctrl)
+
+
+
+    def update_part_nodes(self, limb_rig, scene_ctrls):
+        pairings = [('Thigh', limb_rig.blend_jnts[0]),
+                    ('Ankle', limb_rig.blend_jnts[-2]),
+                    ('AnkleEnd', limb_rig.blend_jnts[-1]),
+                    ('IkPoleVector', scene_ctrls['IkKnee'])]
+        if self.limb_type == 'plantigrade_doubleKnee':
+            pairings.append(('Knee', limb_rig.blend_jnts[1]))
+            pairings.append(('Shin', limb_rig.blend_jnts[2]))
+        else:
+            pairings.append(('Shin', limb_rig.blend_jnts[1]))
+        for key, node in pairings:
+            self.part_nodes[key] = node.nodeName()
+
+
+
+    @staticmethod
+    def fk_foot(part, parent=None, ankle_orienter=None, fk_toe_ctrl=None):
+        fk_foot_space = pm.shadingNode('transform', name=f'{gen.side_tag(part.side)}FkFootSpace', au=1)
+        fk_foot_space.setParent(parent)
+        gen.match_pos_ori(fk_foot_space, ankle_orienter)
+        fk_toe_ctrl.getParent().setParent(fk_foot_space)
+        pm.select(clear=1)
+        return {'fk_foot_space': fk_foot_space}
+
+
+
+    @staticmethod
+    def connect_foot_blend_vis(scene_ctrls, fk_foot_rig, ik_jnts, bind_jnts):
+        kinematic_blend_mult = gen.create_attr_blend_nodes(attr="fkIk", node=scene_ctrls['Hip'])
+        kinematic_blend_rev = gen.create_attr_blend_nodes(attr="fkIk", node=scene_ctrls['Hip'], reverse=True)
+
+        kinematic_blend_mult = gen.get_attr_blend_nodes(attr="fkIk", node=scene_ctrls['Hip'], mult=True)
+        kinematic_blend_rev = gen.get_attr_blend_nodes(attr="fkIk", node=scene_ctrls['Hip'], reverse=True)
+        kinematic_blend_mult.connect(scene_ctrls["IkToe"].visibility)
+        kinematic_blend_rev.connect(scene_ctrls["FkToe"].visibility)
+
         rotate_constraint = gen.matrix_constraint(objs=[fk_foot_rig["fk_foot_space"], ik_jnts['Tarsus'],
                                                         bind_jnts['Tarsus']], decompose=True, translate=False,
                                                   rotate=True, scale=True, shear=False)
@@ -358,55 +449,10 @@ class BespokePartConstructor(PartConstructor):
         kinematic_blend_mult.connect(rotate_constraint["weights"][0])
         bind_jnts["Ball"].translate.set(t_values)
 
-        limb_rig.ik_handles['extrem'].getParent().setParent(foot_roll_jnts['Tarsus'])
-
-        for key, node in (('Thigh', limb_rig.blend_jnts[0]),
-                          ('Shin', limb_rig.blend_jnts[1]),
-                          ('Ankle', limb_rig.blend_jnts[-2]),
-                          ('AnkleEnd', limb_rig.blend_jnts[-1]),
-                          ('IkPoleVector', scene_ctrls['IkKnee'])):
-            self.part_nodes[key] = node.nodeName()
-
-        return rig_part_container
 
 
-
-    def reorient_ik_foot(self, ik_foot_ctrl, side):
-        # ...Give IK foot control world orientation
-        ctrl = ik_foot_ctrl
-
-        ctrl_buffer = ctrl.getParent()
-        # ...Temporarily moved shapes into a holder node (will move them back after reorientation)
-        temp_shape_holder = pm.shadingNode('transform', name='TEMP_shape_holder', au=1)
-        gen.copy_shapes(ctrl, temp_shape_holder, keep_original=True)
-        [pm.delete(shape) for shape in ctrl.getShapes()]
-
-        ori_offset = pm.shadingNode('transform', name=f'{gen.side_tag(side)}ikFoot_ori_OFFSET', au=1)
-        ori_offset.setParent(ctrl_buffer)
-        gen.zero_out(ori_offset)
-        ori_offset.setParent(world=1)
-
-        [child.setParent(ori_offset) for child in ctrl.getChildren()]
-
-        par = ctrl_buffer.getParent()
-        ctrl_buffer.setParent(world=1)
-
-        if side == 'L':
-            ctrl_buffer.rotate.set(0, 0, 0)
-            ctrl_buffer.scale.set(1, 1, 1)
-        elif side == 'R':
-            ctrl_buffer.rotate.set(0, 180, 0)
-            ctrl_buffer.scale.set(1, 1, -1)
-        ctrl_buffer.setParent(par)
-
-        ori_offset.setParent(ctrl)
-
-        # ...Return shapes to control transform
-        gen.copy_shapes(temp_shape_holder, ctrl, keep_original=False)
-
-
-
-    def ik_foot(self, part, parent, bind_jnt_keys, orienters, ctrls, foot_roll_ctrl):
+    @staticmethod
+    def ik_foot(part, parent, bind_jnt_keys, orienters, ctrls, foot_roll_ctrl):
 
         # ...IK joints -------------------------------------------------------------------------------------------------
         '''ik_grp = pm.group(name=f'{gen.side_tag(part.side)}ikConnector', em=1, p=parent)
@@ -551,10 +597,36 @@ class BespokePartConstructor(PartConstructor):
 
 
 
-    def fk_foot(self, part, parent=None, ankle_orienter=None, fk_toe_ctrl=None):
-        fk_foot_space = pm.shadingNode('transform', name=f'{gen.side_tag(part.side)}FkFootSpace', au=1)
-        fk_foot_space.setParent(parent)
-        gen.match_pos_ori(fk_foot_space, ankle_orienter)
-        fk_toe_ctrl.getParent().setParent(fk_foot_space)
-        pm.select(clear=1)
-        return {'fk_foot_space': fk_foot_space}
+    @staticmethod
+    def reorient_ik_foot(ik_foot_ctrl, side):
+        # ...Give IK foot control world orientation
+        ctrl = ik_foot_ctrl
+
+        ctrl_buffer = ctrl.getParent()
+        # ...Temporarily moved shapes into a holder node (will move them back after reorientation)
+        temp_shape_holder = pm.shadingNode('transform', name='TEMP_shape_holder', au=1)
+        gen.copy_shapes(ctrl, temp_shape_holder, keep_original=True)
+        [pm.delete(shape) for shape in ctrl.getShapes()]
+
+        ori_offset = pm.shadingNode('transform', name=f'{gen.side_tag(side)}ikFoot_ori_OFFSET', au=1)
+        ori_offset.setParent(ctrl_buffer)
+        gen.zero_out(ori_offset)
+        ori_offset.setParent(world=1)
+
+        [child.setParent(ori_offset) for child in ctrl.getChildren()]
+
+        par = ctrl_buffer.getParent()
+        ctrl_buffer.setParent(world=1)
+
+        if side == 'L':
+            ctrl_buffer.rotate.set(0, 0, 0)
+            ctrl_buffer.scale.set(1, 1, 1)
+        elif side == 'R':
+            ctrl_buffer.rotate.set(0, 180, 0)
+            ctrl_buffer.scale.set(1, 1, -1)
+        ctrl_buffer.setParent(par)
+
+        ori_offset.setParent(ctrl)
+
+        # ...Return shapes to control transform
+        gen.copy_shapes(temp_shape_holder, ctrl, keep_original=False)

@@ -976,7 +976,7 @@ def position_between(obj, between, ratios=None, include_orientation=False):
 
     #...Check that an equal number of between nodes and ratio values were provided
     if len(between) != len(ratios):
-        pm.error("Parameters 'between' and 'ratios' require list arguments of equal length.")
+        pm.error("Parameters 'between' and 'ratios' require list arguments of equal size.")
 
     #...Create constraint
     if include_orientation:

@@ -58,24 +58,24 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['HandFollowSpace', (6, 9.5, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None, False,
+            ['HandFollowSpace', [6, 9.5, 0], [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, None, False,
                 None],
-            ['Upperarm', (0, 0, 0), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25, True, None, False, None],
-            ['ForearmEnd', (52.64, 0, 0), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 1.25, True, None, False,
+            ['Upperarm', [0, 0, 0], [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25, True, None, False, None],
+            ['ForearmEnd', [52.64, 0, 0], [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 1.25, True, None, False,
                 None],
-            ['WristEnd', (59, 0, 0), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.7, False, 'ForearmEnd', False,
+            ['WristEnd', [59, 0, 0], [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 1, 0]], 0.7, False, 'ForearmEnd', False,
                 None],
-            ['IkElbow', (26.94, 0, -35), [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, None, True,
+            ['IkElbow', [26.94, 0, -35], [[1, 0, 0], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, None, True,
                 ('Upperarm', 'ForearmEnd', 'Forearm')]
         ]
-        forearm_position = (26.94, 0, -2.97)
+        forearm_position = [26.94, 0, -2.97]
         forearm_index = 2
         if self.limb_type == 'plantigrade':
             pass
         elif self.limb_type == 'plantigrade_doubleKnee':
-            forearm_position = (29.94, 0, -2.97)
+            forearm_position = [29.94, 0, -2.97]
             forearm_index = 3
-            data_packs.insert(2, ['Elbow', (23.94, 0, -2.97), [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25,
+            data_packs.insert(2, ['Elbow', [23.94, 0, -2.97], [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]], 1.25,
                                   True, None, False, None])
         data_packs.insert(forearm_index, ['Forearm', forearm_position, [[1, 0, 0], [0, 0, -1]], [[1, 0, 0], [0, 0, -1]],
                                           1.25, True, None, False, None])
@@ -106,7 +106,7 @@ class BespokePartConstructor(PartConstructor):
         ctrls = [
             self.initialize_ctrl(
                 name='FkUpperarm',
-                shape="body_section_tube",
+                shape='body_section_tube',
                 color=self.colors[0],
                 size=[lengths['FkUpperarm'], 6.5, 6.5],
                 up_direction = [1, 0, 0],
@@ -116,7 +116,7 @@ class BespokePartConstructor(PartConstructor):
             ),
             self.initialize_ctrl(
                 name='FkForearm',
-                shape="body_section_tube",
+                shape='body_section_tube',
                 color=self.colors[0],
                 size=[lengths['FkForearm'], 6.5, 6.5],
                 up_direction = [1, 0, 0],
@@ -126,7 +126,7 @@ class BespokePartConstructor(PartConstructor):
             ),
             self.initialize_ctrl(
                 name='FkHand',
-                shape="body_section_tube",
+                shape='body_section_tube',
                 color=self.colors[0],
                 size=[lengths['FkHand'], 4, 8],
                 up_direction = [1, 0, 0],
@@ -136,7 +136,7 @@ class BespokePartConstructor(PartConstructor):
             ),
             self.initialize_ctrl(
                 name='IkHand',
-                shape="cylinder",
+                shape='cylinder',
                 color=self.colors[0],
                 size=[0.7, 7, 7],
                 up_direction = [1, 0, 0],
@@ -145,7 +145,7 @@ class BespokePartConstructor(PartConstructor):
             ),
             self.initialize_ctrl(
                 name='IkElbow',
-                shape="sphere",
+                shape='sphere',
                 color=self.colors[0],
                 size=[2, 2, 2],
                 side=self.side,
@@ -241,17 +241,14 @@ class BespokePartConstructor(PartConstructor):
 
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
-        segment_names = self.get_segment_names()
-        orienter_keys = self.get_orienter_keys()
-
         limb_rig = LimbRig(
             limb_name=part.name,
             side=part.side,
             prefab=self.limb_type,
-            segment_names=segment_names,
+            segment_names=self.get_segment_names(),
             socket_name='Shoulder',
             pv_name='Elbow',
-            orienters=[orienters[p] for p in orienter_keys],
+            orienters=[orienters[p] for p in self.get_orienter_keys()],
             pv_position=pm.xform(orienters['IkElbow'], q=1, worldSpace=1, rotatePivot=1),
             tweak_scale_factor_node=rig_part_container
         )
