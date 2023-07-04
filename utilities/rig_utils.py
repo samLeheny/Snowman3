@@ -152,12 +152,12 @@ def orienter(name=None, scale=1):
     # Compose orienter name
     cv_data = crv_utils.compose_curve_construct_cvs(curve_data=curves, scale=scale)
     crv_construct = CurveConstruct(name=name, shape=cv_data)
-    orienter = crv_construct.create_scene_obj()
+    orienter_obj = crv_construct.create_scene_obj()
     # Color orienter
-    shapes = orienter.getShapes()
+    shapes = orienter_obj.getShapes()
     for s, c in zip(shapes, colors):
         gen.set_color(s, c)
-    return orienter
+    return orienter_obj
 
 
 
@@ -251,7 +251,6 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
     """
 
 
-
     # Determine control prefix
     ctrl_type_dict = {
         nom.animCtrl : ['animCtrl', 'anim_ctrl', 'anim ctrl', 'anim_control', 'animControl', 'anim', 'Anim', 'AnimCtrl',
@@ -338,10 +337,13 @@ def control(ctrl_info=None, name=None, ctrl_type=None, side=None, parent=None, n
 
 ########################################################################################################################
 def limb_rollers(start_node, end_node, roller_name, world_up_obj, side=None, parent=None, jnt_radius=0.3,
-                 up_axis=(0, 0, 1), ctrl_color=15, roll_axis=(1, 0, 0), ctrl_size=0.15, populate_ctrls=None):
+                 up_axis=(0, 0, 1), ctrl_color=15, roll_axis=(1, 0, 0), ctrl_size=0.15, populate_ctrls=None,
+                 end_place_node=None, start_place_node=None):
     """
 
     """
+    start_place_node = start_place_node or start_node
+    end_place_node = end_place_node or end_node
     populate_ctrls = populate_ctrls if populate_ctrls else [1, 1, 1]
     side_tag = f'{side}_' if side else ''
 
@@ -353,26 +355,26 @@ def limb_rollers(start_node, end_node, roller_name, world_up_obj, side=None, par
 
     #...Start, Mid, and End controls
     def bend_control(tag, match_node, rot_match_node):
-        ctrl = control(ctrl_info={'shape': 'circle',
-                                  'scale': [ctrl_size, ctrl_size, ctrl_size],
-                                  'up_direction': roll_axis,
-                                  'forward_direction': up_axis},
-                       name=f'{roller_name}_bend_{tag}', ctrl_type=nom.animCtrl, side=side, color=ctrl_color)
+        ctrl_ = control(ctrl_info={'shape': 'circle',
+                                   'scale': [ctrl_size, ctrl_size, ctrl_size],
+                                   'up_direction': roll_axis,
+                                   'forward_direction': up_axis},
+                        name=f'{roller_name}_bend_{tag}', ctrl_type=nom.animCtrl, side=side, color=ctrl_color)
         jnt = joint(name=f'{roller_name}bend_{tag}', side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)
-        jnt.setParent(ctrl)
-        mod = gen.buffer_obj(ctrl, suffix='MOD')
+        jnt.setParent(ctrl_)
+        mod = gen.buffer_obj(ctrl_, suffix='MOD')
         buffer = gen.buffer_obj(mod, suffix='BUFFER', _parent=stretch_rig_grp)
         gen.zero_out(buffer)
         pm.delete(pm.pointConstraint(match_node, buffer))
         buffer.scale.set(1, 1, 1)
-        return jnt, ctrl, mod, buffer
+        return jnt, ctrl_, mod, buffer
 
     start_jnt, start_ctrl, start_mod, start_buffer = bend_control(
-        tag='start', match_node=start_node, rot_match_node=start_node)
+        tag='start', match_node=start_place_node, rot_match_node=start_node)
     mid_jnt, mid_ctrl, mid_mod, mid_buffer = bend_control(
-        tag='mid', match_node=(start_node, end_node), rot_match_node=start_node)
+        tag='mid', match_node=(start_place_node, end_place_node), rot_match_node=start_node)
     end_jnt, end_ctrl, end_mod, end_buffer = bend_control(
-        tag='end', match_node=end_node, rot_match_node=start_node)
+        tag='end', match_node=end_place_node, rot_match_node=start_node)
 
     #...Exclude controls based on arguments
     for ctrl, param in zip((start_ctrl, mid_ctrl, end_ctrl), populate_ctrls):
@@ -388,16 +390,15 @@ def limb_rollers(start_node, end_node, roller_name, world_up_obj, side=None, par
     roll_socket_target = pm.spaceLocator(name=f'{side_tag}{roller_name}_rollStart_target_{nom.locator}')
     roll_socket_target.setParent(start_node)
     gen.zero_out(roll_socket_target)
+    pm.delete(pm.pointConstraint(start_place_node, start_roll_loc))
     pm.delete(pm.orientConstraint(start_roll_loc, roll_socket_target))
-    gen.matrix_constraint(objs=[roll_socket_target, start_roll_loc], decompose=True,
-                                maintain_offset=True, translate=True, rotate=True, scale=False, shear=False)
+    pm.parentConstraint(roll_socket_target, start_roll_loc, mo=1)
 
     end_roll_loc = pm.spaceLocator(name=f'{side_tag}{roller_name}_roll_end_{nom.locator}')
     end_roll_loc.setParent(stretch_rig_grp)
     gen.zero_out(end_roll_loc)
     pm.delete(pm.pointConstraint(end_ctrl, end_roll_loc))
-    gen.matrix_constraint(objs=[end_node, end_roll_loc], decompose=True, maintain_offset=True,
-                                translate=True, rotate=True, scale=False, shear=False)
+    pm.parentConstraint(end_node, end_roll_loc, mo=1)
 
     #...Position ctr grps based on locators
     #...Start
@@ -623,12 +624,12 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
 
 
 ########################################################################################################################
-def joint_rot_to_ori(joint):
-    jointOrient_attrs = ("jointOrientX", "jointOrientY", "jointOrientZ")
+def joint_rot_to_ori(joint_):
+    jointOrient_attrs = ('jointOrientX', 'jointOrientY', 'jointOrientZ')
     for i in range(3):
-        pm.setAttr(f'{joint}.{jointOrient_attrs[i]}',
-                   pm.getAttr(f'{joint}.{jointOrient_attrs[i]}') + pm.getAttr(f'{joint}.{gen.rotate_attrs[i]}'))
-    pm.setAttr(joint.rotate, 0, 0, 0)
+        pm.setAttr(f'{joint_}.{jointOrient_attrs[i]}',
+                   pm.getAttr(f'{joint_}.{jointOrient_attrs[i]}') + pm.getAttr(f'{joint_}.{gen.ROTATE_ATTRS[i]}'))
+    pm.setAttr(joint_.rotate, 0, 0, 0)
 
 
 

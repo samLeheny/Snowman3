@@ -525,13 +525,13 @@ class LimbRig:
 
             if i == 0:
                 length_end_1 = self.ctrls['socket']
-                length_end_2 = self.pin_ctrls[current_pin_ctrl_index]
+                length_end_2 = self.segments[i+1].blend_jnt # self.pin_ctrls[current_pin_ctrl_index]
             else:
-                length_end_1 = self.pin_ctrls[current_pin_ctrl_index]
+                length_end_1 = self.segments[i].blend_jnt # self.pin_ctrls[current_pin_ctrl_index]
                 if i == len(self.segments)-3:
                     length_end_2 = self.segments[i+1].blend_jnt
                 else:
-                    length_end_2 = self.pin_ctrls[current_pin_ctrl_index+1]
+                    length_end_2 = self.segments[i+1].blend_jnt # self.pin_ctrls[current_pin_ctrl_index+1]
                 current_pin_ctrl_index += 1
 
             self.install_ribbon(
@@ -590,7 +590,9 @@ class LimbRig:
             rollers = rig.limb_rollers(
                 world_up_obj = self.segments[i].blend_jnt,
                 start_node = start_node,
+                start_place_node = self.segments[i].blend_jnt,
                 end_node = end_node,
+                end_place_node = self.segments[i+1].blend_jnt,
                 roller_name = self.segments[i].segment_name,
                 jnt_radius = jnt_radius,
                 up_axis = up_axis,
@@ -625,7 +627,7 @@ class LimbRig:
         #...Create joints ---------------------------------------------------------------------------------------------
         for i, seg in enumerate(self.segments):
             blend_jnt = seg.blend_jnt = rig.joint(name=f'{seg.segment_name}_blend', side=self.side,
-                                                        joint_type=nom.nonBindJnt, radius=jnt_size)
+                                                  joint_type=nom.nonBindJnt, radius=jnt_size)
             self.blend_jnts.append(blend_jnt)
             if i > 0:
                 blend_jnt.setParent(self.segments[i - 1].blend_jnt)

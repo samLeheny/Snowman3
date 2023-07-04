@@ -22,6 +22,10 @@ OrienterManager = placer_utils.OrienterManager
 
 import Snowman3.riggers.utilities.constraint_utils as constraint_utils
 importlib.reload(constraint_utils)
+
+import Snowman3.riggers.utilities.blendpose_utils as bputils
+importlib.reload(bputils)
+BlendposeManager = bputils.BlendposeManager
 ###########################
 ###########################
 
@@ -63,6 +67,7 @@ class RigManager:
         self.build_all_rig_parts(blueprint.parts)
         self.perform_attribute_handoffs(blueprint.attribute_handoffs)
         self.make_custom_constraints(blueprint.custom_constraints)
+        self.apply_blendposes(blueprint.blendposes)
         self.kill_unwanted_controls(blueprint.kill_ctrls)
         self.arrange_hierarchy(blueprint.parts)
 
@@ -98,6 +103,11 @@ class RigManager:
         for package in constraint_data:
             self.make_custom_constraint(package)
         pm.select(clear=1)
+
+
+    def apply_blendposes(self, data):
+        manager = BlendposeManager()
+        manager.build_blendposes_from_data(data)
 
 
     def arrange_hierarchy(self, parts):

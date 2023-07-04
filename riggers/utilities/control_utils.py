@@ -62,8 +62,8 @@ class Control:
         self.match_position = match_position
         self.side = side
         self.part_name = part_name
-        self.data_name = self.create_data_name()
-        self.scene_name = self.create_scene_name()
+        self.data_name = self._create_data_name()
+        self.scene_name = self._create_scene_name()
 
 
     @classmethod
@@ -73,11 +73,11 @@ class Control:
         return Control(**inst_inputs)
 
 
-    def create_scene_name(self):
+    def _create_scene_name(self):
         return f'{gen.side_tag(self.side)}{self.part_name}_{self.name}_{CTRL_TAG}'
 
 
-    def create_data_name(self):
+    def _create_data_name(self):
         return f'{gen.side_tag(self.side)}{self.name}'
 
 
@@ -88,8 +88,8 @@ class Control:
     def format_data_to_part(self, part_key):
         self.part_name = part_key
         self.side = self.side
-        self.scene_name = self.create_scene_name()
-        self.data_name = self.create_data_name()
+        self.scene_name = self._create_scene_name()
+        self.data_name = self._create_data_name()
 
 
     def flip(self):
@@ -97,8 +97,8 @@ class Control:
             return False
         self.side = gen.opposite_side(self.side)
         self.color = COLOR_CODE[self.side]
-        self.data_name = self.create_data_name()
-        self.scene_name = self.create_scene_name()
+        self.data_name = self._create_data_name()
+        self.scene_name = self._create_scene_name()
         if self.position:
             self.position[0] = -self.position[0]
 

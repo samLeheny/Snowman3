@@ -282,6 +282,13 @@ class SceneInteractor:
 
 
 
+    def add_blendposes_to_blueprint(self):
+        self.blueprint_manager.add_blendposes_to_blueprint()
+        self.update_working_blueprint_file()
+
+
+
+
     @staticmethod
     def create_part(**args):
         return Part.create_from_data(**args)

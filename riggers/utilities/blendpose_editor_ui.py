@@ -324,6 +324,7 @@ class BlendposeEditor(QtWidgets.QDialog):
         spinbox.valueChanged.connect(apply_spinbox_to_slider)
         slider.valueChanged.connect(apply_slider_to_spinbox)
 
+
     def add_commit_button(self, blendpose_key, tree_item):
         commit_button = QtWidgets.QPushButton('Commit')
         self.tree_wdg.setItemWidget(tree_item, 2, commit_button)
@@ -333,11 +334,14 @@ class BlendposeEditor(QtWidgets.QDialog):
 
         commit_button.clicked.connect(new_anim_key_from_transforms)
 
+
     def refresh_tree_widget(self):
         self.blendpose_manager = BlendposeManager.populate_manager_from_scene()
         self.tree_wdg.clear()
         for pose_name in self.blendpose_manager.blendpose_order:
-            self.add_blendpose_to_tree(pose_name, pose_name)
+            node_name = self.blendpose_manager.get_hook_node(pose_name).nodeName()
+            self.add_blendpose_to_tree(node_name, pose_name)
+
 
     def get_tree_item_count(self, top_items_only=False):
         count = 0
@@ -351,6 +355,7 @@ class BlendposeEditor(QtWidgets.QDialog):
             iterator += 1
         return count
 
+
     def add_blendpose_to_tree(self, node_name, blendpose_key):
         blendpose = self.blendpose_manager.blendposes[blendpose_key]
         item = self.create_item(node_name)
@@ -360,6 +365,7 @@ class BlendposeEditor(QtWidgets.QDialog):
         item.setExpanded(blendpose.isExpanded)
         self.set_script_job_enabled(blendpose, item)
 
+
     def set_script_job_enabled(self, blendpose, item):
         return
         func = partial(self.update_blendpose_name_from_scene, item, blendpose)
@@ -367,11 +373,13 @@ class BlendposeEditor(QtWidgets.QDialog):
                                      killWithScene=1)
         self.script_job_ids['node name changed'] = script_job_id
 
+
     def add_tree_children(self, item, blendpose):
         if not blendpose.target_poses:
             return None
         for target_key in blendpose.target_pose_order:
             self.add_child_to_tree_item(blendpose, blendpose.target_poses[target_key], item)
+
 
     def add_child_to_tree_item(self, blendpose, target_pose, item):
         child_item = self.create_item(target_pose.name)

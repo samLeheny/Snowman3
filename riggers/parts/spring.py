@@ -123,6 +123,7 @@ class BespokePartConstructor(PartConstructor):
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         part_keys = ['Start', 'Mid', 'End']
+        radius_ratio = 8
 
         # ...Ctrls
         [scene_ctrls[k].setParent(transform_grp) for k in part_keys]
@@ -138,20 +139,21 @@ class BespokePartConstructor(PartConstructor):
         spring_length = gen.distance_between( obj_1=orienters['Start'], obj_2=orienters['End'] )
 
         # ...Jnts
-        jnt_radius = spring_length / 8
+        jnt_radius = spring_length / radius_ratio
         jnts = {}
         for k in part_keys:
             jnts[k] = rig.joint(name=f'{part.name}_{k}', side=part.side, joint_type='bind', radius=jnt_radius,
                                 parent=scene_ctrls[k])
             gen.zero_out(jnts[k])
 
-        for target_node, source_node, aim_vector in ([jnts['Start'], scene_ctrls['End'], (0, 0, 1)],
-                                                     [jnts['End'], scene_ctrls['Start'], (0, 0, -1)]):
+        # ...Mid Ctrls
+        pm.pointConstraint(scene_ctrls['Start'], scene_ctrls['End'], offsets['Mid'])
+
+        for source_node, target_node, aim_vector in ([scene_ctrls['Mid'], jnts['Start'], (0, 0, 1)],
+                                                     [scene_ctrls['Mid'], jnts['End'], (0, 0, -1)],
+                                                     [scene_ctrls['End'], offsets['Mid'], (0, 0, 1)]):
             pm.aimConstraint(source_node, target_node, aimVector=aim_vector, upVector=(0, 1, 0),
                              worldUpVector=(0, 1, 0), worldUpType='objectrotation', worldUpObject=source_node)
-
-        # ...Mid Ctrls
-        pm.parentConstraint(jnts['Start'], jnts['End'], offsets['Mid'])
 
         # ...Part nodes
         self.part_nodes = { k: scene_ctrls[k] for k in part_keys }

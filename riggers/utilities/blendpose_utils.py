@@ -11,6 +11,7 @@ import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
 import Snowman3.riggers.utilities.animCurve_utils as acrv
 importlib.reload(acrv)
+AnimCurve = acrv.AnimCurve
 ###########################
 ###########################
 
@@ -20,6 +21,9 @@ importlib.reload(acrv)
 ANIM_CURVE_NODE_TYPE = ('animCurveUA', 'animCurveUL', 'animCurveUT', 'animCurveUU',
                         'animCurveTA', 'animCurveTL', 'animCurveTT', 'animCurveTU')
 TRANSFORM_ATTRS = ('tx', 'ty', 'tz', 'rx', 'ry', 'rz')
+HOOK_NODE_TYPE = 'transform'
+HOOK_NODE_ID_ATTR = 'IsBlendposeNode'
+HOOK_NODE_SUFFIX = 'BPHook'
 ###########################
 ###########################
 
@@ -27,6 +31,9 @@ TRANSFORM_ATTRS = ('tx', 'ty', 'tz', 'rx', 'ry', 'rz')
 
 # ----------------------------------------------------------------------------------------------------------------------
 class BlendposeManager:
+
+    HOOK_NODE_TYPE = HOOK_NODE_TYPE
+    HOOK_NODE_ID_ATTR = HOOK_NODE_ID_ATTR
 
     def __init__(self):
         self.blendposes = {}
@@ -38,7 +45,7 @@ class BlendposeManager:
     def populate_manager_from_scene(cls):
         manager = BlendposeManager()
         all_hook_nodes = manager.get_hook_nodes_in_scene()
-        [manager.add_existing_blendpose(hook_node=node) for node in all_hook_nodes]
+        [ manager.add_existing_blendpose(hook_node_name=node.nodeName()) for node in all_hook_nodes ]
         return manager
 
 
@@ -53,30 +60,24 @@ class BlendposeManager:
 
 
 
-    def generate_new_blendpose_name(self):
-        first_part = 'blendpose'
-        existing_named_nodes = pm.ls(f'{first_part}*')
-        numerically_named_nodes = []
-        for node_name in existing_named_nodes:
-            end_particle = node_name.split(first_part)[1]
-            if end_particle.isnumeric():
-                numerically_named_nodes.append(end_particle)
-        first_available_number = 1
-        for i in range(len(numerically_named_nodes)+1):
-            n = i + 1
-            if str(n) not in numerically_named_nodes:
-                first_available_number = n
-                break
-        return f'{first_part}{first_available_number}'
+    def add_blendpose_from_data(self, **kwargs):
+        blendpose = Blendpose.create_from_data(**kwargs)
+        self.blendpose_order.append(blendpose.name)
+        self.blendposes[blendpose.name] = blendpose
 
 
 
-    def add_existing_blendpose(self, name=None, hook_node=None):
-        if hook_node and not name:
-            name = hook_node.nodeName()
+    def add_existing_blendpose(self, name=None, hook_node_name=None):
+        if hook_node_name and not name:
+            name = hook_node_name.split('_BPHook')[0]
         if name not in self.blendpose_order:
             self.blendpose_order.append(name)
         self.blendposes[name] = Blendpose.create_blendpose_from_scene(name=name)
+
+
+
+    def connect_output_objs_to_blendpose(self, blendpose_key):
+        self.blendposes[blendpose_key].connect_all_output_objs()
 
 
 
@@ -103,6 +104,7 @@ class BlendposeManager:
         blendpose = self.blendposes[blendpose_key]
         new_name = blendpose.rename_target_pose(current_target_name, new_target_name)
         return new_name
+
 
 
     def add_output_objs(self, blendpose_key, *objs):
@@ -229,6 +231,7 @@ class BlendposeManager:
         return blendpose.hook_node.get_node()
 
 
+
     def select_hook_node(self, blendpose_key):
         hook_node = self.get_hook_node(blendpose_key)
         pm.select(hook_node, replace=1)
@@ -240,15 +243,45 @@ class BlendposeManager:
 
 
 
-    @staticmethod
-    def get_hook_nodes_in_scene():
-        blendpose_identifier = 'IsBlendposeNode'
-        all_nodes = pm.ls(dependencyNodes=1)
-        hook_nodes = []
-        for node in all_nodes:
-            if pm.attributeQuery(blendpose_identifier, node=node, exists=1):
-                hook_nodes.append(node)
+    def all_blendposes_data_dict(self):
+        return {key: self.blendposes[key].data_dict() for key in self.blendposes}
+
+
+
+    def build_blendposes_from_data(self, data):
+        for key in data:
+            self.add_blendpose_from_data(**data[key])
+            self.connect_output_objs_to_blendpose(key)
+            blendpose = self.blendposes[key]
+            for target_pose in blendpose.target_poses.values():
+                self.add_target_pose(blendpose.name, target_pose.name)
+                [anim_curve.node_from_data() for anim_curve in target_pose.anim_curves]
+
+
+
+    def get_hook_nodes_in_scene(self):
+        nodes = pm.ls(type=self.HOOK_NODE_TYPE)
+        hook_nodes = [node for node in nodes if pm.attributeQuery(self.HOOK_NODE_ID_ATTR, node=node, exists=1)]
         return hook_nodes
+
+
+
+    @staticmethod
+    def generate_new_blendpose_name():
+        first_part = 'blendpose'
+        existing_named_nodes = pm.ls(f'{first_part}*')
+        numerically_named_nodes = []
+        for node_name in existing_named_nodes:
+            end_particle = node_name.split(first_part)[1]
+            if end_particle.isnumeric():
+                numerically_named_nodes.append(end_particle)
+        first_available_number = 1
+        for i in range(len(numerically_named_nodes)+1):
+            n = i + 1
+            if str(n) not in numerically_named_nodes:
+                first_available_number = n
+                break
+        return f'{first_part}{first_available_number}'
 
 
 
@@ -262,17 +295,17 @@ class Blendpose:
 
     def __init__(
         self,
-        name = None,
+        name,
         target_poses = None,
         output_objs = None,
+        target_pose_order = None,
     ):
         self.name = name
+        self.target_poses = target_poses or {}
+        self.output_objs = output_objs or []
+        self.target_pose_order = target_pose_order or []
         self.hook_node = HookNode.produce(name)
-        self.target_poses = target_poses if target_poses else {}
-        self.output_objs = output_objs if output_objs else []
-        self.key_frames = []
         self.isExpanded = True
-        self.target_pose_order = []
 
 
 
@@ -280,10 +313,32 @@ class Blendpose:
     def create_blendpose_from_scene(cls, name=None):
         blendpose = Blendpose(name=name)
         blendpose.target_poses = blendpose.get_target_poses_from_node()
-        for key in blendpose.target_poses:
-            blendpose.target_pose_order.append(key)
+        [ blendpose.target_pose_order.append(key) for key in blendpose.target_poses ]
         blendpose.output_objs = blendpose.get_output_objs_from_connections()
         return blendpose
+
+
+
+    @classmethod
+    def create_from_data(cls, **kwargs):
+        inst_inputs = Blendpose._get_inst_inputs(**kwargs)
+
+        if 'output_objs' in inst_inputs:
+            inst_inputs['output_objs'] = cls.get_output_objs(inst_inputs['output_objs'])
+
+        if 'target_poses' in inst_inputs:
+            inst_inputs['target_poses'] = { k: TargetPose.create_from_data(**v)
+                                            for k, v in inst_inputs['target_poses'].items() }
+
+        return Blendpose(**inst_inputs)
+
+
+
+    @classmethod
+    def _get_inst_inputs(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        return inst_inputs
 
 
 
@@ -303,19 +358,33 @@ class Blendpose:
 
     def add_target_pose(self, name):
         #
-        index = self.hook_node.get_next_available_weight_index()
+        index = self.get_next_available_weight_index()
         self.target_poses[name] = TargetPose(name=name, weight_attr_index=index)
         self.isExpanded = True
         self.target_pose_order.append(name)
         #
+        self.create_target_pose_on_hook_node(name, index)
+
+
+
+    def get_next_available_weight_index(self):
+        return self.hook_node.get_next_available_weight_index()
+
+
+
+    def create_target_pose_on_hook_node(self, name, index):
         self.hook_node.add_target_pose(name, index)
 
 
 
     def add_output_objs(self, *objs):
         self.output_objs = self.output_objs + list(objs)
-        for obj in objs:
-            self.hook_node.connect_output_obj(obj)
+        [self.hook_node.connect_output_obj(obj) for obj in objs]
+
+
+
+    def connect_all_output_objs(self):
+        [self.hook_node.connect_output_obj(obj) for obj in self.output_objs]
 
 
 
@@ -508,6 +577,18 @@ class Blendpose:
 
 
 
+    def data_dict(self):
+        attrs = vars(self).copy()
+        exclusion = ('isExpanded', 'target_poses', 'hook_node', 'output_objs')
+        for k in exclusion:
+            del attrs[k]
+        attrs['target_poses'] = { k: self.target_poses[k].data_dict(self.hook_node) for k in self.target_poses }
+        attrs['hook_node'] = self.hook_node.name
+        attrs['output_objs'] = [ obj.nodeName() for obj in self.output_objs ]
+        return attrs
+
+
+
     @staticmethod
     def all_transforms_are_zero(transform_vals):
         for v in list(transform_vals.values()):
@@ -523,14 +604,28 @@ class Blendpose:
 
 
 
+    @staticmethod
+    def get_output_objs(objs):
+        for i, obj in enumerate(objs):
+            if not type(obj) == str:
+                continue
+            if pm.objExists(obj):
+                objs[i] = pm.PyNode(obj)
+        return objs
+
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 class HookNode:
 
     ANIM_CURVE_NODE_TYPES = ANIM_CURVE_NODE_TYPE
+    HOOK_NODE_TYPE = HOOK_NODE_TYPE
+    HOOK_NODE_ID_ATTR = HOOK_NODE_ID_ATTR
     WEIGHT_ATTR_NAME = 'Weight'
     OUTPUT_ATTR_NAME = 'OutputObjs'
     BLENDPOSE_DRIVER_ATTR_NAME = 'BlendposeDriver'
     TRANSFORM_ATTRS = TRANSFORM_ATTRS
+    HOOK_NODE_SUFFIX = HOOK_NODE_SUFFIX
 
     def __init__(
         self,
@@ -539,15 +634,17 @@ class HookNode:
     ):
         self.name = name
         self.node = node
+        self.blendpose_name = name
 
 
 
     @classmethod
     def produce(cls, name):
-        if pm.objExists(name):
-            hook_node = cls.get_from_scene(name)
+        node_name = name
+        if pm.objExists(node_name):
+            hook_node = cls.get_from_scene(node_name)
         else:
-            hook_node = cls.create(name)
+            hook_node = cls.create(node_name)
         return hook_node
 
 
@@ -562,27 +659,26 @@ class HookNode:
 
     @classmethod
     def create(cls, name):
-        node_type = 'transform'
+        node_type = cls.HOOK_NODE_TYPE
         node = pm.shadingNode(node_type, name=name, au=1)
         hook_node = HookNode(name=name, node=node)
-        hook_node.add_attrs_to_node()
         hook_node.mark_node()
+        hook_node.add_attrs_to_node()
         return hook_node
 
 
 
     def add_attrs_to_node(self):
         attr_names = {'weight': self.WEIGHT_ATTR_NAME,
-                      'output objs': 'OutputObjs'}
+                      'output objs': self.OUTPUT_ATTR_NAME}
         pm.addAttr(self.node, longName=attr_names['weight'], attributeType='float', multi=1, keyable=1)
         pm.addAttr(self.node, longName=attr_names['output objs'], dataType='string', keyable=0)
 
 
 
     def mark_node(self):
-        attr_name = 'IsBlendposeNode'
-        pm.addAttr(self.node, longName=attr_name, attributeType=bool, keyable=0)
-        pm.setAttr(f'{self.node}.{attr_name}', 1, lock=1)
+        pm.addAttr(self.node, longName=self.HOOK_NODE_ID_ATTR, attributeType=bool, keyable=0)
+        pm.setAttr(f'{self.node}.{self.HOOK_NODE_ID_ATTR}', 1, lock=1)
 
 
 
@@ -658,7 +754,8 @@ class HookNode:
 
     def connect_output_obj(self, obj):
         input_attr_name = self.BLENDPOSE_DRIVER_ATTR_NAME
-        pm.addAttr(obj, longName=input_attr_name, dataType='string', keyable=0)
+        if not pm.attributeQuery(input_attr_name, node=obj, exists=1):
+            pm.addAttr(obj, longName=input_attr_name, dataType='string', keyable=0)
         pm.connectAttr(f'{self.node}.{self.OUTPUT_ATTR_NAME}', f'{obj}.{input_attr_name}')
 
 
@@ -755,6 +852,29 @@ class HookNode:
 
 
 
+    def get_output_objs_from(self):
+        return pm.listConnections(f'{self.node}.{self.OUTPUT_ATTR_NAME}', s=0, d=1, scn=1)
+
+
+    '''
+    def get_blendpose_name(self):
+        if not self.name.endswith(f'_{self.HOOK_NODE_SUFFIX}'):
+            return self.name
+        else:
+            return self.name.split(f'_{self.HOOK_NODE_SUFFIX}')[0]
+
+
+    
+    @staticmethod
+    def hook_node_name(name, suffix):
+        if name.endswith(f'_{suffix}'):
+            return name
+        else:
+            return f'{name}_{suffix}
+    '''
+
+
+
     @staticmethod
     def crop_multi_attr(attr):
         orig_array_size = pm.getAttr(attr, size=1)
@@ -788,14 +908,20 @@ class TargetPose:
     def __init__(
         self,
         name,
-        weight_attr_index
+        weight_attr_index,
+        key_frames = None,
+        anim_curves = None,
+        current_weight_value = None,
+        float_range = None,
+        slider_range = None
     ):
         self.name = name
-        self.key_frames = []
-        self.current_weight_value = 1
         self.weight_attr_index = weight_attr_index
-        self.float_range = [0, 1]
-        self.slider_range = [0, 1]
+        self.key_frames = key_frames or []
+        self.anim_curves = anim_curves
+        self.current_weight_value = current_weight_value or 1
+        self.float_range = float_range or [0, 1]
+        self.slider_range = slider_range or [0, 1]
 
 
 
@@ -825,11 +951,30 @@ class TargetPose:
 
 
 
+    @classmethod
+    def create_from_data(cls, **kwargs):
+        inst_inputs = TargetPose._get_inst_inputs(**kwargs)
+
+        if inst_inputs['anim_curves']:
+            inst_inputs['anim_curves'] = [ AnimCurve.create_from_data(**data) for data in inst_inputs['anim_curves'] ]
+
+        return TargetPose(**inst_inputs)
+
+
+
+    @classmethod
+    def _get_inst_inputs(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        return inst_inputs
+
+
+
     def get_float_range(self):
-        default_pose_range = [0, 1]
+        default_pose_range = [0.0, 1.0]
         if not self.key_frames:
             return default_pose_range
-        return min(self.key_frames), max(self.key_frames)
+        return [min(self.key_frames), max(self.key_frames)]
 
 
 
@@ -939,6 +1084,23 @@ class TargetPose:
 
 
 
+    def export_anim_curves(self, hook_node):
+        anim_curve_nodes = self.get_anim_curve_nodes(hook_node)
+        anim_curves = [ AnimCurve.create_from_node(node) for node in anim_curve_nodes ]
+        anim_curves_data = [curve.data_dict() for curve in anim_curves]
+        return anim_curves_data
+
+
+
+    def data_dict(self, hook_node):
+        attrs = vars(self).copy()
+
+        attrs['anim_curves'] = self.export_anim_curves(hook_node)
+
+        return attrs
+
+
+
     @staticmethod
     def get_opposite_obj_via_name(obj):
         return gen.get_opposite_side_obj(obj)
@@ -950,3 +1112,52 @@ class TargetPose:
         node = acrv.get_node_from_attr(attr)
         for plug in pm.listConnections(attr, s=0, d=1, plugs=1, scn=1):
             acrv.disconnect_anim_curve(node, plug)
+
+
+    # ------------------------------------------------------------------------------------------------------------------
+    blendposes = {
+        'Face': {
+            'name': 'Face',
+            'target_pose_order': [
+                'JawVert',
+                'JawHor'
+            ],
+            'target_poses': {
+                'JawVert': {
+                    'name': 'JawVert',
+                    'weight_attr_index': 0,
+                    'key_frames': [
+                        0.0,
+                        1.0
+                    ],
+                    'current_weight_value': 1.0,
+                    'float_range': (
+                        0.0,
+                        1.0
+                    ),
+                    'slider_range': [
+                        0,
+                        1
+                    ]
+                },
+                'JawHor': {
+                    'name': 'JawHor',
+                    'weight_attr_index': 1,
+                    'key_frames': [],
+                    'current_weight_value': 1.0,
+                    'float_range': [
+                        0,
+                        1
+                    ],
+                    'slider_range': [
+                        0,
+                        1
+                    ]
+                }
+            },
+            'hook_node': 'Face',
+            'output_objs': [
+                'bind_jaw'
+            ]
+        }
+    }

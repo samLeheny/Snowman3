@@ -115,6 +115,7 @@ class BespokePartConstructor(PartConstructor):
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         part_keys = ['Start', 'End']
+        radius_ratio = 8
 
         # ...Ctrls
         [scene_ctrls[k].setParent(transform_grp) for k in part_keys]
@@ -130,7 +131,7 @@ class BespokePartConstructor(PartConstructor):
         piston_length = gen.distance_between( obj_1=orienters['Start'], obj_2=orienters['End'] )
 
         # ...Jnts
-        jnt_radius = piston_length / 8
+        jnt_radius = piston_length / radius_ratio
         jnts = {}
         for k in part_keys:
             jnts[k] = rig.joint(name=f'{part.name}_{k}', side=part.side, joint_type='bind', radius=jnt_radius,
