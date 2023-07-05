@@ -253,8 +253,8 @@ class BlendposeManager:
             self.add_blendpose_from_data(**data[key])
             self.connect_output_objs_to_blendpose(key)
             blendpose = self.blendposes[key]
-            for target_pose in blendpose.target_poses.values():
-                self.add_target_pose(blendpose.name, target_pose.name)
+            for i, target_pose in enumerate(blendpose.target_poses.values()):
+                blendpose.create_target_pose_on_hook_node(target_pose)
                 [anim_curve.node_from_data() for anim_curve in target_pose.anim_curves]
 
 
@@ -363,7 +363,7 @@ class Blendpose:
         self.isExpanded = True
         self.target_pose_order.append(name)
         #
-        self.create_target_pose_on_hook_node(name, index)
+        self.create_target_pose_on_hook_node(self.target_poses[name])
 
 
 
@@ -372,8 +372,8 @@ class Blendpose:
 
 
 
-    def create_target_pose_on_hook_node(self, name, index):
-        self.hook_node.add_target_pose(name, index)
+    def create_target_pose_on_hook_node(self, target_pose):
+        self.hook_node.add_target_pose(target_pose)
 
 
 
@@ -669,10 +669,8 @@ class HookNode:
 
 
     def add_attrs_to_node(self):
-        attr_names = {'weight': self.WEIGHT_ATTR_NAME,
-                      'output objs': self.OUTPUT_ATTR_NAME}
-        pm.addAttr(self.node, longName=attr_names['weight'], attributeType='float', multi=1, keyable=1)
-        pm.addAttr(self.node, longName=attr_names['output objs'], dataType='string', keyable=0)
+        pm.addAttr(self.node, longName=self.WEIGHT_ATTR_NAME, attributeType='float', multi=1, keyable=1)
+        pm.addAttr(self.node, longName=self.OUTPUT_ATTR_NAME, dataType='string', keyable=0)
 
 
 
@@ -682,10 +680,24 @@ class HookNode:
 
 
 
-    def add_target_pose(self, name, index):
+    def add_target_pose(self, target_pose):
         weight_attr_name = self.WEIGHT_ATTR_NAME
-        pm.aliasAttr(name, f'{self.node}.{weight_attr_name}[{index}]')
-        pm.setAttr(f'{self.node}.{weight_attr_name}[{index}]', 1)
+        weight_plug = f'{self.node}.{weight_attr_name}[{target_pose.weight_attr_index}]'
+        pm.aliasAttr(target_pose.name, weight_plug)
+        pm.setAttr(f'{self.node}.{weight_attr_name}[{target_pose.weight_attr_index}]', 1)
+        if target_pose.driver:
+            self.connect_target_pose_weight_attr(weight_plug, target_pose.driver)
+
+
+
+    def connect_target_pose_weight_attr(self, weight_plug, driver_data):
+        driver_node, driver_attr = driver_data
+        if not pm.objExists(driver_node):
+            return False
+        if not pm.attributeQuery(driver_attr, node=weight_plug, exists=1):
+            return False
+        driver_plug = f'{driver_node}.{driver_attr}'
+        pm.connectAttr(driver_plug, weight_plug)
 
 
 
@@ -856,24 +868,6 @@ class HookNode:
         return pm.listConnections(f'{self.node}.{self.OUTPUT_ATTR_NAME}', s=0, d=1, scn=1)
 
 
-    '''
-    def get_blendpose_name(self):
-        if not self.name.endswith(f'_{self.HOOK_NODE_SUFFIX}'):
-            return self.name
-        else:
-            return self.name.split(f'_{self.HOOK_NODE_SUFFIX}')[0]
-
-
-    
-    @staticmethod
-    def hook_node_name(name, suffix):
-        if name.endswith(f'_{suffix}'):
-            return name
-        else:
-            return f'{name}_{suffix}
-    '''
-
-
 
     @staticmethod
     def crop_multi_attr(attr):
@@ -913,7 +907,8 @@ class TargetPose:
         anim_curves = None,
         current_weight_value = None,
         float_range = None,
-        slider_range = None
+        slider_range = None,
+        driver = None,
     ):
         self.name = name
         self.weight_attr_index = weight_attr_index
@@ -922,6 +917,7 @@ class TargetPose:
         self.current_weight_value = current_weight_value or 1
         self.float_range = float_range or [0, 1]
         self.slider_range = slider_range or [0, 1]
+        self.driver = driver
 
 
 
@@ -1092,10 +1088,21 @@ class TargetPose:
 
 
 
+    def get_driver_plug(self, hook_node):
+        target_pose_weight_plug = f'{hook_node.name}.Weight[{self.weight_attr_index}]'
+        possible_driver_plugs = pm.listConnections(target_pose_weight_plug, s=1, d=0, scn=1, plugs=1)
+        if not possible_driver_plugs:
+            return None
+        driving_node = pm.listConnections(target_pose_weight_plug, s=1, d=0, scn=1)[0]
+        return [driving_node.nodeName(), str(possible_driver_plugs[0]).split('.', 1)[1]]
+
+
+
     def data_dict(self, hook_node):
         attrs = vars(self).copy()
 
         attrs['anim_curves'] = self.export_anim_curves(hook_node)
+        attrs['driver'] = self.get_driver_plug(hook_node)
 
         return attrs
 
