@@ -103,94 +103,37 @@ safe_parent
 
 
 ########################################################################################################################
-def buffer_obj(child, suffix=None, name=None, _parent=None):
-    """
-        Creates a new transform object above provided object and moves provided object's dirty transforms into the new
-            parent, allowing the child's transforms to be clean (zeroed) while maintaining its world transforms.
-        Args:
-            child (dagNode): The object to be moved into new buffer obj.
-            suffix (string): String to be appended to child object's name to produce the name of the new buffer obj.
-            name (string): (Optional) If provided, suffix parameter will be ignored and instead the new buffer obj's
-                name will be determined by this argument.
-            _parent (dagNode): (Optional) Specifies object to parent new buffer node to. If argument not provided, will
-                default to parenting new buffer obj to child obj's original parent.
-        Returns:
-            (transform node) The newly created buffer obj.
-    """
+def buffer_obj(*objs, suffix=None, parent_=None):
 
-    def remove_leading_underscore(_string):
-        if _string[0] == '_':
-            _suffix = _string.split('_')[1]
-        return _string
+    suffix = suffix or 'Buffer'
 
+    def strip_suffix(str_):
+        return str_.rsplit('_', 1)[0]
 
-    pm.select(clear=1)
-
-    # Variables
-    default_suffix = 'buffer'
-    child_name = get_clean_name(child.nodeName())
-
-    # Ensure a valid naming method for new buffer obj
-    if not name:
-        suffix = suffix if suffix else default_suffix
-        suffix = remove_leading_underscore(suffix)
-
-    # Check if child's transforms are free to be cleaned (not receiving connections)
-    connected_attrs = []
-
-    for attr in ALL_TRANSFORM_ATTRS:
-        incoming_connection = pm.listConnections(f'{child}.{attr}', source=1, destination=0, plugs=1)
-        if incoming_connection:
-            connected_attrs.append(f'{child_name}.{attr}')
-
-    if connected_attrs:
-        error_string = ''
-        for attr in connected_attrs:
-            error_string += f'{attr}\n'
-        pm.error("\nCould not clean child object transforms - The following transforms have incoming connections:"
-                 f"\n{error_string}\n")
-
-    # Check for locked attributes. If any are found, remember them, then unlock them for the duration of this function
     lock_memory = []
-    for attr in ALL_TRANSFORM_ATTRS:
-        if pm.getAttr(f'{child}.{attr}', lock=1):
-            lock_memory.append(attr)
-            pm.setAttr(f'{child}.{attr}', lock=0)
+    for obj in objs:
+        lock_memory.append([attr for attr in ALL_TRANSFORM_ATTRS if pm.getAttr(f'{obj}.{attr}', lock=1)])
+        [pm.setAttr(f'{obj}.{attr}', lock=0) for attr in ALL_TRANSFORM_ATTRS if pm.getAttr(f'{obj}.{attr}', lock=1)]
 
-    # Get child obj's parent
-    world_is_original_parent = False
-    if not _parent:
-        _parent = child.getParent()
-    if not _parent:
-        world_is_original_parent = True
+    def create_buffer(obj_, par=parent_):
+        buffer_name = f'{strip_suffix(obj_.nodeName())}_{suffix}'
+        buffer = pm.shadingNode('transform', name=buffer_name, au=1)
+        buffer.setParent(obj_)
+        zero_out(buffer)
+        par = par or obj_.getParent()
+        if par:
+            buffer.setParent(par)
+        else:
+            buffer.setParent(world=1)
+        obj_.setParent(buffer)
+        return buffer
 
-    buffer_name = name if name else f'{child_name}_{suffix}'
+    buffers = [create_buffer(obj) for obj in objs]
 
-    buffer_node = pm.shadingNode('transform', name=buffer_name, au=1)
+    for i, obj_lock_memory in enumerate(lock_memory):
+        [pm.setAttr(f'{objs[i]}.{attr}', lock=1) for attr in obj_lock_memory]
 
-    # Match buffer obj to child's transforms
-    buffer_node.setParent(child)
-    for attr in ('translate', 'rotate', 'shear'):
-        pm.setAttr(f'{buffer_node}.{attr}', 0, 0, 0)
-        buffer_node.scale.set(1, 1, 1)
-    buffer_node.setParent(world=1)
-
-    safe_parent(child, buffer_node)
-
-    # Clean child's transforms
-    [pm.setAttr(f'{child}.{attr}', 0, 0, 0) for attr in ('translate', 'rotate', 'shear')]
-    child.scale.set(1, 1, 1)
-
-    # Parent buffer obj
-    if not world_is_original_parent:
-        safe_parent(buffer_node, _parent)
-
-    # Re-lock any attributes on child obj that were locked previously
-    if lock_memory:
-        [pm.setAttr(f'{child}.{attr}', lock=1) for attr in lock_memory]
-
-    pm.select(clear=1)
-    return buffer_node
+    return buffers
 
 
 

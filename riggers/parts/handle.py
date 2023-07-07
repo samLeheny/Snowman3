@@ -88,7 +88,7 @@ class BespokePartConstructor(PartConstructor):
 
 
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
-        handle_ctrl_buffer = gen.buffer_obj(scene_ctrls[self.part_name], _parent=transform_grp)
+        handle_ctrl_buffer = gen.buffer_obj(scene_ctrls[self.part_name], parent_=transform_grp)[0]
         gen.match_pos_ori(handle_ctrl_buffer, orienters[self.part_name])
         self.part_nodes[self.part_name] = scene_ctrls[self.part_name]
         return rig_part_container

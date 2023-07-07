@@ -95,7 +95,7 @@ class BespokePartConstructor(PartConstructor):
         orienter_manager = OrienterManager(part.placers['Cog'])
         cog_orienter = orienter_manager.get_orienter()
         gen.match_pos_ori(scene_ctrls['Cog'], cog_orienter)
-        buffer = gen.buffer_obj(scene_ctrls['Cog'])
+        buffer = gen.buffer_obj(scene_ctrls['Cog'])[0]
 
         for key in ('Cog',):
             self.part_nodes[key] = scene_ctrls[key].nodeName()

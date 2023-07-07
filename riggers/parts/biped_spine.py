@@ -338,7 +338,7 @@ class BespokePartConstructor(PartConstructor):
         for ctrl, indices in zip((scene_ctrls['IkPelvis'], scene_ctrls['IkWaist'], scene_ctrls['IkChest']),
                                  ((0, 1), (2, 3, 4), (5,))):
             for i in indices:
-                mod = gen.buffer_obj(bind_jnts[i], suffix='MOD')
+                mod = gen.buffer_obj(bind_jnts[i], suffix='MOD')[0]
                 mult_matrix = nodes.multMatrix(matrixIn=(ctrl.worldMatrix, mod.parentInverseMatrix))
                 nodes.decomposeMatrix(inputMatrix=mult_matrix.matrixSum, outputScale=mod.scale)
 
@@ -409,7 +409,7 @@ class BespokePartConstructor(PartConstructor):
         bind_jnt_attach_nodes = []
         for i in range(bind_jnt_count):
             jnt = rig.joint(name=f'Spine{i + 1}', joint_type='BIND', radius=1.25)
-            jnt_buffer = gen.buffer_obj(jnt)
+            jnt_buffer = gen.buffer_obj(jnt)[0]
             pin = gen.point_on_surface_matrix(ribbon.getShape() + '.worldSpace',
                                               parameter_V=0.5, parameter_U=1 - ((1.0 / 6) * i), decompose=True)
             attach = pm.group(name=f'{jnt}_ATTACH', em=1, p=bind_jnts_grp)
@@ -437,7 +437,7 @@ class BespokePartConstructor(PartConstructor):
             segment_length = gen.distance_between(orienters[i], orienters[i + 1])
             cell = pm.polyPlane(h=segment_length, w=total_spine_length / 15, sx=1, sy=1, axis=(0, 0, 1))[0]
             gen.match_pos_ori(cell, orienters[i])
-            offset = gen.buffer_obj(cell)
+            offset = gen.buffer_obj(cell)[0]
             cell.ty.set(segment_length / 2)
             cell.setParent(world=1)
             pm.delete(offset)
@@ -541,7 +541,7 @@ class BespokePartConstructor(PartConstructor):
         fk_1_inv_jnt = rig.joint(name="FkSpine1Inv", joint_type='JNT', radius=1)
         pm.delete(pm.pointConstraint(ctrls["FkHips"], fk_1_inv_jnt))
         fk_1_inv_jnt.setParent(fk_1_jnt)
-        buffer = gen.buffer_obj(ctrls["FkHips"])
+        buffer = gen.buffer_obj(ctrls["FkHips"])[0]
 
         fk_2_jnt = rig.joint(name="FkSpine2", joint_type='JNT', radius=1.3)
         position_joint(fk_2_jnt, 0.7, ctrls["FkSpine1"])
@@ -549,7 +549,7 @@ class BespokePartConstructor(PartConstructor):
         fk_2_inv_jnt = rig.joint(name="FkSpine2Inv", joint_type='JNT', radius=1)
         pm.delete(pm.pointConstraint(ctrls["FkSpine2"], fk_2_inv_jnt))
         fk_2_inv_jnt.setParent(fk_2_jnt)
-        buffer = gen.buffer_obj(ctrls["FkSpine1"])
+        buffer = gen.buffer_obj(ctrls["FkSpine1"])[0]
 
         fk_3_jnt = rig.joint(name="FkSpine3", joint_type='JNT', radius=1.3)
         pm.delete(pm.pointConstraint(fk_2_inv_jnt, fk_3_jnt))
@@ -558,7 +558,7 @@ class BespokePartConstructor(PartConstructor):
         fk_3_inv_jnt = rig.joint(name="FkSpine3Inv", joint_type='JNT', radius=1)
         pm.delete(pm.pointConstraint(ctrls["FkSpine3"], fk_3_inv_jnt))
         fk_3_inv_jnt.setParent(fk_3_jnt)
-        buffer = gen.buffer_obj(ctrls["FkSpine2"])
+        buffer = gen.buffer_obj(ctrls["FkSpine2"])[0]
         buffer.setParent(fk_2_inv_jnt)
 
         fk_4_jnt = rig.joint(name="FkSpine4", joint_type='JNT', radius=1.3)
@@ -571,7 +571,7 @@ class BespokePartConstructor(PartConstructor):
         # pm.move(world_pos[0], world_pos[1], world_pos[2], fk_4_inv_jnt)
         fk_4_inv_jnt.setParent(ctrls["FkSpine3"])
 
-        buffer = gen.buffer_obj(ctrls["FkSpine3"])
+        buffer = gen.buffer_obj(ctrls["FkSpine3"])[0]
         buffer.setParent(fk_3_inv_jnt)
 
         fk_jnts = [fk_1_jnt, fk_1_inv_jnt, fk_2_jnt, fk_2_inv_jnt, fk_3_jnt, fk_3_inv_jnt, fk_4_jnt, fk_4_inv_jnt]
@@ -616,7 +616,7 @@ class BespokePartConstructor(PartConstructor):
             pin.outputRotate.connect(grp.rotate)
 
             ctrl.setParent(ctrl, grp)
-            buffer = gen.buffer_obj(ctrl)
+            buffer = gen.buffer_obj(ctrl)[0]
 
             jnt, base_jnt = None, None
             if not mid:
@@ -689,12 +689,12 @@ class BespokePartConstructor(PartConstructor):
             pin.outputRotate.connect(grp.rotate)
 
             jnt = rig.joint(name=f'spine_{name}_ik_rotate', joint_type='JNT')
-            offset = gen.buffer_obj(jnt, _parent=grp)
+            offset = gen.buffer_obj(jnt, parent_=grp)[0]
             [gen.zero_out(node) for node in (jnt, offset)]
             pm.rename(offset, f'spine_{name}_ik_rotate_OFFSET')
 
             base_jnt = rig.joint(name=f'spine_{name}_ik_rotate_base', joint_type='JNT', parent=offset)
-            buffer = gen.buffer_obj(jnt)
+            buffer = gen.buffer_obj(jnt)[0]
             [gen.zero_out(node) for node in (base_jnt, buffer)]
             if ctrl:
                 ctrl.rotate.connect(buffer.rotate)

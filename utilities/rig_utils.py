@@ -362,8 +362,8 @@ def limb_rollers(start_node, end_node, roller_name, world_up_obj, side=None, par
                         name=f'{roller_name}_bend_{tag}', ctrl_type=nom.animCtrl, side=side, color=ctrl_color)
         jnt = joint(name=f'{roller_name}bend_{tag}', side=side, joint_type=nom.nonBindJnt, radius=jnt_radius)
         jnt.setParent(ctrl_)
-        mod = gen.buffer_obj(ctrl_, suffix='MOD')
-        buffer = gen.buffer_obj(mod, suffix='BUFFER', _parent=stretch_rig_grp)
+        mod = gen.buffer_obj(ctrl_, suffix='MOD')[0]
+        buffer = gen.buffer_obj(mod, suffix='BUFFER', parent_=stretch_rig_grp)[0]
         gen.zero_out(buffer)
         pm.delete(pm.pointConstraint(match_node, buffer))
         buffer.scale.set(1, 1, 1)
@@ -584,8 +584,8 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
                        side=side,
                        color=ctrl_color)
         pm.connectAttr(f'{attr_ctrl}.{tweak_ctrl_vis_attr_string}', ctrl.visibility)
-        mod = gen.buffer_obj(ctrl, suffix='MOD')
-        attach = gen.buffer_obj(mod, suffix='ATTACH')
+        mod = gen.buffer_obj(ctrl, suffix='MOD')[0]
+        attach = gen.buffer_obj(mod, suffix='ATTACH')[0]
 
         joint(name=f'{ctrl_name}_tweak_{i+1}', side=side, joint_type=nom.bindJnt, parent=ctrl, radius=jnt_size)
         gen.zero_out(attach)
@@ -596,7 +596,7 @@ def ribbon_tweak_ctrls(ribbon, ctrl_name, length_ends, length_attr, attr_ctrl, s
         pin.outputTranslate.connect(attach.translate)
         pin.outputRotate.connect(attach.rotate)
 
-        offset = gen.buffer_obj(mod, suffix='OFFSET')
+        offset = gen.buffer_obj(mod, suffix='OFFSET')[0]
         offsets.append(offset)
         offset.setParent(ribbon)
         gen.zero_out(offset)

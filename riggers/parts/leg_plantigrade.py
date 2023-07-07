@@ -308,7 +308,7 @@ class BespokePartConstructor(PartConstructor):
 
         self.finalize_ctrl_shapes(limb_rig, scene_ctrls)
 
-        ik_foot_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkFootFollow'], _parent=transform_grp)
+        ik_foot_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkFootFollow'], parent_=transform_grp)[0]
         gen.match_pos_ori(ik_foot_follow_ctrl_buffer, orienters['FootFollowSpace'])
 
         ###
@@ -316,7 +316,7 @@ class BespokePartConstructor(PartConstructor):
         for key, parent, orienter_key in (('FkToe', transform_grp, 'Ball'),
                                           ('IkToe', transform_grp, 'Ball')):
             scene_ctrls[key].setParent(parent)
-            buffer = gen.buffer_obj(scene_ctrls[key])
+            buffer = gen.buffer_obj(scene_ctrls[key])[0]
             gen.match_pos_ori(buffer, orienters[orienter_key])
 
         # ...Bind joints -----------------------------------------------------------------------------------------------
@@ -327,7 +327,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = bind_jnts[key] = rig.joint(name=key, side=part.side, radius=0.5, joint_type='BIND')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], _parent=limb_rig.blend_jnts[-2])
+        bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], parent_=limb_rig.blend_jnts[-2])[0]
         gen.zero_out(bind_chain_buffer)
         gen.match_pos_ori(bind_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(bind_jnt_keys):
@@ -467,7 +467,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = ik_jnts[key] = rig.joint(name=f'Ik{key}', side=part.side, radius=1.0, joint_type='JNT')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], _parent=parent)
+        ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], parent_=parent)[0]
         gen.zero_out(ik_chain_buffer)
         gen.match_pos_ori(ik_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(ik_jnt_keys):
@@ -483,12 +483,12 @@ class BespokePartConstructor(PartConstructor):
             jnt = foot_roll_jnts[key] = rig.joint(name=f'FootRoll{key}', side=part.side, radius=1.5, joint_type='JNT')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        foot_roll_chain_buffer = gen.buffer_obj(list(foot_roll_jnts.values())[0], suffix='OFFSET', _parent=parent)
+        foot_roll_chain_buffer = gen.buffer_obj(list(foot_roll_jnts.values())[0], suffix='OFFSET', parent_=parent)[0]
         gen.zero_out(foot_roll_chain_buffer)
         #pm.matchTransform(foot_roll_chain_buffer, parent)
         for i, key in enumerate(foot_roll_keys):
             gen.match_pos_ori(foot_roll_jnts[key], orienters[key])
-        gen.buffer_obj(foot_roll_jnts['SoleHeel'])
+        gen.buffer_obj(foot_roll_jnts['SoleHeel'])[0]
         #gen.zero_out(foot_roll_jnts['SoleHeel'])
 
         ctrls['IkToe'].getParent().setParent(foot_roll_jnts['SoleToeEnd'])
