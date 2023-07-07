@@ -376,7 +376,7 @@ class OrienterManager:
 
     def create_scene_obj(self):
         self.scene_orienter = rig.orienter(name=self.get_orienter_name(), scale=self.placer.size)
-        offset = gen.buffer_obj(self.scene_orienter, _parent=self.parent, suffix='OFFSET')
+        offset = gen.buffer_obj(self.scene_orienter, parent_=self.parent, suffix='OFFSET')[0]
         gen.buffer_obj(self.scene_orienter)
         gen.zero_out(offset)
         if self.placer.side == 'R':

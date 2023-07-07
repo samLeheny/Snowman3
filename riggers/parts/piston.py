@@ -119,7 +119,7 @@ class BespokePartConstructor(PartConstructor):
 
         # ...Ctrls
         [scene_ctrls[k].setParent(transform_grp) for k in part_keys]
-        offsets = {k: gen.buffer_obj(scene_ctrls[k]) for k in part_keys}
+        offsets = {k: gen.buffer_obj(scene_ctrls[k])[0] for k in part_keys}
 
         # ...Orienters
         orienters = {}

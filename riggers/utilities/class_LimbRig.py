@@ -374,7 +374,7 @@ class LimbRig:
 
 
         #...Put control under orientation buffer node
-        buffer_node = gen.buffer_obj(ctrl, _parent=pos_offset_node)
+        buffer_node = gen.buffer_obj(ctrl, parent_=pos_offset_node)[0]
         gen.zero_out(buffer_node)
         #...Orient buffer node by averaging world orientations of the two segments in immediate limb span
         constraint = pm.orientConstraint(limb_span_seg_1.blend_jnt, limb_span_seg_2.blend_jnt, buffer_node)
@@ -634,7 +634,7 @@ class LimbRig:
 
 
         #...Wrap top of chain in a buffer group -----------------------------------------------------------------------
-        self.blend_jnt_chain_buffer = gen.buffer_obj(self.segments[0].blend_jnt)
+        self.blend_jnt_chain_buffer = gen.buffer_obj(self.segments[0].blend_jnt)[0]
         if self.side == nom.rightSideTag:
             gen.flip_obj(self.blend_jnt_chain_buffer)
 
@@ -719,7 +719,7 @@ class LimbRig:
 
             #...Position control
             seg_start_node = jnt if seg.double_jnt else fk_ctrl
-            seg_start_node = gen.buffer_obj(seg_start_node)
+            seg_start_node = gen.buffer_obj(seg_start_node)[0]
             orig_parent = seg_start_node.getParent()
             seg_start_node.setParent(seg.blend_jnt)
             gen.zero_out(seg_start_node)
@@ -736,7 +736,7 @@ class LimbRig:
 
         #...Wrap top of ctrl chain in buffer group --------------------------------------------------------------------
         gen.convert_offset(self.segments[i].fk_ctrl, reverse=True)
-        self.fk_chain_buffer = gen.buffer_obj(self.segments[0].fk_ctrl, _parent=self.ctrls['socket'])
+        self.fk_chain_buffer = gen.buffer_obj(self.segments[0].fk_ctrl, parent_=self.ctrls['socket'])[0]
         self.fk_chain_buffer.setParent(self.ctrls['socket'])
 
         #...Connect FK segment lengths to settings attributes ---------------------------------------------------------
@@ -803,7 +803,7 @@ class LimbRig:
             seg.ik_jnt.setParent(self.segments[i-1].ik_jnt)
 
         #...Wrap top of chain in a buffer group -----------------------------------------------------------------------
-        self.ik_jnt_chain_buffer = gen.buffer_obj(self.segments[0].ik_jnt, _parent=self.ctrls['socket'])
+        self.ik_jnt_chain_buffer = gen.buffer_obj(self.segments[0].ik_jnt, parent_=self.ctrls['socket'])[0]
 
         #...Position and orient joints --------------------------------------------------------------------------------
         match_nodes = [seg.ik_jnt for seg in self.segments]
@@ -859,7 +859,7 @@ class LimbRig:
                                               ctrl_type = nom.animCtrl,
                                               side = self.side,
                                               color = self.ctrl_colors['IK'])
-        extrem_buffer = gen.buffer_obj(self.ctrls['ik_extrem'], _parent=self.grps['transform'])
+        extrem_buffer = gen.buffer_obj(self.ctrls['ik_extrem'], parent_=self.grps['transform'])[0]
 
 
         self.ctrls['ik_pv'] = rig.control(ctrl_info = {'shape': 'sphere',
@@ -868,7 +868,7 @@ class LimbRig:
                                           ctrl_type = nom.animCtrl,
                                           side = self.side,
                                           color = self.ctrl_colors["IK"])
-        pv_buffer = gen.buffer_obj(self.ctrls['ik_pv'], _parent=self.grps['transform'])
+        pv_buffer = gen.buffer_obj(self.ctrls['ik_pv'], parent_=self.grps['transform'])[0]
 
 
         tarsus_buffer = None
@@ -882,7 +882,7 @@ class LimbRig:
                 ctrl_type=nom.animCtrl,
                 side=self.side,
                 color=self.ctrl_colors['IK'])
-            tarsus_buffer = gen.buffer_obj(self.ctrls['ik_tarsus'], _parent=self.ctrls['ik_extrem'])
+            tarsus_buffer = gen.buffer_obj(self.ctrls['ik_tarsus'], parent_=self.ctrls['ik_extrem'])[0]
 
 
         #...Position controls -----------------------------------------------------------------------------------------

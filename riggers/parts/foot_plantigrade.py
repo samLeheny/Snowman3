@@ -132,7 +132,7 @@ class BespokePartConstructor(PartConstructor):
                                           ('IkToe', transform_grp, 'Ball'),
                                           ('FootSettings', transform_grp, 'FootSettings')):
             scene_ctrls[key].setParent(parent)
-            buffer = gen.buffer_obj(scene_ctrls[key])
+            buffer = gen.buffer_obj(scene_ctrls[key])[0]
             gen.match_pos_ori(buffer, orienters[orienter_key])
 
 
@@ -160,7 +160,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = bind_jnts[key] = rig.joint(name=key, side=part.side, radius=0.5, joint_type='BIND')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], _parent=transform_grp)
+        bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], parent_=transform_grp)[0]
         gen.zero_out(bind_chain_buffer)
         gen.match_pos_ori(bind_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(bind_jnt_keys):
@@ -214,7 +214,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = ik_jnts[key] = rig.joint(name=f'Ik{key}', side=part.side, radius=1.0, joint_type='JNT')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], _parent=ik_grp)
+        ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], parent_=ik_grp)[0]
         gen.zero_out(ik_chain_buffer)
         gen.match_pos_ori(ik_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(ik_jnt_keys):
@@ -230,7 +230,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = foot_roll_jnts[key] = rig.joint(name=f'FootRoll{key}', side=part.side, radius=1.5, joint_type='JNT')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        foot_roll_chain_buffer = gen.buffer_obj(list(foot_roll_jnts.values())[0], suffix='OFFSET', _parent=ik_grp)
+        foot_roll_chain_buffer = gen.buffer_obj(list(foot_roll_jnts.values())[0], suffix='OFFSET', parent_=ik_grp)[0]
         gen.zero_out(foot_roll_chain_buffer)
         pm.matchTransform(foot_roll_chain_buffer, ik_grp)
         for i, key in enumerate(foot_roll_keys):
