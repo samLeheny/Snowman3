@@ -41,6 +41,8 @@ embed_transform_lock_data
 ribbon_plane
 insert_nurbs_strip
 ribbon_tweak_ctrls
+joint_rot_to_ori
+transfer_locks_from_prelim
 mesh_to_skinClust_input
 buffer_hierarchy
 '''
@@ -120,7 +122,7 @@ def connector_curve(name=None, end_driver_1=None, end_driver_2=None, override_di
 ########################################################################################################################
 def orienter(name=None, scale=1):
     # Initialize variables
-    name = name if name else ''
+    name = name or ''
     cvs = [
         [
             [0, 1.4, 0.369], [-0.261, 1.4, 0.261], [-0.369, 1.4, 0], [-0.261, 1.4, -0.261], [0, 1.4, -0.369],
@@ -146,7 +148,7 @@ def orienter(name=None, scale=1):
         ]
     ]
     colors = [14, 14, 14, 13, 13, 13, 6, 6, 6]
-    forms = ["periodic", "open", "open", "periodic", "open", "open", "periodic", "open", "open"]
+    forms = ['periodic', 'open', 'open', 'periodic', 'open', 'open', 'periodic', 'open', 'open']
     degrees = [3, 1, 1, 3, 1, 1, 3, 1, 1]
     curve_count = len(cvs)
     curves = [{'cvs': cvs[i], 'degree': degrees[i], 'form': forms[i]} for i in range(curve_count)]
@@ -193,8 +195,7 @@ def joint(name=None, radius=1.0, color=None, parent=None, position=None, joint_t
     # Clear selection so joint doesn't auto-parent somewhere weird
     pm.select(clear=1)
     # Make joint and set its name, radius, and position (if any were provided)
-    if not position:
-        position = [0, 0, 0]
+    position = position or [0, 0, 0]
     # Determine joint type name chunk
     joint_type_suffix = None
     for key in joint_type_name_chunks:
