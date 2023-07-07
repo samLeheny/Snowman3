@@ -42,6 +42,7 @@ ribbon_plane
 insert_nurbs_strip
 ribbon_tweak_ctrls
 mesh_to_skinClust_input
+buffer_hierarchy
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -649,3 +650,24 @@ def transfer_locks_from_prelim(self, old_node, new_node):
 ########################################################################################################################
 def mesh_to_skinClust_input(mesh, skin_cluster):
     mesh.worldSpace[0].connect(skin_cluster.input[0].inputGeometry, force=True)
+
+
+
+########################################################################################################################
+def buffer_hierarchy(*objs, parent_=None):
+    suffixes = ['Zro', 'Ofs', 'Drv', 'Cfs', 'Cns']
+    suffixes.reverse()
+    hierarchies = []
+    def create_hierarchy(obj_):
+        buffers = []
+        current_obj = obj_
+        for suffix in suffixes:
+            new_buffer = gen.buffer_obj(current_obj, suffix=suffix)[0]
+            buffers.append(new_buffer)
+            current_obj = new_buffer
+        if parent_:
+            buffers[-1].setParent(parent_)
+        hierarchies.append(buffers)
+    for obj in objs:
+        create_hierarchy(obj)
+    return hierarchies
