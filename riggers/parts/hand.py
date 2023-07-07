@@ -27,7 +27,6 @@ PlacerCreator = placer_utils.PlacerCreator
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
@@ -101,8 +100,8 @@ class BespokePartConstructor(PartConstructor):
             PlacerCreator(
                 name='Wrist',
                 side=self.side,
-                parent_part_name=self.part_name,
-                position=(0, 0, 0),
+                part_name=self.part_name,
+                position=[0, 0, 0],
                 size=size,
                 vector_handle_positions=self.proportionalize_vector_handle_positions([[1, 0, 0], [0, 1, 0]], size),
                 orientation=[[1, 0, 0], [0, 1, 0]],
@@ -111,8 +110,8 @@ class BespokePartConstructor(PartConstructor):
             PlacerCreator(
                 name='QuickPoseFingers',
                 side=self.side,
-                parent_part_name=self.part_name,
-                position=(wrist_length+(metacarpal_length/2), metacarpal_length, 0),
+                part_name=self.part_name,
+                position=[wrist_length+(metacarpal_length/2), metacarpal_length, 0],
                 size=size*0.7,
                 vector_handle_positions=self.proportionalize_vector_handle_positions([[1, 0, 0], [0, 1, 0]], size),
                 orientation=[[1, 0, 0], [0, 1, 0]],
@@ -156,8 +155,8 @@ class BespokePartConstructor(PartConstructor):
                 placer_creator = PlacerCreator(
                     name=p[0],
                     side=self.side,
-                    parent_part_name=self.part_name,
-                    position=(p[1], 0, z_position),
+                    part_name=self.part_name,
+                    position=[p[1], 0, z_position],
                     size=size,
                     vector_handle_positions=self.proportionalize_vector_handle_positions(vector_handle_positions, size),
                     orientation=[[1, 0, 0], [0, 0, 1]],
@@ -178,8 +177,8 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_controls(self):
-        ctrl_creators = [
-            ControlCreator(
+        ctrls = [
+            self.initialize_ctrl(
                 name='Wrist',
                 shape='circle',
                 up_direction=[1, 0, 0],
@@ -187,7 +186,7 @@ class BespokePartConstructor(PartConstructor):
                 size=4,
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='PalmFlex',
                 shape='hand_bend',
                 color=self.colors[0],
@@ -196,7 +195,7 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side,
                 locks={'t':[1, 1, 1], 's':[1, 1, 1]}
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='QuickPoseFingers',
                 shape='smooth_tetrahedron',
                 color=self.colors[1],
@@ -207,8 +206,8 @@ class BespokePartConstructor(PartConstructor):
         ]
         def create_digit_ctrls(digit_name, segment_count, include_metacarpals):
             if include_metacarpals:
-                ctrl_creators.append(
-                    ControlCreator(
+                ctrls.append(
+                    self.initialize_ctrl(
                         name=f'{digit_name}Meta',
                         shape='cube',
                         color=self.colors[0],
@@ -217,8 +216,8 @@ class BespokePartConstructor(PartConstructor):
                     )
                 )
             for j in range(segment_count):
-                ctrl_creators.append(
-                    ControlCreator(
+                ctrls.append(
+                    self.initialize_ctrl(
                         name=f'{digit_name}Seg{j+1}',
                         shape='cube',
                         color=self.colors[0],
@@ -230,8 +229,7 @@ class BespokePartConstructor(PartConstructor):
             digit_name = self.get_digit_name(i+1, self.finger_count, 'finger')
             create_digit_ctrls(digit_name, self.finger_segment_count, self.include_metacarpals)
         create_digit_ctrls('Thumb', self.thumb_segment_count, False)
-        controls = [creator.create_control() for creator in ctrl_creators]
-        return controls
+        return ctrls
 
 
 
@@ -267,8 +265,7 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_part_nodes_list(self):
-        part_nodes = []
-        part_nodes.append('Wrist')
+        part_nodes = ['Wrist']
         for i in range(self.finger_count):
             digit_name = self.get_digit_name(i+1, self.finger_count, 'finger')
             if self.include_metacarpals:
@@ -318,10 +315,10 @@ class BespokePartConstructor(PartConstructor):
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         wrist_jnt = rig.joint(name='Wrist', radius=0.7, side=part.side, parent=scene_ctrls['Wrist'])
-        wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], parent=transform_grp)
+        wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], _parent=transform_grp)
         gen.match_pos_ori(wrist_buffer, orienters['Wrist'])
 
-        quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], parent=scene_ctrls['Wrist'])
+        quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], _parent=scene_ctrls['Wrist'])
         gen.zero_out(quick_pose_buffer)
 
         gen.match_pos_ori(quick_pose_buffer, orienters['QuickPoseFingers'])
@@ -334,7 +331,7 @@ class BespokePartConstructor(PartConstructor):
                                                        conversionFactor=fingers_shift_weight)
 
         if self.include_metacarpals:
-            palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], parent=scene_ctrls['Wrist'])
+            palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], _parent=scene_ctrls['Wrist'])
             gen.zero_out(palm_flex_buffer)
             last_finger_name = self.get_digit_name(self.finger_count, self.finger_count, 'finger')
             gen.match_pos_ori(palm_flex_buffer, orienters[f'{last_finger_name}Meta'])

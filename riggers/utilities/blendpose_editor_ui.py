@@ -16,6 +16,7 @@ import maya.cmds as mc
 import maya.OpenMayaUI as omui
 from functools import partial
 import Snowman3.riggers.utilities.blendpose_utils as bp_utils
+importlib.reload(bp_utils)
 BlendposeManager = bp_utils.BlendposeManager
 ###########################
 ###########################
@@ -63,7 +64,8 @@ class BlendposeEditor(QtWidgets.QDialog):
         self.create_layout()
         self.create_connections()
 
-        self.blendpose_manager = BlendposeManager.populate_manager_from_scene()
+        #self.blendpose_manager = BlendposeManager.populate_manager_from_scene()
+        self.blendpose_manager = None
 
         # self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # self.customContextMenuRequested.connect(self.show_context_menu)
@@ -76,6 +78,8 @@ class BlendposeEditor(QtWidgets.QDialog):
         self.duplicate_target_pose_action = QtWidgets.QAction('Duplicate Target', self)
         self.add_selected_objs_action = QtWidgets.QAction('Add Selected Objs', self)
         self.remove_selected_objs_action = QtWidgets.QAction('Remove Selected Objs', self)
+        self.select_target_objs_action = QtWidgets.QAction('Select Target Objects', self)
+        self.select_hook_node_action = QtWidgets.QAction('Select Hook Node', self)
         self.delete_blendpose_action = QtWidgets.QAction('Delete', self)
         self.delete_target_pose_action = QtWidgets.QAction('Delete', self)
         self.mirror_target_pose_action = QtWidgets.QAction('Mirror Target', self)
@@ -113,6 +117,7 @@ class BlendposeEditor(QtWidgets.QDialog):
         edit_menu = menu_bar.addMenu('Edit')
         edit_menu.addAction(self.add_selected_objs_action)
         edit_menu.addAction(self.remove_selected_objs_action)
+        edit_menu.addAction(self.select_target_objs_action)
         edit_menu.addSeparator()
 
         poses_menu = menu_bar.addMenu('Poses')
@@ -145,6 +150,8 @@ class BlendposeEditor(QtWidgets.QDialog):
         self.duplicate_target_pose_action.triggered.connect(self.duplicate_target_pose)
         self.add_selected_objs_action.triggered.connect(self.add_selected_objs_to_blendpose)
         self.remove_selected_objs_action.triggered.connect(self.remove_selected_objs_from_blendpose)
+        self.select_target_objs_action.triggered.connect(self.select_target_objs_on_blendpose)
+        self.select_hook_node_action.triggered.connect(self.select_hook_node)
         self.delete_blendpose_action.triggered.connect(self.delete_blendpose)
         self.delete_target_pose_action.triggered.connect(self.delete_target_pose)
         self.mirror_target_pose_action.triggered.connect(self.mirror_target_pose)
@@ -199,7 +206,19 @@ class BlendposeEditor(QtWidgets.QDialog):
         if not objs:
             return False
         blendpose_item = self.get_current_item_top_item()
-        self.blendpose_manager.remove_output_objs(blendpose_item.text(0), *objs)
+        blendpose_key = blendpose_item.text(0)
+        self.blendpose_manager.remove_output_objs(blendpose_key, *objs)
+
+    def select_target_objs_on_blendpose(self):
+        blendpose_item = self.get_current_item_top_item()
+        blendpose_key = blendpose_item.text(0)
+        target_objs = self.blendpose_manager.get_all_target_objs(blendpose_key)
+        pm.select(target_objs, replace=1)
+
+    def select_hook_node(self):
+        blendpose_item = self.get_current_item_top_item()
+        blendpose_key = blendpose_item.text(0)
+        self.blendpose_manager.select_hook_node(blendpose_key)
 
     def duplicate_target_pose(self):
         current_item = self.tree_wdg.currentItem()
@@ -305,6 +324,7 @@ class BlendposeEditor(QtWidgets.QDialog):
         spinbox.valueChanged.connect(apply_spinbox_to_slider)
         slider.valueChanged.connect(apply_slider_to_spinbox)
 
+
     def add_commit_button(self, blendpose_key, tree_item):
         commit_button = QtWidgets.QPushButton('Commit')
         self.tree_wdg.setItemWidget(tree_item, 2, commit_button)
@@ -314,10 +334,14 @@ class BlendposeEditor(QtWidgets.QDialog):
 
         commit_button.clicked.connect(new_anim_key_from_transforms)
 
+
     def refresh_tree_widget(self):
+        self.blendpose_manager = BlendposeManager.populate_manager_from_scene()
         self.tree_wdg.clear()
         for pose_name in self.blendpose_manager.blendpose_order:
-            self.add_blendpose_to_tree(pose_name, pose_name)
+            node_name = self.blendpose_manager.get_hook_node(pose_name).nodeName()
+            self.add_blendpose_to_tree(node_name, pose_name)
+
 
     def get_tree_item_count(self, top_items_only=False):
         count = 0
@@ -331,6 +355,7 @@ class BlendposeEditor(QtWidgets.QDialog):
             iterator += 1
         return count
 
+
     def add_blendpose_to_tree(self, node_name, blendpose_key):
         blendpose = self.blendpose_manager.blendposes[blendpose_key]
         item = self.create_item(node_name)
@@ -340,6 +365,7 @@ class BlendposeEditor(QtWidgets.QDialog):
         item.setExpanded(blendpose.isExpanded)
         self.set_script_job_enabled(blendpose, item)
 
+
     def set_script_job_enabled(self, blendpose, item):
         return
         func = partial(self.update_blendpose_name_from_scene, item, blendpose)
@@ -347,11 +373,13 @@ class BlendposeEditor(QtWidgets.QDialog):
                                      killWithScene=1)
         self.script_job_ids['node name changed'] = script_job_id
 
+
     def add_tree_children(self, item, blendpose):
         if not blendpose.target_poses:
             return None
         for target_key in blendpose.target_pose_order:
             self.add_child_to_tree_item(blendpose, blendpose.target_poses[target_key], item)
+
 
     def add_child_to_tree_item(self, blendpose, target_pose, item):
         child_item = self.create_item(target_pose.name)
@@ -433,6 +461,9 @@ class BlendposeEditor(QtWidgets.QDialog):
         context_menu.addSeparator()
         context_menu.addAction(self.add_selected_objs_action)
         context_menu.addAction(self.remove_selected_objs_action)
+        context_menu.addAction(self.select_target_objs_action)
+        context_menu.addSeparator()
+        context_menu.addAction(self.select_hook_node_action)
         context_menu.addSeparator()
         context_menu.addAction(self.delete_blendpose_action)
         return context_menu

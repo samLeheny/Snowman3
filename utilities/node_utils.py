@@ -18,6 +18,7 @@ import pymel.core as pm
 ################----------------------------    TABLE OF CONTENTS    ------------------------------------###############
 ########################################################################################################################
 '''
+_create_node
 floatMath
 floatConstant
 addDoubleLinear
@@ -49,7 +50,17 @@ closestPointOnSurface
 
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+def _create_node(type_, name=None):
+    if name:
+        node = pm.shadingNode(type_, name=name, asUtility=1)
+    else:
+        node = pm.shadingNode(type_, asUtility=1)
+    return node
 
+
+
+    
 #-----------------------------------------------------------------------------------------------------------------------
 def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
     """
@@ -67,8 +78,6 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
             (utility node) The new floatMath node.
     """
 
-
-
     # Assemble a dictionary that converts accepted strings from the operation argument to numeric values that the
     # floatMath node's 'operation' attribute expects
     operation_strings = {
@@ -81,12 +90,8 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
         "power": 6, "exponent": 6, "exponentiation": 6, "exp": 6
     }
 
-
     #...Create node
-    if name:
-        node = pm.shadingNode("floatMath", name=name, asUtility=1)
-    else:
-        node = pm.shadingNode("floatMath", asUtility=1)
+    node = _create_node('floatMath', name=name)
 
 
     #...Pass arguments to floatMath input attributes 'floatA' and 'floatB'. If the provided arguments are numeric
@@ -95,7 +100,6 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
 
     #...floatA
     if floatA:
-
         if isinstance(floatA, (int, float)):
             node.floatA.set(floatA)
         else:
@@ -103,12 +107,10 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
 
     #...floatB
     if floatB:
-
         if isinstance(floatB, (int, float)):
             node.floatB.set(floatB)
         else:
             pm.connectAttr(floatB, node.floatB)
-
 
 
     #...Set floatMath node's operation attribute
@@ -121,11 +123,9 @@ def floatMath(name=None, floatA=None, floatB=None, operation=0, outFloat=None):
     node.operation.set(operation)
 
 
-
     #....Connect node's outFloat attribute to its destination
     if outFloat:
         node.outFloat.connect(outFloat)
-
 
 
     return node
@@ -148,10 +148,7 @@ def floatConstant(name=None, inFloat=None, outFloat=None):
 
 
     #...Create node
-    if name:
-        node = pm.shadingNode("floatConstant", name=name, asUtility=1)
-    else:
-        node = pm.shadingNode("floatConstant", asUtility=1)
+    node = _create_node('floatConstant', name=name)
 
 
     #...Pass arguments to floatConstant inFloat attribute 'inFloat'. If the provided argument is numeric type, set the
@@ -195,10 +192,7 @@ def addDoubleLinear(name=None, input1=None, input2=None, output=None, force=Fals
 
 
     #...Create multDoubleLinear node
-    if name:
-        node = pm.shadingNode("addDoubleLinear", name=name, asUtility=1)
-    else:
-        node = pm.shadingNode("addDoubleLinear", asUtility=1)
+    node = _create_node('addDoubleLinear', name=name)
 
     #...Pass arguments to addDoubleLinear input attributes 'input1' and 'input2'. If the provided arguments are numeric
     #...types, set the attributes to match them. If they are mObject attributes, connect them to the addDoubleLinear
@@ -255,10 +249,7 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
 
 
     #...Create multDoubleLinear node
-    if name:
-        node = pm.shadingNode("multDoubleLinear", name=name, asUtility=1)
-    else:
-        node = pm.shadingNode("multDoubleLinear", asUtility=1)
+    node = _create_node('multDoubleLinear', name=name)
 
     #...Pass arguments to multDoubleLinear input attributes 'input1' and 'input2'. If the provided arguments are
     #...numeric types, set the attributes to match them. If they are mObject attributes, connect them to the
@@ -297,10 +288,7 @@ def multDoubleLinear(name=None, input1=None, input2=None, output=None):
 def remapValue(name=None, inputValue=0, inputMin=0, inputMax=1, outputMin=0, outputMax=1, outValue=None):
 
 
-    if name:
-        node = pm.shadingNode("remapValue", name=name, au=1)
-    else:
-        node = pm.shadingNode("remapValue", au=1)
+    node = _create_node('remapValue', name=name)
 
 
     if inputValue:
@@ -355,10 +343,7 @@ def remapValue(name=None, inputValue=0, inputMin=0, inputMax=1, outputMin=0, out
 #-----------------------------------------------------------------------------------------------------------------------
 def reverse(name=None, input=None, output=None, output_x=None, output_y=None, output_z=None):
 
-    if name:
-        node = pm.shadingNode("reverse", name=name, au=1)
-    else:
-        node = pm.shadingNode("reverse", au=1)
+    node = _create_node('reverse', name=name)
 
 
     if input:
@@ -406,11 +391,7 @@ def pointOnSurfaceInfo(name=None, useLocal=True, inputSurface=None, turnOnPercen
 
 
     #...Create node
-    node = None
-    if name:
-        node = pm.shadingNode("pointOnSurfaceInfo", name=name, au=1)
-    else:
-        node = pm.shadingNode("pointOnSurfaceInfo", au=1)
+    node = _create_node('pointOnSurfaceInfo', name=name)
 
 
     #...Plug in input surface
@@ -479,10 +460,7 @@ def multiplyDivide(name=None, input1=None, input2=None, operation=None, output=N
 
 
     #...Create node
-    if name:
-        node = pm.shadingNode("multiplyDivide", name=name, au=1)
-    else:
-        node = pm.shadingNode("multiplyDivide", au=1)
+    node = _create_node('multiplyDivide', name=name)
 
 
     #...input1
@@ -597,10 +575,8 @@ def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFal
                        "outColor.outColorG",
                        "outColor.outColorB"]
 
-    if name:
-        node = pm.shadingNode("condition", name=name, au=1)
-    else:
-        node = pm.shadingNode("condition", au=1)
+
+    node = _create_node('condition', name=name)
 
 
 
@@ -656,10 +632,7 @@ def condition(name=None, firstTerm=0, secondTerm=0, colorIfTrue=None, colorIfFal
 def fourByFourMatrix(input=None, output=None, name=None):
 
 
-    if name:
-        node = pm.shadingNode('fourByFourMatrix', name=name, au=1)
-    else:
-        node = pm.shadingNode('fourByFourMatrix', au=1)
+    node = _create_node('fourByFourMatrix', name=name)
 
     input_attrs = ['in00', 'in01', 'in02', 'in03',
                    'in10', 'in11', 'in12', 'in13',
@@ -685,10 +658,7 @@ def fourByFourMatrix(input=None, output=None, name=None):
 #-----------------------------------------------------------------------------------------------------------------------
 def distanceBetween(name=None, point1=None, point2=None, inMatrix1=None, inMatrix2=None, distance=None):
 
-    if name:
-        node = pm.shadingNode('distanceBetween', name=name, au=1)
-    else:
-        node = pm.shadingNode('distanceBetween', au=1)
+    node = _create_node('distanceBetween', name=name)
 
     if point1:
         pm.connectAttr(point1, node.point1)
@@ -712,10 +682,7 @@ def distanceBetween(name=None, point1=None, point2=None, inMatrix1=None, inMatri
 #-----------------------------------------------------------------------------------------------------------------------
 def multMatrix(name=None, matrixIn=None, matrixSum=None):
 
-    if name:
-        node = pm.shadingNode("multMatrix", name=name, au=1)
-    else:
-        node = pm.shadingNode("multMatrix", au=1)
+    node = _create_node('multMatrix', name=name)
 
 
     if matrixIn:
@@ -743,10 +710,7 @@ def multMatrix(name=None, matrixIn=None, matrixSum=None):
 def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslate=None, outputRotate=None,
                     outputScale=None, outputShear=None, force=False):
 
-    if name:
-        node = pm.shadingNode("decomposeMatrix", name=name, au=1)
-    else:
-        node = pm.shadingNode("decomposeMatrix", au=1)
+    node = _create_node('decomposeMatrix', name=name)
 
 
     if inputMatrix:
@@ -804,10 +768,7 @@ def decomposeMatrix(name=None, inputMatrix=None, outputQuat=None, outputTranslat
 def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), output=(None, None, None)):
 
 
-    if name:
-        node = pm.shadingNode("clamp", name=name, au=1)
-    else:
-        node = pm.shadingNode("clamp", au=1)
+    node = _create_node('clamp', name=name)
 
 
     if input:
@@ -856,10 +817,7 @@ def clamp(name=None, input=(None, None, None), min=(0, 0, 0), max=(1, 1, 1), out
 def blendMatrix(name=None, inputMatrix=None, targetMatrix=None, useMatrix=None, weight=None, useScale=None,
                 useTranslate=None, useShear=None, useRotate=None, outputMatrix=None):
 
-    if name:
-        node = pm.shadingNode("blendMatrix", name=name, au=1)
-    else:
-        node = pm.shadingNode("blendMatrix", au=1)
+    node = _create_node('blendMatrix', name=name)
 
 
     if inputMatrix:
@@ -924,10 +882,7 @@ def animBlendNodeAdditiveDA(name=None, inputA=None, inputB=None, weightA=None, w
 
 
     #...Create node
-    if name:
-        node = pm.shadingNode("animBlendNodeAdditiveDA", name=name, asUtility=1)
-    else:
-        node = pm.shadingNode("animBlendNodeAdditiveDA", asUtility=1)
+    node = _create_node('animBlendNodeAdditiveDA', name=name)
 
 
     #...Pass arguments to floatMath input attributes 'inputA' and 'inputB'. If the provided arguments are numeric
@@ -979,10 +934,7 @@ def animBlendNodeAdditiveRotation(name=None, inputA=None, inputB=None, weightA=N
 
 
     #...Create node
-    if name:
-        node = pm.shadingNode('animBlendNodeAdditiveRotation', name=name, asUtility=1)
-    else:
-        node = pm.shadingNode('animBlendNodeAdditiveRotation', asUtility=1)
+    node = _create_node('animBlendNodeAdditiveRotation', name=name)
 
     # ...inputA
     inputA_array = ['inputAX', 'inputAY', 'inputAZ']
@@ -1044,10 +996,7 @@ def unitConversion(name=None, input=None, output=None, conversionFactor=None):
     conversionFactor = conversionFactor if conversionFactor else 1
 
     # ...Create node
-    if name:
-        node = pm.shadingNode("unitConversion", name=name, asUtility=1)
-    else:
-        node = pm.shadingNode("unitConversion", asUtility=1)
+    node = _create_node('unitConversion', name=name)
 
     # ...input
     if input:
@@ -1077,10 +1026,7 @@ def quatToEuler(name=None, inputQuatX=None, inputQuatY=None, inputQuatZ=None, in
 
     inputRotateOrder = inputRotateOrder if inputRotateOrder else 0
     # ...Create node
-    if name:
-        node = pm.shadingNode('quatToEuler', name=name, asUtility=1)
-    else:
-        node = pm.shadingNode('quatToEuler', asUtility=1)
+    node = _create_node('quatToEuler', name=name)
 
     input_pairs = ((inputQuatX, 'inputQuatX'), (inputQuatY, 'inputQuatY'), (inputQuatZ, 'inputQuatZ'),
                    (inputQuatW, 'inputQuatW'))
@@ -1116,10 +1062,7 @@ def EulerToQuat(name=None):
 def closestPointOnSurface(name=None, inputSurface=None, inPosition=None, position=None, parameterU=None,
                           parameterV=None):
     # ...Create node
-    if name:
-        node = pm.shadingNode('quatToEuler', name=name, asUtility=1)
-    else:
-        node = pm.shadingNode('quatToEuler', asUtility=1)
+    node = _create_node('closestPointOnSurface', name=name)
 
     if inputSurface:
         pm.connectAttr(inputSurface, node.inputSurface)

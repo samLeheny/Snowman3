@@ -197,6 +197,7 @@ def enact_constraint(data):
     constraint_node = None
 
     targets = []
+
     for obj in data.target_list:
         if not pm.objExists(obj):
             logging.warning(f"Target object '{obj}' not found in scene. Skipping constraint.")

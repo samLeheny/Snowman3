@@ -9,6 +9,7 @@
 ##### Import Commands #####
 import importlib
 import pymel.core as pm
+import copy
 from dataclasses import dataclass
 from typing import Sequence
 
@@ -27,35 +28,93 @@ MetaDataAttr = metadata_utils.MetaDataAttr
 
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
+
+import Snowman3.riggers.utilities.curve_utils as crv_utils
+importlib.reload(crv_utils)
+CurveConstruct = crv_utils.CurveConstruct
 ###########################
 ###########################
 
 
 ###########################
 ######## Variables ########
-placer_tag = 'PLC'
-color_code = color_code.sided_ctrl_color
+PLACER_TAG = 'PLC'
+COLOR_CODE = color_code.sided_ctrl_color
 ###########################
 ###########################
 
 
 ########################################################################################################################
-@dataclass
 class Placer:
-    name: str
-    side: str = None
-    position: Sequence = (0, 0, 0)
-    rotation: Sequence = (0, 0, 0)
-    size: float = 1.0
-    has_vector_handles: bool = True
-    vector_handle_positions: list[list, list] = ((0, 0, 1), (0, 1, 0))
-    orientation: list[list, list] = ((0, 0, 1), (0, 1, 0))
-    match_orienter: str = None
-    data_name: str = None
-    scene_name: str = None
-    parent_part_name: str = None
-    is_pole_vector: bool = False
-    pole_vector_partners: list = None
+    def __init__(
+        self,
+        name: str,
+        side: str = None,
+        position: Sequence = None,
+        rotation: Sequence = None,
+        size: float = 1.0,
+        has_vector_handles: bool = True,
+        vector_handle_positions: list[list, list] = None,
+        orientation: list[list, list] = None,
+        match_orienter: str = None,
+        data_name: str = None,
+        scene_name: str = None,
+        part_name: str = None,
+        is_pole_vector: bool = False,
+        pole_vector_partners: list = None,
+    ):
+        self.name = name
+        self.side = side
+        self.position = position or [0, 0, 0]
+        self.rotation = rotation or [0, 0, 0]
+        self.size = size
+        self.has_vector_handles = has_vector_handles
+        self.vector_handle_positions = vector_handle_positions or [[0, 0, 1], [0, 1, 0]]
+        self.orientation = orientation or [[0, 0, 1], [0, 1, 0]]
+        self.match_orienter = match_orienter
+        self.data_name = data_name
+        self.scene_name = scene_name
+        self.part_name = part_name
+        self.is_pole_vector = is_pole_vector
+        self.pole_vector_partners = pole_vector_partners
+
+
+    @classmethod
+    def create_from_data(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        return Placer(**inst_inputs)
+
+
+    def create_scene_name(self):
+        return f'{gen.side_tag(self.side)}{self.part_name}_{self.name}_{PLACER_TAG}'
+
+
+    def create_data_name(self):
+        return f'{gen.side_tag(self.side)}{self.name}'
+
+
+    def data_dict(self):
+        return vars(self).copy()
+
+
+    def format_data_to_part(self, part_key):
+        self.part_name = part_key
+        self.side = self.side
+        self.scene_name = self.create_scene_name()
+        self.data_name = self.create_data_name()
+
+
+    def flip(self):
+        if self.side not in ('L', 'R'):
+            return False
+        self.side = gen.opposite_side(self.side)
+        self.data_name = self.create_data_name()
+        self.scene_name = self.create_scene_name()
+        if not isinstance(self.position, list):
+            self.position = list(self.position)
+        if self.position:
+            self.position[0] = -self.position[0]
 
 
 
@@ -64,9 +123,9 @@ class PlacerCreator:
     def __init__(
         self,
         name: str,
-        parent_part_name: str,
-        position: tuple,
-        rotation: tuple = (0, 0, 0),
+        part_name: str,
+        position: list = None,
+        rotation: list = None,
         side: str = None,
         size: float = None,
         has_vector_handles: bool = True,
@@ -79,17 +138,17 @@ class PlacerCreator:
         pole_vector_partners: list = None
     ):
         self.name = name
-        self.data_name = data_name if data_name else name
-        self.parent_part_name = parent_part_name
-        self.position = position
-        self.rotation = rotation
+        self.data_name = data_name or name
+        self.part_name = part_name
+        self.position = position or [0, 0, 0]
+        self.rotation = rotation or [0, 0, 0]
         self.side = side
-        self.size = size if size else 1.25
+        self.size = size or 1.25
         self.has_vector_handles = has_vector_handles
         self.vector_handle_positions = self.initialize_vector_handle_positions(vector_handle_positions)
-        self.orientation = orientation if orientation else [[1, 0, 0], [0, 1, 0]]
+        self.orientation = orientation or [[1, 0, 0], [0, 1, 0]]
         self.match_orienter = match_orienter
-        self.scene_name = scene_name if scene_name else f'{gen.side_tag(side)}{parent_part_name}_{name}_{placer_tag}'
+        self.scene_name = scene_name or f'{gen.side_tag(side)}{part_name}_{name}_{PLACER_TAG}'
         self.is_pole_vector = is_pole_vector
         self.pole_vector_partners = pole_vector_partners
 
@@ -110,7 +169,7 @@ class PlacerCreator:
             name = self.name,
             data_name = self.data_name,
             side = self.side,
-            parent_part_name = self.parent_part_name,
+            part_name = self.part_name,
             position = self.flip_position() if self.side == 'R' else self.position,
             rotation = self.rotation,
             size = self.size,
@@ -127,20 +186,6 @@ class PlacerCreator:
 
     def flip_position(self):
         return -self.position[0], self.position[1], self.position[2]
-
-
-
-########################################################################################################################
-class PlacerManager:
-    def __init__(
-        self,
-        placer
-    ):
-        self.placer = placer
-
-    @classmethod
-    def data_from_placer(cls, placer):
-        return vars(placer).copy()
 
 
 
@@ -174,9 +219,9 @@ class ScenePlacerManager:
         else:
             shape_prefab = 'sphere_placer'
             size = self.placer.size
-        self.scene_placer = gen.prefab_curve_construct(prefab=shape_prefab, name=self.placer.scene_name,
-                                                       scale=size)
-        buffer_grp = pm.group(name=self.placer.scene_name.replace(placer_tag, 'BUFFER'), em=1, world=1)
+        crv_construct = CurveConstruct.create_prefab(self.placer.scene_name, shape_prefab, size=size)
+        self.scene_placer = crv_construct.create_scene_obj()
+        buffer_grp = pm.group(name=self.placer.scene_name.replace(PLACER_TAG, 'BUFFER'), em=1, world=1)
         if parent:
             buffer_grp.setParent(parent)
             gen.zero_out(buffer_grp)
@@ -202,7 +247,7 @@ class ScenePlacerManager:
 
     def color_scene_handle(self, color=None):
         if not color:
-            color = color_code[self.placer.side] if self.placer.side else color_code['M']
+            color = COLOR_CODE[self.placer.side] if self.placer.side else COLOR_CODE['M']
         gen.set_color(self.scene_placer, color)
 
 
@@ -252,8 +297,8 @@ class VectorHandleManager:
         self.name = name
         self.scene_name = None
         self.vector = vector
-        self.position = position if position else (0, 0, 0)
-        self.size = size if size else 0.25
+        self.position = position or (0, 0, 0)
+        self.size = size or 0.25
         self.side = side
         self.parent = parent
         self.placer = placer
@@ -272,9 +317,10 @@ class VectorHandleManager:
         types = {'aim': ('AIM', 'cube', self.vector_handles_size * 0.7),
                  'up': ('UP', 'tetrahedron', self.vector_handles_size * 1.6)}
         vector_type, handle_shape, shape_scaler_factor = types[self.vector]
-        self.scene_name = f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.name}_{vector_type}'
-        self.scene_handle = gen.prefab_curve_construct(prefab=handle_shape, name=self.scene_name,
-                                                       scale=self.size * shape_scaler_factor)
+        self.scene_name = f'{gen.side_tag(self.placer.side)}{self.placer.part_name}_{self.name}_{vector_type}'
+        crv_construct = CurveConstruct.create_prefab(name=self.scene_name, prefab_shape=handle_shape,
+                                                     size=self.size * shape_scaler_factor)
+        self.scene_handle = crv_construct.create_scene_obj()
         self.color_scene_handle()
         self.connect_attributes_to_placer()
         self.lock_transforms()
@@ -282,7 +328,7 @@ class VectorHandleManager:
 
     def color_scene_handle(self, color=None):
         if not color:
-            colors = {'L': color_code['L4'], 'R': color_code['R4'], 'M': color_code['M4']}
+            colors = {'L': COLOR_CODE['L4'], 'R': COLOR_CODE['R4'], 'M': COLOR_CODE['M4']}
             color = colors[self.placer.side] if self.placer.side else colors['M']
         gen.set_color(self.scene_handle, color)
 
@@ -330,8 +376,8 @@ class OrienterManager:
 
     def create_scene_obj(self):
         self.scene_orienter = rig.orienter(name=self.get_orienter_name(), scale=self.placer.size)
-        offset = gen.buffer_obj(self.scene_orienter, parent=self.parent, suffix='OFFSET')
-        buffer = gen.buffer_obj(self.scene_orienter)
+        offset = gen.buffer_obj(self.scene_orienter, _parent=self.parent, suffix='OFFSET')
+        gen.buffer_obj(self.scene_orienter)
         gen.zero_out(offset)
         if self.placer.side == 'R':
             gen.flip_obj(offset)
@@ -360,7 +406,7 @@ class OrienterManager:
 
     def constrain_to_neighboring_orienter(self):
         neighboring_orienter_name = \
-            f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.placer.match_orienter}_ORI'
+            f'{gen.side_tag(self.placer.side)}{self.placer.part_name}_{self.placer.match_orienter}_ORI'
         neighboring_orienter = pm.PyNode(neighboring_orienter_name)
         pm.orientConstraint(neighboring_orienter, self.scene_orienter.getParent())
 
@@ -376,7 +422,7 @@ class OrienterManager:
 
 
     def get_orienter_name(self):
-        return f'{gen.side_tag(self.placer.side)}{self.placer.parent_part_name}_{self.placer.name}_ORI'
+        return f'{gen.side_tag(self.placer.side)}{self.placer.part_name}_{self.placer.name}_ORI'
 
 
     def get_orienter(self):

@@ -1,4 +1,4 @@
-# Title: biped_arm.py
+# Title: cog.py
 # Author: Sam Leheny
 # Contact: samleheny@live.com
 
@@ -21,7 +21,6 @@ OrienterManager = placer_utils.OrienterManager
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.riggers.parts.class_PartConstructor as class_PartConstructor
@@ -57,8 +56,8 @@ class BespokePartConstructor(PartConstructor):
         placer_creator = PlacerCreator(
             name='Cog',
             side=self.side,
-            parent_part_name=self.part_name,
-            position=(0, 0, 0),
+            part_name=self.part_name,
+            position=[0, 0, 0],
             size=size,
             vector_handle_positions=self.proportionalize_vector_handle_positions([[0, 0, 1], [0, 1, 0]], size),
             orientation=[[0, 0, 1], [0, 1, 0]],
@@ -69,8 +68,8 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_controls(self):
-        ctrl_creators = [
-            ControlCreator(
+        ctrls = [
+            self.initialize_ctrl(
                 name = 'Cog',
                 shape = 'COG',
                 color = color_code['major'],
@@ -79,8 +78,7 @@ class BespokePartConstructor(PartConstructor):
                 match_position = None
             )
         ]
-        controls = [creator.create_control() for creator in ctrl_creators]
-        return controls
+        return ctrls
 
 
     def create_part_nodes_list(self):

@@ -21,13 +21,16 @@ importlib.reload(gen)
 
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
-PartManager = part_utils.PartManager
 Part = part_utils.Part
 
 import Snowman3.riggers.utilities.poseConstraint_utils as postConstraint_utils
 importlib.reload(postConstraint_utils)
 PostConstraintManager = postConstraint_utils.PostConstraintManager
 PostConstraint = postConstraint_utils.PostConstraint
+
+import Snowman3.riggers.utilities.blendpose_utils as bputils
+importlib.reload(bputils)
+BlendposeManager = bputils.BlendposeManager
 
 import Snowman3.dictionaries.colorCode as colorCode
 ###########################
@@ -38,22 +41,42 @@ import Snowman3.dictionaries.colorCode as colorCode
 temp_files_dir = 'working'
 versions_dir = 'versions'
 core_data_filename = 'core_data'
+ARMATURE_STATE_TAG = 'Armature'
+RIG_STATE_TAG = 'RIG'
 default_version_padding = 4
-colorCode = colorCode.sided_ctrl_color
+COLOR_CODE = colorCode.sided_ctrl_color
 ###########################
 ###########################
 
 
 ########################################################################################################################
-@dataclass
 class Blueprint:
-    asset_name: str
-    dirpath: str = None
-    parts: dict = field(default_factory=dict)
-    post_constraints: dict = field(default_factory=list)
-    custom_constraints: Sequence = field(default_factory=list)
-    kill_ctrls: Sequence = field(default_factory=list)
-    attribute_handoffs: dict = field(default_factory=list)
+    def __init__(
+        self,
+        asset_name: str,
+        dirpath: str = None,
+        parts: dict = None,
+        post_constraints: dict = None,
+        custom_constraints: Sequence = None,
+        kill_ctrls: Sequence = None,
+        attribute_handoffs: dict = None,
+        blendposes: dict = None
+    ):
+        self.asset_name = asset_name
+        self.dirpath = dirpath
+        self.parts = parts or {}
+        self.post_constraints = post_constraints or []
+        self.custom_constraints = custom_constraints or []
+        self.kill_ctrls = kill_ctrls or []
+        self.attribute_handoffs = attribute_handoffs or []
+        self.blendposes = blendposes or {}
+
+
+    @classmethod
+    def create_from_data(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        return Blueprint(**inst_inputs)
 
 
 ########################################################################################################################
@@ -200,9 +223,9 @@ class BlueprintManager:
             os.mkdir(self.versions_dir)
 
 
-    def save_work(self):
+    def save_work(self, state):
         logging.info('Saving work...')
-        self.update_blueprint_from_scene()
+        self.update_blueprint_from_scene(state)
         self.save_blueprint_to_disk()
         self.save_blueprint_to_tempdisk()
 
@@ -212,16 +235,27 @@ class BlueprintManager:
         return self.blueprint
 
 
-    def update_blueprint_from_scene(self):
+    def update_blueprint_from_scene(self, state):
         for key, part in self.blueprint.parts.items():
             self.blueprint.parts[key] = self.update_part_from_scene(part)
+
+        if state == RIG_STATE_TAG:
+            self.update_blendposes()
+
         return self.blueprint
+
+
+    def update_blendposes(self):
+        bp_manager = BlendposeManager.populate_manager_from_scene()
+        #bp_manager = BlendposeManager.populate_manager_from_data(self.blueprint.blendposes)
+        blendposes_data = bp_manager.all_blendposes_data_dict()
+        self.blueprint.blendposes = blendposes_data
 
 
     def update_part_from_scene(self, part):
         scene_handle = pm.PyNode(part.scene_name)
-        part.position = tuple(scene_handle.translate.get())
-        part.rotation = tuple(scene_handle.rotate.get())
+        part.position = list(scene_handle.translate.get())
+        part.rotation = list(scene_handle.rotate.get())
         part.part_scale = pm.getAttr(f'{scene_handle}.{"PartScale"}')
         part = self.update_part_placers_from_scene(part)
         part = self.update_part_controls_from_scene(part)
@@ -239,41 +273,6 @@ class BlueprintManager:
         for key, ctrl in part.controls.items():
             part.controls[key] = self.update_control_shape_from_scene(ctrl)
         return part
-
-
-    @staticmethod
-    def update_placer_from_scene(placer):
-        scene_placer = pm.PyNode(placer.scene_name)
-        placer.position = tuple(scene_placer.translate.get())
-        placer.rotation = tuple(scene_placer.rotate.get())
-        return placer
-
-
-    @staticmethod
-    def update_vector_handles_from_scene(placer):
-        def process_handle(vector):
-            handle_name = f'{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}'
-            if not pm.objExists(handle_name):
-                return False
-            scene_vector_handle = pm.PyNode(handle_name)
-            position = list(scene_vector_handle.translate.get())
-            if vector == 'AIM':
-                placer.vector_handle_positions[0] = position
-            elif vector == 'UP':
-                placer.vector_handle_positions[1] = position
-        process_handle('AIM')
-        process_handle('UP')
-        return placer
-
-
-    @staticmethod
-    def update_control_shape_from_scene(ctrl):
-        if not pm.objExists(ctrl.scene_name):
-            return ctrl
-        scene_ctrl = pm.PyNode(ctrl.scene_name)
-        ctrl_shape_data = gen.get_shape_data_from_obj(scene_ctrl)
-        ctrl.shape = ctrl_shape_data
-        return ctrl
 
 
     def save_blueprint_to_disk(self):
@@ -317,38 +316,11 @@ class BlueprintManager:
         return self.blueprint
 
 
-    @staticmethod
-    def data_from_file(filepath):
-        with open(filepath, 'r') as fh:
-            data = json.load(fh)
-        return data
-
-
     def blueprint_from_data(self, data):
-        self.blueprint = Blueprint(**data)
+        self.blueprint = Blueprint.create_from_data(**data)
         self.blueprint.parts = self.parts_from_data(self.blueprint.parts)
         self.blueprint.post_constraints = self.post_constraints_from_data(self.blueprint.post_constraints)
         return self.blueprint
-
-
-    @staticmethod
-    def parts_from_data(parts_data):
-        parts = {}
-        for key, data in parts_data.items():
-            new_part = Part(**data)
-            manager = PartManager(new_part)
-            manager.create_placers_from_data(new_part.placers)
-            manager.create_controls_from_data(new_part.controls)
-            parts[key] = manager.part
-        return parts
-
-
-    @staticmethod
-    def post_constraints_from_data(post_constraints_data):
-        post_constraints = []
-        for data in post_constraints_data:
-            post_constraints.append(PostConstraint(**data))
-        return post_constraints
 
 
     def data_from_blueprint(self):
@@ -356,26 +328,6 @@ class BlueprintManager:
         data['parts'] = self.parts_data_from_blueprint(self.blueprint.parts)
         data['post_constraints'] = self.post_constraints_data_from_blueprints(self.blueprint.post_constraints)
         return data
-
-
-    @staticmethod
-    def parts_data_from_blueprint(parts):
-        data = {}
-        for key, part in parts.items():
-            data[key] = PartManager.data_from_part(part)
-        return data
-
-
-    @staticmethod
-    def post_constraints_data_from_blueprints(post_constraints):
-        data = []
-        for post_constraint in post_constraints:
-            data.append(PostConstraintManager.data_from_post_constraint(post_constraint))
-        return data
-
-    @staticmethod
-    def data_from_part(part):
-        return PartManager.data_from_part(part)
 
 
     def save_blueprint(self, dirpath=None):
@@ -406,21 +358,21 @@ class BlueprintManager:
         self.blueprint = prefab_post_actions.run_post_actions(self.blueprint)
 
 
-    def mirror_part(self, existing_part):
+    '''def mirror_part(self, existing_part):
         self.mirror_part_parent_data(existing_part)
         self.mirror_controls_in_part(existing_part)
         new_opposite_part = self.get_opposite_part(existing_part)
         for tag in ('part_scale', 'handle_size'):
             setattr(new_opposite_part, tag, getattr(existing_part, tag))
-        #self.mirror_placers_in_part(existing_part)
+        #self.mirror_placers_in_part(existing_part)'''
 
 
-    def mirror_placers_in_part(self, existing_part):
+    '''def mirror_placers_in_part(self, existing_part):
         opposite_part = self.get_opposite_part(existing_part)
-        #opposite_part.placers = copy.deepcopy(existing_part.placers)
+        #opposite_part.placers = copy.deepcopy(existing_part.placers)'''
 
 
-    def mirror_part_parent_data(self, part):
+    '''def mirror_part_parent_data(self, part):
         opposite_part = self.get_opposite_part(part)
         existing_part_parent_data = part.parent
         if not existing_part_parent_data:
@@ -431,24 +383,12 @@ class BlueprintManager:
             if parent_side in ('L', 'R'):
                 parent_part_key = gen.get_opposite_side_string(parent_part_key)
         opposite_part_parent_data = [parent_part_key, existing_part_parent_data[1]]
-        opposite_part.parent = opposite_part_parent_data
+        opposite_part.parent = opposite_part_parent_data'''
 
 
-    def mirror_controls_in_part(self, part):
-        opposite_part = self.get_opposite_part(part)
-        opposite_ctrl_data = copy.deepcopy(part.controls)
-        for key, data in opposite_ctrl_data.items():
-
-            opposing_sides = {'L': 'R', 'R': 'L'}
-
-            if data.side in opposing_sides:
-                data.side = opposing_sides[data.side]
-                data.scene_name = gen.get_opposite_side_string(data.scene_name)
-                data.color = colorCode[data.side]
-
-            data.position[0] *= -1
-
-        opposite_part.controls = opposite_ctrl_data
+    '''def mirror_controls_in_part(self, part):
+        for ctrl in part.controls.values():
+            ctrl.flip()'''
 
 
     def get_opposite_part(self, part):
@@ -467,3 +407,95 @@ class BlueprintManager:
         if part_key in self.blueprint.parts:
             return True
         return False
+
+
+    def replace_part(self, old_part, new_part):
+        if not old_part.name == new_part.name:
+            self.transfer_parentage_to_new_part(old_part, new_part)
+        self.remove_part(old_part)
+        self.add_part(new_part)
+
+
+    def transfer_parentage_to_new_part(self, old_part, new_part):
+        exempt_parts = (old_part, new_part)
+        for part in self.blueprint.parts.values():
+            if part in exempt_parts:
+                continue
+            if not part.parent:
+                continue
+            if part.parent[0] == old_part.data_name:
+                part.parent[0] = new_part.data_name
+
+
+    @staticmethod
+    def update_placer_from_scene(placer):
+        scene_placer = pm.PyNode(placer.scene_name)
+        placer.position = tuple(scene_placer.translate.get())
+        placer.rotation = tuple(scene_placer.rotate.get())
+        return placer
+
+
+    @staticmethod
+    def update_vector_handles_from_scene(placer):
+        def process_handle(vector):
+            handle_name = f'{gen.side_tag(placer.side)}{placer.part_name}_{placer.name}_{vector}'
+            if not pm.objExists(handle_name):
+                return False
+            scene_vector_handle = pm.PyNode(handle_name)
+            position = list(scene_vector_handle.translate.get())
+            if vector == 'AIM':
+                placer.vector_handle_positions[0] = position
+            elif vector == 'UP':
+                placer.vector_handle_positions[1] = position
+        process_handle('AIM')
+        process_handle('UP')
+        return placer
+
+
+    @staticmethod
+    def update_control_shape_from_scene(ctrl):
+        if not pm.objExists(ctrl.scene_name):
+            return ctrl
+        scene_ctrl = pm.PyNode(ctrl.scene_name)
+        ctrl_shape_data = gen.get_shape_data_from_obj(scene_ctrl)
+        ctrl.shape = ctrl_shape_data
+        return ctrl
+
+
+    @staticmethod
+    def data_from_file(filepath):
+        with open(filepath, 'r') as fh:
+            data = json.load(fh)
+        return data
+
+
+    @staticmethod
+    def parts_from_data(parts_data):
+        parts = {}
+        for key, data in parts_data.items():
+            new_part = Part.create_from_data(**data)
+            parts[key] = new_part
+        return parts
+
+
+    @staticmethod
+    def post_constraints_from_data(post_constraints_data):
+        return [ PostConstraint(**data) for data in post_constraints_data ]
+
+
+    @staticmethod
+    def parts_data_from_blueprint(parts):
+        data = {}
+        for key, part in parts.items():
+            data[key] = part.data_dict()
+        return data
+
+
+    @staticmethod
+    def post_constraints_data_from_blueprints(post_constraints):
+        return [ PostConstraintManager.data_from_post_constraint(pc) for pc in post_constraints ]
+
+
+    @staticmethod
+    def data_from_part(part):
+        return part.data_dict()

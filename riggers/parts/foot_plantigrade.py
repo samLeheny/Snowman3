@@ -30,7 +30,6 @@ PartConstructor = class_PartConstructor.PartConstructor
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.dictionaries.colorCode as color_code
@@ -58,22 +57,22 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['Tarsus', (0, 0, 0), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
-            ['Ball', (0, -7.5, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
-            ['BallEnd', (0, -7.5, 16.73), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, 'Ball'],
-            ['SoleToe', (0, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
-            ['SoleToeEnd', (0, -10, 19), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
-            ['SoleInner', (-4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
-            ['SoleOuter', (4.5, -10, 11.8), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
-            ['SoleHeel', (0, -10, -4), [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
-            ['FootSettings', (6, 0, 0), [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.7, False, None],
+            ['Tarsus', [0, 0, 0], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['Ball', [0, -7.5, 11.8], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['BallEnd', [0, -7.5, 16.73], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 1.25, False, 'Ball'],
+            ['SoleToe', [0, -10, 11.8], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
+            ['SoleToeEnd', [0, -10, 19], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
+            ['SoleInner', [-4.5, -10, 11.8], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
+            ['SoleOuter', [4.5, -10, 11.8], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
+            ['SoleHeel', [0, -10, -4], [[0, 0, 1], [0, 1, 0]], [[1, 0, 0], [0, 0, 1]], 0.6, False, 'Ball'],
+            ['FootSettings', [6, 0, 0], [[0, 0, 1], [0, 1, 0]], [[0, 0, 1], [0, 1, 0]], 0.7, False, None],
         ]
         placers = []
         for p in data_packs:
             placer_creator = PlacerCreator(
                 name=p[0],
                 side=self.side,
-                parent_part_name=self.part_name,
+                part_name=self.part_name,
                 position=p[1],
                 size=p[4],
                 vector_handle_positions=self.proportionalize_vector_handle_positions(p[2], p[4]),
@@ -86,8 +85,8 @@ class BespokePartConstructor(PartConstructor):
 
 
     def create_controls(self):
-        ctrl_creators = [
-            ControlCreator(
+        ctrls = [
+            self.initialize_ctrl(
                 name='FkToe',
                 shape='toe',
                 color=self.colors[0],
@@ -96,7 +95,7 @@ class BespokePartConstructor(PartConstructor):
                 forward_direction=[1, 0, 0],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='IkToe',
                 shape='toe',
                 color=self.colors[0],
@@ -105,7 +104,7 @@ class BespokePartConstructor(PartConstructor):
                 forward_direction=[1, 0, 0],
                 side=self.side
             ),
-            ControlCreator(
+            self.initialize_ctrl(
                 name='FootSettings',
                 shape='gear',
                 color=color_code['settings'],
@@ -114,8 +113,7 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side
             ),
         ]
-        controls = [creator.create_control() for creator in ctrl_creators]
-        return controls
+        return ctrls
 
 
     def get_connection_pairs(self):
@@ -162,7 +160,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = bind_jnts[key] = rig.joint(name=key, side=part.side, radius=0.5, joint_type='BIND')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], parent=transform_grp)
+        bind_chain_buffer = gen.buffer_obj(list(bind_jnts.values())[0], _parent=transform_grp)
         gen.zero_out(bind_chain_buffer)
         gen.match_pos_ori(bind_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(bind_jnt_keys):
@@ -216,7 +214,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = ik_jnts[key] = rig.joint(name=f'Ik{key}', side=part.side, radius=1.0, joint_type='JNT')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], parent=ik_grp)
+        ik_chain_buffer = gen.buffer_obj(list(ik_jnts.values())[0], _parent=ik_grp)
         gen.zero_out(ik_chain_buffer)
         gen.match_pos_ori(ik_chain_buffer, orienters['Tarsus'])
         for i, key in enumerate(ik_jnt_keys):
@@ -232,7 +230,7 @@ class BespokePartConstructor(PartConstructor):
             jnt = foot_roll_jnts[key] = rig.joint(name=f'FootRoll{key}', side=part.side, radius=1.5, joint_type='JNT')
             jnt.setParent(prev_jnt) if prev_jnt else None
             prev_jnt = jnt
-        foot_roll_chain_buffer = gen.buffer_obj(list(foot_roll_jnts.values())[0], suffix='OFFSET', parent=ik_grp)
+        foot_roll_chain_buffer = gen.buffer_obj(list(foot_roll_jnts.values())[0], suffix='OFFSET', _parent=ik_grp)
         gen.zero_out(foot_roll_chain_buffer)
         pm.matchTransform(foot_roll_chain_buffer, ik_grp)
         for i, key in enumerate(foot_roll_keys):
@@ -338,7 +336,7 @@ class BespokePartConstructor(PartConstructor):
         pm.setAttr(f'{foot_roll_jnts["SoleInner"]}.minRotLimitEnable.minRotZLimitEnable', 1)
         pm.setAttr(f'{foot_roll_jnts["SoleInner"]}.minRotLimit.minRotZLimit', 0)
 
-        # ------------------------------------------------------------------------------------------------------------------
+        # --------------------------------------------------------------------------------------------------------------
         pm.select(clear=1)
         return {'ik_grp': ik_grp,
                 'ik_jnts': ik_jnts,

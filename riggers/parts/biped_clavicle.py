@@ -28,7 +28,6 @@ PartConstructor = class_PartConstructor.PartConstructor
 
 import Snowman3.riggers.utilities.control_utils as control_utils
 importlib.reload(control_utils)
-ControlCreator = control_utils.ControlCreator
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.dictionaries.nameConventions as nameConventions
@@ -59,29 +58,27 @@ class BespokePartConstructor(PartConstructor):
 
     def create_placers(self):
         data_packs = [
-            ['Clavicle', (0, 0, 0), [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
-            ['ClavicleEnd', (12, 0, 0), [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, 'Clavicle'],
+            ['Clavicle', [0, 0, 0], [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 1.25, True, None],
+            ['ClavicleEnd', [12, 0, 0], [[1, 0, 0], [0, 0, 1]], [[1, 0, 0], [0, 0, 1]], 0.8, False, 'Clavicle'],
         ]
-        placers = []
-        for p in data_packs:
-            placer_creator = PlacerCreator(
+        return [
+            PlacerCreator(
                 name=p[0],
                 side=self.side,
-                parent_part_name=self.part_name,
+                part_name=self.part_name,
                 position=p[1],
                 size=p[4],
                 vector_handle_positions=self.proportionalize_vector_handle_positions(p[2], p[4]),
                 orientation=p[3],
                 match_orienter=p[6],
                 has_vector_handles=p[5]
-            )
-            placers.append(placer_creator.create_placer())
-        return placers
+            ).create_placer() for p in data_packs
+        ]
 
 
     def create_controls(self):
-        ctrl_creators = [
-            ControlCreator(
+        ctrls = [
+            self.initialize_ctrl(
                 name='Clavicle',
                 shape='biped_clavicle',
                 color=color_code[self.side],
@@ -92,8 +89,7 @@ class BespokePartConstructor(PartConstructor):
                 side=self.side
             )
         ]
-        controls = [creator.create_control() for creator in ctrl_creators]
-        return controls
+        return ctrls
 
 
     def get_connection_pairs(self):
@@ -120,7 +116,7 @@ class BespokePartConstructor(PartConstructor):
         clavicle_end_jnt = rig.joint(name='ClavicleEnd', side=part.side, joint_type=nom.bindJnt, radius=0.6)
         clavicle_end_jnt.setParent(clavicle_jnt)
         clavicle_jnt.setParent(scene_ctrls['Clavicle'])
-        clavicle_ctrl_buffer = gen.buffer_obj(scene_ctrls['Clavicle'], parent=transform_grp)
+        clavicle_ctrl_buffer = gen.buffer_obj(scene_ctrls['Clavicle'], _parent=transform_grp)
         gen.zero_out(clavicle_ctrl_buffer)
         gen.match_pos_ori(clavicle_ctrl_buffer, orienters['Clavicle'])
         gen.match_pos_ori(clavicle_end_jnt, orienters['ClavicleEnd'])

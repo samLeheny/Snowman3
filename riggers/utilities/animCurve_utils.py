@@ -21,58 +21,277 @@ TRANSFORM_ATTRS = ('tx', 'ty', 'tz', 'rx', 'ry', 'rz')
 
 
 ########################################################################################################################
-@dataclass
 class KeyTangent:
-    index: int
-    inAngle: float
-    outAngle: float
-    inWeight: float
-    outWeight: float
-    inTangentType: str
-    outTangentType: str
-    weightedTangents: bool
-    weightLock: bool
-    stepAttributes: int
-    lock: bool
+    def __init__(
+        self,
+        index: int,
+        inAngle: float,
+        outAngle: float,
+        inWeight: float,
+        outWeight: float,
+        inTangentType: str,
+        outTangentType: str,
+        weightedTangents: bool,
+        weightLock: bool,
+        stepAttributes: int,
+        lock: bool
+    ):
+        self.index = index
+        self.inAngle = inAngle
+        self.outAngle = outAngle
+        self.inWeight = inWeight
+        self.outWeight = outWeight
+        self.inTangentType = inTangentType
+        self.outTangentType = outTangentType
+        self.weightedTangents = weightedTangents
+        self.weightLock = weightLock
+        self.stepAttributes = stepAttributes
+        self.lock = lock
+
+
+
+    @classmethod
+    def create_from_data(cls, **kwargs):
+        inst_inputs = KeyTangent._get_inst_inputs(**kwargs)
+        return KeyTangent(**inst_inputs)
+
+
+
+    @classmethod
+    def _get_inst_inputs(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        return inst_inputs
+
+
+
+    def data_dict(self):
+        return vars(self).copy()
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-@dataclass
 class AnimCurve:
-    name: str
-    node_type: str
-    keyframe_count: int
-    key_times: list
-    key_values: list
-    tangents: list
-    tangentType: str
-    weightedTangents: bool
-    keyTanLocked: bool
-    keyWeightLocked: bool
-    keyTanInX: float
-    keyTanInY: float
-    keyTanOutX: float
-    keyTanOutY: float
-    keyTanInType: str
-    keyTanOutType: str
-    rotationInterpolation: bool
-    preInfinity: str
-    postInfinity: str
-    stipplePattern: float
-    outStippleThreshold: float
-    outStippleRange: float
-    inStippleRange: float
-    stippleReverse: bool
-    useCurveColor: bool
-    curveColor: float
-    curveColorR: float
-    curveColorG: float
-    curveColorB: float
-    input: str
-    output: list
-    keyTimeValue: list
+    def __init__(
+        self,
+        name: str = None,
+        node_type: str = None,
+        keyframe_count: int = None,
+        key_times: list = None,
+        key_values: list = None,
+        tangents: list = None,
+        tangentType: str = None,
+        weightedTangents: bool = None,
+        keyTanLocked: bool = None,
+        keyWeightLocked: bool = None,
+        keyTanInX: float = None,
+        keyTanInY: float = None,
+        keyTanOutX: float = None,
+        keyTanOutY: float = None,
+        keyTanInType: str = None,
+        keyTanOutType: str = None,
+        rotationInterpolation: bool = None,
+        preInfinity: str = None,
+        postInfinity: str = None,
+        stipplePattern: float = None,
+        outStippleThreshold: float = None,
+        outStippleRange: float = None,
+        inStippleRange: float = None,
+        stippleReverse: bool = None,
+        useCurveColor: bool = None,
+        curveColor: float = None,
+        curveColorR: float = None,
+        curveColorG: float = None,
+        curveColorB: float = None,
+        input: str = None,
+        output: list = None,
+        keyTimeValue: list = None
+    ):
+        self.name = name
+        self.node_type = node_type
+        self.keyframe_count = keyframe_count
+        self.key_times = key_times
+        self.key_values = key_values
+        self.tangents = tangents
+        self.tangentType = tangentType
+        self.weightedTangents = weightedTangents
+        self.keyTanLocked = keyTanLocked
+        self.keyWeightLocked = keyWeightLocked
+        self.keyTanInX = keyTanInX
+        self.keyTanInY = keyTanInY
+        self.keyTanOutX = keyTanOutX
+        self.keyTanOutY = keyTanOutY
+        self.keyTanInType = keyTanInType
+        self.keyTanOutType = keyTanOutType
+        self.rotationInterpolation = rotationInterpolation
+        self.preInfinity = preInfinity
+        self.postInfinity = postInfinity
+        self.stipplePattern = stipplePattern
+        self.outStippleThreshold = outStippleThreshold
+        self.outStippleRange = outStippleRange
+        self.inStippleRange = inStippleRange
+        self.stippleReverse = stippleReverse
+        self.useCurveColor = useCurveColor
+        self.curveColor = curveColor
+        self.curveColorR = curveColorR
+        self.curveColorG = curveColorG
+        self.curveColorB = curveColorB
+        self.input = input
+        self.output = output
+        self.keyTimeValue = keyTimeValue
+
+        self.node = None
 
 
+
+    @classmethod
+    def create_from_node(cls, node=None):
+
+        output_plugs = pm.listConnections(node.output, s=0, d=1, plugs=1, scn=1)
+        output_plug = output_plugs[0] if output_plugs else None
+        keyframe_count, key_times, key_values = 0, None, None
+        node_input = pm.listConnections(node.input, s=1, d=0, plugs=1, scn=1)[0].name()
+        node_outputs = [c.name() for c in get_final_anim_curve_destinations(node.output)]
+        tangents = []
+        if output_plug:
+            keyframe_count = pm.keyframe(output_plug, q=1, keyframeCount=1)
+            key_times = pm.keyframe(output_plug, q=1, index=(0, keyframe_count), floatChange=1)
+            key_values = pm.keyframe(output_plug, q=1, index=(0, keyframe_count), valueChange=1)
+            for i in range(keyframe_count):
+                tangents.append(cls._get_tangent(output_plug, i))
+
+        attrs = ('tangentType', 'weightedTangents', 'keyTanLocked', 'keyWeightLocked', 'keyTanInX', 'keyTanInY',
+                 'keyTanOutX', 'keyTanOutY', 'keyTanInType', 'keyTanOutType', 'rotationInterpolation', 'preInfinity',
+                 'postInfinity', 'stipplePattern', 'outStippleThreshold', 'outStippleRange', 'inStippleRange',
+                 'stippleReverse', 'useCurveColor', 'curveColor', 'curveColorR', 'curveColorG', 'curveColorB',
+                 'keyTimeValue')
+        inputs = {}
+        for attr in attrs:
+            inputs[attr] = pm.getAttr(f'{node.nodeName()}.{attr}')
+
+        return AnimCurve(
+            name=node.nodeName(),
+            node_type=node.nodeType(),
+            keyframe_count=keyframe_count,
+            key_times=key_times,
+            key_values=key_values,
+            tangents=tangents,
+            input=node_input,
+            output=node_outputs,
+            **inputs
+        )
+
+
+
+    @classmethod
+    def create_from_data(cls, **kwargs):
+        inst_inputs = AnimCurve._get_inst_inputs(**kwargs)
+
+        if inst_inputs['tangents']:
+            inst_inputs['tangents'] = [ KeyTangent.create_from_data(**data) for data in inst_inputs['tangents'] ]
+
+        return AnimCurve(**inst_inputs)
+
+
+
+    @classmethod
+    def _get_inst_inputs(cls, **kwargs):
+        class_params = cls.__init__.__code__.co_varnames
+        inst_inputs = {name: kwargs[name] for name in kwargs if name in class_params}
+        return inst_inputs
+
+
+
+    def node_from_data(self, data=None):
+
+        if not data:
+            data = self
+
+        node = pm.shadingNode(data.node_type, name=data.name, au=1)
+        data.name = node.nodeName()
+
+        if data.input:
+            self._find_connect_input(data.input, node)
+        if data.output:
+            self._find_connect_output(data.output, node)
+
+        for i in range(data.keyframe_count):
+            t = data.tangents[i]
+            pm.setKeyframe(node, float=data.key_times[i], value=data.key_values[i])
+            pm.keyTangent(node, e=1, index=(i, i), weightedTangents=int(t.weightedTangents))
+            if not pm.keyTangent(node, q=1, index=(i, i), weightedTangents=1):
+                pm.keyTangent(node, e=1, index=(i, i), weightLock=t.weightLock)
+            pm.keyTangent(node, e=1, index=(i, i), lock=t.lock)
+            pm.keyTangent(node, e=1, index=(i, i), inWeight=t.inWeight)
+            pm.keyTangent(node, e=1, index=(i, i), outWeight=t.outWeight)
+            pm.keyTangent(node, e=1, index=(i, i), inAngle=t.inAngle)
+            pm.keyTangent(node, e=1, index=(i, i), outAngle=t.outAngle)
+            pm.keyTangent(node, e=1, index=(i, i), inTangentType=t.inTangentType)
+            pm.keyTangent(node, e=1, index=(i, i), outTangentType=t.outTangentType)
+
+        attrs = ('keyTanLocked', 'keyWeightLocked', 'keyTanInX', 'keyTanInY', 'keyTanOutX', 'keyTanOutY',
+                 'keyTanInType', 'keyTanOutType', 'preInfinity', 'postInfinity', 'stipplePattern',
+                 'outStippleThreshold', 'outStippleRange', 'useCurveColor', 'curveColor', 'curveColorR', 'curveColorG',
+                 'curveColorB', 'keyTimeValue', 'stippleReverse')
+        [pm.setAttr(f'{node}.{attr}', getattr(data, attr)) for attr in attrs]
+
+        self.node = node
+        return node
+
+
+
+    def data_dict(self):
+        attrs = vars(self).copy()
+        attrs['tangents'] = [tangent.data_dict() for tangent in self.tangents]
+        return attrs
+
+
+
+    @staticmethod
+    def _get_tangent(plug, key_index):
+        i = index = key_index
+        lock = pm.keyTangent(plug, q=1, index=(i, i), lock=1)[0]
+        inAngle = pm.keyTangent(plug, q=1, index=(i, i), inAngle=1)[0]
+        outAngle = pm.keyTangent(plug, q=1, index=(i, i), outAngle=1)[0]
+        inWeight = pm.keyTangent(plug, q=1, index=(i, i), inWeight=1)[0]
+        outWeight = pm.keyTangent(plug, q=1, index=(i, i), outWeight=1)[0]
+        weightLock = pm.keyTangent(plug, q=1, index=(i, i), weightLock=1)[0]
+        stepAttributes = pm.keyTangent(plug, q=1, index=(i, i), stepAttributes=1)
+        inTangentType = pm.keyTangent(plug, q=1, index=(i, i), inTangentType=1)[0]
+        outTangentType = pm.keyTangent(plug, q=1, index=(i, i), outTangentType=1)[0]
+        weightedTangents = pm.keyTangent(plug, q=1, index=(i, i), weightedTangents=1)[0]
+
+        tangent = KeyTangent(index=index, inAngle=inAngle, outAngle=outAngle, inWeight=inWeight, outWeight=outWeight,
+                             inTangentType=inTangentType, outTangentType=outTangentType,
+                             weightedTangents=weightedTangents, weightLock=weightLock, stepAttributes=stepAttributes,
+                             lock=lock)
+        return tangent
+
+
+
+    @staticmethod
+    def _find_connect_input(input_plug, node):
+        attr = input_plug
+        obj_name, plug = attr.split('.')
+        if pm.objExists(obj_name):
+            if not pm.attributeQuery(plug, node=obj_name, exists=1):
+                pm.connectAttr(input_plug, node.input)
+
+
+
+    @staticmethod
+    def _find_connect_output(output_plugs, node):
+        for attr in output_plugs:
+            obj_name, plug = attr.split('.')
+            if not pm.objExists(obj_name):
+                continue
+            if not pm.attributeQuery(plug, node=obj_name, exists=1):
+                continue
+            connect_anim_curve(node, attr)
+
+
+
+'''
 # ----------------------------------------------------------------------------------------------------------------------
 class AnimCurveManager:
 
@@ -141,7 +360,7 @@ class AnimCurveManager:
 
 
     def data_from_node(self, node=None):
-        node = node if node else self.node
+        node = node or self.node
 
         output_plugs = pm.listConnections(node.output, s=0, d=1, plugs=1, scn=1)
         output_plug = output_plugs[0] if output_plugs else None
@@ -198,13 +417,14 @@ class AnimCurveManager:
                              weightedTangents=weightedTangents, weightLock=weightLock, stepAttributes=stepAttributes,
                              lock=lock)
         return tangent
-    
+'''
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_true_transform_value(attr):
     apparent_value = pm.getAttr(attr)
-    possible_driver_plugs = pm.listConnections(attr, s=1, d=0, plugs=1)
+    possible_driver_plugs = pm.listConnections(attr, s=1, d=0, plugs=1, scn=1)
     if not possible_driver_plugs:
         return apparent_value
     else:
@@ -275,7 +495,7 @@ def disconnect_anim_curve(anim_curve, dest_plug):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def switch_curve_connection(curve, old_attr, new_attr):
+def redirect_curve_connection(curve, old_attr, new_attr):
     disconnect_anim_curve(curve, old_attr)
     connect_anim_curve(curve, new_attr)
 
@@ -316,14 +536,12 @@ def get_next_free_multi_index(attr_plug):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def find_existing_anim_curve(source_plug, dest_plug):
+    downstream_connections = pm.listConnections(source_plug, s=0, d=1)
     upstream_connections = pm.listConnections(dest_plug, s=1, d=0)
-    if not upstream_connections:
+    if not all((downstream_connections, upstream_connections)):
         return None
-    upstream_connection = upstream_connections[0]
-    downstream_nodes = pm.listHistory(source_plug, future=1)
-    upstream_nodes = pm.listHistory(upstream_connection)
-    if not downstream_nodes:
-        return None
+    downstream_nodes = get_downstream_nodes(source_plug)
+    upstream_nodes = pm.listHistory(upstream_connections[0])
     for node in downstream_nodes:
         if node not in upstream_nodes:
             continue
@@ -331,6 +549,17 @@ def find_existing_anim_curve(source_plug, dest_plug):
             continue
         return node
     return None
+
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def get_downstream_nodes(source_plug):
+    downstream_nodes = []
+    downstream_connections = pm.listConnections(source_plug, s=0, d=1)
+    for node in downstream_connections:
+        downstream_nodes += pm.listHistory(node, future=1)
+    return downstream_nodes
+
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -457,10 +686,10 @@ def set_key_on_anim_curve(destination_plug, source_float, key_value, anim_curve_
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def update_anim_curve_node(node, destination_plug, source_plug, transform_value, anim_curve_node):
+def update_anim_curve_node(node, destination_plug, source_plug, transform_value):
     source_float = pm.getAttr(source_plug)
     total_transform_value = transform_value + pm.getAttr(node.output)
-    set_key_on_anim_curve(destination_plug, source_float, total_transform_value, anim_curve_node)
+    set_key_on_anim_curve(destination_plug, source_float, total_transform_value, node)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -470,3 +699,18 @@ def initialize_anim_curve(destination_plug, source_plug, transform_value, transf
     source_float = pm.getAttr(source_plug)
     set_key_on_anim_curve(destination_plug, 0, 0, anim_curve_node)
     set_key_on_anim_curve(destination_plug, source_float, transform_value, anim_curve_node)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def get_final_anim_curve_destinations(starting_node_out_plug):
+    final_plugs = []
+    starting_node_output_nodes = pm.listConnections(starting_node_out_plug, s=0, d=1, scn=1)
+    starting_node_output_plugs = pm.listConnections(starting_node_out_plug, s=0, d=1, scn=1, plugs=1)
+    for i, node in enumerate(starting_node_output_nodes):
+        if not node.nodeType() == 'blendWeighted':
+            final_plugs.append(starting_node_output_plugs[i])
+        else:
+            x = get_final_anim_curve_destinations(node.output)
+            if x:
+                final_plugs += x
+    return final_plugs

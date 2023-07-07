@@ -19,7 +19,6 @@ BlueprintManager = blueprint_manager_util.BlueprintManager
 
 import Snowman3.riggers.utilities.part_utils as part_utils
 importlib.reload(part_utils)
-PartManager = part_utils.PartManager
 ScenePartManager = part_utils.ScenePartManager
 
 import Snowman3.riggers.utilities.poseConstraint_utils as postConstraint_utils
@@ -141,7 +140,7 @@ class ArmatureManager:
     def mirror_vector_handle_positions(self, placer_key, part):
         placer = self.get_placer(placer_key, part)
         def process_handle(vector):
-            handle_name = f'{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_{vector}'
+            handle_name = f'{gen.side_tag(placer.side)}{placer.part_name}_{placer.name}_{vector}'
             if not pm.objExists(handle_name):
                 return False
             scene_handle = pm.PyNode(handle_name)
@@ -178,7 +177,7 @@ class ArmatureManager:
 
     def get_scene_orienter(self, placer_key, part):
         placer = self.get_placer(placer_key, part)
-        orienter_name = f"{gen.side_tag(placer.side)}{placer.parent_part_name}_{placer.name}_ORI"
+        orienter_name = f"{gen.side_tag(placer.side)}{placer.part_name}_{placer.name}_ORI"
         if not pm.objExists(orienter_name):
             return None
         return pm.PyNode(orienter_name)

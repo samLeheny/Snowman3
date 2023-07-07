@@ -28,19 +28,19 @@ nom = nameConventions.create_dict()
 
 
 # Global variables ########
-all_transform_attrs = ["translate", "tx", "ty", "tz", "rotate", "rx", "ry", "rz", "scale", "sx", "sy", "sz", "shear",
-                       "shearXY", "shearXZ", "shearYZ"]
-keyable_attrs = ["translate", "tx", "ty", "tz", "rotate", "rx", "ry", "rz", "scale", "sx", "sy", "sz", "visibility"]
-keyable_transform_attrs = ["translate", "tx", "ty", "tz", "rotate", "rx", "ry", "rz", "scale", "sx", "sy", "sz"]
-translate_attrs = ["tx", "ty", "tz"]
-all_translate_attrs = ["translate", "tx", "ty", "tz"]
-rotate_attrs = ["rx", "ry", "rz"]
-all_rotate_attrs = ["rotate", "rx", "ry", "rz"]
-scale_attrs = ["sx", "sy", "sz"]
-all_scale_attrs = ["scale", "sx", "sy", "sz"]
-shear_attrs = ["shearXY", "shearXZ", "shearYZ"]
-all_shear_attrs = ["shear", "shearXY", "shearXZ", "shearYZ"]
-vis_attrs = ["visibility"]
+ALL_TRANSFORM_ATTRS = ['translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz', 'shear',
+                       'shearXY', 'shearXZ', 'shearYZ']
+KEYABLE_ATTRS = ['translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz', 'visibility']
+KEYABLE_TRANSFORM_ATTRS = ['translate', 'tx', 'ty', 'tz', 'rotate', 'rx', 'ry', 'rz', 'scale', 'sx', 'sy', 'sz']
+TRANSLATE_ATTRS = ['tx', 'ty', 'tz']
+ALL_TRANSLATE_ATTRS = ['translate', 'tx', 'ty', 'tz']
+ROTATE_ATTRS = ['rx', 'ry', 'rz']
+ALL_ROTATE_ATTRS = ['rotate', 'rx', 'ry', 'rz']
+SCALE_ATTRS = ['sx', 'sy', 'sz']
+ALL_SCALE_ATTRS = ['scale', 'sx', 'sy', 'sz']
+SHEAR_ATTRS = ['shearXY', 'shearXZ', 'shearYZ']
+ALL_SHEAR_ATTRS = ['shear', 'shearXY', 'shearXZ', 'shearYZ']
+VIS_ATTRS = ['visibility']
 ###########################
 
 
@@ -93,6 +93,8 @@ lock_attrs_from_memory
 match_pose_ori
 create_follicle
 get_closest_uv_on_surface
+parent_jnt
+safe_parent
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -101,7 +103,7 @@ get_closest_uv_on_surface
 
 
 ########################################################################################################################
-def buffer_obj(child, suffix=None, name=None, parent=None):
+def buffer_obj(child, suffix=None, name=None, _parent=None):
     """
         Creates a new transform object above provided object and moves provided object's dirty transforms into the new
             parent, allowing the child's transforms to be clean (zeroed) while maintaining its world transforms.
@@ -110,30 +112,33 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
             suffix (string): String to be appended to child object's name to produce the name of the new buffer obj.
             name (string): (Optional) If provided, suffix parameter will be ignored and instead the new buffer obj's
                 name will be determined by this argument.
-            parent (dagNode): (Optional) Specifies object to parent new buffer node to. If argument not provided, will
+            _parent (dagNode): (Optional) Specifies object to parent new buffer node to. If argument not provided, will
                 default to parenting new buffer obj to child obj's original parent.
         Returns:
             (transform node) The newly created buffer obj.
     """
 
+    def remove_leading_underscore(_string):
+        if _string[0] == '_':
+            _suffix = _string.split('_')[1]
+        return _string
+
+
     pm.select(clear=1)
 
     # Variables
     default_suffix = 'buffer'
-    child_name = get_clean_name(str(child))
+    child_name = get_clean_name(child.nodeName())
 
     # Ensure a valid naming method for new buffer obj
     if not name:
-        if not suffix:
-            suffix = default_suffix
-        # If suffix came with its own underscore, remove it
-        if suffix[0] == '_':
-            suffix = suffix.split('_')[1]
+        suffix = suffix if suffix else default_suffix
+        suffix = remove_leading_underscore(suffix)
 
     # Check if child's transforms are free to be cleaned (not receiving connections)
     connected_attrs = []
 
-    for attr in all_transform_attrs:
+    for attr in ALL_TRANSFORM_ATTRS:
         incoming_connection = pm.listConnections(f'{child}.{attr}', source=1, destination=0, plugs=1)
         if incoming_connection:
             connected_attrs.append(f'{child_name}.{attr}')
@@ -147,72 +152,42 @@ def buffer_obj(child, suffix=None, name=None, parent=None):
 
     # Check for locked attributes. If any are found, remember them, then unlock them for the duration of this function
     lock_memory = []
-    for attr in all_transform_attrs:
-        if pm.getAttr(child + "." + attr, lock=1):
+    for attr in ALL_TRANSFORM_ATTRS:
+        if pm.getAttr(f'{child}.{attr}', lock=1):
             lock_memory.append(attr)
-            pm.setAttr(child + "." + attr, lock=0)
+            pm.setAttr(f'{child}.{attr}', lock=0)
 
     # Get child obj's parent
     world_is_original_parent = False
-    if not parent:
-        parent = child.getParent()
-    if not parent:
+    if not _parent:
+        _parent = child.getParent()
+    if not _parent:
         world_is_original_parent = True
 
-    # Compose buffer obj name
-    if name:
-        buffer_name = name
-    else:
-        buffer_name = f'{child_name}_{suffix}'
+    buffer_name = name if name else f'{child_name}_{suffix}'
 
-    # Create buffer obj
     buffer_node = pm.shadingNode('transform', name=buffer_name, au=1)
-
-    # If obj is a joint, go through extra steps of recording joint's transforms, zeroing joint out, and reapplying
-    # transforms later. Necessary to avoid unwanted transform nodes from being generated (joints are weird.)
-    recorded_transforms = None
-    jnt_orientation = None
-    if child.nodeType() == 'joint':
-        recorded_transforms = pm.xform(child, q=1, matrix=1, objectSpace=1)
-        jnt_orientation = tuple(child.jointOrient.get())
-        child.setParent(world=1)
-        zero_out(child)
-        jnt_parent = child.getParent()
-        if jnt_parent:
-            zero_out(jnt_parent)
-            child.setParent(world=1)
-            pm.delete(jnt_parent)
 
     # Match buffer obj to child's transforms
     buffer_node.setParent(child)
     for attr in ('translate', 'rotate', 'shear'):
         pm.setAttr(f'{buffer_node}.{attr}', 0, 0, 0)
         buffer_node.scale.set(1, 1, 1)
-    if child.nodeType() == 'joint':
-        child.jointOrient.set(0, 0, 0)
     buffer_node.setParent(world=1)
 
-    # Parent child to buffer
-    child.setParent(buffer_node)
+    safe_parent(child, buffer_node)
 
     # Clean child's transforms
-    for attr in ('translate', 'rotate', 'shear'):
-        pm.setAttr(f'{child}.{attr}', 0, 0, 0)
+    [pm.setAttr(f'{child}.{attr}', 0, 0, 0) for attr in ('translate', 'rotate', 'shear')]
     child.scale.set(1, 1, 1)
 
     # Parent buffer obj
     if not world_is_original_parent:
-        buffer_node.setParent(parent)
-
-    # If joint, reapply recorded transforms from earlier
-    if child.nodeType() == 'joint':
-        pm.xform(buffer_name, matrix=recorded_transforms, objectSpace=1)
-        #child.jointOrient.set(jnt_orientation)
+        safe_parent(buffer_node, _parent)
 
     # Re-lock any attributes on child obj that were locked previously
     if lock_memory:
-        for attr in lock_memory:
-            pm.setAttr(f'{child}.{attr}', lock=1)
+        [pm.setAttr(f'{child}.{attr}', lock=1) for attr in lock_memory]
 
     pm.select(clear=1)
     return buffer_node
@@ -241,7 +216,7 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
                   'scale' : True,
                   'shear' : True}
 
-    transform_attrs = all_transform_attrs
+    transform_attrs = ALL_TRANSFORM_ATTRS
 
 
     if translate is None and rotate is None and scale is None and shear is None:
@@ -256,16 +231,16 @@ def zero_out(obj, translate=None, rotate=None, scale=None, shear=None, jnt_orien
 
         transform_attrs = []
         if transforms['translate']:
-            for attr in all_translate_attrs:
+            for attr in ALL_TRANSLATE_ATTRS:
                 transform_attrs.append(attr)
         if transforms['rotate']:
-            for attr in all_rotate_attrs:
+            for attr in ALL_ROTATE_ATTRS:
                 transform_attrs.append(attr)
         if transforms['scale']:
-            for attr in all_scale_attrs:
+            for attr in ALL_SCALE_ATTRS:
                 transform_attrs.append(attr)
         if transforms['shear']:
-            for attr in all_shear_attrs:
+            for attr in ALL_SHEAR_ATTRS:
                 transform_attrs.append(attr)
 
 
@@ -777,96 +752,6 @@ def nurbs_curve(name=None, cvs=None, degree=3, form='open', color=None):
 
 
 ########################################################################################################################
-def compose_curve_cvs(cvs=None, scale=1, up_direction=None, forward_direction=None, points_offset=None):
-
-    if not up_direction: up_direction = (0, 1, 0)
-    if not forward_direction: forward_direction = (0, 0, 1)
-    points_offset = points_offset if points_offset else (0, 0, 0)
-
-    # Rearrange CV coordinates to match provided axes
-    if up_direction == forward_direction:
-        pm.error("up_direction and forward_direction parameters cannot have the same argument.")
-    cvs = rearrange_point_list_vectors(cvs, up_direction=up_direction, forward_direction=forward_direction)
-
-    # Process scale factor in case only one value was passed
-    scale = scale if isinstance(scale, list) else (scale, scale, scale)
-
-    # Build a list of points at which to place the curve's CVs (incorporating scale and points_offset)
-    points = [[(v[i] * scale[i]) + points_offset[i] for i in range(3)] for v in cvs]
-    # This appears to be a rare case of vanilla Python being faster than Numpy
-    # points = np.array(cvs).astype(float)
-    # for i in range(3):
-    #    points[:,i] *= float(scale[i])
-    return points
-
-
-
-########################################################################################################################
-def compose_curve_construct_cvs(curve_data, scale=1, shape_offset=None, up_direction=None, forward_direction=None):
-
-    if not up_direction: up_direction = [0, 1, 0]
-    if not forward_direction: forward_direction = [0, 0, 1]
-    if not shape_offset: shape_offset = [0, 0, 0]
-    for i, curve in enumerate(curve_data):
-        # ...For each curve in curve object, build curve using the home-brewed 'curve' function
-        cv_list = compose_curve_cvs(cvs=curve['cvs'], scale=scale,  points_offset=shape_offset,
-                                    up_direction=up_direction, forward_direction=forward_direction)
-        curve_data[i]['cvs'] = cv_list
-    return curve_data
-
-
-
-########################################################################################################################
-def curve_construct(curves, name=None, color=None, scale=1, shape_offset=None, up_direction=None,
-                    forward_direction=None):
-    """
-        Produces a nurbs curve object based on parameters. As opposed to other functions, if parameters are provided as
-            lists, the function will produce an object with multiple curve shapes. Useful for producing complex curve
-            objects to be used as animation controls.
-        Args:
-            scale (numeric): Factor by which to scale shape CV placement vectors. Defines scale of resulting curve
-                shape.
-            shape_offset ([float, float, float]): Vector by which to offset all CV positions so shape will not be
-                centered to object pivot. Require coordinates in form of list of three number values (integers or
-                floats).
-            up_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's
-                local positive y direction.
-            forward_direction ([float, float, float]): The unit vector indicating the world direction of the curve
-                shape's local positive z direction.
-        Returns:
-            (mTransform) The created curve object.
-    """
-    composed_cv_data = compose_curve_construct_cvs(
-        curve_data=curves, scale=scale, shape_offset=shape_offset, up_direction=up_direction,
-        forward_direction=forward_direction)
-
-    ##### BUILD SHAPES #####
-    crvs = []
-    for i, curve in enumerate(composed_cv_data):
-        crvs.append(
-            nurbs_curve(color = color,
-                        form = curves[i]['form'],
-                        cvs = curves[i]['cvs'],
-                        degree = curves[i]['degree'])
-        )
-
-    #...Parent shapes together under a single transform node
-    crv_obj = crvs[0]
-
-    for i in range(1, len(crvs)):
-        pm.parent(crvs[i].getShape(), crv_obj, relative=1, shape=1)
-        pm.delete(crvs[i])
-
-    #...Name curve and shapes
-    pm.rename(crv_obj, name)
-    rename_shapes(crv_obj)
-
-    pm.select(clear=1)
-    return crv_obj
-
-
-
-########################################################################################################################
 def rename_shapes(obj):
 
     #...Make sure we're dealing with shape nodes, not transform nodes
@@ -893,58 +778,6 @@ def rename_shapes(obj):
         shape.rename(new_shape_names[ shapes.index(shape) ])
 
     return new_shape_names
-
-
-
-########################################################################################################################
-def prefab_curve_construct(prefab=None, name=None, color=None, up_direction=None, forward_direction=None, scale=None,
-                           shape_offset=None):
-    """
-        Retrieves curve object data from curves dictionary, compiles it and feeds it to the curveObj function then
-            returns the resulting curve object.
-        Args:
-            prefab (string): Entry to look up in curves dictionary for curve data.
-            name (string): Name of curve object.
-            color (numeric/ [float, float, float]): Override color of curve. If an integer is provided, will use as
-                override color index. If list of three numbers (integers or floats) is provided, will use as RGB color.
-            up_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's
-                local positive y direction.
-            forward_direction ([float, float, float]): The unit vector indicating the world direction of the curve
-                shape's local positive z direction.
-            scale (numeric): Factor by which to scale shape CV placement vectors. Defines scale of resulting curve
-                shape.
-            shape_offset ([float, float, float]): Vector by which to offset all CV positions so shape will not be
-                centered to object pivot. Requires coordinates in form of list of three number values (integers or
-                floats).
-        Returns:
-            (mTransform) The created curve object.
-    """
-
-    #...Initialize parameters
-    if not up_direction: up_direction = [0, 1, 0]
-    if not forward_direction: forward_direction = [0, 0, 1]
-    if not shape_offset: shape_offset = [0, 0, 0]
-    if not scale: scale = 1
-
-    #...Test that provided dictionary entry exists
-    if prefab not in curve_prefabs:
-        pm.error("Cannot create prefab curve object. "
-                 "Provided prefab dictionary key '{}' is invalid".format(prefab))
-
-    #...Get shape data dictionary for this prefab
-    prefab_list = copy.deepcopy(curve_prefabs[prefab])
-
-    #...Create the shape object with assembled data
-    output_obj = curve_construct(
-        curves=prefab_list,
-        name = name,
-        color = color,
-        scale = scale,
-        shape_offset = shape_offset,
-        up_direction = up_direction,
-        forward_direction = forward_direction,
-    )
-    return output_obj
 
 
 
@@ -1143,7 +976,7 @@ def position_between(obj, between, ratios=None, include_orientation=False):
 
     #...Check that an equal number of between nodes and ratio values were provided
     if len(between) != len(ratios):
-        pm.error("Parameters 'between' and 'ratios' require list arguments of equal length.")
+        pm.error("Parameters 'between' and 'ratios' require list arguments of equal size.")
 
     #...Create constraint
     if include_orientation:
@@ -1193,8 +1026,8 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
         source_obj = pm.duplicate(source_obj, name=str(source_obj) + '_TEMP', renameChildren=1)[0]
 
     #...Unlock all transform attributes on source object(s) to avoid the shapes jumping when re-parented
-    [pm.setAttr(source_obj + "." + attr, lock=0, channelBox=1) for attr in all_transform_attrs]
-    [break_connections(source_obj + "." + attr) for attr in all_transform_attrs + ["offsetParentMatrix"]]
+    [pm.setAttr(f'{source_obj}.{attr}', lock=0, channelBox=1) for attr in ALL_TRANSFORM_ATTRS]
+    [break_connections(f'{source_obj}.{attr}') for attr in ALL_TRANSFORM_ATTRS + ['offsetParentMatrix']]
 
     source_obj.inheritsTransform.set(lock=0)
     source_obj.inheritsTransform.set(1)
@@ -1206,7 +1039,7 @@ def copy_shapes(source_obj, destination_obj, keep_original=False, delete_existin
     for source_shape in source_obj.getShapes():
 
         # Assign dummy names to source shapes to avoid naming conflicts during re_parenting process
-        source_shape.rename("TEMP_shapeName" + get_clean_name(str(source_obj)) + "_")
+        source_shape.rename(f'TEMP_shapeName{get_clean_name(str(source_obj))}_')
 
         # Re-parent source shape to destination object
         pm.parent(source_shape, destination_obj, relative=1, shape=1)
@@ -1751,11 +1584,11 @@ def matrix_constraint(objs=None, maintain_offset=False, translate=None, rotate=N
     else:
         decompose_node = pm.shadingNode('decomposeMatrix', au=1)
         pm.connectAttr(offset_parent_matrix_input, decompose_node+'.inputMatrix')
-        if not translate in [False, 0]:
+        if translate not in [False, 0]:
             pm.connectAttr(decompose_node+'.outputTranslate', target_obj+'.translate')
-        if not rotate in [False, 0]:
+        if rotate not in [False, 0]:
             pm.connectAttr(decompose_node+'.outputRotate', target_obj+'.rotate')
-        if not scale in [False, 0]:
+        if scale not in [False, 0]:
             pm.connectAttr(decompose_node+'.outputScale', target_obj+'.scale')
 
 
@@ -2001,7 +1834,7 @@ def get_obj_side(obj):
 ########################################################################################################################
 def create_lock_memory(obj, unlock=True):
     lock_memory = []
-    for attr in all_transform_attrs:
+    for attr in ALL_TRANSFORM_ATTRS:
         if pm.getAttr(f'{obj}.{attr}', lock=1):
             lock_memory.append(attr)
             if unlock:
@@ -2012,7 +1845,7 @@ def create_lock_memory(obj, unlock=True):
 
 ########################################################################################################################
 def lock_attrs_from_memory(obj, lock_memory):
-    for attr in all_transform_attrs:
+    for attr in ALL_TRANSFORM_ATTRS:
         if attr in lock_memory:
             pm.setAttr(f'{obj}.{attr}', lock=1)
 
@@ -2086,3 +1919,31 @@ def get_closest_uv_on_surface(obj, surface):
     pm.delete(point_node)
 
     return u_value, v_value
+
+
+
+########################################################################################################################
+def parent_jnt(jnt, _parent):
+    if not jnt.nodeType() == 'joint':
+        pm.error("Provided object must be of type 'joint'")
+        return False
+    recorded_transforms = pm.xform(jnt, q=1, matrix=1, worldSpace=1)
+    jnt.setParent(_parent)
+    offset = jnt.getParent()
+    if offset == _parent:
+        return
+    zero_out(offset)
+    jnt.setParent(_parent)
+    pm.xform(jnt, matrix=recorded_transforms, worldSpace=1)
+    pm.delete(offset)
+    pm.select(clear=1)
+
+
+
+########################################################################################################################
+def safe_parent(obj, _parent):
+    if obj.nodeType() == 'joint':
+        parent_jnt(obj, _parent)
+        return
+    obj.setParent(_parent)
+    pm.select(clear=1)
