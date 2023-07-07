@@ -6,6 +6,7 @@
 ###########################
 ##### Import Commands #####
 import importlib
+import copy
 import pymel.core as pm
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -35,9 +36,13 @@ class BlendposeManager:
     HOOK_NODE_TYPE = HOOK_NODE_TYPE
     HOOK_NODE_ID_ATTR = HOOK_NODE_ID_ATTR
 
-    def __init__(self):
-        self.blendposes = {}
-        self.blendpose_order = []
+    def __init__(
+        self,
+        blendposes = None,
+        blendpose_order = None,
+    ):
+        self.blendposes = blendposes or {}
+        self.blendpose_order = blendpose_order or self.get_blendpose_order()
 
 
 
@@ -47,6 +52,22 @@ class BlendposeManager:
         all_hook_nodes = manager.get_hook_nodes_in_scene()
         [ manager.add_existing_blendpose(hook_node_name=node.nodeName()) for node in all_hook_nodes ]
         return manager
+
+
+
+    @classmethod
+    def populate_manager_from_data(cls, blendposes):
+        blendposes = {k: Blendpose.create_from_data(**v) for k, v in blendposes.items()}
+        manager = BlendposeManager(blendposes)
+        return manager
+
+
+
+    def get_blendpose_order(self):
+        if not self.blendposes:
+            return []
+        else:
+            return [k for k in self.blendposes]
 
 
 
@@ -117,7 +138,7 @@ class BlendposeManager:
     def remove_output_objs(self, blendpose_key, *objs):
         blendpose = self.blendposes[blendpose_key]
         blendpose.remove_output_objs(*objs)
-        print(f'Output objects updated fr blendpose: {blendpose_key}')
+        print(f'Output objects updated for blendpose: {blendpose_key}')
 
 
 
@@ -244,11 +265,12 @@ class BlendposeManager:
 
 
     def all_blendposes_data_dict(self):
-        return {key: self.blendposes[key].data_dict() for key in self.blendposes}
+        return {k: v.data_dict() for k, v in self.blendposes.items()}
 
 
 
     def build_blendposes_from_data(self, data):
+        data = copy.deepcopy(data)
         for key in data:
             self.add_blendpose_from_data(**data[key])
             self.connect_output_objs_to_blendpose(key)

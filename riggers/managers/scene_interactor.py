@@ -38,7 +38,8 @@ importlib.reload(constraint_utils)
 
 ###########################
 ######## Variables ########
-
+ARMATURE_STATE_TAG = 'Armature'
+RIG_STATE_TAG = 'RIG'
 ###########################
 ###########################
 
@@ -54,6 +55,7 @@ class SceneInteractor:
         self.blueprint_manager = blueprint_manager
         self.armature_manager = armature_manager
         self.rig_manager = rig_manager
+        self.state = ARMATURE_STATE_TAG
 
 
 
@@ -85,7 +87,7 @@ class SceneInteractor:
 
 
     def update_blueprint_from_scene(self):
-        self.blueprint_manager.update_blueprint_from_scene()
+        self.blueprint_manager.update_blueprint_from_scene(self.state)
         self.update_working_blueprint_file()
 
 
@@ -108,7 +110,7 @@ class SceneInteractor:
             return False
         self.blueprint_manager.add_part(part)
         self.armature_manager.add_part(part)
-        self.blueprint_manager.update_blueprint_from_scene()
+        self.blueprint_manager.update_blueprint_from_scene(self.state)
         self.update_working_blueprint_file()
         return part
 
@@ -138,12 +140,12 @@ class SceneInteractor:
 
     def save_work(self):
         self.update_blueprint_from_scene()
-        self.blueprint_manager.save_work()
+        self.blueprint_manager.save_work(self.state)
 
 
 
     def create_mirrored_part(self, existing_part_key):
-        self.blueprint_manager.update_blueprint_from_scene()
+        self.blueprint_manager.update_blueprint_from_scene(self.state)
         if not self.check_for_part(part_key=existing_part_key):
             return False
         existing_part = self.blueprint_manager.get_part(existing_part_key)
@@ -156,6 +158,7 @@ class SceneInteractor:
     def build_rig(self):
         self.rig_manager.build_rig_from_armature(self.blueprint_manager.blueprint)
         self.armature_manager.hide_armature()
+        self.state = RIG_STATE_TAG
 
 
 

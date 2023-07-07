@@ -41,6 +41,8 @@ import Snowman3.dictionaries.colorCode as colorCode
 temp_files_dir = 'working'
 versions_dir = 'versions'
 core_data_filename = 'core_data'
+ARMATURE_STATE_TAG = 'Armature'
+RIG_STATE_TAG = 'RIG'
 default_version_padding = 4
 COLOR_CODE = colorCode.sided_ctrl_color
 ###########################
@@ -221,9 +223,9 @@ class BlueprintManager:
             os.mkdir(self.versions_dir)
 
 
-    def save_work(self):
+    def save_work(self, state):
         logging.info('Saving work...')
-        self.update_blueprint_from_scene()
+        self.update_blueprint_from_scene(state)
         self.save_blueprint_to_disk()
         self.save_blueprint_to_tempdisk()
 
@@ -233,15 +235,19 @@ class BlueprintManager:
         return self.blueprint
 
 
-    def update_blueprint_from_scene(self):
+    def update_blueprint_from_scene(self, state):
         for key, part in self.blueprint.parts.items():
             self.blueprint.parts[key] = self.update_part_from_scene(part)
-        self.add_blendposes_to_blueprint()
+
+        if state == RIG_STATE_TAG:
+            self.update_blendposes()
+
         return self.blueprint
 
 
-    def add_blendposes_to_blueprint(self):
+    def update_blendposes(self):
         bp_manager = BlendposeManager.populate_manager_from_scene()
+        #bp_manager = BlendposeManager.populate_manager_from_data(self.blueprint.blendposes)
         blendposes_data = bp_manager.all_blendposes_data_dict()
         self.blueprint.blendposes = blendposes_data
 
