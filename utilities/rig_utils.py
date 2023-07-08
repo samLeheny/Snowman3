@@ -28,6 +28,50 @@ CurveConstruct = crv_utils.CurveConstruct
 
 
 
+###### CLASSES ######
+class BufferHierarchy:
+
+    suffixes = ['Zro', 'Ofs', 'Drv', 'Cfx', 'Cns']
+
+    def __init__(
+        self,
+        obj,
+        cns = None,
+        cfx = None,
+        drv = None,
+        ofs = None,
+        zro = None
+    ):
+        self.obj = obj
+        self.cns = cns
+        self.cfx = cfx
+        self.drv = drv
+        self.ofs = ofs
+        self.zro = zro
+
+    @classmethod
+    def create_hierarchy(cls, obj, parent=None):
+        rev_suffixes = cls.suffixes
+        rev_suffixes.reverse()
+        buffers = []
+        current_obj = obj
+        for suffix in rev_suffixes:
+            new_buffer = gen.buffer_obj(current_obj, suffix=suffix)
+            buffers.append(new_buffer)
+            current_obj = new_buffer
+        cns, cfx, drv, ofs, zro = buffers
+        if parent:
+            zro.setParent(parent)
+        return BufferHierarchy(obj, cns, cfx, drv, ofs, zro)
+
+    def list(self):
+        return [ self.obj, self.cns, self.cfx, self.drv, self.ofs, self.zro ]
+
+    def dict(self):
+        return { 'obj': self.obj, 'cns': self.cns, 'cfx': self.cfx, 'drv': self.drv, 'ofs': self.ofs, 'zro': self.zro }
+
+
+
 ########################################################################################################################
 ############# ------------------------------    TABLE OF CONTENTS    ----------------------------------- ###############
 ########################################################################################################################
@@ -44,7 +88,6 @@ ribbon_tweak_ctrls
 joint_rot_to_ori
 transfer_locks_from_prelim
 mesh_to_skinClust_input
-buffer_hierarchy
 '''
 ########################################################################################################################
 ########################################################################################################################
@@ -651,19 +694,3 @@ def transfer_locks_from_prelim(self, old_node, new_node):
 ########################################################################################################################
 def mesh_to_skinClust_input(mesh, skin_cluster):
     mesh.worldSpace[0].connect(skin_cluster.input[0].inputGeometry, force=True)
-
-
-
-########################################################################################################################
-def buffer_hierarchy(obj, parent_=None):
-    suffixes = ['Zro', 'Ofs', 'Drv', 'Cfs', 'Cns']
-    suffixes.reverse()
-    buffers = []
-    current_obj = obj
-    for suffix in suffixes:
-        new_buffer = gen.buffer_obj(current_obj, suffix=suffix)
-        buffers.append(new_buffer)
-        current_obj = new_buffer
-    if parent_:
-        buffers[-1].setParent(parent_)
-    return buffers
