@@ -315,10 +315,10 @@ class BespokePartConstructor(PartConstructor):
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
 
         wrist_jnt = rig.joint(name='Wrist', radius=0.7, side=part.side, parent=scene_ctrls['Wrist'])
-        wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], parent_=transform_grp)[0]
+        wrist_buffer = gen.buffer_obj(scene_ctrls['Wrist'], parent_=transform_grp)
         gen.match_pos_ori(wrist_buffer, orienters['Wrist'])
 
-        quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], parent_=scene_ctrls['Wrist'])[0]
+        quick_pose_buffer = gen.buffer_obj(scene_ctrls['QuickPoseFingers'], parent_=scene_ctrls['Wrist'])
         gen.zero_out(quick_pose_buffer)
 
         gen.match_pos_ori(quick_pose_buffer, orienters['QuickPoseFingers'])
@@ -331,7 +331,7 @@ class BespokePartConstructor(PartConstructor):
                                                        conversionFactor=fingers_shift_weight)
 
         if self.include_metacarpals:
-            palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], parent_=scene_ctrls['Wrist'])[0]
+            palm_flex_buffer = gen.buffer_obj(scene_ctrls['PalmFlex'], parent_=scene_ctrls['Wrist'])
             gen.zero_out(palm_flex_buffer)
             last_finger_name = self.get_digit_name(self.finger_count, self.finger_count, 'finger')
             gen.match_pos_ori(palm_flex_buffer, orienters[f'{last_finger_name}Meta'])
@@ -408,12 +408,12 @@ class BespokePartConstructor(PartConstructor):
 
         def install_buffer_nodes(digit):
             if digit.metacarpal:
-                digit.metacarpal.buffer = gen.buffer_obj(digit.metacarpal.ctrl)[0]
+                digit.metacarpal.buffer = gen.buffer_obj(digit.metacarpal.ctrl)
             for seg in digit.segments:
-                seg.buffer = gen.buffer_obj(seg.ctrl)[0]
-                seg.curl_buffer = gen.buffer_obj(seg.ctrl, suffix='ROLL')[0]
+                seg.buffer = gen.buffer_obj(seg.ctrl)
+                seg.curl_buffer = gen.buffer_obj(seg.ctrl, suffix='ROLL')
                 if seg.index == 1:
-                    seg.spread_buffer = gen.buffer_obj(seg.ctrl, suffix='SPREAD')[0]
+                    seg.spread_buffer = gen.buffer_obj(seg.ctrl, suffix='SPREAD')
 
 
         def parent_finger(digit):

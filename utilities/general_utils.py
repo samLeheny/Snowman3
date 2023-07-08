@@ -49,6 +49,7 @@ VIS_ATTRS = ['visibility']
 ############# ------------------------------    TABLE OF CONTENTS    ----------------------------------- ###############
 ########################################################################################################################
 '''
+strip_suffix
 buffer_obj
 zero_out
 distance_between
@@ -103,37 +104,32 @@ safe_parent
 
 
 ########################################################################################################################
-def buffer_obj(*objs, suffix=None, parent_=None):
+def strip_suffix(str_):
+    return str_.rsplit('_', 1)[0]
 
+
+
+########################################################################################################################
+def buffer_obj(obj, suffix=None, parent_=None):
     suffix = suffix or 'Buffer'
 
-    def strip_suffix(str_):
-        return str_.rsplit('_', 1)[0]
+    lock_memory = [attr for attr in ALL_TRANSFORM_ATTRS if pm.getAttr(f'{obj}.{attr}', lock=1)]
+    [pm.setAttr(f'{obj}.{attr}', lock=0) for attr in lock_memory]
 
-    lock_memory = []
-    for obj in objs:
-        lock_memory.append([attr for attr in ALL_TRANSFORM_ATTRS if pm.getAttr(f'{obj}.{attr}', lock=1)])
-        [pm.setAttr(f'{obj}.{attr}', lock=0) for attr in ALL_TRANSFORM_ATTRS if pm.getAttr(f'{obj}.{attr}', lock=1)]
+    buffer_name = f'{strip_suffix(obj.nodeName())}_{suffix}'
+    buffer = pm.shadingNode('transform', name=buffer_name, au=1)
+    buffer.setParent(obj)
+    zero_out(buffer)
+    parent_ = parent_ or obj.getParent()
+    if parent_:
+        buffer.setParent(parent_)
+    else:
+        buffer.setParent(world=1)
+    obj.setParent(buffer)
 
-    def create_buffer(obj_, par=parent_):
-        buffer_name = f'{strip_suffix(obj_.nodeName())}_{suffix}'
-        buffer = pm.shadingNode('transform', name=buffer_name, au=1)
-        buffer.setParent(obj_)
-        zero_out(buffer)
-        par = par or obj_.getParent()
-        if par:
-            buffer.setParent(par)
-        else:
-            buffer.setParent(world=1)
-        obj_.setParent(buffer)
-        return buffer
+    [pm.setAttr(f'{obj}.{attr}', lock=1) for attr in lock_memory]
 
-    buffers = [create_buffer(obj) for obj in objs]
-
-    for i, obj_lock_memory in enumerate(lock_memory):
-        [pm.setAttr(f'{objs[i]}.{attr}', lock=1) for attr in obj_lock_memory]
-
-    return buffers
+    return buffer
 
 
 
