@@ -262,7 +262,7 @@ class BespokePartConstructor(PartConstructor):
 
         self.finalize_ctrl_shapes(limb_rig, scene_ctrls)
 
-        ik_hand_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkHandFollow'], parent_=transform_grp)[0]
+        ik_hand_follow_ctrl_buffer = gen.buffer_obj(scene_ctrls['IkHandFollow'], parent_=transform_grp)
         gen.match_pos_ori(ik_hand_follow_ctrl_buffer, orienters['HandFollowSpace'])
 
         self.update_part_nodes(limb_rig, scene_ctrls)

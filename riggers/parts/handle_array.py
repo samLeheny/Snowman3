@@ -92,7 +92,7 @@ class BespokePartConstructor(PartConstructor):
 
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
         for key, ctrl in scene_ctrls.items():
-            ctrl_buffer = gen.buffer_obj(ctrl, parent_=transform_grp)[0]
+            ctrl_buffer = gen.buffer_obj(ctrl, parent_=transform_grp)
             gen.match_pos_ori(ctrl_buffer, orienters[key])
             self.part_nodes[key] = scene_ctrls[key]
         return rig_part_container
