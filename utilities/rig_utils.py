@@ -655,20 +655,15 @@ def mesh_to_skinClust_input(mesh, skin_cluster):
 
 
 ########################################################################################################################
-def buffer_hierarchy(*objs, parent_=None):
+def buffer_hierarchy(obj, parent_=None):
     suffixes = ['Zro', 'Ofs', 'Drv', 'Cfs', 'Cns']
     suffixes.reverse()
-    hierarchies = []
-    def create_hierarchy(obj_):
-        buffers = []
-        current_obj = obj_
-        for suffix in suffixes:
-            new_buffer = gen.buffer_obj(current_obj, suffix=suffix)
-            buffers.append(new_buffer)
-            current_obj = new_buffer
-        if parent_:
-            buffers[-1].setParent(parent_)
-        hierarchies.append(buffers)
-    for obj in objs:
-        create_hierarchy(obj)
-    return hierarchies
+    buffers = []
+    current_obj = obj
+    for suffix in suffixes:
+        new_buffer = gen.buffer_obj(current_obj, suffix=suffix)
+        buffers.append(new_buffer)
+        current_obj = new_buffer
+    if parent_:
+        buffers[-1].setParent(parent_)
+    return buffers
