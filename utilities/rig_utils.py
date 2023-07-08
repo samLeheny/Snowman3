@@ -64,6 +64,21 @@ class BufferHierarchy:
             zro.setParent(parent)
         return BufferHierarchy(obj, cns, cfx, drv, ofs, zro)
 
+    @classmethod
+    def get_hierarchy(cls, obj):
+        buffers = []
+        current_obj = obj
+        for i, suffix in enumerate(cls.suffixes):
+            par = current_obj.getParent()
+            if not par:
+                return None
+            if suffix not in par.nodeName():
+                return None
+            buffers.append(par)
+            current_obj = par
+        cns, cfx, drv, ofs, zro = buffers
+        return BufferHierarchy(obj, cns, cfx, drv, ofs, zro)
+
     def list(self):
         return [ self.obj, self.cns, self.cfx, self.drv, self.ofs, self.zro ]
 
