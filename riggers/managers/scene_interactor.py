@@ -39,7 +39,7 @@ importlib.reload(constraint_utils)
 ###########################
 ######## Variables ########
 ARMATURE_STATE_TAG = 'Armature'
-RIG_STATE_TAG = 'RIG'
+RIG_STATE_TAG = 'Rig'
 ###########################
 ###########################
 
