@@ -50,7 +50,7 @@ class BufferHierarchy:
         self.zro = zro
 
     @classmethod
-    def create_hierarchy(cls, obj, parent=None):
+    def create(cls, obj, parent=None):
         rev_suffixes = cls.suffixes
         rev_suffixes.reverse()
         buffers = []
@@ -65,7 +65,7 @@ class BufferHierarchy:
         return BufferHierarchy(obj, cns, cfx, drv, ofs, zro)
 
     @classmethod
-    def get_hierarchy(cls, obj):
+    def get(cls, obj):
         buffers = []
         current_obj = obj
         for i, suffix in enumerate(cls.suffixes):

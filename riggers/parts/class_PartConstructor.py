@@ -45,6 +45,7 @@ CurveConstruct = crv_utils.CurveConstruct
 ######## Variables ########
 COLOR_CODE = color_code.sided_ctrl_color
 PREFAB_CTRL_SHAPES = prefab_curve_shapes.create_dict()
+PART_SUFFIX = 'Part'
 ###########################
 ###########################
 
@@ -108,7 +109,7 @@ class PartConstructor:
 
 
     def create_rig_part_grps(self, part):
-        rig_part_container = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_RIG', world=1, empty=1)
+        rig_part_container = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_{PART_SUFFIX}', world=1, empty=1)
         transform_grp = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_Transform_GRP', empty=1,
                                  parent=rig_part_container)
         no_transform_grp = pm.group(name=f'{gen.side_tag(part.side)}{part.name}_NoTransform_GRP', empty=1,

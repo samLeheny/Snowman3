@@ -34,6 +34,7 @@ default_socket_name = 'limbSocket'
 default_pv_name = 'poleVector'
 ctrl_colors = {"FK": 13, "IK": 6, "other": ([0, 0.220, 1], [0.663, 0.028, 0.032]), "sub": (15, 4)}
 roll_jnt_resolution = 5
+PART_SUFFIX = 'Part'
 
 @dataclass
 class LimbRigPrefab:
@@ -129,14 +130,14 @@ class LimbRig:
         self.limb_name = limb_name
         self.prefab = prefab
         self.side = side
-        self.side_tag = f'{self.side}_' if self.side else ""
+        self.side_tag = f'{self.side}_' if self.side else ''
         self.segments = []
         self.segment_count = None
         self.segment_names = segment_names
         self.starter_jnt_positions = None
         self.orienters = orienters
         self.jnt_positions = self.get_joint_positions_from_orienters()
-        self.pv_position = pv_position if not self.side == "R" else [-pv_position[0], pv_position[1], pv_position[2]]
+        self.pv_position = pv_position if not self.side == 'R' else [-pv_position[0], pv_position[1], pv_position[2]]
         self.limb_ik_start_jnt_index = None
         self.limb_ik_end_jnt_index = None
         self.limb_ik_mid_jnt_index = None
@@ -145,8 +146,8 @@ class LimbRig:
         self.grps = {}
         self.ctrls = {}
         self.ctrl_colors = ctrl_colors
-        self.socket_name = socket_name if socket_name else default_socket_name
-        self.pv_name = pv_name if pv_name else default_pv_name
+        self.socket_name = socket_name or default_socket_name
+        self.pv_name = pv_name or default_pv_name
         self.blend_jnt_chain_buffer = None
         self.blend_jnts = []
         self.fk_chain_buffer = None
@@ -428,7 +429,7 @@ class LimbRig:
     ####################################################################################################################
     def create_rig_grps(self):
 
-        self.grps['root'] = pm.group(name=f'{self.side_tag}{self.limb_name}_RIG', world=1, em=1)
+        self.grps['root'] = pm.group(name=f'{self.side_tag}{self.limb_name}_{PART_SUFFIX}', world=1, em=1)
 
         self.grps['transform'] = pm.group(name="transform", p=self.grps['root'], em=1)
 
@@ -736,7 +737,7 @@ class LimbRig:
 
         #...Wrap top of ctrl chain in buffer group --------------------------------------------------------------------
         gen.convert_offset(self.segments[i].fk_ctrl, reverse=True)
-        self.fk_chain_buffer = gen.buffer_obj(self.segments[0].fk_ctrl, parent_=self.ctrls['socket'])
+        self.fk_chain_buffer = self.segments[0].fk_ctrl.getParent()
         self.fk_chain_buffer.setParent(self.ctrls['socket'])
 
         #...Connect FK segment lengths to settings attributes ---------------------------------------------------------

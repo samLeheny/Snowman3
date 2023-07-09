@@ -42,7 +42,7 @@ temp_files_dir = 'working'
 versions_dir = 'versions'
 core_data_filename = 'core_data'
 ARMATURE_STATE_TAG = 'Armature'
-RIG_STATE_TAG = 'RIG'
+RIG_STATE_TAG = 'Rig'
 default_version_padding = 4
 COLOR_CODE = colorCode.sided_ctrl_color
 ###########################

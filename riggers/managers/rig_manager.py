@@ -31,7 +31,7 @@ BlendposeManager = bputils.BlendposeManager
 
 ###########################
 ######## Variables ########
-
+PART_SUFFIX = 'Part'
 ###########################
 ###########################
 
@@ -116,6 +116,10 @@ class RigManager:
                 continue
             parent_part_key, parent_node_key = part.parent
             part_root_node = self.get_part_root_node(part)
+            if parent_part_key not in self.part_constructors:
+                continue
+            if parent_node_key not in self.part_constructors[parent_part_key].part_nodes:
+                continue
             parent_node_string = self.part_constructors[parent_part_key].part_nodes[parent_node_key]
             if not pm.objExists(parent_node_string):
                 continue
@@ -148,7 +152,7 @@ class RigManager:
 
     @staticmethod
     def kill_unwanted_control(data):
-        part = pm.PyNode(f'{data["part_name"]}_RIG')
+        part = pm.PyNode(f'{data["part_name"]}_{PART_SUFFIX}')
         ctrl = None
         for child in part.getChildren(allDescendents=1):
             if gen.get_clean_name(str(child)) == data['ctrl_node_name']:
@@ -170,13 +174,6 @@ class RigManager:
 
 
     @staticmethod
-    def get_rig_part_scene_name(part):
-        part_suffix, rig_suffix = 'PART', 'RIG'
-        part_scene_name = part.scene_name
-        return part_scene_name.replace(part_suffix, rig_suffix)
-
-
-    @staticmethod
     def get_rig_connector(part):
         rig_part_connector_name = f'{gen.side_tag(part.side)}{part.name}_CONNECTOR'
         if not pm.objExists(rig_part_connector_name):
@@ -186,7 +183,7 @@ class RigManager:
 
     @staticmethod
     def get_part_root_node(part):
-        root_node_name = f'{gen.side_tag(part.side)}{part.name}_RIG'
+        root_node_name = f'{gen.side_tag(part.side)}{part.name}_{PART_SUFFIX}'
         if not pm.objExists(root_node_name):
             return None
         return pm.PyNode(root_node_name)

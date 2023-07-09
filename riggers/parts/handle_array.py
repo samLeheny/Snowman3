@@ -11,6 +11,8 @@ import importlib
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
+import Snowman3.utilities.rig_utils as rig
+importlib.reload(rig)
 
 import Snowman3.riggers.utilities.placer_utils as placer_utils
 importlib.reload(placer_utils)
@@ -92,7 +94,7 @@ class BespokePartConstructor(PartConstructor):
 
     def bespoke_build_rig_part(self, part, rig_part_container, transform_grp, no_transform_grp, orienters, scene_ctrls):
         for key, ctrl in scene_ctrls.items():
-            ctrl_buffer = gen.buffer_obj(ctrl, parent_=transform_grp)
-            gen.match_pos_ori(ctrl_buffer, orienters[key])
+            ctrl_buffers = rig.BufferHierarchy.create(ctrl, parent=transform_grp)
+            gen.match_pos_ori(ctrl_buffers.list()[-1], orienters[key])
             self.part_nodes[key] = scene_ctrls[key]
         return rig_part_container
