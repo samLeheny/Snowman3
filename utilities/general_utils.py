@@ -654,7 +654,7 @@ def rearrange_point_list_vectors(point_list=None, up_direction=None, forward_dir
 
 
 ########################################################################################################################
-def get_colour_from_sided_list(sided_list, side):
+def get_color_from_sided_list(sided_list, side):
     sided_colors = {nom.leftSideTag: sided_list[0],
                     nom.rightSideTag: sided_list[1]}
     color = sided_colors[side]
