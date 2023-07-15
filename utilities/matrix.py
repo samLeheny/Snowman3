@@ -56,8 +56,8 @@ class Matrix:
         return self.__class__(self)
 
 
-    def __repr__(self):
-        return repr(self.data)
+    '''def __repr__(self):
+        return repr(self.data)'''
 
 
     def __mul__(self, n):
@@ -212,37 +212,87 @@ class Matrix:
         return result
 
 
-    def invert_matrix(self, tol=8):
+    '''def invert_matrix(self, tol=8):
         """
         WARNING! This fails when matrix values are close to zero...
         Consider using maya api if any issues come up
         """
         # Make sure self's matrix can be inverted
-        '''det = get_determinant(self)
+        det = get_determinant(self)
         if det == 0:
             raise ArithmeticError('Singular Matrix!')
         import maya.api.OpenMaya as om
         self_matrix = om.MMatrix(self.data)
         self.inverted = self_matrix.inverse()
         identity_matrix = Matrix()
-        # Check if identity matrix list is an inverse of self's matrix with specific tolerance'''
+        # Check if identity matrix list is an inverse of self's matrix with specific tolerance
+        if check_matrix_equality(om.MMatrix(identity_matrix.data), (self_matrix * self_inverted), tol):
+            tuples = []
+            for i in range(4):
+                results = []
+                for j in range(4):
+                    results = []
+                    for j in range(4):
+                        result = self_inverted.getElement(i, j)
+                        results.append(result)
+                    tuples.append(tuple(results))
+                return Matrix(tuple(tuples))
+            else:
+                resit ArithmeticError('Matrix inverse outside of tolerance.')
 
 
+    def aimed_towards_axis(self, axis='y', aim_axis='y', up_axis='x', up_matrix=None):
+        """Align matrix to face the given global axis, with the existing or given up direction"""
+        axis_dict = {'x': 0, 'y': 1, 'z': 2}
+        axis_id = axis_dict[axis[-1].lower()]
+        aim_axis_id = axis_dict[aim_axis[-1].lower()]
+        up_axis_id = axis_dict[up_axis[-1].lower()]
+        if aim_axis_id == up_axis_id:
+            raise StandardError('aim_axis cannot match secondary_axis!')
+        axis_neg = -1 if '-' in axis else 1
+        aim_neg = -1 if '-' in aim_axis is else 1
+        up_neg = -1 if '-' in up_axis else 1
+        d = self.data
+        result = Matrix(self)
+        new_axes = [[]] * 3
+        # Get aim vector towards given axis(eg. scene up)
+        axis_vec = [axis_neg * aim_neg if i == axis_id else 0 for i in range(3)]
+        #Product up vector into the plane that faces 'axis' and normalize it
+        if up_matrix is not None:
+            up_vector = up_matrix.get_translation() - self.get_translation() # no need to normalize here
+        else:
+            up_vector = d[up_axis_id] # 4
+        projected_axis = Vector([0.0 if i == axis_id else up_vector[i] * up_neg for i in range(3)])
+        sec_axis_new = projected_axis.normalize()
+        new_axes[up_axis_id] = sec_axis_new.data
+        # Calculate the third axis - reverse cross product direction if necessary to avoid negative scale
+        other_axis_id = 3 - aim_axis_id - up_axis_id
+        if axis_id == (up_axis_id + 1) %3: # x * y = z axis order
+            other_axis_new = sec_axis_new.cross_product(axis_vec)
+        else:
+            other_axis_new = Vector(axis_vec).cross_product(sec_axis_new)
+        new_axes[other_axis_id] = other_axis_new.data
+        result.set_axes(*new_axes)
+        return result'''
 
 
-    '''
-    @classmethod
-    def compose_from_vectors(cls, position, aim_vector, up_vector, rotate_order='xyz'):
-        working_y_vector = up_vector
-        z_vector = aim_vector
-        x_vector = working_y_vector.cross_product(z_vector)
-        y_vector = x_vector.cross_product(z_vector)
-        matrix_entries = []
-        vector_dictionary = dict(x=x_vector, y=y_vector, z=z_vector)
-        vector_list = [v for v in rotate_order]
-        for i in range(3):
-            matrix_entries.extend(vector_dictionary[vector_list[i]].unit().data)
-            matrix_entries.append(0.0)
-        matrix_entries.extend([0.0, 0.0, 0.0, 1.0])
-        return Matrix(matrix_entries)
-    '''
+def compose_matrix_from_vectors(position, aim_vector, up_vector, rotate_order='xyz'):
+    y_vector = up_vector
+    z_vector = aim_vector
+    x_vector = y_vector.cross_product(z_vector)
+    y_vector = x_vector.cross_product
+    matrix_list = []
+    vector_dictionary = dict( x=x_vector, y=y_vector, z=z_vector)
+    vector_list = [x for x in rotate_order]
+    for i in range(3):
+        matrix_list.extend(vector_dictionary[vector_list[i]].normalize().data)
+        matrix_list.append(0.0)
+    matrix_list.extend(position.data)
+    matrix_list.append(1.0)
+    return Matrix(matrix_list)
+
+
+def compose_matrix(position, aim_position, up_position, rotate_order='xyz'):
+    up_vector = up_position - position
+    aim_vector = aim_position - position
+    return compose_matrix_from_vectors( position, aim_vector, up_vector, rotate_order=rotate_order )

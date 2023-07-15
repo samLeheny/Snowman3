@@ -8,7 +8,7 @@ def flatten_items(*args):
             nodes.extend(flatten_items(*arg))
         else:
             nodes.append(arg)
-        return nodes
+    return nodes
 
 
 def flatten_args(func):

@@ -200,9 +200,10 @@ class BlueprintManager:
 
 
     def get_latest_numbered_directory(self):
+        split_particle = '-v'
         subdir_names = self.get_all_numbered_subdir_names()
-        nums = [name.split('-v')[1] for name in subdir_names]
-        latest_dir_string = f'{self.asset_name}-v{nums[-1]}'
+        nums = [name.split(split_particle)[1] for name in subdir_names if split_particle in name]
+        latest_dir_string = f'{self.asset_name}{split_particle}{nums[-1]}'
         latest_dir_filepath = f'{self.versions_dir}/{latest_dir_string}'
         return latest_dir_filepath
 

@@ -53,8 +53,10 @@ class ObjectProperty:
 class ObjectListProperty(object):
     map = weakref.WeakKeyDictionary()
 
+
     def __init__(self, **kwargs):
         self.name = kwargs.get('name')
+
 
     def __get__(self, instance, owner):
         properties = self.map.setdefault(instance, weakref.WeakKeyDictionary())
@@ -67,6 +69,7 @@ class ObjectListProperty(object):
 
     def __set__(self, instance, value):
 
+
         if not isinstance(value, (list, set, tuple)):
             raise Exception('You must use type(list) when setting class property : %s' % self.name)
         properties = self.map.setdefault(instance, weakref.WeakKeyDictionary())
@@ -77,6 +80,7 @@ class ObjectListProperty(object):
 class ObjectDictProperty(DataProperty):
     map = weakref.WeakKeyDictionary()
 
+
     def __get__(self, instance, owner):
         properties = self.map.setdefault(instance, weakref.WeakKeyDictionary())
         weak_dict = properties.get(self, None)
@@ -85,6 +89,7 @@ class ObjectDictProperty(DataProperty):
         weak_dict = weakref.WeakValueDictionary()
         properties[self] = weak_dict
         return weak_dict
+
 
     def __set__(self, instance, value):
         if not isinstance(value, weakref.WeakValueDictionary):

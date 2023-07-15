@@ -8,17 +8,21 @@ class DagNode(DependNode):
     shader = ObjectProperty( name='shader' )
     visible = True
 
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.visible = True
 
+
     def assign_shading_group(self, shading_group):
-        self.controller.assign_shading_group(shading_group, self)
+        self.interactor.assign_shading_group(shading_group, self)
         pass
 
+
     def get_dag_path(self):
-        return self.controller.get_dag_path(self)
+        return self.interactor.get_dag_path(self)
         pass
+
 
     def create_in_scene(self):
         if isinstance(self.parent, DagNode):
@@ -30,9 +34,11 @@ class DagNode(DependNode):
         else:
             self.m_object = self.controller.scene.create_dag_node(self.node_type, self.name)
 
+
     def set_m_object(self, m_object):
-        super(DagNode, self).set_m_object(m_object)
+        super().set_m_object(m_object)
         self.update_parent()
+
 
     def update_parent(self):
         if self.parent:

@@ -291,6 +291,16 @@ class SceneInteractor:
 
 
 
+    def assing_shading_group(self, shading_grp, obj):
+        print(f"Assigned shading group '{shading_grp}' to obj: '{obj}'")
+
+
+
+    def get_dag_path(self, obj):
+        print(f"Dag path for object: '{obj}'")
+
+
+
 
     @staticmethod
     def create_part(**args):
