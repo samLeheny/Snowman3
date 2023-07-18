@@ -301,6 +301,18 @@ class SceneInteractor:
 
 
 
+    def create_nurbs_curve(self, name, degree, cvs, form, color):
+        crv = pm.curve(name=name, degree=degree, point=cvs)
+        if form == 'periodic':
+            pm.closeCurve(crv, replaceOriginal=1, preserveShape=0)
+        pm.delete(crv, constructionHistory=True)
+        if color:
+            gen.set_color(crv, color)
+        pm.select(clear=1)
+        return crv
+
+
+
 
     @staticmethod
     def create_part(**args):

@@ -18,6 +18,8 @@ importlib.reload(gen)
 
 import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
 importlib.reload(prefab_curve_shapes)
+
+from Snowman3.utilities.nurbsCurve import NurbsCurve
 ###########################
 ###########################
 
@@ -98,46 +100,32 @@ def compose_curve_construct_cvs(curve_data, scale=1, shape_offset=None, up_direc
     return curve_data
 
 
-
+'''
 # ----------------------------------------------------------------------------------------------------------------------
 def nurbs_curve(name=None, cvs=None, degree=3, form='open', color=None):
-    crv = pm.curve(name=name, degree=degree, point=cvs)
-    pm.closeCurve(crv, replaceOriginal=1, preserveShape=0) if form == 'periodic' else None
-    pm.delete(crv, constructionHistory=True)
-    gen.set_color(crv, color) if color else None
-    pm.select(clear=1)
-    return crv
+    crv = NurbsCurve(name=name, degree=degree, cvs=cvs, form=form, color=color)
+    crv.create_in_scene()
+    return crv.m_object'''
 
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 def curve_construct(curves, name=None, color=None, scale=1, shape_offset=None, up_direction=None,
                     forward_direction=None):
-    """
-        Produces a nurbs curve object based on parameters. As opposed to other functions, if parameters are provided as
-            lists, the function will produce an object with multiple curve shapes. Useful for producing complex curve
-            objects to be used as animation controls.
-        Args:
-            scale (numeric): Factor by which to scale shape CV placement vectors. Defines scale of resulting curve
-                shape.
-            shape_offset ([float, float, float]): Vector by which to offset all CV positions so shape will not be
-                centered to object pivot. Require coordinates in form of list of three number values (integers or
-                floats).
-            up_direction ([float, float, float]): The unit vector indicating the world direction of the curve shape's
-                local positive y direction.
-            forward_direction ([float, float, float]): The unit vector indicating the world direction of the curve
-                shape's local positive z direction.
-        Returns:
-            (mTransform) The created curve object.
-    """
+
     composed_cv_data = compose_curve_construct_cvs(
         curve_data=curves, scale=scale, shape_offset=shape_offset, up_direction=up_direction,
         forward_direction=forward_direction )
     ##### BUILD SHAPES #####
-    crvs = [ nurbs_curve(color=color,
+    '''crvs = [ nurbs_curve(color=color,
                          form=curves[i]['form'],
                          cvs=curves[i]['cvs'],
-                         degree=curves[i]['degree']) for i, _ in enumerate(composed_cv_data) ]
+                         degree=curves[i]['degree']) for i, _ in enumerate(composed_cv_data) ]'''
+    crv_objs = [ NurbsCurve(cvs=curves[i]['cvs'],
+                            degree=curves[i]['degree'],
+                            form=curves[i]['form'],
+                            color=color) for i, _ in enumerate(composed_cv_data) ]
+    crvs = [crv.create_in_scene() for crv in crv_objs]
     #...Parent shapes together under a single transform node
     crv_obj = crvs[0]
     for i in range(1, len(crvs)):

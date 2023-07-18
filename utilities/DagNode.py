@@ -16,12 +16,10 @@ class DagNode(DependNode):
 
     def assign_shading_group(self, shading_group):
         self.interactor.assign_shading_group(shading_group, self)
-        pass
 
 
     def get_dag_path(self):
         return self.interactor.get_dag_path(self)
-        pass
 
 
     def create_in_scene(self):
