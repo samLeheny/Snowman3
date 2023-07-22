@@ -471,6 +471,17 @@ def set_color(obj, color=None, apply_to_transform=False):
 
 
 ########################################################################################################################
+def set_mobj_color(obj, color=None, apply_to_transform=False):
+    sel_list = om.MSelectionList()
+    sel_list.add(obj)
+    sel_strings = []
+    sel_list.getSelectionStrings(0, sel_strings)
+    obj = pm.PyNode(sel_strings[0])
+    set_color(obj, color, apply_to_transform)
+
+
+
+########################################################################################################################
 def cross_product(a, b, normalize=False):
     """
         Gets cross product of input vectors a and b.

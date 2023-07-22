@@ -12,6 +12,13 @@ import pymel.core as pm
 import copy
 from dataclasses import dataclass
 from typing import Sequence
+import maya.OpenMaya as om
+def get_selection_string(m_object):
+    sel_list = om.MSelectionList()
+    sel_list.add(m_object)
+    sel_strings = []
+    sel_list.getSelectionStrings(0, sel_strings)
+    return pm.PyNode(sel_strings[0])
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -29,9 +36,12 @@ MetaDataAttr = metadata_utils.MetaDataAttr
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
 
-import Snowman3.riggers.utilities.curve_utils as crv_utils
-importlib.reload(crv_utils)
-CurveConstruct = crv_utils.CurveConstruct
+import Snowman3.utilities.curveConstruct as curve_construct
+importlib.reload(curve_construct)
+CurveConstruct = curve_construct.CurveConstruct
+
+import Snowman3.riggers.utilities.curve_utils as curve_utils
+importlib.reload(curve_utils)
 ###########################
 ###########################
 
@@ -219,8 +229,10 @@ class ScenePlacerManager:
         else:
             shape_prefab = 'sphere_placer'
             size = self.placer.size
-        crv_construct = CurveConstruct.create_prefab(self.placer.scene_name, shape_prefab, size=size)
-        self.scene_placer = crv_construct.create_scene_obj()
+
+        shape_data = curve_utils.get_shape_data_from_prefab(prefab_shape=shape_prefab, size=size)
+        crv_construct = CurveConstruct.create(name=self.placer.scene_name, shape=shape_data)
+        self.scene_placer = pm.PyNode(crv_construct.name)
         buffer_grp = pm.group(name=self.placer.scene_name.replace(PLACER_TAG, 'BUFFER'), em=1, world=1)
         if parent:
             buffer_grp.setParent(parent)
@@ -318,9 +330,10 @@ class VectorHandleManager:
                  'up': ('UP', 'tetrahedron', self.vector_handles_size * 1.6)}
         vector_type, handle_shape, shape_scaler_factor = types[self.vector]
         self.scene_name = f'{gen.side_tag(self.placer.side)}{self.placer.part_name}_{self.name}_{vector_type}'
-        crv_construct = CurveConstruct.create_prefab(name=self.scene_name, prefab_shape=handle_shape,
-                                                     size=self.size * shape_scaler_factor)
-        self.scene_handle = crv_construct.create_scene_obj()
+        shape_data = curve_utils.get_shape_data_from_prefab(prefab_shape=handle_shape,
+                                                            size=self.size * shape_scaler_factor)
+        curve_construct = CurveConstruct.create(name=self.scene_name, shape=shape_data)
+        self.scene_handle = get_selection_string(curve_construct.m_object)
         self.color_scene_handle()
         self.connect_attributes_to_placer()
         self.lock_transforms()

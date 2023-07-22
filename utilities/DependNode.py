@@ -1,12 +1,17 @@
 import weakref
-import Snowman3.utilities.BaseObject as base_object
-BaseObject = base_object.BaseObject
-DataProperty = base_object.DataProperty
+import importlib
+import Snowman3.utilities.allocator as allocator
+importlib.reload(allocator)
+import Snowman3.utilities.BaseObject as base_obj
+importlib.reload(base_obj)
+BaseObject = base_obj.BaseObject
+from Snowman3.utilities.properties import DataProperty
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 class DependNode(BaseObject):
 
+    node_type = DataProperty( name='node_type' )
     plugs = []
     m_object = None
 
@@ -33,7 +38,7 @@ class DependNode(BaseObject):
         #self.controller.rename(self, self.name.split(':')[-1])
 
     def create_in_scene(self):
-        print('Created in scene.')
+        self.m_object = allocator.create_m_depend_node( node_type=self.node_type, name=self.name )
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -22,11 +22,23 @@ importlib.reload(rig)
 import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
 importlib.reload(prefab_curve_shapes)
 
-import Snowman3.riggers.utilities.curve_utils as crv_utils
+'''import Snowman3.riggers.utilities.curve_utils as crv_utils
 importlib.reload(crv_utils)
-CurveConstruct = crv_utils.CurveConstruct
+CurveConstruct = crv_utils.CurveConstruct'''
+
+import Snowman3.utilities.curveConstruct as curve_construct
+importlib.reload(curve_construct)
+CurveConstruct = curve_construct.CurveConstruct
 
 import Snowman3.dictionaries.colorCode as colorCode
+
+import maya.OpenMaya as om
+def get_selection_string(m_object):
+    sel_list = om.MSelectionList()
+    sel_list.add(m_object)
+    sel_strings = []
+    sel_list.getSelectionStrings(0, sel_strings)
+    return pm.PyNode(sel_strings[0])
 ###########################
 ###########################
 
@@ -123,8 +135,9 @@ class SceneControlManager:
 
 
     def create_scene_ctrl_obj(self):
-        curve_construct = CurveConstruct(self.control.scene_name, shape=self.control.shape, color=self.control.color)
-        self.scene_control = curve_construct.create_scene_obj()
+        curve_construct = CurveConstruct.create(name=self.control.scene_name, shape=self.control.shape,
+                                                color=self.control.color)
+        self.scene_control = get_selection_string(curve_construct.m_object)
         return self.scene_control
 
 

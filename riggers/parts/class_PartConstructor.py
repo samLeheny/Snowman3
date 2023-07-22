@@ -33,10 +33,6 @@ importlib.reload(color_code)
 
 import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
 importlib.reload(prefab_curve_shapes)
-
-import Snowman3.riggers.utilities.curve_utils as crv_utils
-importlib.reload(crv_utils)
-CurveConstruct = crv_utils.CurveConstruct
 ###########################
 ###########################
 
@@ -128,6 +124,7 @@ class PartConstructor:
 
     def create_scene_ctrls(self, part):
         scene_ctrl_managers = {ctrl.name: SceneControlManager(ctrl) for ctrl in part.controls.values()}
+        self.scene_ctrls = {}
         self.scene_ctrls = {key: manager.create_scene_control() for (key, manager) in scene_ctrl_managers.items()}
         return self.scene_ctrls
 

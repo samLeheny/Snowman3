@@ -21,10 +21,6 @@ importlib.reload(nodes)
 import Snowman3.dictionaries.nameConventions as nameConventions
 importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
-
-import Snowman3.riggers.utilities.curve_utils as crv_utils
-importlib.reload(crv_utils)
-CurveConstruct = crv_utils.CurveConstruct
 ###########################
 ###########################
 

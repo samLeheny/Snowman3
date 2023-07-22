@@ -2,6 +2,8 @@ from Snowman3.utilities.DagNode import DagNode
 from Snowman3.utilities.matrix import Matrix
 from Snowman3.utilities.properties import DataProperty
 
+
+
 def process_matrix(func):
     def new_func(*args, **kwargs):
         if kwargs.get('matrix', None):
@@ -54,7 +56,7 @@ class Transform(DagNode):
 
 
     def create_in_scene(self):
-        super(Transform, self).create_in_scene()
+        super().create_in_scene()
 
 
     def set_rotate_order(self, rotate_order):

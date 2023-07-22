@@ -1,6 +1,10 @@
+import importlib
+import Snowman3.utilities.allocator as allocator
+importlib.reload(allocator)
 import Snowman3.utilities.DependNode as depend_node
-import Snowman3.utilities.properties as properties
+importlib.reload(depend_node)
 DependNode = depend_node.DependNode
+import Snowman3.utilities.properties as properties
 ObjectProperty = properties.ObjectProperty
 
 class DagNode(DependNode):
@@ -15,22 +19,22 @@ class DagNode(DependNode):
 
 
     def assign_shading_group(self, shading_group):
-        self.interactor.assign_shading_group(shading_group, self)
+        self.controller.assign_shading_group(shading_group, self)
 
 
     def get_dag_path(self):
-        return self.interactor.get_dag_path(self)
+        return self.controller.get_dag_path(self)
 
 
     def create_in_scene(self):
+        parent_obj = None
         if isinstance(self.parent, DagNode):
-            self.m_object = self.controller.scene.create_dag_node(
-                self.node_type,
-                self.name,
-                self.parent.m_object
-            )
-        else:
-            self.m_object = self.controller.scene.create_dag_node(self.node_type, self.name)
+            parent_obj = self.parent.m_object
+        self.m_object = allocator.create_m_depend_node(
+            node_type=self.node_type,
+            name=self.name,
+            parent=parent_obj
+        )
 
 
     def set_m_object(self, m_object):
