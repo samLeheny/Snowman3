@@ -32,12 +32,11 @@ CurveConstruct = curve_construct.CurveConstruct
 
 import Snowman3.dictionaries.colorCode as colorCode
 
-import maya.OpenMaya as om
+import maya.api.OpenMaya as om
 def get_selection_string(m_object):
     sel_list = om.MSelectionList()
     sel_list.add(m_object)
-    sel_strings = []
-    sel_list.getSelectionStrings(0, sel_strings)
+    sel_strings = sel_list.getSelectionStrings(0)
     return pm.PyNode(sel_strings[0])
 ###########################
 ###########################

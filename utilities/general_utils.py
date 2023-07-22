@@ -11,8 +11,8 @@
 import importlib
 import copy
 import pymel.core as pm
-import maya.OpenMaya as om
-import maya.api.OpenMaya as om2
+import maya.OpenMaya as om1
+import maya.api.OpenMaya as om
 import math as math
 import numpy as np
 
@@ -474,8 +474,7 @@ def set_color(obj, color=None, apply_to_transform=False):
 def set_mobj_color(obj, color=None, apply_to_transform=False):
     sel_list = om.MSelectionList()
     sel_list.add(obj)
-    sel_strings = []
-    sel_list.getSelectionStrings(0, sel_strings)
+    sel_strings = sel_list.getSelectionStrings(0)
     obj = pm.PyNode(sel_strings[0])
     set_color(obj, color, apply_to_transform)
 
@@ -604,10 +603,10 @@ def vectors_to_euler(aim_vector, up_vector, aim_axis, up_axis, rotation_order):
                    mat_z[0], mat_z[1], mat_z[2], 0,
                    0, 0, 0, 1]
 
-    mMatrix = om.MMatrix()
-    om.MScriptUtil.createMatrixFromList(matrix_list, mMatrix)
+    mMatrix = om1.MMatrix()
+    om1.MScriptUtil.createMatrixFromList(matrix_list, mMatrix)
 
-    mTransformMtx = om.MTransformationMatrix(mMatrix)
+    mTransformMtx = om1.MTransformationMatrix(mMatrix)
     eulerRot = mTransformMtx.eulerRotation()
     eulerRot.reorderIt(rotation_order)
 
@@ -1572,11 +1571,11 @@ def get_shape_center(obj):
     shapes = obj.getShapes()
 
     for i, shape in enumerate(shapes):
-        obj_list = om2.MSelectionList()
+        obj_list = om.MSelectionList()
         obj_list.add(shape.name())
         dag_path = obj_list.getDagPath(0)
-        nurbs_curve_fn = om2.MFnNurbsCurve(dag_path)
-        cv_pos = nurbs_curve_fn.cvPositions(om2.MSpace.kWorld)
+        nurbs_curve_fn = om.MFnNurbsCurve(dag_path)
+        cv_pos = nurbs_curve_fn.cvPositions(om.MSpace.kWorld)
         cv_count = nurbs_curve_fn.numCVs
 
         cv_pos_array = np.array(cv_pos)
@@ -1706,8 +1705,8 @@ def matrix_to_list(matrix):
 
 ########################################################################################################################
 def list_to_matrix(list_matrix):
-    m_matrix = om.MMatrix()
-    om.MScriptUtil.createMatrixFromList(list_matrix, m_matrix)
+    m_matrix = om1.MMatrix()
+    om1.MScriptUtil.createMatrixFromList(list_matrix, m_matrix)
     return m_matrix
 
 

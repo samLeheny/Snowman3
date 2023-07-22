@@ -1,6 +1,6 @@
 import importlib
 
-import maya.OpenMaya as om
+import maya.api.OpenMaya as om
 
 import Snowman3.riggers.utilities.curve_utils as curve_utils
 importlib.reload(curve_utils)

@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from typing import Union
 import maya.cmds as mc
 import pymel.core as pm
-import maya.OpenMaya as om
+import maya.api.OpenMaya as om
 
 import Snowman3.utilities.general_utils as gen
 importlib.reload(gen)
@@ -212,10 +212,8 @@ def curve_construct(curves, name=None, color=None, scale=1, shape_offset=None, u
             forward_direction=forward_direction )
 
     mc.select(transform_node.nodeName(), replace=1)
-    sel = om.MSelectionList()
-    om.MGlobal.getActiveSelectionList(sel)
-    mObj = om.MObject()
-    sel.getDependNode(0, mObj)
+    sel = om.MGlobal.getActiveSelectionList(0)
+    mObj = sel.getDependNode(0)
 
     [ create_nurbs_curve(
         name=None,
