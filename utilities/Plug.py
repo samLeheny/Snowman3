@@ -1,5 +1,6 @@
 import maya.cmds as mc
-import maya.OpenMaya as om
+import pymel.core as pm
+import maya.api.OpenMaya as om
 import Snowman3.utilities.BaseObject as base_obj
 BaseObject = base_obj
 
@@ -18,9 +19,8 @@ def create_m_plug(owner, key, **kwargs):
 def get_selection_string(m_object):
     sel_list = om.MSelectionList()
     sel_list.add(m_object)
-    sel_strings = []
-    sel_list.getSelectionStrings(0, sel_strings)
-    return sel_strings[0]
+    sel_strings = sel_list.getSelectionStrings(0)
+    return pm.PyNode(sel_strings[0])
 
 
 def set_plug_value(plug, value, force=False):

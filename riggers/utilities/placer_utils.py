@@ -12,12 +12,11 @@ import pymel.core as pm
 import copy
 from dataclasses import dataclass
 from typing import Sequence
-import maya.OpenMaya as om
+import maya.api.OpenMaya as om
 def get_selection_string(m_object):
     sel_list = om.MSelectionList()
     sel_list.add(m_object)
-    sel_strings = []
-    sel_list.getSelectionStrings(0, sel_strings)
+    sel_strings = sel_list.getSelectionStrings(0)
     return pm.PyNode(sel_strings[0])
 
 import Snowman3.utilities.general_utils as gen
