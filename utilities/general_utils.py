@@ -463,7 +463,6 @@ def set_color(obj, color=None, apply_to_transform=False):
                 apply_override_color(shape)
 
 
-
     # If provided object was already a shape node, apply to object
     elif obj.nodeType() in ('mesh', 'nurbsCurve', 'nurbsSurface', 'locator'):
         apply_override_color(obj)
@@ -471,12 +470,18 @@ def set_color(obj, color=None, apply_to_transform=False):
 
 
 ########################################################################################################################
-def set_mobj_color(obj, color=None, apply_to_transform=False):
+def get_string_name_from_mobj(mobj):
     sel_list = om.MSelectionList()
-    sel_list.add(obj)
+    sel_list.add(mobj)
     sel_strings = sel_list.getSelectionStrings(0)
-    obj = pm.PyNode(sel_strings[0])
-    set_color(obj, color, apply_to_transform)
+    return sel_strings[0]
+
+
+
+########################################################################################################################
+def get_pynode_from_mobj(mobj):
+    string_name = get_string_name_from_mobj(mobj)
+    return pm.PyNode(string_name)
 
 
 
@@ -491,12 +496,9 @@ def cross_product(a, b, normalize=False):
         Returns:
             ((float, float, float)) Cross product of a and b.
     """
-
     c = np.cross(np.array(a), np.array(b)).tolist()
-
     if normalize:
         c = normalize_vector(c)
-
     return c
 
 
@@ -511,17 +513,12 @@ def normalize_vector(vector):
         Return:
             ((float, float, float)) normalized vector result.
     """
-
     c = np.array(vector)
     c_len = np.linalg.norm(c)
-
     normalized_c = []
     for v in c:
         normalized_c.append(v / abs(c_len))
-
     normalized_c = tuple(normalized_c)
-
-
     return normalized_c
 
 

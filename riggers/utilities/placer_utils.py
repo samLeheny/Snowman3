@@ -9,8 +9,6 @@
 ##### Import Commands #####
 import importlib
 import pymel.core as pm
-import copy
-from dataclasses import dataclass
 from typing import Sequence
 import maya.api.OpenMaya as om
 def get_selection_string(m_object):
@@ -35,7 +33,7 @@ MetaDataAttr = metadata_utils.MetaDataAttr
 import Snowman3.dictionaries.colorCode as color_code
 importlib.reload(color_code)
 
-import Snowman3.utilities.curveConstruct as curve_construct
+import Snowman3.utilities.objects.node_objects.curve_construct as curve_construct
 importlib.reload(curve_construct)
 CurveConstruct = curve_construct.CurveConstruct
 

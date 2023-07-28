@@ -2,16 +2,19 @@ import importlib
 import Snowman3.riggers.managers.scene_interactor as scene_interactor
 importlib.reload(scene_interactor)
 SceneInteractor = scene_interactor.SceneInteractor
+import Snowman3.utilities.controller as controller
+Controller = controller.Controller
 
 
 GLOBALS = {}
 
 
-def get_controller(initialize=False):
-    if initialize or not GLOBALS.get('c', None):
-        if GLOBALS.get('c', None):
-            del GLOBALS['c']
-        GLOBALS['c'] = SceneInteractor()
-        GLOBALS['c'].create_managers(asset_name='Optimus',
-                                     dirpath=r'C:\Users\61451\Desktop\OptimusPrime\02_modeling\build')
-    return GLOBALS['c']
+def get_controller(initialize=False, asset_name=None, dirpath=None):
+    if initialize:
+        if GLOBALS.get('controller', None):
+            del GLOBALS['controller']
+    elif GLOBALS['controller']:
+        return GLOBALS['controller']
+    GLOBALS['controller'] = Controller.get_controller()# SceneInteractor()
+    GLOBALS['controller'].create_managers(asset_name=asset_name, dirpath=dirpath)
+    return GLOBALS['controller']

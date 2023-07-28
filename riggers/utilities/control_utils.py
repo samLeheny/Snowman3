@@ -10,7 +10,6 @@
 import importlib
 import copy
 import pymel.core as pm
-from dataclasses import dataclass, field
 from typing import Union
 
 import Snowman3.utilities.general_utils as gen
@@ -26,7 +25,7 @@ importlib.reload(prefab_curve_shapes)
 importlib.reload(crv_utils)
 CurveConstruct = crv_utils.CurveConstruct'''
 
-import Snowman3.utilities.curveConstruct as curve_construct
+import Snowman3.utilities.objects.node_objects.curve_construct as curve_construct
 importlib.reload(curve_construct)
 CurveConstruct = curve_construct.CurveConstruct
 

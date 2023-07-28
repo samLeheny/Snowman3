@@ -121,10 +121,9 @@ def compose_curve_construct_cvs(curve_data, scale=1, shape_offset=None, up_direc
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def create_nurbs_curve(name, degree, cvs, form, color, parent):
-    # Create the transform node in advance
+def create_nurbs_curve(degree, cvs, form, color, parent, name=None):
     name = name or 'TEMPCRV'
-    transform_node = parent # or pm.shadingNode('transform', name=name, au=1)
+    transform_node = parent
 
     # mc.select(transform_node.nodeName(), replace=1)
     #sel = om.MSelectionList()
@@ -164,25 +163,22 @@ def create_nurbs_curve(name, degree, cvs, form, color, parent):
     create_2d = False
     rational = False
 
-    # Convert the points into Maya's native format...
+    # Convert the points and knots into Maya's native format...
     point_array = om.MPointArray()
     for p in cvs:
         point_array.append(om.MPoint(*p))
-    # ...Do the same for the knots
     knots_array = om.MDoubleArray()
     for k in calculate_knots(spans, degree, NURBS_CURVE_FORM_INDICES[form]):
         knots_array.append(k)
 
     # Assemble the arguments expected by OpenMaya's MFnNurbsCurve function
-    args = [
-        point_array,
-        knots_array,
-        degree,
-        NURBS_CURVE_FORMS[form],
-        create_2d,
-        rational,
-        parent #mObj
-    ]
+    args = [ point_array,
+             knots_array,
+             degree,
+             NURBS_CURVE_FORMS[form],
+             create_2d,
+             rational,
+             parent ]
     # Create the nurbs curve
     m_object = om.MFnNurbsCurve().create(*args)
     # Name the nurbs curve
@@ -195,7 +191,7 @@ def create_nurbs_curve(name, degree, cvs, form, color, parent):
         pm.closeCurve(crv, replaceOriginal=1, preserveShape=0)
     pm.delete(crv, constructionHistory=True)'''
     if color:
-        gen.set_mobj_color(m_object, color)
+        gen.set_color( gen.get_pynode_from_mobj(m_object), color )
 
     pm.select(clear=1)
     return transform_node
@@ -216,7 +212,6 @@ def curve_construct(curves, name=None, color=None, scale=1, shape_offset=None, u
     mObj = sel.getDependNode(0)
 
     [ create_nurbs_curve(
-        name=None,
         color=color,
         form=curves[i]['form'],
         cvs=curves[i]['cvs'],

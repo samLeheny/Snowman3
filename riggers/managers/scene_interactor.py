@@ -47,8 +47,6 @@ RIG_STATE_TAG = 'Rig'
 
 class SceneInteractor:
 
-    named_objects = {}
-
 
     def __init__(
         self,
