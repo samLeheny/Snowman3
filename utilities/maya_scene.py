@@ -2,18 +2,21 @@ import importlib
 import maya.cmds as mc
 import maya.api.OpenMaya as om
 import pymel.core as pm
-from Snowman3.utilities.decorators import check_simple_args
+from Snowman3.rigger.rig_factory.utilities.decorators import check_simple_args
 
-import Snowman3.riggers.managers.rig_manager as rig_manager_util
+import Snowman3.rigger.managers.rig_manager as rig_manager_util
 importlib.reload(rig_manager_util)
 RigManager = rig_manager_util.RigManager
 
-import Snowman3.riggers.managers.armature_manager as armature_manager_util
+import Snowman3.rigger.managers.armature_manager as armature_manager_util
 importlib.reload(armature_manager_util)
 ArmatureManager = armature_manager_util.ArmatureManager
 
-import Snowman3.riggers.utilities.curve_utils as curve_utils
+import Snowman3.rigger.utilities.curve_utils as curve_utils
 importlib.reload(curve_utils)
+
+import Snowman3.utilities.mesh_utilities as mesh_utils
+import Snowman3.rigger.rig_factory.utilities.node_utilities.plug_utilities as plug_utils
 
 
 class MayaScene:
@@ -69,6 +72,54 @@ class MayaScene:
     def create_m_plug(self, owner, key, **kwargs):
         mc.addAttr( self.get_selection_string(owner), longName=key, **kwargs )
         return self.initialize_plug(owner, key)
+
+
+    def get_vertex_count(self, mesh):
+        mesh_utils.get_vertex_count(mesh)
+
+
+    def get_closest_vertex_index(self, mesh, point):
+        mesh_utils.get_closest_vert_index(mesh, om.MPoint(*point))
+
+
+    def get_closest_vertex_uv(self, mesh, point):
+        return mesh_utils.get_closest_vertex_uv(mesh, om.MPoint(*point))
+
+
+    def get_m_object(self, node_name):
+        if isinstance(node_name, om.MObject):
+            return node_name
+        selection_list = om.MSelectionList()
+        selection_list.add(node_name)
+        m_object = om.MObject()
+        selection_list.getDependNode(0, m_object)
+        return m_object
+
+
+    def update_mesh(self, mesh):
+        mesh_functions = om.MFnMesh(self.get_m_object(mesh))
+        mesh_functions.updateSurface()
+
+
+    def polyNormalPerVertex(self, *args, **kwargs):
+        return mc.polyNormalPerVertex(*args, **kwargs)
+
+
+    def polySoftEdge(self, *args, **kwargs):
+        return mc.polySoftEdge(*args, **kwargs)
+
+
+    def xform(self, *args, **kwargs):
+        return mc.xform(*args, **kwargs)
+
+
+    def get_plug_value(self, plug, *args):
+        return plug_utils.get_plug_value(plug)
+
+
+    def set_plug_value(self, plug, value):
+        plug_utils.set_plug_value(plug, value)
+
 
 '''
 import os
@@ -207,7 +258,7 @@ class MayaScene(object):
     }
 
     def __init__(self):
-        super(MayaScene, self).__init__()
+        super().__init__()
         self.standalone = False
         self.mock = False
         self.loaded_plugins = []
@@ -432,20 +483,14 @@ class MayaScene(object):
         else:
             mc.setAttr(plug.name, keyable=True)
 
-    def set_plug_value(self, plug, value):
-        ptl.set_plug_value(plug, value)
-
-    def get_plug_value(self, plug, *args):
-        return ptl.get_plug_value(plug)
-
-    def get_next_avaliable_plug_index(self, plug):
-        return ptl.get_next_avaliable_plug_index(plug)
+    def get_next_available_plug_index(self, plug):
+        return ptl.get_next_available_plug_index(plug)
 
     def get_next_blendshape_weight_index(self, blendshape_name):
         node_functions = om.MFnDependencyNode(self.get_m_object(blendshape_name))
         m_attribute = node_functions.attribute('weight')
         weights_m_plug = node_functions.findPlug(m_attribute, False)
-        return self.get_next_avaliable_plug_index(weights_m_plug)
+        return self.get_next_available_plug_index(weights_m_plug)
 
     def listHistory(self, *args, **kwargs):
         return mc.listHistory(*args, **kwargs)

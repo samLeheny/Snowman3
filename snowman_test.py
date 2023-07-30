@@ -3,7 +3,7 @@ import random
 import pymel.core as pm
 import maya.cmds as mc
 
-import Snowman3.riggers.managers.scene_interactor as scene_interactor
+import Snowman3.rigger.managers.scene_interactor as scene_interactor
 importlib.reload(scene_interactor)
 SceneInteractor = scene_interactor.SceneInteractor
 

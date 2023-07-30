@@ -1,5 +1,5 @@
 import importlib
-import Snowman3.riggers.managers.scene_interactor as scene_interactor
+import Snowman3.rigger.managers.scene_interactor as scene_interactor
 importlib.reload(scene_interactor)
 SceneInteractor = scene_interactor.SceneInteractor
 import Snowman3.utilities.controller as controller
