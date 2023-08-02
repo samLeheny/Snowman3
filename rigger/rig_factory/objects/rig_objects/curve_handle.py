@@ -6,8 +6,8 @@ from Snowman3.rigger.rig_factory.objects.node_objects.transform import Transform
 from Snowman3.rigger.rig_factory.objects.node_objects.depend_node import DependNode
 from Snowman3.rigger.rig_factory.objects.node_objects.nurbs_curve import NurbsCurve
 from Snowman3.rigger.rig_factory.objects.node_objects.curve_construct import CurveConstruct
-from Snowman3.rigger.rig_factory.objects.base_objects.properties import DataProperty, ObjectListProperty, ObjectProperty,\
-    ObjectDictProperty
+from Snowman3.rigger.rig_factory.objects.base_objects.properties import DataProperty, ObjectListProperty,\
+    ObjectProperty, ObjectDictProperty
 from Snowman3.rigger.rig_math.matrix import Matrix
 from Snowman3.dictionaries.nurbsCurvePrefabs import ctrl_shapes as shape_data
 
@@ -23,9 +23,10 @@ x_shape_data = copy.deepcopy(shape_data)
 
 
 
-for shape_name in shape_data:
+'''for shape_name in shape_data:
     curves_data = shape_data[shape_name]
     for x in range(len(curves_data)):
+        print(curves_data[x])
         cv_data = curves_data[x]['cvs']
         for i in range(len(cv_data)):
             cvx, cvy, cvz = cv_data[i]
@@ -34,7 +35,7 @@ for shape_name in shape_data:
             z_shape_data[shape_name][x]['cvs'][i][2] = cvy
             x_shape_data[shape_name][x]['cvs'][i][0] = cvy
             x_shape_data[shape_name][x]['cvs'][i][1] = cvx
-            x_shape_data[shape_name][x]['cvs'][i][2] = cvz
+            x_shape_data[shape_name][x]['cvs'][i][2] = cvz'''
 
 
 class CurveHandle(CurveConstruct):

@@ -18,6 +18,9 @@ def initialize_plug(owner, key):
         try:
             node_functions = om.MFnDependencyNode(owner)
             m_attribute = node_functions.attribute(key)
+            print(owner)
+            print(type(owner))
+            print(key)
             return node_functions.findPlug(m_attribute, False)
         except Exception as e:
             logger.error(traceback.format_exc())
@@ -54,20 +57,21 @@ def get_next_available_plug_index(plug):
 def set_plug_value(plug, value, force= False):
     if not isinstance(plug, om.MPlug):
         raise Exception('Plug is not type "MPlug"')
-    locked = plug.isLocked()
+    locked = plug.isLocked  # locked = plug.isLocked()
     if force:
         if locked:
             plug.setLocked(0)
-    if plug.isCompound():
+    if plug.isCompound:  # if plug.isCompound():
         for i in range(plug.numChildren()):
             set_plug_value(plug.child(i), value[i])
-    elif plug.isArray():
+    elif plug.isArray:  # elif plug.isArray():
         for i in range(plug.numElements()):
             set_plug_value(plug.elementByPhysicalIndex(i), value[i])
     else:
         attribute = plug.attribute()
         if attribute.hasFn(om.MFn.kNumericAttribute):
-            attribute_type = om.MFnNumericAttribute(attribute).unitType()
+            x = om.MFnNumericAttribute(attribute)
+            attribute_type = om.MFnNumericAttribute(attribute).numericType()  # .unitType()
             if attribute_type in [om.MFnNumericData.kBoolean]:
                 try:
                     plug.setBool(value)
@@ -287,6 +291,5 @@ def plug_walk(plug):
 def get_selection_string(m_object):
     selection_list = om.MSelectionList()
     selection_list.add(m_object)
-    selection_strings = []
-    selection_list.getSelectionStrings(0, selection_strings)
+    selection_strings = selection_list.getSelectionStrings(0)
     return selection_strings[0]

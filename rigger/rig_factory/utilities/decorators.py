@@ -11,7 +11,7 @@ def flatten_values(*args):
     nodes = []
     for arg in args:
         if isinstance(arg, (dict, OrderedDict)):
-            nodes.extend(flatten_values(*arg.itervalues()))
+            nodes.extend(flatten_values(*arg.values()))
         elif isinstance(arg, (list, tuple, set)):
             nodes.extend(flatten_values(*arg))
         else:
@@ -41,7 +41,7 @@ def flatten_args(func):
 def check_simple_args(func, strict=True, trace_as_message=False):
     def check_simple(self, *args, **kwargs):
         for value in flatten_values(args, kwargs):
-            if not isinstance(value, (int, float, basestring, bool)):
+            if not isinstance(value, (int, float, str, bool)):
                 message = f"Complex object passed to method, please replace with simple object! -" \
                           f"{str(value)} ({type(value)})"
                 if strict:
@@ -73,7 +73,7 @@ def get_m_object(node):
         return node
     elif isinstance(node, om.MDagPath):
         return node.node()
-    elif isinstance(node, basestring):
+    elif isinstance(node, str):
         node_count = len(mc.ls(node))
         if node_count > 1:
             raise Exception('Duplicate node names: %s' % node)

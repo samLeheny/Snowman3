@@ -41,7 +41,7 @@ class DependNode(BaseObject):
 
 
     def create_in_scene(self):
-        self.m_object = self.controller.create_m_depend_node( node_type=self.node_type, name=self.name )
+        self.m_object = self.controller.scene.create_depend_node( node_type=self.node_type, name=self.name )
 
 
     def initialize_plug(self, key):

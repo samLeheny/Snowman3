@@ -5,8 +5,8 @@ from Snowman3.rigger.rig_factory.objects.node_objects.joint import Joint
 from Snowman3.rigger.rig_factory.objects.node_objects.locator import Locator
 from Snowman3.rigger.rig_factory.objects.node_objects.depend_node import DependNode
 from Snowman3.rigger.rig_factory.objects.node_objects.mesh import Mesh, MeshVertex
-from line import Line
-from cone import Cone
+from Snowman3.rigger.rig_factory.objects.rig_objects.line import Line
+from Snowman3.rigger.rig_factory.objects.rig_objects.cone import Cone
 from Snowman3.rigger.rig_factory.objects.base_objects.properties import DataProperty, ObjectProperty, ObjectListProperty
 import Snowman3.rigger.rig_factory.environment as env
 

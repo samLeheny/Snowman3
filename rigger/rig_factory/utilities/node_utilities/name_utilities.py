@@ -72,7 +72,7 @@ def create_name_string(**kwargs):
         name = root_name
     elif base_name:
         name = base_name
-    if isinstance(segment_name, basestring):
+    if isinstance(segment_name, str):
         if ':' in segment_name:
             raise Exception(f'segment_name "{segment_name}" contained invalid character: ":"')
         if not segment_name[0].isupper():

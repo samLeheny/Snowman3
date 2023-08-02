@@ -1,9 +1,9 @@
 import logging
 import os
 import Snowman3.rigger.rig_factory as rig_factory
-import Snowman3.utilities.positions as pos
+import Snowman3.rigger.rig_factory.positions as pos
 from Snowman3.rigger.rig_factory.objects.part_objects.part import Part
-import Snowman3.utilities.biped_spine_spline as spine_spline
+import Snowman3.rigger.rig_factory.utilities.biped_spine_spline as spine_spline
 from Snowman3.rigger.rig_factory.objects.node_objects.joint import Joint
 from Snowman3.rigger.rig_factory.objects.node_objects.transform import Transform
 from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import LocalHandle

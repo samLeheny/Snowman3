@@ -1,280 +1,86 @@
-from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import GimbalHandle
-from Snowman3.rigger.rig_factory.objects.part_objects.part import PartGuide, Part
-from Snowman3.rigger.rig_factory.objects.rig_objects.cone import Cone
+import Snowman3.rigger.rig_factory as rig_factory
+import Snowman3.rigger.rig_math.matrix as mtx
+from Snowman3.rigger.rig_math.matrix import Matrix
+import Snowman3.rigger.rig_factory.positions as pos
+from Snowman3.rigger.rig_factory.objects.part_objects.part import Part
 from Snowman3.rigger.rig_factory.objects.node_objects.joint import Joint
+from Snowman3.rigger.rig_factory.objects.part_objects.chain_guide import ChainGuide
+from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import LocalHandle
 from Snowman3.rigger.rig_factory.objects.base_objects.properties import ObjectProperty, DataProperty
 
 
-class RootGuide(PartGuide):
-
-    create_origin_joint = DataProperty( name='create_origin_joint', default_value=True )
-
+class BipedSpineReverseFkGuide(ChainGuide):
     default_settings = dict(
-        size=10.0,
+        root_name='Spine',
+        size=15.0,
         side='center',
-        root_name='',
-        create_origin_joint=True
+        count=5,
+        align_to_guide=False
+    )
+    align_to_guide = DataProperty(
+        name='align_to_guide',
     )
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.toggle_class = Root.__name__
-
-    @classmethod
-    def pre_process_kwargs(cls, **kwargs):
-        kwargs = super(RootGuide, cls).pre_process_kwargs(**kwargs)
-        if not kwargs.get('root_name', None):
-            kwargs['base_name'] = 'Root'
-        return kwargs
+        super(BipedSpineReverseFkGuide, self).__init__(**kwargs)
+        self.toggle_class = BipedSpineReverseFk.__name__
 
     @classmethod
     def create(cls, **kwargs):
-        side = kwargs.setdefault('side', 'center')
-        this = super(RootGuide, cls).create(**kwargs)
-        controller = this.controller
-        size = this.size
-        size_plug = this.plugs['size']
-
-        main_joint = this.create_child( Joint, segment_name='Root' )
-        ground_joint = this.create_child( Joint, parent=main_joint, segment_name='Ground' )
-        cog_joint = this.create_child( Joint, parent=ground_joint, segment_name='Cog' )
-        handle = this.create_handle( segment_name='Root' )
-        cog_handle = this.create_handle( segment_name='Cog' )
-        cone_x = cog_joint.create_child(
-            Cone,
-            segment_name='X',
-            size=size * 0.1,
-            axis=[1.0, 0.0, 0.0]
-        )
-        cone_y = cog_joint.create_child(
-            Cone,
-            segment_name='Y',
-            size=size * 0.099,
-            axis=[0.0, 1.0, 0.0]
-        )
-        cone_z = cog_joint.create_child(
-            Cone,
-            segment_name='Z',
-            size=size * 0.098,
-            axis=[0.0, 0.0, 1.0]
-        )
-
-        controller.create_matrix_parent_constraint(
-            handle,
-            main_joint
-        )
-        controller.create_matrix_parent_constraint(
-            cog_handle,
-            cog_joint
-        )
-
-        for obj in (handle, cog_handle, cone_x, cone_y, cone_z):
-            size_plug.connect_to(obj.plugs['size'])
-            size_plug.connect_to(obj.plugs['size'])
-
-        main_joint.plugs.set_values(
-            overrideEnabled=True,
-            overrideDisplayType=2,
-            radius=0.0
-        )
-        ground_joint.plugs.set_values(
-            overrideEnabled=True,
-            overrideDisplayType=2,
-            radius=0.0
-        )
-        cog_joint.plugs.set_values(
-            overrideEnabled=True,
-            overrideDisplayType=2,
-            radius=0.0
-        )
-
-        origin_joint = None
-        if this.create_origin_joint:
-            origin_joint = this.create_child(
-                Joint,
-                segment_name='Origin'
-            )
-            origin_joint.plugs.set_values(
-                overrideEnabled=True,
-                overrideDisplayType=2,
-                radius=0.0
-            )
-
-        root = this.get_root()
-        handle.mesh.assign_shading_group(root.shaders[side].shading_group)
-        cog_handle.mesh.assign_shading_group(root.shaders[side].shading_group)
-
-        for obj, axis in zip((cone_x, cone_y, cone_z), ('x', 'y', 'z')):
-            obj.plugs.set_values(
-                overrideEnabled=True,
-                overrideDisplayType=2,
-            )
-            obj.mesh.assign_shading_group(root.shaders[axis].shading_group)
-            obj.plugs.set_values(
-                overrideEnabled=True,
-                overrideDisplayType=2,
-            )
-            obj.mesh.assign_shading_group(root.shaders[axis].shading_group)
-
-        this.base_handles = [handle]
-        this.joints = [main_joint, ground_joint, cog_joint]
-        if origin_joint:
-            this.joints.append(origin_joint)
-
+        kwargs['up_vector_indices'] = [0]
+        count = kwargs.get('count', cls.default_settings['count'])
+        segment_names = []
+        for i in range(count):
+            if i == 0:
+                segment_names.append('Hip')
+            elif i == count - 2:
+                segment_names.append('Chest')
+            elif i == count - 1:
+                segment_names.append('ChestEnd')
+            else:
+                segment_names.append(rig_factory.index_dictionary[i - 1].title())
+        kwargs['segment_names'] = segment_names
+        this = super(BipedSpineReverseFkGuide, cls).create(**kwargs)
         return this
 
-    def get_blueprint(self):
-        blueprint = super(RootGuide, self).get_blueprint()
-        matrices = [list(x.get_matrix()) for x in self.joints]
-        blueprint['matrices'] = matrices
-        return blueprint
+    def after_first_create(self):
+        self.set_handle_positions(pos.BIPED_POSITIONS)
 
     def get_toggle_blueprint(self):
-        blueprint = super(RootGuide, self).get_toggle_blueprint()
+        blueprint = super(BipedSpineReverseFkGuide, self).get_toggle_blueprint()
         matrices = [list(x.get_matrix()) for x in self.joints]
         blueprint['matrices'] = matrices
         return blueprint
 
 
-class Root(Part):
+class BipedSpineReverseFk(Part):
 
-    create_origin_joint = DataProperty(
-        name='create_origin_joint',
-        default_value=True
+    align_to_guide = DataProperty(
+        name='align_to_guide',
     )
-
-    origin_joint = ObjectProperty(
-        name='origin_joint'
-    )
-
-    cog_joint = ObjectProperty(
-        name='cog_joint'
+    segment_names = DataProperty(
+        name='segment_names',
     )
 
     def __init__(self, **kwargs):
-        super(Root, self).__init__(**kwargs)
-
-    @classmethod
-    def pre_process_kwargs(cls, **kwargs):
-        kwargs = super(Root, cls).pre_process_kwargs(**kwargs)
-        root_name = kwargs.get('root_name', None)
-        if not root_name:
-            kwargs['base_name'] = 'Root'
-        return kwargs
+        super(BipedSpineReverseFk, self).__init__(**kwargs)
 
     @classmethod
     def create(cls, **kwargs):
-        this = super(Root, cls).create(**kwargs)
-        controller = this.controller
-        size = this.size
-        root_name = this.root_name
-        matrices = this.matrices
-
-        main_joint = this.joint_group.create_child(
-            Joint,
-            root_name=root_name,
-            segment_name='Root',
-            matrix=matrices[0]
+        if 'side' not in kwargs:
+            raise Exception('you must provide a "side" keyword argument to create a %s' % cls.__name__)
+        this = super(BipedSpineReverseFk, cls).create(**kwargs)
+        nodes = cls.build_nodes(
+            parent_group=this,
+            joint_group=this.joint_group,
+            matrices=this.matrices,
+            align_to_guide=this.align_to_guide,
+            segment_names=this.segment_names
         )
-
-        ground_joint = this.joint_group.create_child(
-            Joint,
-            root_name=root_name,
-            segment_name='Ground',
-            parent=main_joint,
-            matrix=matrices[1]
-        )
-        cog_joint = this.joint_group.create_child(
-            Joint,
-            root_name=root_name,
-            segment_name='Cog',
-            parent=ground_joint,
-            matrix=matrices[2]
-        )
-
-        main_joint.plugs.set_values(
-            overrideEnabled=1,
-            overrideDisplayType=2
-        )
-
-        ground_joint.plugs.set_values(
-            overrideEnabled=1,
-            overrideDisplayType=2
-        )
-
-        main_handle = this.create_handle(
-            handle_type=GimbalHandle,
-            shape='cog_arrow',
-            line_width=2,
-            size=size*12,
-            root_name=root_name,
-            segment_name='Root',
-            rotation_order='xzy',
-            matrix=matrices[0],
-        )
-        ground_handle = this.create_handle(
-            handle_type=GimbalHandle,
-            shape='circle_c',
-            line_width=2,
-            size=size*3,
-            parent=main_handle.gimbal_handle,
-            segment_name='Ground',
-            root_name=root_name,
-            rotation_order='xzy',
-            matrix=matrices[1],
-        )
-
-        cog_handle = this.create_handle(
-            handle_type=GimbalHandle,
-            shape='cog_arrows',
-            line_width=2,
-            size=size*10,
-            parent=ground_handle.gimbal_handle,
-            segment_name='Cog',
-            root_name=root_name,
-            rotation_order='xzy',
-            matrix=matrices[2],
-        )
-
-        # The top root needs to create an Origin_Jnt
-        # which can be used to keep things at origin
-        if this.create_origin_joint:
-            this.origin_joint = this.joint_group.create_child(
-                Joint,
-                root_name=root_name,
-                segment_name='Origin',
-                disconnected_joint=True  # Put the Bind joint of only this joint into the OriginDeform_Grp
-            )
-            this.origin_joint.plugs.set_values(
-                drawStyle=2
-            )
-
-        scale_xyz_plug = main_handle.create_plug(
-            'ScaleXYZ',
-            at='double',
-            k=True,
-            dv=1.0,
-            min=0.001,
-        )
-
-        scale_xyz_plug.connect_to(main_handle.plugs['sx'])
-        scale_xyz_plug.connect_to(main_handle.plugs['sy'])
-        scale_xyz_plug.connect_to(main_handle.plugs['sz'])
-
-        main_handle.plugs['sx'].set_locked(True)
-        main_handle.plugs['sy'].set_locked(True)
-        main_handle.plugs['sz'].set_locked(True)
-
+        handles = nodes['handles']
+        joints = nodes['joints']
         root = this.get_root()
-        all_handles = [
-            main_handle,
-            main_handle.gimbal_handle,
-            ground_handle,
-            ground_handle.gimbal_handle,
-            cog_handle,
-            cog_handle.gimbal_handle,
-        ]
-        for handle in all_handles:
+        for handle in handles:
             root.add_plugs(
                 [
                     handle.plugs['tx'],
@@ -282,40 +88,119 @@ class Root(Part):
                     handle.plugs['tz'],
                     handle.plugs['rx'],
                     handle.plugs['ry'],
-                    handle.plugs['rz'],
-                    handle.plugs['rotateOrder']
+                    handle.plugs['rz']
                 ]
             )
-        root.add_plugs(scale_xyz_plug)
-
-        ground_joint.plugs.set_values(
-            type=1,
-            drawStyle=2
-        )
-        main_joint.plugs.set_values(
-            type=1,
-            drawStyle=2
-        )
-        cog_joint.plugs.set_values(
-            drawStyle=2
-        )
-
-        controller.create_matrix_parent_constraint(
-            ground_handle.gimbal_handle,
-            ground_joint
-        )
-        controller.create_matrix_parent_constraint(
-            main_handle.gimbal_handle,
-            main_joint
-        )
-        controller.create_matrix_parent_constraint(
-            cog_handle.gimbal_handle,
-            cog_joint
-        )
-
-        this.joints = [main_joint, ground_joint, cog_joint]
-        if this.origin_joint:
-            this.joints.append(this.origin_joint)
-        this.cog_joint = cog_joint
-
+        this.set_handles(handles)
+        this.joints = joints
         return this
+
+    @staticmethod
+    def build_nodes(
+            parent_group,
+            joint_group,
+            matrices,
+            align_to_guide,
+            segment_names
+    ):
+        if segment_names is None:
+            segment_names = []
+            count = len(matrices)
+            for i in range(count):
+                if i == 0:
+                    segment_names.append('Hip')
+                elif i == count - 2:
+                    segment_names.append('Chest')
+                elif i == count - 1:
+                    segment_names.append('ChestEnd')
+                else:
+                    segment_names.append(rig_factory.index_dictionary[i - 1].title())
+        joint_parent = joint_group
+        handle_parent = parent_group
+        inverted_matrices = mtx.invert_matrices(matrices)
+        controller = parent_group.controller
+        size = parent_group.size
+        joints = []
+        segment_handles = []
+        for x in reversed(range(len(inverted_matrices))):
+
+            joint = parent_group.create_child(
+                Joint,
+                matrix=inverted_matrices[x],
+                parent=joint_parent,
+                segment_name=segment_names[x]
+            )
+            joint.zero_rotation()
+            joints.insert(0, joint)
+            joint_parent = joint
+            if not x == 0 and not x == len(inverted_matrices) - 1:
+                if align_to_guide:
+                    handle_matrix = inverted_matrices[x]
+                else:
+                    handle_matrix = Matrix(inverted_matrices[x].get_translation())
+                    handle_matrix.flip_x()
+                    handle_matrix.flip_y()
+                handle = parent_group.create_child(
+                    LocalHandle,
+                    size=size,
+                    matrix=handle_matrix,
+                    shape='circle_wavy',
+                    parent=handle_parent,
+                    segment_name=segment_names[x-1],
+                    rotation_order='xzy'
+                )
+                if handle.segment_name == 'Hip':
+                    hip_shape_matrix = Matrix()
+                    hip_shape_matrix.set_translation([0, size * -0.1, 0])
+                    hip_shape_matrix.set_scale([size * 1.25, size * -5.0, size * 1.25])
+                    handle.set_shape_matrix(hip_shape_matrix)
+                else:
+                    shape_matrix = Matrix()
+                    shape_matrix.set_translation([0, size * 0.25, 0])
+                    shape_matrix.set_scale([size, size * -1.0, size])
+                    handle.set_shape_matrix(shape_matrix)
+
+                controller.create_parent_constraint(
+                    handle.gimbal_handle,
+                    joint,
+                    mo=True
+                )
+                handle_parent = handle.gimbal_handle
+                segment_handles.append(handle)
+
+        if align_to_guide:
+            chest_matrix = inverted_matrices[-2]
+            chest_position = chest_matrix.get_translation()
+            chest_matrix = mtx.compose_matrix_from_vectors(
+                chest_position,
+                matrices[-1].get_translation() - chest_position,
+                chest_matrix.z_vector() * -1.0
+            )
+        else:
+            chest_matrix = Matrix(inverted_matrices[-2].get_translation())
+            chest_matrix.flip_x()
+            chest_matrix.flip_y()
+        chest_handle = parent_group.create_child(
+            LocalHandle,
+            segment_name=segment_names[-2],
+            shape='circle_wavy',
+            matrix=chest_matrix,
+            rotation_order='xzy'
+        )
+        controller.create_parent_constraint(
+            chest_handle.gimbal_handle,
+            joints[-1],
+            mo=True
+        )
+        shape_matrix = Matrix()
+        shape_matrix.set_translation([0, size * -0.7, 0])
+        shape_matrix.set_scale([size * 1.25, size * -7.0, size * 1.25])
+        chest_handle.set_shape_matrix(shape_matrix)
+
+        handles = [chest_handle]
+        handles.extend(segment_handles)
+        return dict(
+            handles=handles,
+            joints=joints,
+            chest_handle=chest_handle
+        )

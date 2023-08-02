@@ -25,14 +25,17 @@ class DagNode(DependNode):
 
 
     def create_in_scene(self):
-        parent_obj = None
         if isinstance(self.parent, DagNode):
-            parent_obj = self.parent.m_object
-        self.m_object = self.controller.create_m_depend_node(
-            node_type=self.node_type,
-            name=self.name,
-            parent=parent_obj
-        )
+            self.m_object = self.controller.scene.create_dag_node(
+                self.node_type,
+                self.name,
+                self.parent.m_object
+            )
+        else:
+            self.m_object = self.controller.scene.create_dag_node(
+                self.node_type,
+                self.name
+            )
 
 
     def set_m_object(self, m_object):

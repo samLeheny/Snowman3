@@ -7,7 +7,7 @@ from Snowman3.rigger.rig_factory.objects.node_objects.transform import Transform
 from Snowman3.rigger.rig_factory.objects.node_objects.joint import Joint
 from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import LocalHandle, WorldHandle
 from Snowman3.rigger.rig_factory.objects.base_objects.properties import ObjectProperty, ObjectListProperty, DataProperty
-import Snowman3.utilities.positions as pos
+import Snowman3.rigger.rig_factory.positions as pos
 
 
 

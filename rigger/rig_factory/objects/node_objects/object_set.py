@@ -1,4 +1,4 @@
-from depend_node import DependNode
+from Snowman3.rigger.rig_factory.objects.node_objects.depend_node import DependNode
 from Snowman3.rigger.rig_factory.objects.base_objects.properties import ObjectListProperty
 
 

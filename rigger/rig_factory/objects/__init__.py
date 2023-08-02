@@ -11,12 +11,13 @@ from Snowman3.rigger.rig_factory.objects.node_objects.nurbs_curve import NurbsCu
 from Snowman3.rigger.rig_factory.objects.node_objects.locator import Locator
 #from Snowman3.rigger.rig_factory.objects.node_objects.shader import Shader
 #from Snowman3.rigger.rig_factory.objects.node_objects.shading_group import ShadingGroup
-#from Snowman3.rigger.rig_factory.objects.node_objects.object_set import ObjectSet
-#from Snowman3.rigger.rig_factory.objects.node_objects.animation_curve import AnimationCurve
-#from Snowman3.rigger.rig_factory.objects.node_objects.keyframe import KeyFrame
+from Snowman3.rigger.rig_factory.objects.node_objects.object_set import ObjectSet
+from Snowman3.rigger.rig_factory.objects.node_objects.animation_curve import AnimationCurve
+from Snowman3.rigger.rig_factory.objects.node_objects.keyframe import KeyFrame
 #from Snowman3.rigger.rig_factory.objects.node_objects.ik_handle import IkEffector, IkHandle
-#from Snowman3.rigger.rig_factory.objects.node_objects.ik_spline_handle import IkSplineHandle
+from Snowman3.rigger.rig_factory.objects.node_objects.ik_spline_handle import IkSplineHandle
 from Snowman3.rigger.rig_factory.objects.rig_objects.curve_handle import CurveHandle
+from Snowman3.rigger.rig_factory.objects.node_objects.curve_construct import CurveConstruct
 #from Snowman3.rigger.rig_factory.objects.rig_objects.driven_curve import DrivenCurve
 from Snowman3.rigger.rig_factory.objects.rig_objects.guide_handle import GuideHandle, BoxHandleGuide
 from Snowman3.rigger.rig_factory.objects.rig_objects.capsule import Capsule
@@ -24,7 +25,7 @@ from Snowman3.rigger.rig_factory.objects.rig_objects.cone import Cone
 from Snowman3.rigger.rig_factory.objects.rig_objects.line import Line
 from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import GroupedHandle, StandardHandle, GimbalHandle,\
     LocalHandle, WorldHandle, CogHandle
-#from Snowman3.rigger.rig_factory.objects.rig_objects.space_switcher import SpaceSwitcher
+from Snowman3.rigger.rig_factory.objects.rig_objects.space_switcher import SpaceSwitcher
 #from Snowman3.rigger.rig_factory.objects.rig_objects.ribbon import Ribbon
 #from Snowman3.rigger.rig_factory.objects.rig_objects.matrix_space_switcher import MatrixSpaceSwitcher
 #from Snowman3.rigger.rig_factory.objects.rig_objects.matrix_constraint import ParentMatrixConstraint, PointMatrixConstraint, \
@@ -32,12 +33,12 @@ from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import Group
 #from Snowman3.rigger.rig_factory.objects.rig_objects.reverse_pole_vector import ReversePoleVector
 #from Snowman3.rigger.rig_factory.objects.rig_objects.text_curve import TextCurve
 #from Snowman3.rigger.rig_factory.objects.rig_objects.surface_point import SurfacePoint
-#from Snowman3.rigger.rig_factory.objects.sdk_objects.keyframe_group import KeyframeGroup
-#from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_curve import SDKCurve
-#from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_group import SDKGroup
-#from Snowman3.rigger.rig_factory.objects.sdk_objects.keyframe_group import KeyframeGroup
-#from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_keyframe import SDKKeyFrame
-#from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_network import SDKNetwork
+from Snowman3.rigger.rig_factory.objects.sdk_objects.keyframe_group import KeyframeGroup
+from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_curve import SDKCurve
+from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_group import SDKGroup
+from Snowman3.rigger.rig_factory.objects.sdk_objects.keyframe_group import KeyframeGroup
+from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_keyframe import SDKKeyFrame
+from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_network import SDKNetwork
 #from Snowman3.rigger.rig_factory.objects.blendshape_objects.blendshape import (
 #   BlendshapeInbetween, BlendshapeGroup, Blendshape
 #)
@@ -60,21 +61,21 @@ from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import Group
 #from Snowman3.rigger.rig_factory.objects.biped_objects.biped_leg_fk import BipedLegFkGuide, BipedLegFk
 #from Snowman3.rigger.rig_factory.objects.biped_objects.biped_leg import BipedLegGuide, BipedLeg
 #from Snowman3.rigger.rig_factory.objects.biped_objects.biped_leg_bendy import BipedLegBendyGuide, BipedLegBendy
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_reverse_ik_fk import BipedSpineReverseIkFk, BipedSpineReverseIkFkGuide
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_reverse_spine import BipedReverseSpineGuide, BipedReverseSpine
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine import BipedSpineGuide, BipedSpine
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_fk import BipedSpineFkGuide, BipedSpineFk
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_ik import BipedSpineIkGuide, BipedSpineIk
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_ik_fk import BipedSpineIkFkGuide, BipedSpineIkFk
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_reverse_ik_fk import BipedSpineReverseIkFk, BipedSpineReverseIkFkGuide
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_reverse_spine import BipedReverseSpineGuide, BipedReverseSpine
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine import BipedSpineGuide, BipedSpine
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_fk import BipedSpineFkGuide, BipedSpineFk
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_ik import BipedSpineIkGuide, BipedSpineIk
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_ik_fk import BipedSpineIkFkGuide, BipedSpineIkFk
 #from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_reverse_fk import BipedSpineReverseFk, BipedSpineReverseFkGuide
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_reverse_ik import BipedSpineReverseIk, BipedSpineReverseIkGuide
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck_ik import BipedNeckIkGuide, BipedNeckIk
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck_fk import BipedNeckFkGuide, BipedNeckFk
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck_fk_spline import BipedNeckFkSplineGuide, BipedNeckFkSpline
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck_fk2 import BipedNeckFkGuide2, BipedNeckFk2
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck import BipedNeck, BipedNeckGuide
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped import BipedGuide, Biped
-#from Snowman3.rigger.rig_factory.objects.biped_objects.biped_main import BipedMainGuide, BipedMain
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_spine_reverse_ik import BipedSpineReverseIk, BipedSpineReverseIkGuide
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck_ik import BipedNeckIkGuide, BipedNeckIk
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck_fk import BipedNeckFkGuide, BipedNeckFk
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck_fk_spline import BipedNeckFkSplineGuide, BipedNeckFkSpline
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck_fk2 import BipedNeckFkGuide2, BipedNeckFk2
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_neck import BipedNeck, BipedNeckGuide
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped import BipedGuide, Biped
+from Snowman3.rigger.rig_factory.objects.biped_objects.biped_main import BipedMainGuide, BipedMain
 #from Snowman3.rigger.rig_factory.objects.biped_objects.biped_hand import BipedHand, BipedHandGuide
 #from Snowman3.rigger.rig_factory.objects.biped_objects.biped_finger import BipedFinger, BipedFingerGuide
 #from Snowman3.rigger.rig_factory.objects.part_objects.corrective_joint_part import CorrectiveJointGuide, CorrectiveJoint
@@ -113,11 +114,11 @@ from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import Group
 #from Snowman3.rigger.rig_factory.objects.face_panel_objects.open_eye_regions_slider import OpenEyeRegionsSlider, OpenEyeRegionsSliderGuide
 #from Snowman3.rigger.rig_factory.objects.face_panel_objects.base_slider import BaseSlider, BaseSliderGuide
 #from Snowman3.rigger.rig_factory.objects.face_panel_objects.custom_slider import CustomSlider, CustomSliderGuide
-#from Snowman3.rigger.rig_factory.objects.part_objects.container import ContainerGuide, Container
-#from Snowman3.rigger.rig_factory.objects.part_objects.fk_chain import FkChainGuide, FkChain
+from Snowman3.rigger.rig_factory.objects.part_objects.container import ContainerGuide, Container
+from Snowman3.rigger.rig_factory.objects.part_objects.fk_chain import FkChainGuide, FkChain
 #from Snowman3.rigger.rig_factory.objects.part_objects.ik_chain import IkChain, IkChainGuide
 from Snowman3.rigger.rig_factory.objects.part_objects.part import PartGuide, Part
-#from Snowman3.rigger.rig_factory.objects.part_objects.part_group import PartGroupGuide, PartGroup
+from Snowman3.rigger.rig_factory.objects.part_objects.part_group import PartGroupGuide, PartGroup
 from Snowman3.rigger.rig_factory.objects.part_objects.base_part import BasePart
 #from Snowman3.rigger.rig_factory.objects.part_objects.base_container import BaseContainer
 #from Snowman3.rigger.rig_factory.objects.part_objects.layered_ribbon_spline_chain import LayeredRibbonSplineChain, LayeredRibbonSplineChainGuide
@@ -202,7 +203,8 @@ from Snowman3.rigger.rig_factory.objects.part_objects.handle import Handle, Hand
 #from Snowman3.rigger.rig_factory.objects.deformer_objects.softMod import SoftMod
 #from Snowman3.rigger.rig_factory.objects.deformer_objects.sine import Sine
 #from Snowman3.rigger.rig_factory.objects.deformer_objects.cluster import Cluster
-#from Snowman3.rigger.rig_factory.objects.deformer_objects.lattice import Lattice
-#from Snowman3.rigger.rig_factory.objects.deformer_objects.deformer import Deformer
+from Snowman3.rigger.rig_factory.objects.deformer_objects.lattice import Lattice
+from Snowman3.rigger.rig_factory.objects.deformer_objects.deformer import Deformer
 #from Snowman3.rigger.rig_factory.objects.deformer_objects.wave import Wave
 #from Snowman3.rigger.rig_factory.objects.deformation_stack_objects.deformation_stack import DeformationLayer, DeformationStack
+from Snowman3.rigger.rig_factory.objects.part_objects.root import RootGuide, Root

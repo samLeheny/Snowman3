@@ -1,7 +1,7 @@
 import copy
 from Snowman3.rigger.rig_math.vector import Vector
 from Snowman3.rigger.rig_math.matrix import Matrix
-#import Snowman3.utilities.positions as pos
+import Snowman3.rigger.rig_factory.positions as pos
 from Snowman3.rigger.rig_factory.objects.base_objects.weak_list import WeakList
 from Snowman3.rigger.rig_factory.objects.biped_objects.biped_arm import BipedArm
 from Snowman3.rigger.rig_factory.objects.sdk_objects.sdk_network import SDKNetwork

@@ -1,14 +1,14 @@
-import rig_factory
-import rig_math.matrix as mtx
+import Snowman3.rigger.rig_factory as rig_factory
+import Snowman3.rigger.rig_math.matrix as mtx
 from Snowman3.rigger.rig_factory.objects.part_objects.chain_guide import ChainGuide
 from Snowman3.rigger.rig_factory.objects.part_objects.part import Part
-import rig_factory.environment as env
+import Snowman3.rigger.rig_factory.environment as env
 from Snowman3.rigger.rig_math.matrix import Matrix
-from rig_factory.objects.node_objects.transform import Transform
+from Snowman3.rigger.rig_factory.objects.node_objects.transform import Transform
 from Snowman3.rigger.rig_factory.objects.node_objects.joint import Joint
 from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import LocalHandle, WorldHandle
 from Snowman3.rigger.rig_factory.objects.base_objects.properties import ObjectProperty, ObjectListProperty, DataProperty
-import Snowman3.utilities.positions as pos
+import Snowman3.rigger.rig_factory.positions as pos
 
 
 class BipedSpineReverseIkGuide(ChainGuide):

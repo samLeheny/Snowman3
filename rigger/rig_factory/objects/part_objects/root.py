@@ -5,10 +5,10 @@ from Snowman3.rigger.rig_factory.objects.node_objects.joint import Joint
 from Snowman3.rigger.rig_factory.objects.base_objects.properties import ObjectProperty, DataProperty
 
 
+
 class RootGuide(PartGuide):
 
     create_origin_joint = DataProperty( name='create_origin_joint', default_value=True )
-
     default_settings = dict(
         size=10.0,
         side='center',

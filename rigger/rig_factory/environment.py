@@ -7,12 +7,14 @@ from collections import OrderedDict
 state_string = 'face_rig_state'
 
 # Loads the build directory from whatever the user has decided to load the rig_blueprint from
+'''
 local_build_directory = 'Y:/{}/assets/type/{}/{}/work/rig/Maya/{}/build'.format(
     os.environ['TT_PROJCODE'],
     os.environ['TT_ASSTYPE'],
     os.environ['TT_ENTNAME'],
     os.environ['USERNAME']
 )
+'''
 handle_colors = OrderedDict([
     (0, {u'redA': (90,0,0)}),
     (1, {u'redB':(148,5,0)}),

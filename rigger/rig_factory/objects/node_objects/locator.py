@@ -1,4 +1,4 @@
-from dag_node import DagNode
+from Snowman3.rigger.rig_factory.objects.node_objects.dag_node import DagNode
 from Snowman3.rigger.rig_factory.objects.base_objects.properties import DataProperty
 
 

@@ -1,6 +1,6 @@
 import os
 import json
-import Snowman3.rigger.rig_factory.utilities.node_utilities.name_utilities as nmu
+import Snowman3.rigger.rig_factory.utilities.node_utilities.name_utilities as name_utils
 
 active_controller = None
 
@@ -8,13 +8,13 @@ settings_path = '{}/settings.json'.format(os.path.dirname(__file__.replace('\\',
 with open(settings_path, mode='r') as f:
     settings_data = json.load(f)
 
-index_dictionary = nmu.index_dictionary  # index_dictionary[4] = 'd' but no order in dict
-index_list = nmu.index_list  # index_list[4] = 'd' and can get index from index_list.index('d')
+index_dictionary = name_utils.index_dictionary  # index_dictionary[4] = 'd' but no order in dict
+index_list = name_utils.index_list  # index_list[4] = 'd' and can get index from index_list.index('d')
 
 roo_dict = dict(xyz=0, yzx=1, zxy=2, xzy=3, yxz=4, zyx=5)
 
 
-class BipedRotateOrder(object):
+class BipedRotateOrder:
     """
     Why does this need to be a class - Maybe a Dict instead? -Paxton
     """

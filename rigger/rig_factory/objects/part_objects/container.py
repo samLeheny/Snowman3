@@ -545,7 +545,7 @@ class Container(BaseContainer):
 
 
     def add_custom_constraint(self, constraint_string, data):
-        if not isinstance(constraint_string, basestring):
+        if not isinstance(constraint_string, str):
             raise Exception('Invalid type "%s" use String' % constraint_string)
 
         if self.controller.current_layer is None:
@@ -680,7 +680,7 @@ class Container(BaseContainer):
 
 
     def add_custom_plug(self, plug_string):
-        if not isinstance(plug_string, basestring):
+        if not isinstance(plug_string, str):
             raise Exception('Invalid plug_string type "%s" use String' %  plug_string)
         node_name, attr_name = plug_string.split('.')
         if node_name not in self.controller.named_objects:

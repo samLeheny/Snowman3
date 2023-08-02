@@ -1,7 +1,7 @@
 import math
 import Snowman3.rigger.rig_factory as rig_factory
 from Snowman3.rigger.rig_math.matrix import Matrix
-import Snowman3.utilities.positions as pos
+import Snowman3.rigger.rig_factory.positions as pos
 import Snowman3.rigger.rig_factory.environment as env
 from Snowman3.rigger.rig_factory.objects.part_objects.part import Part
 from Snowman3.rigger.rig_factory.objects.node_objects.mesh import Mesh

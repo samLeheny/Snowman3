@@ -88,7 +88,7 @@ class RigManager:
 
 
     def build_rig_part(self, part):
-        dir_string = f"Snowman3.riggers.parts.{part.prefab_key}"
+        dir_string = f'Snowman3.rigger.parts.{part.prefab_key}'
         getter = importlib.import_module(dir_string)
         importlib.reload(getter)
         BespokePartConstructor = getter.BespokePartConstructor

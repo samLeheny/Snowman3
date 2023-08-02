@@ -10,6 +10,7 @@ class BaseObject(object):
     functionality_name = DataProperty( name='functionality_name' )
     segment_name = DataProperty( name='segment_name' )
     differentiation_name = DataProperty( name='differentiation_name' )
+    subsidiary_name = DataProperty( name='subsidiary_name' )
     root_name = DataProperty( name='root_name' )
     base_name = DataProperty( name='base_name' )
     size = DataProperty( name='size', default_value=1.0 )
@@ -42,7 +43,7 @@ class BaseObject(object):
     def create(cls, **kwargs):
         controller = com.controller_utils.get_controller() # com.controller_utilities.get_controller()
         processed_kwargs = cls.pre_process_kwargs(**kwargs)
-        name = kwargs['name'] # com.name_utilities.create_name_string(processed_kwargs)
+        name = com.name_utils.create_name_string(**processed_kwargs)
         if name in controller.named_objects:
             raise Exception(f"An object with name '{name}' already exists.")
         parent = kwargs.get('parent', None)

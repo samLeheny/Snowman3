@@ -330,7 +330,7 @@ class KeyframeGroup(BaseObject):
 def find_plug_object(controller, plug):
     if isinstance(plug, Plug):
         return plug
-    elif isinstance(plug, basestring):
+    elif isinstance(plug, str):
         node_name, attribute_name = plug.split('.')
         if node_name in controller.named_objects:
             node = controller.named_objects[node_name]

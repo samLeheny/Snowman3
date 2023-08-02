@@ -112,7 +112,7 @@ class BaseContainer(Transform):
         unlocked = kwargs.get('unlocked', True)
         visible = kwargs.get('visible', True)
         for plug in plugs:
-            if isinstance(plug, basestring):
+            if isinstance(plug, str):
                 if '.' not in plug:
                     raise Exception('Invalid plug : %s' % plug)
                 node_name, plug_name = plug.split('.')
