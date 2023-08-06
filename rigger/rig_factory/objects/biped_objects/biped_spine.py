@@ -107,13 +107,13 @@ class BipedSpine(Part):
     legacy_orientation = DataProperty( name='legacy_orientation', default_value=False )
 
     def __init__(self, **kwargs):
-        super(BipedSpine, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     cog_matrix = None
 
     @classmethod
     def create(cls, **kwargs):
-        this = super(BipedSpine, cls).create(**kwargs)
+        this = super().create(**kwargs)
         if 'joint_matrices' in kwargs:
             logging.getLogger('rig_build').warning(
                 '%s found legacy data "joint_matrices" found. converting to "joint_count"' % cls.__name__

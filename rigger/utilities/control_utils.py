@@ -7,26 +7,20 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
 import copy
 import pymel.core as pm
 from typing import Union
 
 import Snowman3.utilities.general_utils as gen
-importlib.reload(gen)
 
 import Snowman3.utilities.rig_utils as rig
-importlib.reload(rig)
 
 import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
-importlib.reload(prefab_curve_shapes)
 
 '''import Snowman3.rigger.utilities.curve_utils as crv_utils
-importlib.reload(crv_utils)
 CurveConstruct = crv_utils.CurveConstruct'''
 
 import Snowman3.rigger.rig_factory.objects.node_objects.curve_construct as curve_construct
-importlib.reload(curve_construct)
 CurveConstruct = curve_construct.CurveConstruct
 
 import Snowman3.dictionaries.colorCode as colorCode

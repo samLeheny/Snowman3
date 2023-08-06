@@ -84,7 +84,7 @@ def generate_squash_and_stretch_based_on_curve_length(curve_info_node,
         multiplier = joints[0].create_child(
             DependNode,
             node_type='multiplyDivide',
-            segment_name='multiplier%s' % index_character
+            segment_name=f'multiplier{index_character}'
         )
         squash_stretch_flip_cond.plugs['outColorR'].connect_to(multiplier.plugs['input1X'])
         multiplier.plugs['operation'].set_value(3)
@@ -145,7 +145,7 @@ def generate_squash_and_stretch_adjacent_distances(joints,
         distance_between_node = position_locators[i].create_child(
             DependNode,
             node_type='distanceBetween',
-            root_name='%s_distanceBetween' % root_name,
+            root_name=f'{root_name}_distanceBetween',
             index=i)
         position_locators[i].plugs['worldPosition'].element(0).connect_to(distance_between_node.plugs['point1'])
         position_locators[i + 1].plugs['worldPosition'].element(0).connect_to(distance_between_node.plugs['point2'])

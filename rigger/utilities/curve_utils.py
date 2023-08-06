@@ -7,7 +7,6 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
 import copy
 from dataclasses import dataclass, field
 from typing import Union
@@ -16,10 +15,8 @@ import pymel.core as pm
 import maya.api.OpenMaya as om
 
 import Snowman3.utilities.general_utils as gen
-importlib.reload(gen)
 
 import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
-importlib.reload(prefab_curve_shapes)
 ###########################
 ###########################
 
@@ -122,6 +119,7 @@ def compose_curve_construct_cvs(curve_data, scale=1, shape_offset=None, up_direc
 
 # ----------------------------------------------------------------------------------------------------------------------
 def create_nurbs_curve(degree, cvs, form, color, parent, name=None):
+
     name = name or 'TEMPCRV'
     transform_node = parent
 

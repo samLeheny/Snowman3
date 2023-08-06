@@ -82,7 +82,6 @@ class Plug(BaseObject):
                 else:
                     kwargs['root_name'] = "%s[%s]" % (parent.root_name, index)
             else:
-                print(parent.__dict__)
                 m_plug = controller.scene.initialize_plug( parent.m_object, root_name )
                 root_name_long = m_plug.partialName(False, False, False, False, False, True)  # useLongNames=True)
                 kwargs['root_name'] = root_name_long  # Use long name for root name
@@ -398,10 +397,7 @@ class Plug(BaseObject):
 
     def connect_to(self, plug):
         try:
-            self.controller.scene.connect_plugs(
-                self.m_plug,
-                plug.m_plug
-            )
+            self.controller.scene.connect_plugs( self.m_plug, plug.m_plug )
         except Exception:
             logging.getLogger('rig_build').error(traceback.format_exc())
             raise Exception('Failed to connect %s to %s\nCheck the script editor for a stack-trace.' % (self, plug))

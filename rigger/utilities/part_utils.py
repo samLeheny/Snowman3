@@ -14,34 +14,25 @@ from typing import Sequence
 import copy
 
 import Snowman3.utilities.general_utils as gen
-importlib.reload(gen)
 
 import Snowman3.utilities.attribute_utils as attr_utils
-importlib.reload(attr_utils)
 
 import Snowman3.utilities.rig_utils as rig
-importlib.reload(rig)
 
 import Snowman3.utilities.node_utils as nodes
-importlib.reload(nodes)
 
 import Snowman3.rigger.utilities.placer_utils as placer_utils
-importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 ScenePlacerManager = placer_utils.ScenePlacerManager
 
 import Snowman3.rigger.utilities.curve_utils as crv_utils
-importlib.reload(crv_utils)
 
 import Snowman3.rigger.utilities.control_utils as control_utils
-importlib.reload(control_utils)
 Control = control_utils.Control
 
 import Snowman3.dictionaries.colorCode as color_code
-importlib.reload(color_code)
 
 import Snowman3.rigger.utilities.metadata_utils as metadata_utils
-importlib.reload(metadata_utils)
 MetaDataAttr = metadata_utils.MetaDataAttr
 ###########################
 ###########################

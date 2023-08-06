@@ -7,10 +7,7 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
-
 import Snowman3.rigger.utilities.poseConstraint_utils as postConstraint_utils
-importlib.reload(postConstraint_utils)
 PostConstraint = postConstraint_utils.PostConstraint
 ###########################
 ###########################

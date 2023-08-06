@@ -29,7 +29,7 @@ class ContainerGuide(BaseContainer):
     # Rig state data (such as skin clusters etc.) gets stored here while in guide state
     rig_data = DataProperty( name='rig_data', default_value=dict() )
     utilities_group = ObjectProperty( name='utilities_group' )
-    # This MAY no longer be used.. Need to run tests and check
+    # This MAY no longer be used... Need to run tests and check
     base_handles = ObjectListProperty( name='base_handles' )
     # Must be None to retain backwards compatibility
     custom_handles = DataProperty( name='custom_handles', default_value=None )
@@ -42,26 +42,26 @@ class ContainerGuide(BaseContainer):
 
 
     def __init__(self, **kwargs):
-        super(ContainerGuide, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.toggle_class = Container.__name__
 
 
     @classmethod
     def create(cls, **kwargs):
-        this = super(ContainerGuide, cls).create(**kwargs)
+        this = super().create(**kwargs)
         this.plugs['inheritsTransform'].set_value(False)
         this.create_shaders()
 
-        this.control_group = this.create_child( Transform, segment_name="Control" )
-        this.joint_group = this.create_child( Transform, segment_name="Joint" )
-        this.root_geometry_group = this.create_child( Transform, segment_name="RootGeometry" )
+        this.control_group = this.create_child( Transform, segment_name='Control' )
+        this.joint_group = this.create_child( Transform, segment_name='Joint' )
+        this.root_geometry_group = this.create_child( Transform, segment_name='RootGeometry' )
         this.utilities_group = this.create_child( Transform, segment_name='Utilities' )
-        this.geometry_group = this.root_geometry_group.create_child( Transform, segment_name="Geometry" )
-        this.utility_geometry_group = this.root_geometry_group.create_child( Transform, segment_name="UtilityGeometry" )
+        this.geometry_group = this.root_geometry_group.create_child( Transform, segment_name='Geometry' )
+        this.utility_geometry_group = this.root_geometry_group.create_child( Transform, segment_name='UtilityGeometry' )
         this.low_geometry_group = this.root_geometry_group.create_child( Transform, segment_name='LowGeometry' )
         this.origin_geometry_group = this.utility_geometry_group.create_child( Transform,
-                                                                               segment_name="OriginGeometry" )
-        this.dynamics_group = this.create_child( Transform, segment_name="Dynamics" )
+                                                                               segment_name='OriginGeometry' )
+        this.dynamics_group = this.create_child( Transform, segment_name='Dynamics' )
 
         this.plugs['overrideEnabled'].set_value(True)
         this.plugs['overrideRGBColors'].set_value(1)
@@ -169,7 +169,7 @@ class ContainerGuide(BaseContainer):
 
     @classmethod
     def pre_process_kwargs(cls, **kwargs):
-        kwargs = super(BaseContainer, cls).pre_process_kwargs(**kwargs)
+        kwargs = super().pre_process_kwargs(**kwargs)
         kwargs['segment_name'] = 'Container'
         kwargs['root_name'] = None
         kwargs.pop('name', None)
@@ -200,7 +200,7 @@ class Container(BaseContainer):
 
 
     def __init__(self, **kwargs):
-        super(Container, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.data_getters = dict(
             handle_shapes=functools.partial(
                 self.get_handle_shapes,
@@ -240,7 +240,7 @@ class Container(BaseContainer):
     def create(cls, **kwargs):
         for x in cls.default_settings:
             kwargs.setdefault(x, cls.default_settings[x])
-        this = super(Container, cls).create(**kwargs)
+        this = super().create(**kwargs)
         this.create_shaders()
         settings_handle = this.create_handle(
             segment_name='Settings',
@@ -263,7 +263,7 @@ class Container(BaseContainer):
         this.origin_geometry_group = this.utility_geometry_group.create_child( Transform,
                                                                                segment_name='OriginGeometry' )
         this.dynamics_group = this.create_child( Transform, segment_name="Dynamics" )
-        this.controller.scene.rename( this.export_data_group, 'ExportData' )
+        this.controller.rename( this.export_data_group, 'ExportData' )
 
         geometry_display_plug = settings_handle.create_plug(
             'geometryDisplay', k=True, at='enum', en="Selectable:Template:Locked", dv=2
@@ -739,7 +739,7 @@ class Container(BaseContainer):
 
 
     def finalize(self):
-        super(Container, self).finalize()
+        super().finalize()
         self.settings_handle.plugs['geometryDisplay'].set_value(2)
         self.settings_handle.plugs['geometryVis'].set_value(1)
         self.settings_handle.plugs['utilityGeometryVis'].set_value(0)
@@ -764,14 +764,14 @@ class Container(BaseContainer):
 
 
     def finish_create(self, **kwargs):
-        super(Container, self).finish_create(**kwargs)
+        super().finish_create(**kwargs)
         for handle in self.get_handles():
             handle.default_limits = handle.get_transform_limits()
 
 
     def teardown(self):
         self.controller.schedule_objects_for_deletion(self.sdk_networks)
-        super(Container, self).teardown()
+        super().teardown()
 
 
     def get_handle_limits(self):
@@ -786,7 +786,7 @@ class Container(BaseContainer):
 
     @classmethod
     def pre_process_kwargs(cls, **kwargs):
-        kwargs = super(BaseContainer, cls).pre_process_kwargs(**kwargs)
+        kwargs = super().pre_process_kwargs(**kwargs)
         kwargs['segment_name'] = 'Container'
         kwargs['root_name'] = None
         kwargs.pop('name', None)

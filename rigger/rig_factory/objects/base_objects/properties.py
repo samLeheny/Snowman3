@@ -1,5 +1,6 @@
 import weakref
 import copy
+from Snowman3.rigger.rig_factory.objects.base_objects.weak_list import WeakList
 
 
 # ----------------------------------------------------------------------------------------------------------------------

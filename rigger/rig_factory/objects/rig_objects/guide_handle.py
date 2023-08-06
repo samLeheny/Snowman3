@@ -35,25 +35,14 @@ class GuideHandle(Joint):
         controller = this.controller
 
         size = this.size
-        size_plug = this.create_plug(
-            'size',
-            at='double',
-            k=True,
-            dv=size
-        )
+        size_plug = this.create_plug( 'size', at='double', k=True, dv=size )
         #radius_plug = this.plugs['radius']
         #radius_plug.set_value(size)
         #size_plug.connect_to(radius_plug)
         #size_plug.set_value(size)
         #radius_plug.set_value(size)
-        sphere_node = this.create_child(
-            DependNode,
-            node_type='polyPrimitiveMisc',
-        )
-        multiply_node = this.create_child(
-            DependNode,
-            node_type='multiplyDivide'
-        )
+        sphere_node = this.create_child( DependNode, node_type='polyPrimitiveMisc' )
+        multiply_node = this.create_child( DependNode, node_type='multiplyDivide' )
         mesh = this.create_child(Mesh)
         sphere_node.plugs['output'].connect_to(mesh.plugs['inMesh'])
         size_plug.connect_to(multiply_node.plugs['input1X'])

@@ -27,10 +27,7 @@ def create_space_switcher(*handles, **kwargs):
     if ':' in handle.name:
         handle_namespace = ''.join(x.capitalize() or '_' for x in handle.name.split(':')[0].split('_'))
         if root_name:
-            root_name = '%s%s' % (  # Fix duplicate names when constraining name-spaced accessories
-                handle_namespace,
-                root_name
-            )
+            root_name = f'{handle_namespace}{root_name}'
         else:
             root_name = handle_namespace
 

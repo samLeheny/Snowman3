@@ -1,9 +1,8 @@
-import importlib
-import Snowman3.rigger.rig_factory.objects.node_objects.depend_node as depend_node
-importlib.reload(depend_node)
-DependNode = depend_node.DependNode
+from Snowman3.rigger.rig_factory.objects.node_objects.depend_node import DependNode
 import Snowman3.rigger.rig_factory.objects.base_objects.properties as properties
 ObjectProperty = properties.ObjectProperty
+
+
 
 class DagNode(DependNode):
 

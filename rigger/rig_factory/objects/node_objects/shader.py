@@ -6,30 +6,28 @@ import Snowman3.rigger.rig_factory.common_modules as com
 
 class Shader(DependNode):
 
-    shading_group = ObjectProperty(
-        name='shading_group'
-    )
-
-    geometries = ObjectListProperty(
-        name='geometries'
-    )
+    shading_group = ObjectProperty( name='shading_group' )
+    geometries = ObjectListProperty( name='geometries' )
     suffix = 'Shd'
+
 
     @classmethod
     def create(cls, **kwargs):
         controller = com.controller_utils.get_controller()
         kwargs['m_object'] = controller.scene.create_shader(kwargs['node_type'])
-        this = super(Shader, cls).create(**kwargs)
+        this = super().create(**kwargs)
         shading_group = this.create_child(ShadingGroup)
         this.plugs['outColor'].connect_to(shading_group.plugs['surfaceShader'])
         this.shading_group = shading_group
         shading_group.shaders.append(this)
         return this
 
+
     def teardown(self):
         if len(self.shading_group.shaders) < 2:
             self.controller.schedule_objects_for_deletion(self.shading_group)
-        super(Shader, self).teardown()
+        super().teardown()
+
 
     def add_geometries(self, geometries):
         """
@@ -56,7 +54,7 @@ class Shader(DependNode):
         for geometry_name in geometry_names:
             if not isinstance(geometry_name, str):
                 raise Exception(
-                    'geometry muust be string, not: %s' % type(geometry_name)
+                    'geometry must be string, not: %s' % type(geometry_name)
                 )
             if geometry_name not in existing_geometry_names:
                 raise Exception(

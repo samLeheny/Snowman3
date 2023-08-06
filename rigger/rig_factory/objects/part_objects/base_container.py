@@ -173,14 +173,14 @@ class BaseContainer(Transform):
             com.part_owners.remove_from_part_members(self)
         if self.shaders:
             self.controller.schedule_objects_for_deletion(self.shaders.values())
-        super(BaseContainer, self).teardown()
+        super().teardown()
 
 
     @classmethod
     def create(cls, **kwargs):
         part_owner = kwargs.pop('part_owner', None)
         hierarchy_parent = kwargs.pop('hierarchy_parent', None)
-        this = super(BaseContainer, cls).create(**kwargs)
+        this = super().create(**kwargs)
 
         controller = this.controller
         this.layer = controller.current_layer  # layer is needed for part owner. It would be nice if thi was set by now

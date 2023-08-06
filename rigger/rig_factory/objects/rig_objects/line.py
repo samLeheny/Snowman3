@@ -10,7 +10,7 @@ class Line(Transform):
     @classmethod
     def create(cls, **kwargs):
         this = super().create(**kwargs)
-        curve = this.create_child( NurbsCurve, degree=1, positions=[ [0.0, 0.0, 0.0], [0.0, 1.0, 0.0] ] )
+        curve = this.create_child( NurbsCurve, degree=1, x=True, positions=[ [0.0, 0.0, 0.0], [0.0, 1.0, 0.0] ] )
         curve.plugs['overrideDisplayType'].set_value(1)
         curve.plugs['overrideEnabled'].set_value(True)
 

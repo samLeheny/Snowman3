@@ -1,10 +1,13 @@
-from Snowman3.rigger.rig_factory.objects.base_objects.properties import DataProperty, ObjectProperty, ObjectDictProperty
+import os
+import logging
+import traceback
 import Snowman3.rigger.rig_factory.common_modules as com
-#importlib.reload(com)
+from Snowman3.rigger.rig_factory.objects.base_objects.properties import DataProperty, ObjectProperty, ObjectDictProperty
+
+DEBUG = os.getenv('PIPE_DEV_MODE') == 'TRUE'
 
 
-# ----------------------------------------------------------------------------------------------------------------------
-class BaseObject(object):
+class BaseObject():
 
     name = DataProperty( name='name' )
     functionality_name = DataProperty( name='functionality_name' )
@@ -24,44 +27,43 @@ class BaseObject(object):
     namespace = None
     layer = None
 
-
     @classmethod
     def pre_process_kwargs(cls, **kwargs):
-        controller = com.controller_utils.get_controller() # com.controller_utilities.get_controller()
+        controller = com.controller_utils.get_controller()
         kwargs.setdefault('namespace', controller.namespace)
         kwargs.setdefault('suffix', cls.suffix)
         kwargs.setdefault('klass', cls.__name__)
         return kwargs
 
-
     @classmethod
     def get_predicted_name(cls, **kwargs):
         return com.name_utils.create_name_string(**cls.pre_process_kwargs(**kwargs))
 
-
     @classmethod
     def create(cls, **kwargs):
-        controller = com.controller_utils.get_controller() # com.controller_utilities.get_controller()
+        controller = com.controller_utils.get_controller()
         processed_kwargs = cls.pre_process_kwargs(**kwargs)
         name = com.name_utils.create_name_string(**processed_kwargs)
         if name in controller.named_objects:
-            raise Exception(f"An object with name '{name}' already exists.")
+            raise Exception(f'An object with the name "{name}" already exists')
         parent = kwargs.get('parent', None)
         if parent is not None and not isinstance(parent, BaseObject):
-            raise Exception(f"You must provide either a BaseObject instance or None for parent argument."
-                            f"Not {parent} type:{type(parent)}")
+            raise Exception(
+                'You must provide either a BaseNode instance or None for parent argument not:'
+                f'{parent} type: "{type(parent)}"'
+            )
         this = cls(**kwargs)
+
         this.name = name
         this.controller = controller
         controller.named_objects[name] = this
         return this
 
-
     def extract_name(self, **kwargs):
         """
-        Used to build name strings on the properties of this node
+        Used to build name strings based on the properties of this node
         Essentially used to ask hypothetical questions like:
-        If this node was created with side='right' and segment_name='foo', what WOULD the name be?
+        If this node was created with side='right' and segment_name='foo' what WOULD the name be
         """
         kwargs = self.pre_process_kwargs(**kwargs)
         for key in [
@@ -77,7 +79,6 @@ class BaseObject(object):
                 kwargs[key] = value
         return com.name_utils.create_name_string(**kwargs)
 
-
     def __init__(self, **kwargs):
         super().__init__()
         for key in kwargs:
@@ -86,7 +87,6 @@ class BaseObject(object):
         if self.parent:
             self.parent.children.append(self)
         self.children = []
-
 
     def create_child(self, object_type, *args, **kwargs):
         for key in [
@@ -102,47 +102,40 @@ class BaseObject(object):
                 kwargs[key] = self.__getattribute__(key)
         if 'parent' not in kwargs or kwargs['parent'] is None:
             kwargs['parent'] = self
-
         node = self.controller.create_object( object_type, *args, **kwargs )
         return node
-
 
     def unparent(self):
         self.controller.unparent(self)
 
-
     def set_parent(self, parent, **kwargs):
         self.controller.set_parent(self, parent, **kwargs)
 
-
     def __repr__(self):
-        return f"<{self.__class__.__name__} name='{self.name}'>"
-
+        return f'<{self.__class__.__name__} name="{self.name}">'
 
     def __str__(self):
         return self.__repr__()
 
-
     def __unicode__(self):
         return self.__str__()
-
 
     def set_name(self, name):
         self.controller.set_name(self, name)
 
-
     def serialize(self):
-        self.controller.serialize(self)
-
+        return self.controller.serialize(self)
 
     def get_ancestors(self, include_self=True):
-        ancestors = [include_self] if include_self else []
+        if include_self:
+            ancestors = [self]
+        else:
+            ancestors = []
         owner = self.parent
         while owner:
             ancestors.insert(0, owner)
             owner = owner.parent
         return ancestors
-
 
     def get_descendants(self, *types, **kwargs):
         descendants = []
@@ -155,19 +148,24 @@ class BaseObject(object):
             descendants.extend(child.get_descendants(*types))
         return descendants
 
-
     def teardown(self):
         if self.parent:
             parent = self.parent
             self.unparent()
-
+            if DEBUG:
+                if self in parent.children:
+                    raise Exception(f'{self.name} still exists in {parent.name}.children')
 
     def __setattr__(self, name, value):
-        if not hasattr(self, name):
-            raise Exception(f"The '{name}' attribute is not registered with the {self.__class__.__name__} class")
-        else:
+        if hasattr(self, name):
             try:
                 super().__setattr__(name, value)
             except Exception as e:
-                raise Exception(f"The property '{name}' on the '{type(self)}' named '{self.name}'"
-                                f"could not be set to: type<{type(value)}> {str(value)}. See log for details")
+                logging.getLogger('rig_build').error(traceback.format_exc())
+                raise Exception(
+                    f'The property "{name}" on the {type(self)} named "{self.name}" could not be set to:'
+                    f'type<{type(value)}> {str(value)}. See log for details.'
+                )
+        else:
+            raise Exception(f'The "{name}" attribute is not registered with the {self.__class__.__name__} class')
+

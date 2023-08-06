@@ -7,32 +7,25 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
 import ast
 import copy
 import pymel.core as pm
 
 import Snowman3.utilities.general_utils as gen
-importlib.reload(gen)
 
 import Snowman3.utilities.attribute_utils as attr_utils
-importlib.reload(attr_utils)
 
 import Snowman3.rigger.utilities.placer_utils as placer_utils
-importlib.reload(placer_utils)
 OrienterManager = placer_utils.OrienterManager
 
 import Snowman3.rigger.utilities.control_utils as control_utils
-importlib.reload(control_utils)
 Control = control_utils.Control
 SceneControlManager = control_utils.SceneControlManager
 CurveShape = control_utils.CurveShape
 
 import Snowman3.dictionaries.colorCode as color_code
-importlib.reload(color_code)
 
 import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
-importlib.reload(prefab_curve_shapes)
 ###########################
 ###########################
 

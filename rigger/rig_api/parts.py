@@ -4,7 +4,7 @@ import Snowman3.rigger.rig_factory.objects as obs
 from Snowman3.rigger.rig_factory.objects.part_objects.part_array import PartArrayGuide
 from Snowman3.rigger.rig_factory.objects.part_objects.part import PartGuide
 import Snowman3.rigger.rig_factory.build.utilities.controller_utilities as cut
-#import Snowman3.rigger.rig_factory.system_signals as sig
+import Snowman3.rigger.rig_factory.system_signals as sig
 from Snowman3.rigger.rig_factory.objects.part_objects.container import Container, ContainerGuide
 
 
@@ -24,9 +24,9 @@ def create_root(klass, **kwargs):
             "Invalid type: {object_type.__name__}. New containers must be type: (ContainerGuide, Container)")
 
     kwargs = object_type.pre_process_kwargs(**kwargs)
-    #sig.root_signals['start_change'].emit()
+    sig.root_signals['start_change'].emit()
     controller.root = controller.create_object( klass, **kwargs )
-    #sig.root_signals['end_change'].emit(controller.root)
+    sig.root_signals['end_change'].emit(controller.root)
 
     return weakref.proxy(controller.root)
 
@@ -89,6 +89,7 @@ def create_part(part_owner, klass, **kwargs):
     new_part.post_create(**kwargs)
     if isinstance(new_part, PartGuide):
         new_part.after_first_create()
+
     if kwargs.get('proxy', True):
         return weakref.proxy(new_part)
     return new_part

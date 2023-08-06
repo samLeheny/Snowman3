@@ -1,7 +1,5 @@
-import importlib
 import logging
 import weakref
-import pymel.core as pm
 import maya.api.OpenMaya as om
 import Snowman3.rigger.rig_factory.objects as obs
 import Snowman3.rigger.rig_factory.common_modules as com
@@ -12,6 +10,8 @@ import Snowman3.rigger.rig_factory.utilities.handle_utilities as handle_utils
 import Snowman3.rigger.rig_factory.utilities.decorators as dec
 from Snowman3.rigger.rig_factory.scene.maya_scene import MayaScene
 from Snowman3.rigger.managers.blueprint_manager import BlueprintManager
+from Snowman3.rigger.rig_factory.objects.node_objects.transform import Transform
+from Snowman3.rigger.rig_math.matrix import Matrix
 
 
 ###########################
@@ -88,7 +88,7 @@ class Controller:
 
     def rename(self, node, name):
         """
-        Renaming objects after creation is NOT a preferred workflow..
+        Renaming objects after creation is NOT a preferred workflow...
         It should only be used when pipe demands a specific name for a node
         """
         name = name.split(':')[-1]
@@ -116,6 +116,7 @@ class Controller:
 
         return name
 
+
     '''
     @staticmethod
     def create_m_depend_node(**kwargs):
@@ -137,8 +138,8 @@ class Controller:
         return curve_utils.compose_curve_construct_cvs(**kwargs)
 
 
-    def create_nurbs_curve(self, **kwargs):
-        self.scene.create_nurbs_curve(**kwargs)
+    '''def create_nurbs_curve(self, **kwargs):
+        self.scene.create_nurbs_curve(**kwargs)'''
 
 
     def set_plug_value(self, plug, value):
@@ -147,14 +148,6 @@ class Controller:
 
     def get_plug_value(self, plug, *args):
         return self.scene.get_plug_value(plug.m_plug, *args)
-
-
-    @staticmethod
-    def get_selection_string(m_object):
-        sel_list = om.MSelectionList()
-        sel_list.add(m_object)
-        sel_strings = sel_list.getSelectionStrings(0)
-        return pm.PyNode(sel_strings[0])
 
 
     @staticmethod
@@ -290,6 +283,33 @@ class Controller:
         rig_utils.create_rig_shaders(rig)
 
 
+    def get_matrix(self, transform, world_space=True):
+        if not isinstance(transform, Transform):
+            raise TypeError('Invalid object type "%s"' % transform.__class__.__name__)
+        matrix = self.scene.xform(
+            transform.get_selection_string(),
+            ws=world_space,
+            m=True,
+            q=True
+        )
+        if matrix:
+            return Matrix(*matrix)
+
+        return Matrix()
+
+
+    def set_matrix(self, transform, matrix, world_space=True):
+        if not isinstance(transform, Transform):
+            raise TypeError('Invalid object type "%s"' % transform.__class__.__name__)
+        self.scene.xform( transform.get_selection_string(), ws=world_space, m=list(matrix) )
+
+
+    def assign_shading_group(self, shading_group, *nodes):
+        for node in nodes:
+            node.shader = shading_group
+        self.scene.assign_shading_group(shading_group, *[x.name for x in nodes])
+
+
 '''
 import os
 import gc
@@ -302,7 +322,6 @@ import weakref
 import traceback
 import rig_factory.objects as obs
 from rig_math.vector import Vector
-from Snowman3.utilities.rig_math.matrix import Matrix
 from collections import OrderedDict
 import rig_factory.common_modules as com
 import rig_factory.system_signals as sig
@@ -317,7 +336,6 @@ import rig_factory.build.utilities.mirror_utilities as mrt
 from rig_factory.objects.sdk_objects.sdk_group import SDKGroup
 import rig_factory.utilities.geometry_normals_utilities as gnu
 from rig_factory.objects.base_objects.weak_list import WeakList
-from rig_factory.objects.node_objects.transform import Transform
 import rig_factory.utilities.node_utilities.node_utilities as ntl
 from rig_factory.objects.sdk_objects.sdk_network import SDKNetwork
 from rig_factory.objects.node_objects.depend_node import DependNode
@@ -375,7 +393,7 @@ class RigController(object):
    def __setattr__(self, name, value):
        if hasattr(self, name):
            try:
-               super(RigController, self).__setattr__(name, value)
+               super().__setattr__(name, value)
            except Exception:
                raise Exception(
                    'The property "%s" on the %s named "%s" could not be set to: type<%s> %s.' % (
@@ -887,14 +905,6 @@ class RigController(object):
        )
 
    @dec.flatten_args
-   def create_handle_to_joint_constraint(self, *args, **kwargs):
-       return self.create_object(
-           obs.AddLocalsConstraint,
-           *args,
-           **kwargs
-       )
-
-   @dec.flatten_args
    def create_orient_constraint(self, *args, **kwargs):
        return self.create_object(
            obs.OrientConstraint,
@@ -1326,29 +1336,6 @@ class RigController(object):
    def skin_as(self, skin_cluster, mesh):
        return self.scene.skin_as(skin_cluster, mesh)
 
-   def set_matrix(self, transform, matrix, world_space=True):
-       if not isinstance(transform, Transform):
-           raise TypeError('Invalid object type "%s"' % transform.__class__.__name__)
-       self.scene.xform(
-           transform.get_selection_string(),
-           ws=world_space,
-           m=list(matrix)
-       )
-
-   def get_matrix(self, transform, world_space=True):
-       if not isinstance(transform, Transform):
-           raise TypeError('Invalid object type "%s"' % transform.__class__.__name__)
-       matrix = self.scene.xform(
-           transform.get_selection_string(),
-           ws=world_space,
-           m=True,
-           q=True
-       )
-       if matrix:
-           return Matrix(*matrix)
-
-       return Matrix()
-
    def get_curve_data(self, nurbs_curve):
        return self.scene.get_curve_data(nurbs_curve.m_object)
 
@@ -1384,11 +1371,6 @@ class RigController(object):
        item.name = name
        self.item_changed_signal.emit(item)
        self.scene.rename(item, name)
-
-   def assign_shading_group(self, shading_group, *nodes):
-       for node in nodes:
-           node.shader = shading_group
-       self.scene.assign_shading_group(shading_group, *[x.name for x in nodes])
 
    def plug_exists(self, node, plug_name):
        return self.scene.objExists('{0}.{1}'.format(node, plug_name))
@@ -1623,7 +1605,7 @@ class RigController(object):
 
 class ObjectLayer(object):
    def __init__(self, name, locked=False):
-       super(ObjectLayer, self).__init__()
+       super().__init__()
        self.name = name
        self.locked = locked
        self.objects = weakref.WeakSet()

@@ -7,21 +7,24 @@ class Matrix:
 
     @dec.flatten_args
     def __init__(self, *args, **kwargs):
-        scale = kwargs.pop('scale', [1.0, 1.0, 1.0])
-        translation = kwargs.pop('translation', None)
+        super(Matrix, self).__init__()
+        scale = kwargs.pop(
+            'scale',
+            [1.0, 1.0, 1.0]
+        )
+        translation = kwargs.pop( 'translation', None )
         self.current_row = 0
         self.current_column = 0
 
         if translation and args:
-            raise Exception('You must provide either *args or transform kwarg (not both.)')
+            raise Exception('You must provide either *args or transform kwarg (not both)')
         if not args or args[0] is None:
-            if translation:
-                t = translation
+            if translation is not None:
                 self.data = (
                     (scale[0], 0.0, 0.0, 0.0),
                     (0.0, scale[1], 0.0, 0.0),
                     (0.0, 0.0, scale[2], 0.0),
-                    (t[0], t[1], t[2], 1.0)
+                    (translation[0], translation[1], translation[2], 1.0)
                 )
             else:
                 self.data = (
@@ -33,23 +36,32 @@ class Matrix:
         elif isinstance(args[0], Matrix):
             self.data = copy.deepcopy(args[0].data)
         elif isinstance(args[0], Vector):
-            t = args[0].data
+            translate = args[0].data
             self.data = (
                 (scale[0], 0.0, 0.0, 0.0),
                 (0.0, scale[1], 0.0, 0.0),
                 (0.0, 0.0, scale[2], 0.0),
-                (t[0], t[1], t[2], 1.0)
+                (translate[0], translate[1], translate[2], 1.0)
             )
         elif len(args) == 3:
-            t = args
+            translate = args
             self.data = (
                 (scale[0], 0.0, 0.0, 0.0),
                 (0.0, scale[1], 0.0, 0.0),
                 (0.0, 0.0, scale[2], 0.0),
-                (t[0], t[1], t[2], 1.0)
+                (translate[0], translate[1], translate[2], 1.0)
             )
+        elif len(args) == 16:
+            m = args
+            self.data = (
+                (m[0], m[1], m[2], m[3]),
+                (m[4], m[5], m[6], m[7]),
+                (m[8], m[9], m[10], m[11]),
+                (m[12], m[13], m[14], m[15])
+            )
+
         else:
-            raise Exception(f'Invalid matrix data: {args}')
+            raise Exception('Invalid matrix data : %s' % args)
 
 
     def __copy__(self):
@@ -132,17 +144,17 @@ class Matrix:
     def set_translation(self, translate):
         d = self.data
         t = translate
-        self.data = (d[0], d[1], d[2], (t[0], t[1], t[2]))
+        self.data = ( d[0], d[1], d[2], (t[0], t[1], t[2], d[3][3]) )
         return self
 
 
     def set_axes(self, x_axis, y_axis, z_axis):
         d = self.data
         self.data = (
-            (x_axis[0], x_axis[1], x_axis[2], 0.0),
-            (y_axis[0], y_axis[1], y_axis[2], 0.0),
-            (z_axis[0], z_axis[1], z_axis[2], 0.0),
-            (d[3][0], d[3][1], d[3][2], d[3][3]),
+            ( x_axis[0], x_axis[1], x_axis[2], 0.0 ),
+            ( y_axis[0], y_axis[1], y_axis[2], 0.0 ),
+            ( z_axis[0], z_axis[1], z_axis[2], 0.0 ),
+            ( d[3][0], d[3][1], d[3][2], d[3][3] ),
         )
 
 

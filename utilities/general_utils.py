@@ -8,8 +8,6 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
-import copy
 import pymel.core as pm
 import maya.OpenMaya as om1
 import maya.api.OpenMaya as om
@@ -17,11 +15,9 @@ import math as math
 import numpy as np
 
 import Snowman3.dictionaries.nurbsCurvePrefabs as nurbsCurvePrefabs
-importlib.reload(nurbsCurvePrefabs)
 curve_prefabs = nurbsCurvePrefabs.create_dict()
 
 import Snowman3.dictionaries.nameConventions as nameConventions
-importlib.reload(nameConventions)
 nom = nameConventions.create_dict()
 ###########################
 ###########################

@@ -92,6 +92,7 @@ class HandleGuide(PartGuide):
         """
         Use rig_objects.handle_guide.CubeHandleGuide
         """
+
         handle_positions = kwargs.get('handle_positions', dict())
         kwargs.setdefault('side', 'center')
         #kwargs.setdefault('poly_shape', 'cube')
@@ -102,39 +103,16 @@ class HandleGuide(PartGuide):
 
         # Create nodes
 
-        joint = this.create_child(
-            Joint
-        )
-        handle_1 = this.create_handle(
-            segment_name='Base',
-        )
-        handle_2 = this.create_handle(
-            segment_name='Base',
-            functionality_name='AimVector'
 
-        )
-        up_handle = this.create_handle(
-            segment_name='Base',
-            functionality_name='UpVector'
-
-        )
-        locator_1 = handle_1.create_child(
-            Locator
-        )
-        locator_2 = handle_2.create_child(
-            Locator
-        )
-        up_locator = up_handle.create_child(
-            Locator
-        )
-        up_line = this.create_child(
-            Line,
-            segment_name='Up'
-        )
-        aim_line = this.create_child(
-            Line,
-            segment_name='Aim'
-        )
+        joint = this.create_child( Joint )
+        handle_1 = this.create_handle( segment_name='Base', )
+        handle_2 = this.create_handle( segment_name='Base', functionality_name='AimVector' )
+        up_handle = this.create_handle( segment_name='Base', functionality_name='UpVector' )
+        locator_1 = handle_1.create_child( Locator )
+        locator_2 = handle_2.create_child( Locator )
+        up_locator = up_handle.create_child( Locator )
+        up_line = this.create_child( Line, segment_name='Up' )
+        aim_line = this.create_child( Line, segment_name='Aim' )
         default_position_1 = list(env.side_aim_vectors[side])
         default_position_1[1] *= size
         default_position_2 = list(env.side_up_vectors[side])
@@ -149,6 +127,7 @@ class HandleGuide(PartGuide):
             Transform,
             segment_name='Cube'
         )
+
         cube_node = cube_transform.create_child(
             DependNode,
             node_type=this.poly_shape #'polyCube', #,
@@ -165,6 +144,7 @@ class HandleGuide(PartGuide):
             node_type='multiplyDivide',
             segment_name='ItemSize'
         )
+
 
         cone_x = joint.create_child(
             Cone,
@@ -216,7 +196,6 @@ class HandleGuide(PartGuide):
         )
 
         # Attributes
-
         size_plug = this.plugs['size']
         size_plug.connect_to(multiply.plugs['input1X'])
         multiply.plugs['input2X'].set_value(0.25)

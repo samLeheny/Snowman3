@@ -8,9 +8,9 @@ import traceback
 def initialize_plug(owner, key):
     logger = logging.getLogger('rig_build')
     if isinstance(owner, om.MPlug):
-        if owner.isArray():
+        if owner.isArray:
             return owner.elementByLogicalIndex(key)
-        if owner.isCompound():
+        if owner.isCompound:
             return owner.child(key)
         else:
             raise Exception('invalid plug owner type: "%s"' % type(owner))
@@ -18,11 +18,10 @@ def initialize_plug(owner, key):
         try:
             node_functions = om.MFnDependencyNode(owner)
             m_attribute = node_functions.attribute(key)
-            print(owner)
-            print(type(owner))
-            print(key)
-            return node_functions.findPlug(m_attribute, False)
+            x = node_functions.findPlug(m_attribute, False)
+            return x
         except Exception as e:
+            pass
             logger.error(traceback.format_exc())
             raise Exception(
                 'Failed to initialize plug: %s.%s' % (
@@ -44,7 +43,7 @@ def create_plug(owner, key, **kwargs):
 
 
 def get_next_available_plug_index(plug):
-    if not plug.isArray():
+    if not plug.isArray:
         raise TypeError('Plug is not an array')
     current_index = 0
     while True:
@@ -148,8 +147,24 @@ def set_plug_value(plug, value, force= False):
                     logging.getLogger('rig_build').error(traceback.format_exc())
                     raise Exception('Failed to set plug %s to value: %s. See log for details.' % (plug.name(), value))
         elif attribute.hasFn(om.MFn.kMatrixAttribute):
-            m = value
             matrix = om.MMatrix()
+            matrix.setElement(0, 0, value[0])
+            matrix.setElement(0, 1, value[1])
+            matrix.setElement(0, 2, value[2])
+            matrix.setElement(0, 3, value[3])
+            matrix.setElement(1, 0, value[4])
+            matrix.setElement(1, 1, value[5])
+            matrix.setElement(1, 2, value[6])
+            matrix.setElement(1, 3, value[7])
+            matrix.setElement(2, 0, value[8])
+            matrix.setElement(2, 1, value[9])
+            matrix.setElement(2, 2, value[10])
+            matrix.setElement(2, 3, value[11])
+            matrix.setElement(3, 0, value[12])
+            matrix.setElement(3, 1, value[13])
+            matrix.setElement(3, 2, value[14])
+            matrix.setElement(3, 3, value[15])
+            '''
             om.MScriptUtil.setDoubleArray(matrix[0], 0, value[0])
             om.MScriptUtil.setDoubleArray(matrix[0], 1, value[1])
             om.MScriptUtil.setDoubleArray(matrix[0], 2, value[2])
@@ -166,6 +181,7 @@ def set_plug_value(plug, value, force= False):
             om.MScriptUtil.setDoubleArray(matrix[3], 1, value[13])
             om.MScriptUtil.setDoubleArray(matrix[3], 2, value[14])
             om.MScriptUtil.setDoubleArray(matrix[3], 3, value[15])
+            '''
             m_object = om.MFnMatrixData().create(matrix)
             plug.setMObject(m_object)
 
@@ -185,12 +201,12 @@ def get_plug_value(plug):
     if not isinstance(plug, om.MPlug):
         raise Exception('Plug is not type "MPlug"')
     m_plug = plug
-    if m_plug.isCompound():
+    if m_plug.isCompound:
         plugs = []
         for i in range(m_plug.numChildren()):
             plugs.append(m_plug.child(i))
         return [get_plug_value(x) for x in plugs]
-    if m_plug.isArray():
+    if m_plug.isArray:
         plugs = []
         for i in range(m_plug.numElements()):
             plugs.append(m_plug.elementByPhysicalIndex(i))
@@ -220,11 +236,11 @@ def get_plug_value(plug):
     elif attribute.hasFn(om.MFn.kUnitAttribute):
         unit_type = om.MFnUnitAttribute(attribute).unitType()
         if unit_type == om.MFnUnitAttribute.kAngle:
-            return math.degrees(m_plug.asMAngle().value())
+            return math.degrees(m_plug.asMAngle().value)
         elif unit_type == om.MFnUnitAttribute.kDistance:
-            return m_plug.asMDistance().value()
+            return m_plug.asMDistance().value
         elif unit_type == om.MFnUnitAttribute.kTime:
-            return m_plug.asMTime().value()
+            return m_plug.asMTime().value
         else:
             return m_plug.asFloat()
             #print 'Plug type "%s" not supported' % unit_type
@@ -274,13 +290,13 @@ def plug_walk(plug):
     """
     recursively yields all child and element plugs
     """
-    if plug.m_plug.isArray():
+    if plug.m_plug.isArray:
         for e in range(plug.m_plug.numElements()):
             element_plug = plug.element(e)
             yield element_plug
             for x in plug_walk(element_plug):
                 yield x
-    if plug.m_plug.isCompound():
+    if plug.m_plug.isCompound:
         for c in range(plug.m_plug.numChildren()):
             child_plug = plug.child(c)
             yield child_plug

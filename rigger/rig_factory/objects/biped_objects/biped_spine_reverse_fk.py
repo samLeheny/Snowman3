@@ -22,7 +22,7 @@ class BipedSpineReverseFkGuide(ChainGuide):
     )
 
     def __init__(self, **kwargs):
-        super(BipedSpineReverseFkGuide, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.toggle_class = BipedSpineReverseFk.__name__
 
     @classmethod

@@ -208,3 +208,5 @@ from Snowman3.rigger.rig_factory.objects.deformer_objects.deformer import Deform
 #from Snowman3.rigger.rig_factory.objects.deformer_objects.wave import Wave
 #from Snowman3.rigger.rig_factory.objects.deformation_stack_objects.deformation_stack import DeformationLayer, DeformationStack
 from Snowman3.rigger.rig_factory.objects.part_objects.root import RootGuide, Root
+from Snowman3.rigger.rig_factory.objects.rig_objects.constraint import Constraint, ParentConstraint, AimConstraint,\
+    PointConstraint, OrientConstraint, TangentConstraint, PoleVectorConstraint, ScaleConstraint, GeometryConstraint

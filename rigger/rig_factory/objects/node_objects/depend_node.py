@@ -41,7 +41,7 @@ class DependNode(BaseObject):
 
 
     def create_in_scene(self):
-        self.m_object = self.controller.scene.create_depend_node( node_type=self.node_type, name=self.name )
+        self.m_object = self.controller.scene.create_depend_node( self.node_type, self.name )
 
 
     def initialize_plug(self, key):
@@ -78,7 +78,7 @@ class DependNode(BaseObject):
         #if self.controller.scene.mock or not self.m_object:
         if not self.m_object:
             return self.name
-        return self.controller.get_selection_string(self.m_object)
+        return self.controller.scene.get_selection_string(self.m_object)
 
 
     def __str__(self):
@@ -125,7 +125,7 @@ class Plugs:
 
     def set_values(self, **kwargs):
         for key in kwargs:
-            self[key].set_values(kwargs[key])
+            self[key].set_value(kwargs[key])
 
 
     def set_locked(self, **kwargs):

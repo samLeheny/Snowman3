@@ -1,22 +1,33 @@
-import importlib
 import maya.cmds as mc
 import maya.api.OpenMaya as om
-import pymel.core as pm
 from Snowman3.rigger.rig_factory.utilities.decorators import check_simple_args
-
-import Snowman3.rigger.managers.rig_manager as rig_manager_util
-importlib.reload(rig_manager_util)
-RigManager = rig_manager_util.RigManager
-
-import Snowman3.rigger.managers.armature_manager as armature_manager_util
-importlib.reload(armature_manager_util)
-ArmatureManager = armature_manager_util.ArmatureManager
-
+from Snowman3.rigger.managers.rig_manager import RigManager
+from Snowman3.rigger.managers.armature_manager import ArmatureManager
 import Snowman3.rigger.utilities.curve_utils as curve_utils
-importlib.reload(curve_utils)
-
 import Snowman3.rigger.maya_tools.utilities.mesh_utilities as mesh_utils
 import Snowman3.rigger.rig_factory.utilities.node_utilities.plug_utilities as plug_utils
+import Snowman3.dictionaries.nurbsCurvePrefabs as prefab_curve_shapes
+
+
+PREFAB_CRV_SHAPES = prefab_curve_shapes.create_dict()
+
+def get_nurbs_curve_form(*args):
+
+    NURBS_CURVE_FORMS = {'open': om.MFnNurbsCurve.kOpen,
+                         'closed': om.MFnNurbsCurve.kClosed,
+                         'periodic': om.MFnNurbsCurve.kPeriodic}
+    NURBS_CURVE_FORM_FROM_INDICES = [
+        om.MFnNurbsCurve.kOpen,
+        om.MFnNurbsCurve.kClosed,
+        om.MFnNurbsCurve.kPeriodic
+    ]
+
+    arg = args[0]
+    if isinstance(arg, int):
+        return NURBS_CURVE_FORM_FROM_INDICES[arg]
+    if isinstance(arg, str):
+        return NURBS_CURVE_FORMS[arg]
+
 
 
 class MayaScene:
@@ -52,8 +63,10 @@ class MayaScene:
         self.armature_manager.hide_armature()
 
 
-    def create_nurbs_curve(self, **kwargs):
+    '''def create_nurbs_curve(self, **kwargs):
+        print(kwargs)
         return curve_utils.create_nurbs_curve(**kwargs)
+    '''
 
 
     def initialize_plug(self, owner, name):
@@ -66,11 +79,17 @@ class MayaScene:
         return node_functions.findPlug(m_attribute, False)'''
 
 
-    def get_selection_string(self, m_object):
-        sel_list = om.MSelectionList()
-        sel_list.add(m_object)
-        sel_strings = sel_list.getSelectionStrings(0)
-        return pm.PyNode(sel_strings[0])
+    def get_selection_string(self, item):
+        if isinstance(item, str):
+            item = self.get_m_object(item)
+        if isinstance(item, om.MObject):
+            m_object = item
+            selection_list = om.MSelectionList()
+            selection_list.add(m_object)
+            selection_strings = selection_list.getSelectionStrings(0)
+            return selection_strings[0]
+        else:
+            raise Exception('Cannot get_selection_string for type: "%s"' % type(item))
 
 
     def create_m_plug(self, owner, key, **kwargs):
@@ -133,7 +152,8 @@ class MayaScene:
 
 
     def create_dag_node(self, *args):
-        return om.MFnDagNode().create(*args)
+        dagnode = om.MFnDagNode().create(*args)
+        return dagnode
 
 
     def set_plug_locked(self, plug, value):
@@ -145,8 +165,204 @@ class MayaScene:
         return self.get_m_object(node_name)
 
 
+    def create_shading_group(self, name):
+        node_name = mc.sets( name=name, empty=True, renderable=True, noSurfaceShader=True )
+        return self.get_m_object(node_name)
+
+
     def rename(self, *args, **kwargs):
         return mc.rename(*args, **kwargs)
+
+
+    def connect_plugs(self, plug_1, plug_2):
+        graph_modifier = om.MDGModifier()
+        graph_modifier.connect( plug_1, plug_2 )
+        graph_modifier.doIt()
+
+
+    def create_constraint(self, constraint_type, *transforms, **kwargs):
+        """Handles the constraint creation. It picks the type of constraint and calls methods to set its attributes.
+
+        Args:
+            constraint_type: (str) The type of constraint.
+
+            *transforms: (list) A list of transform objects.
+
+            **kwargs: (list) A list of parameters related to the constraint creation and behaviour settings. You can
+                find an example on the *get_constraint_data* method.
+
+        Returns:
+            The created constraint Maya object.
+
+        """
+        name = kwargs.pop('name', None)
+        parent = kwargs.pop('parent', None)
+        interpolation_type = kwargs.pop('interpType', None)
+        targets = [self.get_selection_string(x) for x in transforms]
+        clean_kwargs = dict()
+
+        for key in kwargs:
+            clean_kwargs[str(key)] = kwargs[key]
+        short_name = mc.__dict__[constraint_type](
+            *targets,
+            **clean_kwargs
+        )[-1]
+        long_names = mc.ls(short_name, long=True)
+        constraint_name = long_names[-1]
+        m_object = self.get_m_object(constraint_name)
+        constraint_name = mc.rename(constraint_name, name)
+        if parent:
+            parent_name = self.get_selection_string(parent)
+            get_parents = mc.listRelatives(constraint_name, p=True)
+            if get_parents is None or get_parents[0] != parent_name:
+                mc.parent(
+                    constraint_name,
+                    parent_name
+                )
+        if interpolation_type:
+            mc.setAttr(constraint_name + '.interpType', interpolation_type)
+
+        return m_object
+
+
+    def draw_nurbs_curve(self, degree, cvs, form, parent, color=None, name=None):
+
+        name = name or 'TEMPCRV'
+        transform_node = parent
+
+        # mc.select(transform_node.nodeName(), replace=1)
+        # sel = om.MSelectionList()
+        # om.MGlobal.getActiveSelectionList(sel)
+        # mObj = om.MObject()
+        # sel.getDependNode(0, mObj)
+
+        # Function for getting the expected Knots input from the points list.
+        def calculate_knots(spans, degree, form):
+            knots = []
+            knot_count = spans + 2 * degree - 1
+            if form == 2:
+                pit = (degree - 1) * -1
+                for itr in range(knot_count):
+                    knots.append(pit)
+                    pit += 1
+                return knots
+            for itr in range(degree):
+                knots.append(0)
+            for itr in range(knot_count - (degree * 2)):
+                knots.append(itr + 1)
+            for kit in range(degree):
+                knots.append(itr + 2)
+            return knots
+
+        # The easy-for-humans-to-understand curve inputs
+        # -------------------------------------------------
+        if form == 'periodic':
+            if degree == 3:
+                if not cvs[:3] == cvs[-3:]:
+                    cvs.extend(cvs[:3])
+            else:
+                if not cvs[0] == cvs[-1]:
+                    cvs.append(cvs[0])
+        spans = len(cvs) - degree
+        # --------- Still not sure what these do ----------
+        create_2d = False
+        rational = False
+
+        # Convert the points and knots into Maya's native format...
+        point_array = om.MPointArray()
+        for p in cvs:
+            point_array.append(om.MPoint(*p))
+        knots_array = om.MDoubleArray()
+        for k in calculate_knots(spans, degree, get_nurbs_curve_form(form)):
+            knots_array.append(k)
+
+        # Assemble the arguments expected by OpenMaya's MFnNurbsCurve function
+        args = [point_array,
+                knots_array,
+                degree,
+                get_nurbs_curve_form(form),
+                create_2d,
+                rational,
+                parent]
+        # Create the nurbs curve
+        m_object = om.MFnNurbsCurve().create(*args)
+        # Name the nurbs curve
+        om.MFnDependencyNode(m_object).setName(f'{name}Shape')
+
+        '''
+        # Non-api version. Suspected to be slower.
+        crv = pm.curve(name=name, degree=degree, point=cvs)
+        if form == 'periodic':
+            pm.closeCurve(crv, replaceOriginal=1, preserveShape=0)
+        pm.delete(crv, constructionHistory=True)'''
+        #if color:
+        #    gen.set_color(gen.get_pynode_from_mobj(m_object), color)
+
+        #mc.select(clear=1)
+        return m_object
+
+
+    def assign_shading_group(self, shading_group_name, *node_names):
+        for node_name in node_names:
+            mc.sets( node_name, e=True, forceElement=shading_group_name )
+#
+    '''
+    @staticmethod
+    def draw_nurbs_curve(
+            positions,
+            degree,
+            form,
+            name,
+            parent,
+            create_2d=False,
+            rational=False
+    ):
+        spans = len(positions) - degree
+        point_array = om.MPointArray()
+        knots_array = om.MDoubleArray()
+        for p in positions:
+            point_array.append(om.MPoint(*p))
+        for k in calculate_knots(spans, degree, form):
+            knots_array.append(k)
+        args = [
+            point_array,
+            knots_array,
+            degree,
+            NURBS_CURVE_FORMS[form],
+            create_2d,
+            rational,
+            parent
+        ]
+        m_object = om.MFnNurbsCurve().create(*args)
+        om.MFnDependencyNode(m_object).setName(name)
+        return m_object
+    '''
+
+
+'''def calculate_knots(spans, degree, form):
+    knots = []
+    knot_count = spans + 2 * degree - 1
+    if form == 2:
+        pit = (degree - 1) * -1
+        for itr in range(knot_count):
+            knots.append(pit)
+            pit += 1
+        return knots
+
+    for itr in range(degree):
+        knots.append(0)
+    for itr in range(knot_count - (degree * 2)):
+        knots.append(itr + 1)
+    for kit in range(degree):
+        knots.append(itr + 2)
+    return knots
+
+
+NURBS_CURVE_FORMS = [
+    om.MFnNurbsCurve.kOpen,
+    om.MFnNurbsCurve.kClosed,
+    om.MFnNurbsCurve.kPeriodic
+]'''
 
 
 '''
@@ -190,11 +406,7 @@ from iRig.iRig_maya.lib import deformLib
 global MAYA_CALLBACKS
 MAYA_CALLBACKS = []
 
-NURBS_CURVE_FORMS = [
-    om.MFnNurbsCurve.kOpen,
-    om.MFnNurbsCurve.kClosed,
-    om.MFnNurbsCurve.kPeriodic
-]
+
 NURBS_SURFACE_FORMS = [
     om.MFnNurbsSurface.kOpen,
     om.MFnNurbsSurface.kClosed,
@@ -568,14 +780,6 @@ class MayaScene(object):
 
     def xform(self, *args, **kwargs):
         return mc.xform(*args, **kwargs)
-
-    def assign_shading_group(self, shading_group_name, *node_names):
-        for node_name in node_names:
-            mc.sets(
-                node_name,
-                e=True,
-                forceElement=shading_group_name
-            )
 
     def sets(self, *args, **kwargs):
         mc.sets(*args, **kwargs)
@@ -1446,50 +1650,6 @@ class MayaScene(object):
         else:
             self.logger.info('Warning: Constraint type "%s" not supported. skipping...' % constraint_type)
 
-    def create_constraint(self, constraint_type, *transforms, **kwargs):
-        """Handles the constraint creation. It picks the type of constraint and calls methods to set its attributes.
-
-        Args:
-            constraint_type: (str) The type of constraint.
-
-            *transforms: (list) A list of transform objects.
-
-            **kwargs: (list) A list of parameters related to the constraint creation and behaviour settings. You can
-                find an example on the *get_constraint_data* method.
-
-        Returns:
-            The created constraint Maya object.
-
-        """
-        name = kwargs.pop('name', None)
-        parent = kwargs.pop('parent', None)
-        interpolation_type = kwargs.pop('interpType', None)
-        targets = [self.get_selection_string(x) for x in transforms]
-        clean_kwargs = dict()
-
-        for key in kwargs:
-            clean_kwargs[str(key)] = kwargs[key]
-        short_name = mc.__dict__[constraint_type](
-            *targets,
-            **clean_kwargs
-        )[-1]
-        long_names = mc.ls(short_name, long=True)
-        constraint_name = long_names[-1]
-        m_object = self.get_m_object(constraint_name)
-        constraint_name = mc.rename(constraint_name, name)
-        if parent:
-            parent_name = self.get_selection_string(parent)
-            get_parents = mc.listRelatives(constraint_name, p=True)
-            if get_parents is None or get_parents[0] != parent_name:
-                mc.parent(
-                    constraint_name,
-                    parent_name
-                )
-        if interpolation_type:
-            mc.setAttr(constraint_name + '.interpType', interpolation_type)
-
-        return m_object
-
     @staticmethod
     def draw_nurbs_surface(positions, knots_u, knots_v, degree_u, degree_v, form_u, form_v, name, parent):
         create_2d = False
@@ -1562,53 +1722,6 @@ class MayaScene(object):
             raise e
         mc.delete(surface_transform)
 
-    @staticmethod
-    def draw_nurbs_curve(
-            positions,
-            degree,
-            form,
-            name,
-            parent,
-            create_2d=False,
-            rational=False
-    ):
-        spans = len(positions) - degree
-        point_array = om.MPointArray()
-        knots_array = om.MDoubleArray()
-        for p in positions:
-            point_array.append(om.MPoint(*p))
-        for k in calculate_knots(spans, degree, form):
-            knots_array.append(k)
-        args = [
-            point_array,
-            knots_array,
-            degree,
-            NURBS_CURVE_FORMS[form],
-            create_2d,
-            rational,
-            parent
-        ]
-        m_object = om.MFnNurbsCurve().create(*args)
-        om.MFnDependencyNode(m_object).setName(name)
-        return m_object
-
-    def create_shading_group(self, name):
-        node_name = mc.sets(
-            name=name,
-            empty=True,
-            renderable=True,
-            noSurfaceShader=True
-        )
-        return self.get_m_object(node_name)
-
-    def connect_plugs(self, plug_1, plug_2):
-        graph_modifier = om.MDGModifier()
-        graph_modifier.connect(
-            plug_1,
-            plug_2
-        )
-        graph_modifier.doIt()
-
     def disconnect_plugs(self, plug_1, plug_2):
         graph_modifier = om.MDGModifier()
         graph_modifier.disconnect(
@@ -1640,19 +1753,6 @@ class MayaScene(object):
             return mc.exactWorldBoundingBox(nodes)
         else:
             return [-1, -1, -1, 1, 1, 1]
-
-    def get_selection_string(self, item):
-        if isinstance(item, str):
-            item = self.get_m_object(item)
-        if isinstance(item, om.MObject):
-            m_object = item
-            selection_list = om.MSelectionList()
-            selection_list.add(m_object)
-            selection_strings = []
-            selection_list.getSelectionStrings(0, selection_strings)
-            return selection_strings[0]
-        else:
-            raise Exception('Cannot get_selection_string for type: "%s"' % type(item))
 
     def set_xray_panel(self, value):
         panels = mc.getPanel(type='modelPanel')
@@ -2110,23 +2210,7 @@ class MayaScene(object):
         return mc.objectType(*args, **kwargs)
 
 
-def calculate_knots(spans, degree, form):
-    knots = []
-    knot_count = spans + 2 * degree - 1
-    if form == 2:
-        pit = (degree - 1) * -1
-        for itr in range(knot_count):
-            knots.append(pit)
-            pit += 1
-        return knots
 
-    for itr in range(degree):
-        knots.append(0)
-    for itr in range(knot_count - (degree * 2)):
-        knots.append(itr + 1)
-    for kit in range(degree):
-        knots.append(itr + 2)
-    return knots
 
 
 cvs = [

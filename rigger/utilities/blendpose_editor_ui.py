@@ -5,7 +5,6 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
 import sys
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -16,7 +15,6 @@ import maya.cmds as mc
 import maya.OpenMayaUI as omui
 from functools import partial
 import Snowman3.rigger.utilities.blendpose_utils as bp_utils
-importlib.reload(bp_utils)
 BlendposeManager = bp_utils.BlendposeManager
 ###########################
 ###########################

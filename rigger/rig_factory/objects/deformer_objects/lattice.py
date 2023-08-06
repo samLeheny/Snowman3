@@ -48,7 +48,7 @@ class Lattice(Transform):
         ffd_short_name = this.ffd.name.split(':')[-1]
         name_tokens = ffd_short_name.split('_')[0:-1]
         name_tokens.append('Set')
-        this.controller.scene.rename(
+        this.controller.rename(
             this.controller.scene.get_selection_string(m_object_set),
             '_'.join(name_tokens)
         )

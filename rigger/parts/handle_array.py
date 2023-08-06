@@ -7,24 +7,18 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
 
 import Snowman3.utilities.general_utils as gen
-importlib.reload(gen)
 import Snowman3.utilities.rig_utils as rig
-importlib.reload(rig)
 
 import Snowman3.rigger.utilities.placer_utils as placer_utils
-importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 PlacerCreator = placer_utils.PlacerCreator
 
 import Snowman3.rigger.parts.class_PartConstructor as class_PartConstructor
-importlib.reload(class_PartConstructor)
 PartConstructor = class_PartConstructor.PartConstructor
 
 import Snowman3.dictionaries.colorCode as color_code
-importlib.reload(color_code)
 ###########################
 ###########################
 

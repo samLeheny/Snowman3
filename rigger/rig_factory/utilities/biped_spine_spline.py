@@ -34,7 +34,7 @@ def create_spline(
         )
         driver_spline_joint = driver_spline_joint_parent.create_child(
             Joint,
-            segment_name='SecondaryDriver%s' % segment_string,
+            segment_name=f'SecondaryDriver{segment_string}',
             functionality_name=None,
             index=i,
             matrix=matrix

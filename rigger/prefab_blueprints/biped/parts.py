@@ -7,10 +7,7 @@
 
 ###########################
 ##### Import Commands #####
-import importlib
-
 import Snowman3.rigger.utilities.part_utils as part_utils
-importlib.reload(part_utils)
 PartCreator = part_utils.PartCreator
 ###########################
 ###########################

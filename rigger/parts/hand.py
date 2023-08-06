@@ -12,25 +12,19 @@ import pymel.core as pm
 from dataclasses import dataclass
 
 import Snowman3.utilities.general_utils as gen
-importlib.reload(gen)
 
 import Snowman3.utilities.rig_utils as rig
-importlib.reload(rig)
 
 import Snowman3.utilities.node_utils as nodes
-importlib.reload(nodes)
 
 import Snowman3.rigger.utilities.placer_utils as placer_utils
-importlib.reload(placer_utils)
 Placer = placer_utils.Placer
 PlacerCreator = placer_utils.PlacerCreator
 
 import Snowman3.rigger.utilities.control_utils as control_utils
-importlib.reload(control_utils)
 SceneControlManager = control_utils.SceneControlManager
 
 import Snowman3.rigger.parts.class_PartConstructor as class_PartConstructor
-importlib.reload(class_PartConstructor)
 PartConstructor = class_PartConstructor.PartConstructor
 ###########################
 ###########################

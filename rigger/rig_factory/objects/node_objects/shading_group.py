@@ -12,6 +12,4 @@ class ShadingGroup(DependNode):
         super(ShadingGroup, self).__init__(**kwargs)
 
     def create_in_scene(self):
-        self.m_object = self.controller.scene.create_shading_group(
-            self.name
-        )
+        self.m_object = self.controller.scene.create_shading_group( self.name )

@@ -1,11 +1,7 @@
-import importlib
-
 import Snowman3.rigger.rig_factory.objects.node_objects.transform as transform
-importlib.reload(transform)
 Transform = transform.Transform
 
 import Snowman3.rigger.rig_factory.objects.node_objects.nurbs_curve as nurbs_curves
-importlib.reload(nurbs_curves)
 NurbsCurve = nurbs_curves.NurbsCurve
 
 
