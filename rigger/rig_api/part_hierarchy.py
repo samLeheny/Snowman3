@@ -45,7 +45,7 @@ def change_hierarchy_parent(
                 raise Exception(f"{part.name} not found in {hierarchy_parent.name}.hierarchy_children")
 
 
-        if row > hierarchy_parent.hierarchy_children:
+        if row > len(hierarchy_parent.hierarchy_children):
             raise Exception(
                 "member_index '{}' is higher than the number of hierarchy_children: '{}'".format(
                     child_index, len(hierarchy_parent.hierarchy_children))

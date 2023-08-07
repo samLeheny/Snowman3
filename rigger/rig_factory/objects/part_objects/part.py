@@ -105,8 +105,8 @@ class PartGuide(BasePart):
         blueprint['disconnected_joints'] = self.disconnected_joints
         mirrored_vertices = dict()
         vertex_data = self.get_vertex_data()
-        search_prefix = [self.side]
-        replace_prefix = [self.side]
+        search_prefix = self.side
+        replace_prefix = self.side
         for handle_name in vertex_data:
             mirror_handle_name = handle_name.replace(search_prefix, replace_prefix)
             vertex_pairs = vertex_data[handle_name]

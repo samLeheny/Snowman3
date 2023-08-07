@@ -120,7 +120,7 @@ from Snowman3.rigger.rig_factory.objects.part_objects.fk_chain import FkChainGui
 from Snowman3.rigger.rig_factory.objects.part_objects.part import PartGuide, Part
 from Snowman3.rigger.rig_factory.objects.part_objects.part_group import PartGroupGuide, PartGroup
 from Snowman3.rigger.rig_factory.objects.part_objects.base_part import BasePart
-#from Snowman3.rigger.rig_factory.objects.part_objects.base_container import BaseContainer
+from Snowman3.rigger.rig_factory.objects.part_objects.base_container import BaseContainer
 #from Snowman3.rigger.rig_factory.objects.part_objects.layered_ribbon_spline_chain import LayeredRibbonSplineChain, LayeredRibbonSplineChainGuide
 #from Snowman3.rigger.rig_factory.objects.part_objects.simple_ribbon import SimpleRibbon, SimpleRibbonGuide
 #from Snowman3.rigger.rig_factory.objects.part_objects.roll import Roll, RollGuide

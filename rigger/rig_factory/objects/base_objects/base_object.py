@@ -7,7 +7,7 @@ from Snowman3.rigger.rig_factory.objects.base_objects.properties import DataProp
 DEBUG = os.getenv('PIPE_DEV_MODE') == 'TRUE'
 
 
-class BaseObject():
+class BaseObject:
 
     name = DataProperty( name='name' )
     functionality_name = DataProperty( name='functionality_name' )
@@ -27,6 +27,7 @@ class BaseObject():
     namespace = None
     layer = None
 
+
     @classmethod
     def pre_process_kwargs(cls, **kwargs):
         controller = com.controller_utils.get_controller()
@@ -35,9 +36,11 @@ class BaseObject():
         kwargs.setdefault('klass', cls.__name__)
         return kwargs
 
+
     @classmethod
     def get_predicted_name(cls, **kwargs):
         return com.name_utils.create_name_string(**cls.pre_process_kwargs(**kwargs))
+
 
     @classmethod
     def create(cls, **kwargs):
@@ -59,6 +62,7 @@ class BaseObject():
         controller.named_objects[name] = this
         return this
 
+
     def extract_name(self, **kwargs):
         """
         Used to build name strings based on the properties of this node
@@ -79,6 +83,7 @@ class BaseObject():
                 kwargs[key] = value
         return com.name_utils.create_name_string(**kwargs)
 
+
     def __init__(self, **kwargs):
         super().__init__()
         for key in kwargs:
@@ -87,6 +92,7 @@ class BaseObject():
         if self.parent:
             self.parent.children.append(self)
         self.children = []
+
 
     def create_child(self, object_type, *args, **kwargs):
         for key in [
@@ -105,26 +111,34 @@ class BaseObject():
         node = self.controller.create_object( object_type, *args, **kwargs )
         return node
 
+
     def unparent(self):
         self.controller.unparent(self)
+
 
     def set_parent(self, parent, **kwargs):
         self.controller.set_parent(self, parent, **kwargs)
 
+
     def __repr__(self):
         return f'<{self.__class__.__name__} name="{self.name}">'
+
 
     def __str__(self):
         return self.__repr__()
 
+
     def __unicode__(self):
         return self.__str__()
+
 
     def set_name(self, name):
         self.controller.set_name(self, name)
 
+
     def serialize(self):
         return self.controller.serialize(self)
+
 
     def get_ancestors(self, include_self=True):
         if include_self:
@@ -137,6 +151,7 @@ class BaseObject():
             owner = owner.parent
         return ancestors
 
+
     def get_descendants(self, *types, **kwargs):
         descendants = []
         include_self = kwargs.get('include_self', False)
@@ -148,6 +163,7 @@ class BaseObject():
             descendants.extend(child.get_descendants(*types))
         return descendants
 
+
     def teardown(self):
         if self.parent:
             parent = self.parent
@@ -155,6 +171,7 @@ class BaseObject():
             if DEBUG:
                 if self in parent.children:
                     raise Exception(f'{self.name} still exists in {parent.name}.children')
+
 
     def __setattr__(self, name, value):
         if hasattr(self, name):
@@ -168,4 +185,3 @@ class BaseObject():
                 )
         else:
             raise Exception(f'The "{name}" attribute is not registered with the {self.__class__.__name__} class')
-

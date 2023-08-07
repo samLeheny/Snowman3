@@ -1,14 +1,10 @@
 ###import os
-###import rig_factory
+import Snowman3.rigger.rig_factory as rig_factory
 import itertools
 
 ###DEBUG = os.getenv('PIPE_DEV_MODE') == 'TRUE'
 
-side_prefixes = {
-    'left': 'L',
-    'right': 'R',
-    'center': 'C'
-}
+side_prefixes = [ 'L', 'R', 'C' ]
 DEFAULT_SEGMENT_NAME = 'root'
 
 
@@ -61,13 +57,14 @@ def create_name_string(**kwargs):
         if not root_name[0].isupper():
             raise Exception(f"root_name '{root_name}' must be PascalCase")
 
-    if side is not None:
+    if side in rig_factory.settings_data['side_prefixes']:
         if root_name:
-            name = f'{side}_{root_name}'
+            name = '{}_{}'.format(rig_factory.settings_data['side_prefixes'][side], root_name)
         elif base_name:
-            name = f'{side}_{base_name}'
+            name = '{}_{}'.format(rig_factory.settings_data['side_prefixes'][side], base_name)
         else:
-            name = side
+            name = rig_factory.settings_data['side_prefixes'][side]
+
     elif root_name:
         name = root_name
     elif base_name:

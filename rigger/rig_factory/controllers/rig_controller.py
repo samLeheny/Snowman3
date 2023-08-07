@@ -1,3 +1,4 @@
+import os
 import logging
 import weakref
 import maya.api.OpenMaya as om
@@ -8,10 +9,14 @@ import Snowman3.rigger.rig_factory.utilities.rig_utilities as rig_utils
 import Snowman3.rigger.rig_factory.utilities.node_utilities.node_utilities as node_utils
 import Snowman3.rigger.rig_factory.utilities.handle_utilities as handle_utils
 import Snowman3.rigger.rig_factory.utilities.decorators as dec
+import Snowman3.rigger.rig_factory.build.utilities.mirror_utilities as mirror_utils
+import Snowman3.utilities.PySignal as PySignal
 from Snowman3.rigger.rig_factory.scene.maya_scene import MayaScene
 from Snowman3.rigger.managers.blueprint_manager import BlueprintManager
 from Snowman3.rigger.rig_factory.objects.node_objects.transform import Transform
 from Snowman3.rigger.rig_math.matrix import Matrix
+from Snowman3.rigger.rig_factory.objects.base_objects.weak_list import WeakList
+from collections import OrderedDict
 
 
 ###########################
@@ -24,8 +29,48 @@ RIG_STATE_TAG = 'Rig'
 ###########################
 
 
-class Controller:
+class RigController:
+    # Signals on the controller are all being phased out and moved to system_signals.py
+    sdk_network_changed_signal = PySignal.ClassSignal()
+    start_sdk_ownership_signal = PySignal.ClassSignal()
+    end_sdk_ownership_signal = PySignal.ClassSignal()
+    start_sdk_disown_signal = PySignal.ClassSignal()
+    end_sdk_disown_signal = PySignal.ClassSignal()
+    progress_signal = PySignal.ClassSignal()
+    failed_signal = PySignal.ClassSignal()
+    deleted_signal = PySignal.ClassSignal()
+    raise_warning_signal = PySignal.ClassSignal()  # Get rid of this and refactor
+    raise_error_signal = PySignal.ClassSignal()
+    item_changed_signal = PySignal.ClassSignal()  # This is not efficient, it should be split by types
+    use_module_versions = not (os.environ.get('PIPE_DEV_MODE') == 'TRUE')  # only use module versions on production
+    active_controllers = []
+    ordered_vertex_selection_enabled = False
+    ordered_vertex_selection = []
+    registered_parts = OrderedDict()
+    registered_containers = []
+    build_warnings = []
+    currently_saving = False
+    build_directory = None
+    log_path = None
+    failed_state = False
+    face_network = None
+    locked_face_drivers = False
+    disable_warnings = False
+    debug_garbage_collection = True  # Display referents for objects that fail to garbage collect
+    root = None
+    deleted_object_names = []
+    # self.get_class_function = None
+    DEBUG = os.getenv('PIPE_DEV_MODE') == 'TRUE'
+    objects_scheduled_for_deletion = WeakList()
+    current_layer = None
+    namespace = None
+    object_layers = dict()
+    named_objects = None
+    nodes_scheduled_for_deletion = []
+    uuid = None
+    scene = None
 
+    '''
     # -
     asset_name = None
     dirpath = None
@@ -38,12 +83,15 @@ class Controller:
     build_directory = None
     named_objects = None
     scene = None
+    '''
+
 
 
     def __init__(self):
         super().__init__()
         #self.uuid = str(uuid.uuid4())
         self.named_objects = weakref.WeakValueDictionary()
+
 
 
     def __setattr__(self, name, value):
@@ -58,8 +106,9 @@ class Controller:
             raise Exception(f'The "{name}" attribute is not registered with the {self.__class__.__name__} class')
 
 
+
     @classmethod
-    def get_controller(cls):
+    def get_controller(cls, mock=False):
         this = cls()
         this.scene = MayaScene()
         this.build_directory = None
@@ -67,23 +116,28 @@ class Controller:
         return this
 
 
-    def create_managers(self, asset_name, dirpath, prefab_key=None):
+
+    '''def create_managers(self, asset_name, dirpath, prefab_key=None):
         self.blueprint_manager = BlueprintManager(asset_name=asset_name, dirpath=dirpath, prefab_key=prefab_key)
         self.scene.create_armature_manager()
         self.scene.create_rig_manager()
 
 
+
     def build_armature_from_latest_version(self):
-        self.scene.build_armature_from_latest_version(self.blueprint_manager)
+        self.scene.build_armature_from_latest_version(self.blueprint_manager)'''
 
 
-    def build_rig(self):
+
+    '''def build_rig(self):
         self.scene.build_rig(self.blueprint_manager)
-        self.state = RIG_STATE_TAG
+        self.state = RIG_STATE_TAG'''
+
 
 
     def create_m_plug(self, owner, key, **kwargs):
         return self.scene.create_m_plug(owner, key, **kwargs)
+
 
 
     def rename(self, node, name):
@@ -117,6 +171,7 @@ class Controller:
         return name
 
 
+
     '''
     @staticmethod
     def create_m_depend_node(**kwargs):
@@ -133,21 +188,26 @@ class Controller:
     '''
 
 
+
     @staticmethod
     def compose_curve_construct_cvs(**kwargs):
         return curve_utils.compose_curve_construct_cvs(**kwargs)
+
 
 
     '''def create_nurbs_curve(self, **kwargs):
         self.scene.create_nurbs_curve(**kwargs)'''
 
 
+
     def set_plug_value(self, plug, value):
         self.scene.set_plug_value(plug.m_plug, value)
 
 
+
     def get_plug_value(self, plug, *args):
         return self.scene.get_plug_value(plug.m_plug, *args)
+
 
 
     @staticmethod
@@ -155,32 +215,40 @@ class Controller:
         node_utils.zero_joint_rotation(joint)
 
 
+
     def xform(self, item, **kwargs):
         return self.scene.xform( item, **kwargs )
+
 
 
     def create_standard_handle(self, owner, **kwargs):
         return handle_utils.create_standard_handle( owner, **kwargs )
 
 
+
     def create_guide_handle(self, owner, **kwargs):
         return handle_utils.create_guide_handle( owner, **kwargs )
+
 
 
     def remove_offset_from_snap(self, handle):
         return handle_utils.remove_offset_from_snap( self, handle )
 
 
+
     def assign_selected_vertices_to_handle(self, handle, mo=False):
         return handle_utils.assign_selected_vertices( self, handle, mo=mo )
+
 
 
     def snap_handle_to_vertices(self, handle, vertices, mo=False, differ_vec=None, scale=0):
         return handle_utils.assign_vertices( self, handle, vertices, mo=mo, differ_vec=differ_vec, scale=scale )
 
 
+
     def update_assign_vertices(self, handle):
         return handle_utils.update_assign_vertices( self, handle, )
+
 
 
     def create_object(self, object_type, *args, **kwargs):
@@ -200,9 +268,11 @@ class Controller:
         return this
 
 
+
     @dec.flatten_args
     def create_matrix_point_constraint(self, *args, **kwargs):
         return self.create_object( obs.PointMatrixConstraint, *args, **kwargs )
+
 
 
     @dec.flatten_args
@@ -210,9 +280,11 @@ class Controller:
         return self.create_object( obs.OrientMatrixConstraint, *args, **kwargs )
 
 
+
     @dec.flatten_args
     def create_matrix_parent_constraint(self, *args, **kwargs):
         return self.create_object( obs.ParentMatrixConstraint, *args, **kwargs )
+
 
 
     @dec.flatten_args
@@ -220,9 +292,11 @@ class Controller:
         return self.create_object( obs.ParentMatrixBlendConstraint, *args, **kwargs )
 
 
+
     @dec.flatten_args
     def create_handle_to_joint_constraint(self, *args, **kwargs):
         return self.create_object( obs.AddLocalsConstraint, *args, **kwargs )
+
 
 
     @dec.flatten_args
@@ -230,9 +304,11 @@ class Controller:
         return self.create_object( obs.OrientConstraint, *args, **kwargs )
 
 
+
     @dec.flatten_args
     def create_parent_constraint(self, *args, **kwargs):
         return self.create_object( obs.ParentConstraint, *args, **kwargs )
+
 
 
     @dec.flatten_args
@@ -240,9 +316,11 @@ class Controller:
         return self.create_object( obs.PointConstraint, *args, **kwargs )
 
 
+
     @dec.flatten_args
     def create_scale_constraint(self, *args, **kwargs):
         return self.create_object( obs.ScaleConstraint, *args, **kwargs )
+
 
 
     @dec.flatten_args
@@ -250,9 +328,11 @@ class Controller:
         return self.create_object( obs.AimConstraint, *args, **kwargs )
 
 
+
     @dec.flatten_args
     def create_pole_vector_constraint(self, *args, **kwargs):
         return self.create_object( obs.PoleVectorConstraint, *args, **kwargs )
+
 
 
     @dec.flatten_args
@@ -260,17 +340,21 @@ class Controller:
         return self.create_object( obs.TangentConstraint, *args, **kwargs )
 
 
+
     @dec.flatten_args
     def create_geometry_constraint(self, *args, **kwargs):
         return self.create_object( obs.GeometryConstraint, *args, **kwargs )
+
 
 
     def register_item(self, item):
         item.layer = self.current_layer
 
 
+
     def snap_handles_to_mesh_positions(self, rig):
         return handle_utils.snap_handles_to_mesh_positions(rig)
+
 
 
     @staticmethod
@@ -278,9 +362,11 @@ class Controller:
         return com.part_tools.create_root(*args, **kwargs)
 
 
+
     @staticmethod
     def create_rig_shaders(rig):
         rig_utils.create_rig_shaders(rig)
+
 
 
     def get_matrix(self, transform, world_space=True):
@@ -298,16 +384,187 @@ class Controller:
         return Matrix()
 
 
+
     def set_matrix(self, transform, matrix, world_space=True):
         if not isinstance(transform, Transform):
             raise TypeError('Invalid object type "%s"' % transform.__class__.__name__)
         self.scene.xform( transform.get_selection_string(), ws=world_space, m=list(matrix) )
 
 
+
     def assign_shading_group(self, shading_group, *nodes):
         for node in nodes:
             node.shader = shading_group
         self.scene.assign_shading_group(shading_group, *[x.name for x in nodes])
+
+
+
+    def mirror_part(self, part):
+        mirror_utils.mirror_part(part)
+
+
+
+    def register_standard_parts(self):
+        self.registered_parts['General'] = OrderedDict((
+            ('Root', obs.RootGuide.__name__),
+            ('Fk Chain', obs.FkChainGuide.__name__),
+            #('Ik Chain', obs.IkChainGuide.__name__),
+            ('Handle', obs.HandleGuide.__name__),
+            #('Handle Part Array', obs.HandlePartArrayGuide.__name__),
+            #('Transform', obs.TransformPartGuide.__name__),
+            #('Joint', obs.JointPartGuide.__name__),
+            ('Part Group', obs.PartGroupGuide.__name__),
+            #('Follicle Handle', obs.FollicleHandleGuide.__name__),
+            #('Layered Ribbon Spline Chain', obs.LayeredRibbonSplineChainGuide.__name__),
+            #('Layered Ribbon Chain', obs.LayeredRibbonChainGuide.__name__),
+            #('Simple Ribbon', obs.SimpleRibbonGuide.__name__),
+            #('Surface Spline', obs.SurfaceSplineGuide.__name__),
+            #('Double Surface Spline', obs.DoubleSurfaceSplineGuide.__name__),
+            #('Rig Spline (Deformation)', obs.RigSplinePartGuide.__name__),
+            #('Shard Handle', obs.ShardHandlePartGuide.__name__),
+            #('Roll', obs.RollGuide.__name__),
+            #('Shotception Part', obs.ShotceptionPartGuide.__name__),
+            #('Shotception Part Array', obs.ShotceptionPartArrayGuide.__name__),
+            #('Visualization Handle', obs.VisualizationHandleGuide.__name__),
+            #('Variation Textures', obs.VariationPartGuide.__name__),
+            #('Screen Handle(Obsolete)', obs.ScreenHandlePartGuide.__name__),
+            #('Double Surface Spline Up Vectors (obsolete)', obs.DoubleSurfaceSplineUpvectorsGuide.__name__),
+            #('Handle Array (obsolete)', obs.HandleArrayGuide.__name__),
+        ))
+
+        self.registered_parts['Biped'] = OrderedDict((
+            #('Biped Arm Bendy', obs.BipedArmBendyGuide.__name__),
+            #('Biped Arm Fk', obs.BipedArmFkGuide.__name__),
+            #('Biped Arm', obs.BipedArmGuide.__name__),
+            #('Biped Arm Ik', obs.BipedArmIkGuide.__name__),
+            #('Biped Breath', obs.BipedBreathGuide.__name__),
+            #('Biped Finger', obs.BipedFingerGuide.__name__),
+            #('Biped Hand', obs.BipedHandGuide.__name__),
+            #('Biped Leg Bendy', obs.BipedLegBendyGuide.__name__),
+            #('Biped Leg Fk', obs.BipedLegFkGuide.__name__),
+            #('Biped Leg', obs.BipedLegGuide.__name__),
+            #('Biped Leg Ik', obs.BipedLegIkGuide.__name__),
+            ('Biped Neck Fk', obs.BipedNeckFkGuide.__name__),
+            ('Biped Neck Ik', obs.BipedNeckIkGuide.__name__),
+            ('Biped Neck Fk Spline', obs.BipedNeckFkSplineGuide.__name__),
+            ('Biped Neck', obs.BipedNeckGuide.__name__),
+            ('Biped Spine Ik', obs.BipedSpineIkGuide.__name__),
+            ('Biped Spine Fk', obs.BipedSpineFkGuide.__name__),
+            ('Biped Spine Ik/FK', obs.BipedSpineIkFkGuide.__name__),
+            ('Biped Spine', obs.BipedSpineGuide.__name__),
+            #('Biped Reverse Spine Fk', obs.BipedSpineReverseFkGuide.__name__),
+            ('Biped Reverse Spine Ik', obs.BipedSpineReverseIkGuide.__name__),
+            ('Biped Reverse Spine Ik/Fk', obs.BipedSpineReverseIkFkGuide.__name__),
+            ('Biped Reverse Spine', obs.BipedReverseSpineGuide.__name__),
+        ))
+
+        self.registered_parts['Quadruped'] = OrderedDict((
+            #('Quadruped Neck', obs.QuadrupedNeckGuide.__name__),
+            #('Quadruped Neck Fk', obs.QuadrupedNeckFkGuide.__name__),
+            #('Quadruped Neck Ik', obs.QuadrupedNeckIkGuide.__name__),
+            #('Quadruped Neck Fk Spline', obs.QuadrupedNeckFkSplineGuide.__name__),
+            #('Quadruped Spine Fk', obs.QuadrupedSpineFkGuide.__name__),
+            #('Quadruped Spine', obs.QuadrupedSpineGuide.__name__),
+            #('Quadruped Spine Ik', obs.QuadrupedSpineIkGuide.__name__),
+            #('Quadruped Back Leg Ik', obs.QuadrupedBackLegIkGuide.__name__),
+            #('Quadruped Back Leg Fk', obs.QuadrupedBackLegFkGuide.__name__),
+            #('Quadruped Back Leg', obs.QuadrupedBackLegGuide.__name__),
+            #('Quadruped Back Leg Array', obs.QuadrupedBackLegArrayGuide.__name__),
+            #('Quadruped Bendy Back Leg', obs.QuadrupedBendyBackLegGuide.__name__),
+            #('Quadruped Foot', obs.QuadrupedFootGuide.__name__),
+            #('Quadruped Toe', obs.QuadrupedToeGuide.__name__),
+        ))
+
+        self.registered_parts['FacePanel'] = OrderedDict((
+            #('Blink Slider', obs.BlinkSliderGuide.__name__),
+            #('Brow Slider', obs.BrowSliderGuide.__name__),
+            #('Brow Waggle Slider', obs.BrowWaggleSliderGuide.__name__),
+            #('Cheek Slider', obs.CheekSliderGuide.__name__),
+            #('Double Slider', obs.DoubleSliderGuide.__name__),
+            #('Custom Slider', obs.CustomSliderGuide.__name__),
+            #('Eye Slider', obs.EyeSliderGuide.__name__),
+            #('Eye Lid Slider', obs.EyeLidSliderGuide.__name__),
+            #('Face Panel', obs.FacePanelGuide.__name__),
+            #('Mouth Slider', obs.MouthSliderGuide.__name__),
+            #('Nose Slider', obs.NoseSliderGuide.__name__),
+            #('Teeth Slider', obs.TeethSliderGuide.__name__),
+            #('Tongue Slider', obs.TongueSliderGuide.__name__),
+            #('Vertical Slider', obs.VerticalSliderGuide.__name__),
+            #('Open Eye Regions Slider', obs.OpenEyeRegionsSliderGuide.__name__),
+        ))
+
+        self.registered_parts['Face'] = OrderedDict((
+            #('Projection Eye Array', obs.ProjectionEyeArrayGuide.__name__),
+            #('Projection Eye', obs.ProjectionEyeGuide.__name__),
+            #('Eye Lash', obs.EyeLashPartGuide.__name__),
+            #('Eyebrow', obs.EyebrowPartGuide.__name__),
+            #('Face', obs.FaceGuide.__name__),
+            #('Jaw', obs.JawGuide.__name__),
+            #('Eye', obs.EyeGuide.__name__),
+            #('Split Brow', obs.SplitBrowGuide.__name__),
+            #('Eye Array (obsolete)', obs.EyeArrayGuide.__name__),
+            #('Face Handle Array (obsolete)', obs.FaceHandleArrayGuide.__name__),
+        ))
+
+        self.registered_parts['Deformers'] = OrderedDict((
+            #('New Lattice Squish', obs.NewLatticeSquishGuide.__name__),
+            #('Lattice Squish', obs.LatticeSquishGuide.__name__),
+            #('Lattice', obs.LatticePartGuide.__name__),
+            #('Bend', obs.BendPartGuide.__name__),
+            #('Flare', obs.FlarePartGuide.__name__),
+            #('Sine', obs.SinePartGuide.__name__),
+            #('Squash', obs.SquashPartGuide.__name__),
+            #('Twist', obs.TwistPartGuide.__name__),
+            #('Wave', obs.WavePartGuide.__name__),
+            #('Squish (obsolete)', obs.SquishPartGuide.__name__),
+        ))
+
+        self.registered_parts['Dynamic'] = OrderedDict((
+            #('Dynamics', obs.DynamicsGuide.__name__),
+            #('Dynamic Fk Chain', obs.DynamicFkChainGuide.__name__),
+            #('Dynamic Layered Ribbon Chain', obs.DynamicLayeredRibbonChainGuide.__name__),
+            #('Cloth', obs.ClothGuide.__name__),
+        ))
+
+        self.registered_parts['Creature'] = OrderedDict((
+            #('Tentacle', obs.TentacleGuide.__name__),
+            #('Tail', obs.TailGuide.__name__),
+            #('Bat Wing', obs.BatWingGuide.__name__),
+            #('Bird Wing', obs.BirdWingGuide.__name__),
+            #('Feather Simple', obs.FeatherSimplePartGuide.__name__),
+            #('Feather Ribbon (obsolete)', obs.FeatherRibbonPartGuide.__name__)
+        ))
+
+        self.registered_parts['Vehicle'] = OrderedDict((
+            #('Auto Wheel', obs.AutowheelGuide.__name__),
+            #('Suspension Bank', obs.SuspensionBankGuide.__name__),
+            #('Piston', obs.PistonGuide.__name__),
+            #('Drive Path', obs.DrivePathGuide.__name__),
+            #('Wheel', obs.WheelGuide.__name__),
+        ))
+
+        self.registered_parts['Misc'] = OrderedDict((
+            #('Corrective', obs.CorrectiveJointGuide.__name__),
+            #('Push', obs.PushJointGuide.__name__),
+            #('Push Plus', obs.PushPlusGuide.__name__),
+        ))
+
+        for category in self.registered_parts:
+            for part_class in self.registered_parts[category].values():
+                if not issubclass(obs.__dict__[part_class], (obs.PartGuide, obs.ContainerGuide, obs.PartGroupGuide)):
+                    raise Exception('Unable to register the part "%s" as it was not a Guide State part' % part_class)
+
+
+
+    def register_standard_containers(self):
+        self.registered_containers = [
+            #obs.CharacterGuide.__name__,
+            #obs.EnvironmentGuide.__name__,
+            #obs.PropGuide.__name__,
+            obs.BipedGuide.__name__,
+            #obs.QuadrupedGuide.__name__,
+            #obs.VehicleGuide.__name__
+        ]
 
 
 '''
@@ -332,7 +589,6 @@ import rig_factory.utilities.shard_utilities as sht
 import rig_factory.utilities.handle_utilities as htl
 from rig_factory.objects.node_objects.mesh import Mesh
 import rig_factory.utilities.deformer_utilities as dtl
-import rig_factory.build.utilities.mirror_utilities as mrt
 from rig_factory.objects.sdk_objects.sdk_group import SDKGroup
 import rig_factory.utilities.geometry_normals_utilities as gnu
 from rig_factory.objects.base_objects.weak_list import WeakList
@@ -838,9 +1094,6 @@ class RigController(object):
            position
        )
 
-   def mirror_part(self, part):
-       mrt.mirror_part(part)
-
    def mirror_all(self, rigs, **kwargs):
        htl.mirror_all(rigs, **kwargs)
 
@@ -1081,168 +1334,6 @@ class RigController(object):
            self.raise_warning(
                'Failed to create cvWraps on:\n%s' % '\n'.join(failed_cvwraps)
            )
-
-   def register_standard_parts(self):
-       self.registered_parts['General'] = OrderedDict((
-           ('Root', obs.RootGuide.__name__),
-           ('Fk Chain', obs.FkChainGuide.__name__),
-           ('Ik Chain', obs.IkChainGuide.__name__),
-           ('Handle', obs.HandleGuide.__name__),
-           ('Handle Part Array', obs.HandlePartArrayGuide.__name__),
-           ('Transform', obs.TransformPartGuide.__name__),
-           ('Joint', obs.JointPartGuide.__name__),
-           ('Part Group', obs.PartGroupGuide.__name__),
-           ('Follicle Handle', obs.FollicleHandleGuide.__name__),
-           ('Layered Ribbon Spline Chain', obs.LayeredRibbonSplineChainGuide.__name__),
-           ('Layered Ribbon Chain', obs.LayeredRibbonChainGuide.__name__),
-           ('Simple Ribbon', obs.SimpleRibbonGuide.__name__),
-           ('Surface Spline', obs.SurfaceSplineGuide.__name__),
-           ('Double Surface Spline', obs.DoubleSurfaceSplineGuide.__name__),
-           ('Rig Spline (Deformation)', obs.RigSplinePartGuide.__name__),
-           ('Shard Handle', obs.ShardHandlePartGuide.__name__),
-           ('Roll', obs.RollGuide.__name__),
-           ('Shotception Part', obs.ShotceptionPartGuide.__name__),
-           ('Shotception Part Array', obs.ShotceptionPartArrayGuide.__name__),
-           ('Visualization Handle', obs.VisualizationHandleGuide.__name__),
-           ('Variation Textures', obs.VariationPartGuide.__name__),
-           ('Screen Handle(Obsolete)', obs.ScreenHandlePartGuide.__name__),
-           ('Double Surface Spline Up Vectors (obsolete)', obs.DoubleSurfaceSplineUpvectorsGuide.__name__),
-           ('Handle Array (obsolete)', obs.HandleArrayGuide.__name__),
-           ('Main (LEGACY)', obs.MainGuide.__name__),
-
-       ))
-
-       self.registered_parts['Biped'] = OrderedDict((
-           ('Biped Arm Bendy', obs.BipedArmBendyGuide.__name__),
-           ('Biped Arm Fk', obs.BipedArmFkGuide.__name__),
-           ('Biped Arm', obs.BipedArmGuide.__name__),
-           ('Biped Arm Ik', obs.BipedArmIkGuide.__name__),
-           ('Biped Breath', obs.BipedBreathGuide.__name__),
-           ('Biped Finger', obs.BipedFingerGuide.__name__),
-           ('Biped Hand', obs.BipedHandGuide.__name__),
-           ('Biped Leg Bendy', obs.BipedLegBendyGuide.__name__),
-           ('Biped Leg Fk', obs.BipedLegFkGuide.__name__),
-           ('Biped Leg', obs.BipedLegGuide.__name__),
-           ('Biped Leg Ik', obs.BipedLegIkGuide.__name__),
-           ('Biped Neck Fk', obs.BipedNeckFkGuide.__name__),
-           ('Biped Neck Ik', obs.BipedNeckIkGuide.__name__),
-           ('Biped Neck Fk Spline', obs.BipedNeckFkSplineGuide.__name__),
-           ('Biped Neck', obs.BipedNeckGuide.__name__),
-           ('Biped Spine Ik', obs.BipedSpineIkGuide.__name__),
-           ('Biped Spine Fk', obs.BipedSpineFkGuide.__name__),
-           ('Biped Spine Ik/FK', obs.BipedSpineIkFkGuide.__name__),
-           ('Biped Spine', obs.BipedSpineGuide.__name__),
-           ('Biped Reverse Spine Fk', obs.BipedSpineReverseFkGuide.__name__),
-           ('Biped Reverse Spine Ik', obs.BipedSpineReverseIkGuide.__name__),
-           ('Biped Reverse Spine Ik/Fk', obs.BipedSpineReverseIkFkGuide.__name__),
-           ('Biped Reverse Spine', obs.BipedReverseSpineGuide.__name__),
-       ))
-
-       self.registered_parts['Quadruped'] = OrderedDict((
-           ('Quadruped Neck', obs.QuadrupedNeckGuide.__name__),
-           ('Quadruped Neck Fk', obs.QuadrupedNeckFkGuide.__name__),
-           ('Quadruped Neck Ik', obs.QuadrupedNeckIkGuide.__name__),
-           ('Quadruped Neck Fk Spline', obs.QuadrupedNeckFkSplineGuide.__name__),
-           ('Quadruped Spine Fk', obs.QuadrupedSpineFkGuide.__name__),
-           ('Quadruped Spine', obs.QuadrupedSpineGuide.__name__),
-           ('Quadruped Spine Ik', obs.QuadrupedSpineIkGuide.__name__),
-           ('Quadruped Back Leg Ik', obs.QuadrupedBackLegIkGuide.__name__),
-           ('Quadruped Back Leg Fk', obs.QuadrupedBackLegFkGuide.__name__),
-           ('Quadruped Back Leg', obs.QuadrupedBackLegGuide.__name__),
-           ('Quadruped Back Leg Array', obs.QuadrupedBackLegArrayGuide.__name__),
-           ('Quadruped Bendy Back Leg', obs.QuadrupedBendyBackLegGuide.__name__),
-           ('Quadruped Foot', obs.QuadrupedFootGuide.__name__),
-           ('Quadruped Toe', obs.QuadrupedToeGuide.__name__),
-       ))
-
-       self.registered_parts['FacePanel'] = OrderedDict((
-           ('Blink Slider', obs.BlinkSliderGuide.__name__),
-           ('Brow Slider', obs.BrowSliderGuide.__name__),
-           ('Brow Waggle Slider', obs.BrowWaggleSliderGuide.__name__),
-           ('Cheek Slider', obs.CheekSliderGuide.__name__),
-           ('Double Slider', obs.DoubleSliderGuide.__name__),
-           ('Custom Slider', obs.CustomSliderGuide.__name__),
-           ('Eye Slider', obs.EyeSliderGuide.__name__),
-           ('Eye Lid Slider', obs.EyeLidSliderGuide.__name__),
-           ('Face Panel', obs.FacePanelGuide.__name__),
-           ('Mouth Slider', obs.MouthSliderGuide.__name__),
-           ('Nose Slider', obs.NoseSliderGuide.__name__),
-           ('Teeth Slider', obs.TeethSliderGuide.__name__),
-           ('Tongue Slider', obs.TongueSliderGuide.__name__),
-           ('Vertical Slider', obs.VerticalSliderGuide.__name__),
-           ('Open Eye Regions Slider', obs.OpenEyeRegionsSliderGuide.__name__),
-       ))
-
-       self.registered_parts['Face'] = OrderedDict((
-           ('Projection Eye Array', obs.ProjectionEyeArrayGuide.__name__),
-           ('Projection Eye', obs.ProjectionEyeGuide.__name__),
-           ('Eye Lash', obs.EyeLashPartGuide.__name__),
-           ('Eyebrow', obs.EyebrowPartGuide.__name__),
-           ('Face', obs.FaceGuide.__name__),
-           ('Jaw', obs.JawGuide.__name__),
-           ('Eye', obs.EyeGuide.__name__),
-           ('Split Brow', obs.SplitBrowGuide.__name__),
-           ('Eye Array (obsolete)', obs.EyeArrayGuide.__name__),
-           ('Face Handle Array (obsolete)', obs.FaceHandleArrayGuide.__name__),
-       ))
-
-       self.registered_parts['Deformers'] = OrderedDict((
-           ('New Lattice Squish', obs.NewLatticeSquishGuide.__name__),
-           ('Lattice Squish', obs.LatticeSquishGuide.__name__),
-           ('Lattice', obs.LatticePartGuide.__name__),
-           ('Bend', obs.BendPartGuide.__name__),
-           ('Flare', obs.FlarePartGuide.__name__),
-           ('Sine', obs.SinePartGuide.__name__),
-           ('Squash', obs.SquashPartGuide.__name__),
-           ('Twist', obs.TwistPartGuide.__name__),
-           ('Wave', obs.WavePartGuide.__name__),
-           ('Squish (obsolete)', obs.SquishPartGuide.__name__),
-       ))
-
-       self.registered_parts['Dynamic'] = OrderedDict((
-           ('Dynamics', obs.DynamicsGuide.__name__),
-           ('Dynamic Fk Chain', obs.DynamicFkChainGuide.__name__),
-           ('Dynamic Layered Ribbon Chain', obs.DynamicLayeredRibbonChainGuide.__name__),
-           ('Cloth', obs.ClothGuide.__name__),
-       ))
-
-       self.registered_parts['Creature'] = OrderedDict((
-           ('Tentacle', obs.TentacleGuide.__name__),
-           ('Tail', obs.TailGuide.__name__),
-           ('Bat Wing', obs.BatWingGuide.__name__),
-           ('Bird Wing', obs.BirdWingGuide.__name__),
-           ('Feather Simple', obs.FeatherSimplePartGuide.__name__),
-           ('Feather Ribbon (obsolete)', obs.FeatherRibbonPartGuide.__name__)
-       ))
-
-       self.registered_parts['Vehicle'] = OrderedDict((
-           ('Auto Wheel', obs.AutowheelGuide.__name__),
-           ('Suspension Bank', obs.SuspensionBankGuide.__name__),
-           ('Piston', obs.PistonGuide.__name__),
-           ('Drive Path', obs.DrivePathGuide.__name__),
-           ('Wheel', obs.WheelGuide.__name__),
-       ))
-
-       self.registered_parts['Misc'] = OrderedDict((
-           ('Corrective', obs.CorrectiveJointGuide.__name__),
-           ('Push', obs.PushJointGuide.__name__),
-           ('Push Plus', obs.PushPlusGuide.__name__),
-       ))
-
-       for category in self.registered_parts:
-           for part_class in self.registered_parts[category].values():
-               if not issubclass(obs.__dict__[part_class], (obs.PartGuide, obs.ContainerGuide, obs.PartGroupGuide)):
-                   raise Exception('Unable to register the part "%s" as it was not a Guide State part' % part_class)
-
-   def register_standard_containers(self):
-       self.registered_containers = [
-           obs.CharacterGuide.__name__,
-           obs.EnvironmentGuide.__name__,
-           obs.PropGuide.__name__,
-           obs.BipedGuide.__name__,
-           obs.QuadrupedGuide.__name__,
-           obs.VehicleGuide.__name__
-       ]
 
    def create_weight_constraint(self, *args, **kwargs):
        return self.scene.create_weight_constraint(*args, **kwargs)

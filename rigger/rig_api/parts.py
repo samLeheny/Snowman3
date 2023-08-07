@@ -3,17 +3,18 @@ import weakref
 import Snowman3.rigger.rig_factory.objects as obs
 from Snowman3.rigger.rig_factory.objects.part_objects.part_array import PartArrayGuide
 from Snowman3.rigger.rig_factory.objects.part_objects.part import PartGuide
-import Snowman3.rigger.rig_factory.build.utilities.controller_utilities as cut
-import Snowman3.rigger.rig_factory.system_signals as sig
+import Snowman3.rigger.rig_factory.build.utilities.controller_utilities as controller_utils
+import Snowman3.rigger.rig_factory.system_signals as system_signals
 from Snowman3.rigger.rig_factory.objects.part_objects.container import Container, ContainerGuide
 
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def create_root(klass, **kwargs):
     """
     Creates the main Container group at the root of the rig
     """
-    controller = cut.get_controller()
+    controller = controller_utils.get_controller()
     if controller.root:
         raise Exception(f"There is already a root created: {controller.root.name}")
     if klass not in obs.__dict__:
@@ -24,14 +25,15 @@ def create_root(klass, **kwargs):
             "Invalid type: {object_type.__name__}. New containers must be type: (ContainerGuide, Container)")
 
     kwargs = object_type.pre_process_kwargs(**kwargs)
-    sig.root_signals['start_change'].emit()
+    system_signals.root_signals['start_change'].emit()
     controller.root = controller.create_object( klass, **kwargs )
-    sig.root_signals['end_change'].emit(controller.root)
+    system_signals.root_signals['end_change'].emit(controller.root)
 
     return weakref.proxy(controller.root)
 
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def create_part(part_owner, klass, **kwargs):
     """
     Creates a part underneath a ContainerGuide or PartGroupGuide
@@ -40,12 +42,12 @@ def create_part(part_owner, klass, **kwargs):
     if inspect.isclass(klass):
         klass = klass.__name__
     if part_owner is None:
-        raise Exception("Part owner is None")
+        raise Exception('Part owner is None')
     if klass not in obs.__dict__:
-        raise Exception(f"Invalid object type: {klass}")
+        raise Exception(f'Invalid object type: {klass}')
     if 'parent' in kwargs:
         raise Exception(
-            "you should not pass a 'parent' keyword argument to create_part. The parent will be set automatically.")
+            'you should not pass a "parent" keyword argument to create_part. The parent will be set automatically.')
     controller = part_owner.controller
     object_type = obs.__dict__[klass]
     """

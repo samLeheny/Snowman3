@@ -164,24 +164,6 @@ def set_plug_value(plug, value, force= False):
             matrix.setElement(3, 1, value[13])
             matrix.setElement(3, 2, value[14])
             matrix.setElement(3, 3, value[15])
-            '''
-            om.MScriptUtil.setDoubleArray(matrix[0], 0, value[0])
-            om.MScriptUtil.setDoubleArray(matrix[0], 1, value[1])
-            om.MScriptUtil.setDoubleArray(matrix[0], 2, value[2])
-            om.MScriptUtil.setDoubleArray(matrix[0], 3, value[3])
-            om.MScriptUtil.setDoubleArray(matrix[1], 0, value[4])
-            om.MScriptUtil.setDoubleArray(matrix[1], 1, value[5])
-            om.MScriptUtil.setDoubleArray(matrix[1], 2, value[6])
-            om.MScriptUtil.setDoubleArray(matrix[1], 3, value[7])
-            om.MScriptUtil.setDoubleArray(matrix[2], 0, value[8])
-            om.MScriptUtil.setDoubleArray(matrix[2], 1, value[9])
-            om.MScriptUtil.setDoubleArray(matrix[2], 2, value[10])
-            om.MScriptUtil.setDoubleArray(matrix[2], 3, value[11])
-            om.MScriptUtil.setDoubleArray(matrix[3], 0, value[12])
-            om.MScriptUtil.setDoubleArray(matrix[3], 1, value[13])
-            om.MScriptUtil.setDoubleArray(matrix[3], 2, value[14])
-            om.MScriptUtil.setDoubleArray(matrix[3], 3, value[15])
-            '''
             m_object = om.MFnMatrixData().create(matrix)
             plug.setMObject(m_object)
 
@@ -213,7 +195,7 @@ def get_plug_value(plug):
         return [get_plug_value(x) for x in plugs]
     attribute = m_plug.attribute()
     if attribute.hasFn(om.MFn.kNumericAttribute):
-        attribute_type = om.MFnNumericAttribute(attribute).unitType()
+        attribute_type = om.MFnNumericAttribute(attribute).numericType()
         if attribute_type in [om.MFnNumericData.kBoolean]:
             return m_plug.asBool()
         elif attribute_type == om.MFnNumericData.kChar:
