@@ -254,6 +254,7 @@ class RigController:
     def create_object(self, object_type, *args, **kwargs):
         if object_type is None:
             raise Exception('Object type is None')
+
         elif isinstance(object_type, str):
             if object_type in obs.__dict__:
                 object_type = obs.__dict__[object_type]

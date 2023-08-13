@@ -1,5 +1,6 @@
 import os
 import imp
+import importlib
 import uuid
 import copy
 import time
@@ -8,17 +9,15 @@ import functools
 import logging
 import json
 import Snowman3.rigger.rig_factory.utilities.blueprint_utilities as blu
-#import rigging_widgets.build_task_executor.callbacks as cbk
+import Snowman3.rigger.rigging_widgets.build_task_executor.callbacks as cbk
 #import Snowman3.rigger.rig_factory.build.tasks.task_utilities.legacy_blueprint_utilities as lbu
 import Snowman3.rigger.rig_factory.environment as env
-import Snowman3.rigger.rig_factory.utilities.blueprint_utilities as btl
 import Snowman3.rigger.rig_factory.system_signals as sig
-import Snowman3.rigger.rig_factory.utilities.blueprint_utilities as bpu
 
 DEBUG = os.getenv('PIPE_DEV_MODE') == 'TRUE'
 
 
-class BuildTask(object):
+class BuildTask:
     def __init__(
             self,
             build=None,
@@ -34,12 +33,11 @@ class BuildTask(object):
             create_children_function=None,
             always_expand=False
     ):
-        super(BuildTask, self).__init__()
-        if parent:
-            if not isinstance(parent, BuildTask):
-                raise Exception('Invalid parent type: %s' % type(parent))
+        super().__init__()
+        if parent and not isinstance(parent, BuildTask):
+            raise Exception(f'Invalid parent type: {type(parent)}')
         if build is not None and not isinstance(build, EntityBuild):
-            raise Exception('Invalid build type: %s' % type(build))
+            raise Exception(f'Invalid build type: {type(build)}')
         self.name = name
         self.build = None
         self.layer = layer
@@ -66,9 +64,12 @@ class BuildTask(object):
         if build:
             self.set_build(build)
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def set_build(self, build):
+        # There must be a build, and it must be of type: EntityBuild
         if build is not None and not isinstance(build, EntityBuild):
-            raise Exception('Invalid build type: %s' % type(build))
+            raise Exception(f'Invalid build type: {type(build)}')
         self.build = build
         if build is None:
             if DEBUG:
@@ -92,6 +93,8 @@ class BuildTask(object):
         for child in self.children:
             child.set_build(build)
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def execute(self):
         start = time.time()
         return_value = None
@@ -168,6 +171,8 @@ class BuildTask(object):
         self.build.task_callback(self)
         return self
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def set_return_state(self, data):
         try:
             json.dumps(data)
@@ -177,9 +182,13 @@ class BuildTask(object):
         except Exception as e:
             logging.getLogger('rig_build').warning('%s returned invalid data: %s' % (self.name, data))
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def __repr__(self):
         return '<%s name=%s>' % (self.__class__.__name__, self.name)
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def setup_state(self):
         env.current_build_directory = self.build.build_directory
         self.build.controller.current_layer = None
@@ -188,10 +197,12 @@ class BuildTask(object):
             if not self.build.controller.scene.namespace(exists=':%s' % self.namespace):
                 self.build.controller.scene.namespace(add=':%s' % self.namespace)
             self.build.controller.scene.namespace(set=':%s' % self.namespace)
-        if self.layer and self.layer != os.environ['TT_ENTNAME']:
+        if self.layer and self.layer != os.environ['ENTITY_NAME']:
             self.build.controller.current_layer = self.build.controller.add_layer(self.layer)
         sig.controller_signals['reset'].block(True)
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def revert_state(self):
         self.build.controller.scene.namespace(set=':')
         self.build.controller.namespace = None
@@ -219,7 +230,7 @@ class EntityBuild(object):
             children_about_to_be_inserted_callback=None,
             children_inserted_callback=None
     ):
-        super(EntityBuild, self).__init__()
+        super().__init__()
         self.project = project
         self.entity = entity
         self.controller = controller
@@ -250,15 +261,24 @@ class EntityBuild(object):
         if retrieve_data:
             self.retrieve_data()
 
-    def __repr__(self):
-        return '<%s entity=%s>' % (self.__class__.__name__, self.entity)
 
+    # ------------------------------------------------------------------------------------------------------------------
+    def __repr__(self):
+        return '<{} entity={}>'.format(
+            self.__class__.__name__,
+            self.entity
+        )
+
+
+    # ------------------------------------------------------------------------------------------------------------------
     def get_root(self):
         root = self
         while root.parent:
             root = root.parent
         return root
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def create_callback(self, function_name):
         if self.controller.scene.mock:
             return functools.partial(
@@ -266,7 +286,7 @@ class EntityBuild(object):
                 function_name
             )
 
-        def get_and_call_function(function_name):
+        def get_and_call_function():
             return self.get_build_function(function_name)()
 
         return functools.partial(
@@ -274,16 +294,20 @@ class EntityBuild(object):
             function_name
         )
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     @property
     def layer(self):
         return self.entity
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def get_build_function(self, function_name):
         file_name = 'build.py'
-        build_module_path = '%s/%s' % (self.build_directory, file_name)
+        build_module_path = f'{self.build_directory}/{file_name}'
         if not os.path.exists(build_module_path):
-            raise Exception('File not found: %s' % build_module_path)
-        logging.getLogger('rig_build').info('Loading module from: %s' % build_module_path)
+            raise Exception(f'File not found: {build_module_path}')
+        logging.getLogger('rig_build').info(f'Loading module from: {build_module_path}')
         module = imp.load_source(
             file_name.split('.')[0],
             build_module_path
@@ -299,21 +323,20 @@ class EntityBuild(object):
                 self.controller
             )
         build_object.build = self
-        build_object._namepace = self.namespace
+        build_object._namespace = self.namespace
         build_object.active_blueprint = self.rig_blueprint  # Supports legacy functionality
         if hasattr(build_object, function_name):
-            return getattr(
-                build_object,
-                function_name
-            )
+            return getattr( build_object, function_name )
         else:
-            raise Exception('Function not found: "%s"' % function_name)
+            raise Exception(f'Function not found: "{function_name}"')
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def set_rig_blueprint(self, rig_blueprint):
         if rig_blueprint is None:
             raise Exception('rig_blueprint is None')
         rig_blueprint = copy.deepcopy(rig_blueprint)
-        is_root_build = self.entity == os.environ['TT_ENTNAME']
+        is_root_build = self.entity == os.environ['ENTITY_NAME']
         # Make sure we are in the right state
         if is_root_build and 'guide_blueprint' not in rig_blueprint:
             self.guide = True
@@ -327,15 +350,12 @@ class EntityBuild(object):
             rig_blueprint = blu.get_guide_blueprint_from_rig_blueprint(rig_blueprint)
         else:
             self.guide = False
-        # If were in guide state, make sure its actually a guide state blueprint
+        # If were in guide state, make sure it's actually a guide state blueprint
         if self.guide and 'guide_blueprint' in rig_blueprint:
             raise Exception('The blueprint provided doesnt seem to be in guide state...')
 
-        self.rig_blueprint = lbu.update_legacy_blueprint(
-            self.project,
-            self.entity,
-            rig_blueprint
-        )
+
+    # ------------------------------------------------------------------------------------------------------------------
     def retrieve_rig_blueprint(self):
         if self.build_directory is None:
             raise Exception('The build directory for %s is None' % self.entity)
@@ -347,8 +367,8 @@ class EntityBuild(object):
                 self.build_directory,
                 self.rig_blueprint_file_name
             )
-            if self.entity == os.environ['TT_ENTNAME'] and self.controller.root:  # Get from Scene
-                new_rig_blueprint = bpu.get_blueprint()
+            if self.entity == os.environ['ENTITY_NAME'] and self.controller.root:  # Get from Scene
+                new_rig_blueprint = blu.get_blueprint()
                 logging.getLogger('rig_build').info(
                     'rig_blueprint for %s loaded from scene' % self.entity
                 )
@@ -366,9 +386,10 @@ class EntityBuild(object):
             self.set_rig_blueprint(new_rig_blueprint)
 
 
+    # ------------------------------------------------------------------------------------------------------------------
     def retrieve_face_blueprint(self):
         """
-        This should probably get the face blueprint right from the controller if entity == TT_ENTNAME
+        This should probably get the face blueprint right from the controller if entity == ENTITY_NAME
         """
         if self.face_blueprint:
             logging.getLogger('rig_build').info(
@@ -389,6 +410,8 @@ class EntityBuild(object):
         else:
             logging.getLogger('rig_build').info('Face blueprint path not found: %s' % face_blueprint_path)
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def retrieve_callbacks(self):
         if not os.path.exists(self.build_directory):
             raise Exception('The build directory did not exist: %s' % self.build_directory)
@@ -400,11 +423,15 @@ class EntityBuild(object):
             blueprint=self.rig_blueprint
         )
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def retrieve_data(self):
         self.retrieve_rig_blueprint()
         self.retrieve_face_blueprint()
         self.retrieve_callbacks()
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def duplicate(self, parent=None):
         this = EntityBuild(
             self.project,
@@ -428,6 +455,8 @@ class EntityBuild(object):
             child.duplicate(parent=this)
         return this
 
+
+    # ------------------------------------------------------------------------------------------------------------------
     def get_toggle_build(self, parent=None):
         toggle_build = self.duplicate()
         toggle_build.guide = not self.guide
@@ -440,7 +469,7 @@ class EntityBuild(object):
         )
         if not self.controller.root:
             raise Exception('Rig not found.')
-        toggle_blueprint = btl.get_toggle_blueprint()
+        toggle_blueprint = blu.get_toggle_blueprint()
         toggle_build.set_rig_blueprint(toggle_blueprint)
         for build in list(flatten(toggle_build))[1:]:
             build.rig_blueprint = None
@@ -448,6 +477,7 @@ class EntityBuild(object):
         return toggle_build
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def flatten(root):
     yield root
     for x in root.children:
@@ -455,10 +485,12 @@ def flatten(root):
             yield child
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def empty_callable(*args, **kwargs):
     pass
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def dummy_callback(function_name):
     logging.getLogger('rig_build').info(function_name)
 

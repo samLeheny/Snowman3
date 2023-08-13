@@ -1,17 +1,20 @@
 import copy
 from Snowman3.rigger.rig_math.vector import Vector
 import Snowman3.rigger.rig_factory.utilities.decorators as dec
+from Snowman3.rigger.rig_factory.objects.base_objects.properties import DataProperty
 
 
 class Matrix:
 
+    data = DataProperty(
+        name='data',
+        default_value=[]
+    )
+
     @dec.flatten_args
     def __init__(self, *args, **kwargs):
         super(Matrix, self).__init__()
-        scale = kwargs.pop(
-            'scale',
-            [1.0, 1.0, 1.0]
-        )
+        scale = kwargs.pop( 'scale', [1.0, 1.0, 1.0] )
         translation = kwargs.pop( 'translation', None )
         self.current_row = 0
         self.current_column = 0
@@ -61,20 +64,21 @@ class Matrix:
             )
 
         else:
-            raise Exception('Invalid matrix data : %s' % args)
+            raise Exception(f'Invalid matrix data : {args}')
 
 
     def __copy__(self):
         return self.__class__(self)
 
 
-    '''def __repr__(self):
-        return repr(self.data)'''
+    def __repr__(self):
+        return repr(self.data)
 
 
     def __mul__(self, n):
         self_transpose = self.get_transpose()
-        return Matrix([[sum(a * b for a, b in zip(x_row, y_col)) for y_col in self_transpose.data] for x_row in n.data])
+        c = Matrix([[sum(a * b for a, b in zip(x_row, y_col)) for y_col in self_transpose.data] for x_row in n.data])
+        return c
 
 
     def __rmul__(self, n):
@@ -168,7 +172,7 @@ class Matrix:
 
     def get_transpose(self):
         result = self.__new__(self.__class__)
-        result.data = zip(*self.data)
+        result.data = tuple(zip(*self.data))
         return result
 
 

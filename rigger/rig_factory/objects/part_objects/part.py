@@ -97,7 +97,7 @@ class PartGuide(BasePart):
     def get_mirror_blueprint(self):
         sides = dict(right='L', left='R')
         if self.side not in sides:
-            raise Exception(f"Cannot mirror '{self}' invalid side '{self.side}'")
+            raise Exception(f'Cannot mirror "{self}" invalid side "{self.side}"')
         blueprint = self.get_blueprint()
         blueprint['side'] = sides[blueprint['side']]
         blueprint.pop('name', None)

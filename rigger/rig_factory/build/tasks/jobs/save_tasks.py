@@ -245,7 +245,7 @@ def rename_scene_file(major_version_up=False, version_from_env=False):
             major_version_up=major_version_up
         )
 
-    file_name = os.environ['TT_ENTNAME'] + '_rig_v' + major_version + '.' + minor_version + ext
+    file_name = os.environ['ENTITY_NAME'] + '_rig_v' + major_version + '.' + minor_version + ext
     wip_file = '%s/%s' % (wip_directory, file_name)
     if os.path.exists(wip_file):
         controller.raise_warning('Wip file "%s" already existed. Overwriting file.' % file_name)

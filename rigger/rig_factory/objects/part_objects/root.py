@@ -26,6 +26,7 @@ class RootGuide(PartGuide):
     def pre_process_kwargs(cls, **kwargs):
         kwargs = super().pre_process_kwargs(**kwargs)
         if not kwargs.get('root_name', None):
+            kwargs['root_name'] = 'Root'
             kwargs['base_name'] = 'Root'
         return kwargs
 
@@ -87,15 +88,9 @@ class RootGuide(PartGuide):
         cog_handle.mesh.assign_shading_group(root.shaders[side].shading_group)
 
         for obj, axis in zip((cone_x, cone_y, cone_z), ('x', 'y', 'z')):
-            obj.plugs.set_values(
-                overrideEnabled=True,
-                overrideDisplayType=2,
-            )
+            obj.plugs.set_values( overrideEnabled=True, overrideDisplayType=2, )
             obj.mesh.assign_shading_group(root.shaders[axis].shading_group)
-            obj.plugs.set_values(
-                overrideEnabled=True,
-                overrideDisplayType=2,
-            )
+            obj.plugs.set_values( overrideEnabled=True, overrideDisplayType=2, )
             obj.mesh.assign_shading_group(root.shaders[axis].shading_group)
 
         this.base_handles = [handle]

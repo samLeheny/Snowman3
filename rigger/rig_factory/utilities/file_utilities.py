@@ -36,7 +36,7 @@ def get_all_users_work_scenes():
         user_scenes = [x.replace('\\', '/') for x in glob.glob(
             '%s/%s_rig_v*.ma' % (
                 work_dir,
-                os.environ['TT_ENTNAME']
+                os.environ['ENTITY_NAME']
             )
         )]
         if user_scenes:
@@ -94,8 +94,8 @@ Switch to this version after we are sure all rigs have been saved with current s
 
 def get_latest_product_version():
     latest_project_build_dir = dfu.get_latest_product_directory(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME'],
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME'],
         product='rig_build')
     if not latest_project_build_dir:
         return '0000'
@@ -106,7 +106,7 @@ def get_pipeline_directory():
     return '%s/assets/type/%s/%s/pipeline' % (
         get_base_directory(),
         os.environ['TT_ASSTYPE'],
-        os.environ['TT_ENTNAME']
+        os.environ['ENTITY_NAME']
     )
 
 
@@ -118,7 +118,7 @@ def get_work_directory():
     work_directory = '%s/assets/type/%s/%s/work' % (
         get_base_directory(),
         os.environ['TT_ASSTYPE'],
-        os.environ['TT_ENTNAME']
+        os.environ['ENTITY_NAME']
     )
     return work_directory
 
@@ -180,85 +180,85 @@ def get_gen_elems_directory():
 
 def get_abc_directory():
     return dfu.get_abc_directory(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_abc_anim_directory():
     return dfu.get_abc_anim_directory(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_placements_directory():
     return dfu.get_placements_directory(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_bifrost_directory():
     return dfu.get_bifrost_directory(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_export_data_directory():
     return dfu.get_export_data_directory(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_anim_textures_directory():
     return dfu.get_anim_textures_directory(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_bifrost_files():
     return dfu.get_bifrost_files(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_abc_files():
     return dfu.get_abc_files(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_abc_anim_files():
     return dfu.get_abc_anim_files(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_placement_files():
     return dfu.get_placement_files(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_export_data_files():
     return dfu.get_export_data_files(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_anim_textures_files():
     return dfu.get_anim_textures_files(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
@@ -279,21 +279,21 @@ def get_latest_rig_product():
 
 def get_product_files():
     return dfu.get_product_files(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_product_directories():
     return dfu.get_product_directories(
-        os.environ['TT_PROJCODE'],
-        os.environ['TT_ENTNAME']
+        os.environ['PROJECT_CODE'],
+        os.environ['ENTITY_NAME']
     )
 
 
 def get_base_directory():
     return dfu.get_base_directory(
-        os.environ['TT_PROJCODE']
+        os.environ['PROJECT_CODE']
     )
 
 
@@ -301,7 +301,7 @@ def get_products_directory():
     return '%s/assets/type/%s/%s/products' % (
         get_base_directory(),
         os.environ['TT_ASSTYPE'],
-        os.environ['TT_ENTNAME']
+        os.environ['ENTITY_NAME']
     )
 
 
@@ -330,14 +330,13 @@ def get_latest_realtime_product_directory():
 
 def get_project_config_path():
     if os.getenv('SHOW_DEV_MODE') == "True":
-        dev_show_path = 'D:/pipeline/%s/dev/git_repo/%s/show_config.json' % (
-            os.getenv('USERNAME'),
-            os.getenv('TT_PROJCODE')
+        dev_show_path = 'Snowman3.ProjectCode/{}/show_config.json'.format(
+            os.getenv('PROJECT_CODE')
         )
         if os.path.exists(dev_show_path):
             return dev_show_path
-
-    return 'G:/Rigging/Shows/%s/show_config.json' % os.environ.get('TT_PROJCODE')
+        else:
+            raise 'Unable to find show_config_json'
 
 
 def to_relative_path(path, build_dir=None):

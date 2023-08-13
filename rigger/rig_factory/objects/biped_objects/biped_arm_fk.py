@@ -20,7 +20,7 @@ class BipedArmFkGuide(ChainGuide):
     )
 
     def __init__(self, **kwargs):
-        super(BipedArmFkGuide, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.toggle_class = BipedArmFk.__name__
 
     @classmethod
@@ -33,7 +33,7 @@ class BipedArmFkGuide(ChainGuide):
         return this
 
     def get_toggle_blueprint(self):
-        blueprint = super(BipedArmFkGuide, self).get_toggle_blueprint()
+        blueprint = super().get_toggle_blueprint()
         matrices = [list(x.get_matrix()) for x in self.joints]
         blueprint['matrices'] = matrices
         return blueprint

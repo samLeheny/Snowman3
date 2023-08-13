@@ -4,6 +4,7 @@ from Snowman3.rigger.rig_factory.objects.rig_objects.curve_handle import CurveHa
 from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import StandardHandle
 from Snowman3.rigger.rig_factory.objects.part_objects.container import ContainerGuide
 from Snowman3.rigger.rig_factory.objects.part_objects.part_group import PartGroupGuide
+from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import StandardHandle, GroupedHandle
 #from rig_factory.objects.part_objects.base_part import BasePart
 #from rig_factory.objects.part_objects.base_container import BaseContainer
 #from rig_factory.objects.node_objects.transform import Transform
@@ -20,6 +21,7 @@ import logging
 import maya.api.OpenMaya as om
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def create_part_handle(part, handle_type, **kwargs):
     this = part.create_child(handle_type, **kwargs)
     this.owner = part
@@ -27,18 +29,21 @@ def create_part_handle(part, handle_type, **kwargs):
     return this
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def create_standard_handle(part, **kwargs):
     kwargs.setdefault('segment_name', 'Main')
     handle_type = kwargs.pop('handle_type', StandardHandle)
     return create_part_handle(part, handle_type, **kwargs)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def create_guide_handle(part, **kwargs):
     kwargs.setdefault('segment_name', 'Main')
     handle_type = kwargs.pop('handle_type', GuideHandle)
     return create_part_handle(part, handle_type, **kwargs)
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def remove_offset_from_snap(controller, handle):
     logger = logging.getLogger('rig_build')
 
@@ -58,6 +63,7 @@ def remove_offset_from_snap(controller, handle):
         raise Exception(f"Invalid handle type '{type(handle)}' for snap_handle_to_selected_verts")
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def assign_selected_vertices(controller, handle, mo=False):
     logger = logging.getLogger('rig_build')
     if isinstance(handle, (GuideHandle, CurveHandle)):
@@ -103,6 +109,7 @@ def assign_selected_vertices(controller, handle, mo=False):
         raise Exception(f"Invalid handle type '{type(handle)}' for snap_handle_to_selected_verts")
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def assign_vertices(controller, handle, vertices, mo=False, differ_vec=None, scale=0):
     if isinstance(handle, (GuideHandle, CurveHandle)):
         if vertices:
@@ -124,6 +131,7 @@ def assign_vertices(controller, handle, vertices, mo=False, differ_vec=None, sca
         raise Exception('Invalid handle type "%s" for snap_handle_to_selected_verts' % type(handle))
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def update_assign_vertices(controller, handle):
     position = controller.scene.get_bounding_box_center([x.name for x in handle.vertices])
     vert_vec = om.MVector(position)
@@ -144,6 +152,7 @@ def snap_handles_to_mesh_positions(rig):
         raise Exception(f"Invalid handle type '{type(rig)}' for snap_handles_to_mesh_positions")
 
 
+# ----------------------------------------------------------------------------------------------------------------------
 def snap_handle_to_mesh_positions(handle):
     if isinstance(handle, (GuideHandle, CurveHandle)):
         controller = handle.controller
@@ -165,12 +174,49 @@ def snap_handle_to_mesh_positions(handle):
         raise Exception(f"Invalid handle type '{type(handle)}' for snap_handle_to_selected_verts")
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+def set_handle_shape(
+       handle,
+       handle_data,
+       normalize_gimbal=True
+):
+    if not isinstance(handle, CurveHandle):
+        return dict(
+            status='warning',
+            warning=f'Invalid type: "{handle}" is not a subclass of CurveHandle'
+        )
+    if len(handle_data) == 2:
+        shape, matrix = handle_data
+        handle.set_shape(shape)
+        handle.plugs['shapeMatrix'].set_value(matrix)
+        info = f'Set handle matrix and shape: {shape}'
+
+    else:
+        handle.plugs['shapeMatrix'].set_value(handle_data)
+        info = 'Set handle matrix.'
+
+    if normalize_gimbal and isinstance(handle, GroupedHandle):
+        handle.normalize_gimbal_shape()
+    return dict( info=info )
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def set_handle_color(handle, color, hover):
+    if color:
+        handle.plugs['overrideEnabled'].set_value(True)
+        handle.plugs['overrideRGBColors'].set_value(True)
+        handle.plugs['overrideColorR'].set_value(color[0])
+        handle.plugs['overrideColorG'].set_value(color[1])
+        handle.plugs['overrideColorB'].set_value(color[2])
+        if not hover:
+            handle.color = color
+
+
 
 '''
 import rig_factory
 import rig_factory.objects as obs
 from rig_factory.objects.rig_objects.curve_handle import CurveHandle
-from rig_factory.objects.rig_objects.grouped_handle import StandardHandle, GroupedHandle
 from rig_factory.objects.part_objects.container import ContainerGuide
 from rig_factory.objects.part_objects.part_group import PartGroupGuide
 from rig_factory.objects.part_objects.base_part import BasePart
@@ -631,17 +677,6 @@ def get_handle_default_colors(rig):
    return handle_color_dict
 
 
-def set_handle_color(handle, color, hover):
-   if color:
-       handle.plugs['overrideEnabled'].set_value(True)
-       handle.plugs['overrideRGBColors'].set_value(True)
-       handle.plugs['overrideColorR'].set_value(color[0])
-       handle.plugs['overrideColorG'].set_value(color[1])
-       handle.plugs['overrideColorB'].set_value(color[2])
-       if not hover:
-           handle.color = color
-
-
 def set_gimbal_handle_color(handle, color, hover):
    if color:
        handle.gimbal_handle.plugs['overrideEnabled'].set_value(True)
@@ -721,33 +756,6 @@ def set_handle_shapes(
            else:
                logger.info('WARNING: Handle not found "%s"' % handle_name)
    rig.custom_handles = True
-
-
-def set_handle_shape(
-       handle,
-       handle_data,
-       normalize_gimbal=True
-):
-   if not isinstance(handle, CurveHandle):
-       return dict(
-           status='warning',
-           warning='Invalid type: "%s" is not a subclass of CurveHandle' % handle
-       )
-   if len(handle_data) == 2:
-       shape, matrix = handle_data
-       handle.set_shape(shape)
-       handle.plugs['shapeMatrix'].set_value(matrix)
-       info = 'Set handle matrix and shape: %s' % shape
-
-   else:
-       handle.plugs['shapeMatrix'].set_value(handle_data)
-       info = 'Set handle matrix.'
-
-   if normalize_gimbal and isinstance(handle, GroupedHandle):
-       handle.normalize_gimbal_shape()
-   return dict(
-       info=info
-   )
 
 
 def strs_to_handles_list(controller, str_sel_list):

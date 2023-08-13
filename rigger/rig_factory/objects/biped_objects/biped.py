@@ -120,16 +120,9 @@ class BipedGuide(ContainerArrayGuide):
 
 class Biped(ContainerArray):
 
-    mocap_joints = ObjectListProperty(
-        name='mocap_joints'
-    )
-    character_node = ObjectProperty(
-        name='character_node'
-    )
-    use_t_pose = DataProperty(
-        name='use_t_pose',
-        default_value=True
-    )
+    mocap_joints = ObjectListProperty( name='mocap_joints' )
+    character_node = ObjectProperty( name='character_node' )
+    use_t_pose = DataProperty( name='use_t_pose', default_value=True )
 
     @classmethod
     def create(cls, **kwargs):

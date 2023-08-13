@@ -79,7 +79,7 @@ def load_export_data(
     if export_data:
         created_nodes = {}
         for node_name, matrix in export_data['transform_data'].iteritems():
-            if namespace and namespace != os.environ['TT_ENTNAME']:
+            if namespace and namespace != os.environ['ENTITY_NAME']:
                 node_name = '{0}:{1}'.format(namespace, node_name)
 
             if controller.scene.objExists(node_name):
@@ -109,7 +109,7 @@ def load_export_data(
         # Builds all ATTR locator data items.
 
         for attr_data in export_data['attr_data']:
-            if namespace and namespace != os.environ['TT_ENTNAME']:
+            if namespace and namespace != os.environ['ENTITY_NAME']:
                 node_name = '{0}:{1}'.format(namespace, attr_data['node'] + '_ExportData')
             else:
                 node_name = attr_data['node'] + '_ExportData'
@@ -163,7 +163,7 @@ def load_export_data(
 
         created_nodes = {}
         for i in range(0, len(set_snap_data)):
-            if namespace and namespace != os.environ['TT_ENTNAME']:
+            if namespace and namespace != os.environ['ENTITY_NAME']:
                 node_name = '{0}:{1}'.format(namespace, set_snap_data[i][0])
             else:
                 node_name = set_snap_data[i][0]

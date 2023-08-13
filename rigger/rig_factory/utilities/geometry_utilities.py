@@ -30,11 +30,11 @@ def import_geometry_paths(entity_name, property_name, paths):
     parent = getattr(container, group_property_name)
     for i, path in enumerate(paths):
         if path.startswith('/'):
-            if entity_name == os.environ['TT_ENTNAME']:
+            if entity_name == os.environ['ENTITY_NAME']:
                 build_directory = env.local_build_directory
             else:
                 build_directory = dfu.get_latest_product_directory(  # Parent entity
-                    os.environ['TT_PROJCODE'],
+                    os.environ['PROJECT_CODE'],
                     entity_name
                 )
             path = '%s%s' % (build_directory, path)

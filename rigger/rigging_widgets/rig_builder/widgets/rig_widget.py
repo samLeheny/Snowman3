@@ -2,8 +2,8 @@
 import os
 import random
 
-#if not os.environ.get('TT_PROJCODE'):
-#    raise Exception('TT_PROJCODE not set')
+#if not os.environ.get('PROJECT_CODE'):
+#    raise Exception('PROJECT_CODE not set')
 import time
 import copy
 import json
@@ -32,7 +32,7 @@ import Snowman3.rigger.rig_factory.utilities.file_utilities as fut  # this has t
 #import Snowman3.rigger.rig_factory.build.tasks.jobs.face_tasks as ftsk
 import Snowman3.rigger.rig_factory.utilities.geometry_utilities as gtl
 #import Snowman3.rigger.rig_factory.build.tasks.jobs.guide_tasks as gtsk
-#import Snowman3.rigger.rig_factory.build.tasks.jobs.toggle_tasks as tglt
+import Snowman3.rigger.rig_factory.build.tasks.jobs.toggle_tasks as tglt
 #import Snowman3.rigger.rig_factory.build.tasks.jobs.low_rig_tasks as lrt
 #import Snowman3.rigger.rig_factory.build.tasks.jobs.realtime_tasks as rtt
 import Snowman3.rigger.rig_factory.build.tasks.jobs.save_tasks as savtsks
@@ -44,7 +44,7 @@ import Snowman3.rigger.rig_factory.utilities.space_switcher_utilities as spu
 #import rigging_widgets.launcher.utilities.jobs_utilities as jbsu
 #import Snowman3.rigger.rig_factory.build.tasks.jobs.import_rig_data_tasks as irdt
 import Snowman3.rigger.rig_factory.build.tasks.jobs.export_rig_data_tasks as erdt
-#import Snowman3.rigger.rig_factory.build.tasks.task_utilities.initializers as bti
+import Snowman3.rigger.rig_factory.build.tasks.task_utilities.initializers as bti
 import Snowman3.rigger.rig_factory.build.tasks.task_utilities.task_utilities as tut
 #import Snowman3.rigger.rig_factory.build.tasks.task_utilities.legacy_blueprint_utilities as lpu
 #from rigging_widgets.launcher.widgets.jobs_widget import JobsWidget
@@ -71,10 +71,10 @@ import Snowman3.rigger.rig_factory.build.tasks.task_utilities.task_utilities as 
 #from rigging_widgets.rig_builder.widgets.custom_constraint_widget import CustomConstraintWidget
 #from rigging_widgets.rig_builder.widgets.deformation_layers_widget import DeformationLayersWidget
 #import rigging_widgets.rig_builder.utilities.editor_utilities as edtu
-#import rig_factory.utilities.blueprint_utilities as bpu
+import Snowman3.rigger.rig_factory.utilities.blueprint_utilities as bpu
 
-#if not os.environ.get('TT_PROJCODE'):
-#    raise Exception('TT_PROJCODE not set')
+#if not os.environ.get('PROJECT_CODE'):
+#    raise Exception('PROJECT_CODE not set')
 DEBUG = os.getenv('PIPE_DEV_MODE') == 'TRUE'
 
 
@@ -157,7 +157,7 @@ class RigWidget(QFrame):
         irig_version = ivn.get_irig_version()
         if not irig_version:
             irig_version = 'DEV'
-        entity_label = QLabel('%s %s' % (irig_version, os.environ['TT_ENTNAME']))
+        entity_label = QLabel('%s %s' % (irig_version, os.environ['ENTITY_NAME']))
         entity_label.setWordWrap(True)
         entity_label.setAlignment(Qt.AlignRight)
         self.menu_layout.addWidget(entity_label)
@@ -448,7 +448,7 @@ class RigWidget(QFrame):
             base_directory = '%s/assets/type/%s/%s' % (
                 fut.get_base_directory(),
                 os.environ['TT_ASSTYPE'],
-                os.environ['TT_ENTNAME']
+                os.environ['ENTITY_NAME']
             )
             if build_directory.startswith(base_directory):
                 relative_path = os.path.relpath(
@@ -1145,8 +1145,8 @@ class RigWidget(QFrame):
                     with open(blueprint_path, mode='r') as f:
                         rig_blueprint = json.load(f)
                         rig_blueprint = lpu.update_legacy_blueprint(
-                            os.environ['TT_PROJCODE'],
-                            os.environ['TT_ENTNAME'],
+                            os.environ['PROJECT_CODE'],
+                            os.environ['ENTITY_NAME'],
                             rig_blueprint
                         )
                 except Exception as e:
@@ -1978,11 +1978,13 @@ class RigWidget(QFrame):
             callback=callback
         )
 
+
     def toggle_rig_state_slot(self, *args):
         """
         Used for widget signal connections
         """
         self.toggle_rig_state()
+
 
     def toggle_rig_state(self, callback=None, build_directory=None):
         controller = self.controller
@@ -2021,6 +2023,7 @@ class RigWidget(QFrame):
                 first_task_root,
                 callback=callback
             )
+
 
     def merge_blueprint(self):
         if not self.controller:
@@ -2121,8 +2124,8 @@ class RigWidget(QFrame):
             self.raise_warning('Invalid blueprint type: %s' % type(blueprint))
             return
         blueprint = lpu.update_legacy_blueprint(
-            os.environ['TT_PROJCODE'],
-            os.environ['TT_ENTNAME'],
+            os.environ['PROJECT_CODE'],
+            os.environ['ENTITY_NAME'],
             blueprint
         )
         self.products_widget.set_blueprint(blueprint)
@@ -2240,8 +2243,8 @@ class RigWidget(QFrame):
 
         try:
             for build in bti.yield_builds(
-                    os.getenv('TT_PROJCODE'),
-                    os.getenv('TT_ENTNAME'),
+                    os.getenv('PROJECT_CODE'),
+                    os.getenv('ENTITY_NAME'),
                     self.controller,
                     build_directory,
                     **kwargs
@@ -2494,6 +2497,7 @@ class RigWidget(QFrame):
                 current_callback = self.reload_widget_state
             current_callback()
 
+
     def build_task_tree(self, task_root, callback=None):
         if task_root is None:
             raise Exception('Task tree root is None')
@@ -2507,6 +2511,7 @@ class RigWidget(QFrame):
             self.build()
         else:
             self.build_task_widget.setup_button_state('stopped')
+
 
     def save_work_popup(self):
         if self.dialog:
@@ -2621,7 +2626,7 @@ class RigWidget(QFrame):
 
         self.raise_warning(
             'Success!\n%s version %s\nRig has been published!' % (
-                os.environ['TT_ENTNAME'],
+                os.environ['ENTITY_NAME'],
                 fut.get_current_work_versions()[0]
             ),
             window_title='Publish Complete'

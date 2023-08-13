@@ -76,8 +76,8 @@ def configure_container(skip_existing=False):
     build_directory_plug.set_locked(True)
 
     #  add parent rig path on container
-    entity = os.environ['TT_ENTNAME']
-    project = os.environ['TT_PROJCODE']
+    entity = os.environ['ENTITY_NAME']
+    project = os.environ['PROJECT_CODE']
 
     parent_rig_path_plug = controller.root.create_plug(
         'parent_rig_path',
@@ -156,7 +156,7 @@ def create_container_tasks(entity_builds, root_task, skip_existing=False):
             container_kwargs,
             skip_existing=skip_existing
         ),
-        layer=os.environ['TT_ENTNAME']
+        layer=os.environ['ENTITY_NAME']
     )
     BuildTask(
         parent=create_container_root,
@@ -165,7 +165,7 @@ def create_container_tasks(entity_builds, root_task, skip_existing=False):
             configure_container,
             skip_existing=skip_existing
         ),
-        layer=os.environ['TT_ENTNAME'],
+        layer=os.environ['ENTITY_NAME'],
     )
 
     root = BuildTask(
@@ -278,7 +278,7 @@ def import_placements(entity_builds, root_task):
             function=functools.partial(
                 stu.import_placement_nodes,
                 placements_path,
-                create_plug=build.entity == os.environ['TT_ENTNAME']
+                create_plug=build.entity == os.environ['ENTITY_NAME']
             )
         )
 
@@ -306,7 +306,7 @@ def import_bifrost(entity_builds, root_task):
                 function=functools.partial(
                     bfu.import_bifrost_nodes,
                     build.rig_blueprint['product_paths']['bifrost'],
-                    create_plug=build.entity == os.environ['TT_ENTNAME']
+                    create_plug=build.entity == os.environ['ENTITY_NAME']
                 )
             )
 
@@ -358,7 +358,7 @@ def load_export_data(entity_builds, root_task):
                 build.rig_blueprint['product_paths']['export_data'],
                 build.rig_blueprint['product_paths']['fin_export_data'],
                 build.rig_blueprint['product_paths']['set_snap_locators'],
-                create_plugs=build.entity == os.environ['TT_ENTNAME']
+                create_plugs=build.entity == os.environ['ENTITY_NAME']
             )
         )
 
@@ -384,7 +384,7 @@ def import_previs_lights(entity_builds, root_task):
             name='Import Previs Lights',
             function=functools.partial(
                 stu.import_previs_lights,
-                os.environ['TT_PROJCODE'],
+                os.environ['PROJECT_CODE'],
                 build.entity
             )
         )
@@ -2219,7 +2219,7 @@ def set_proxy_shaders(build_directory, entity, namespace):
     if not current_controller.scene.mock:
         import rig_factory.build.utilities.proxy_shaders as psh  # This is not ideal
         return psh.exec_assign_proxy_shaders(
-            os.environ['TT_PROJCODE'],
+            os.environ['PROJECT_CODE'],
             entity,
             current_controller,
             build_directory,
@@ -2353,7 +2353,7 @@ def add_comment(comment):
     if comment:
         major_version, minor_version = fut.get_current_work_versions()
         comments_directory = '%s/comments' % fut.get_logs_directory()
-        comments_json = '%s/%s_rig_comments.json' % (comments_directory, os.environ['TT_ENTNAME'])
+        comments_json = '%s/%s_rig_comments.json' % (comments_directory, os.environ['ENTITY_NAME'])
         comments_data = dict()
         if os.path.exists(comments_json):
             with open(comments_json, mode='r') as f:
@@ -2537,11 +2537,10 @@ def generate_external_import_skin_tasks(skins_directory, namespace=None):
         tasks.append(new_task)
     return tasks
 
-
+'''
 def missing_blueprint_warning(file_path):
     return dict(
         status='warning',
-        warning='unable to locate blueprint: %s/%s' % file_path
+        warning=f'unable to locate blueprint: {file_path}'
     )
-
-
+'''

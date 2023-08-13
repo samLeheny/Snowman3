@@ -28,8 +28,8 @@ from Snowman3.rigger.rig_factory.objects.rig_objects.grouped_handle import Group
 from Snowman3.rigger.rig_factory.objects.rig_objects.space_switcher import SpaceSwitcher
 #from Snowman3.rigger.rig_factory.objects.rig_objects.ribbon import Ribbon
 #from Snowman3.rigger.rig_factory.objects.rig_objects.matrix_space_switcher import MatrixSpaceSwitcher
-#from Snowman3.rigger.rig_factory.objects.rig_objects.matrix_constraint import ParentMatrixConstraint, PointMatrixConstraint, \
-#   OrientMatrixConstraint, ParentMatrixBlendConstraint, AddLocalsConstraint
+from Snowman3.rigger.rig_factory.objects.rig_objects.matrix_constraint import ParentMatrixConstraint, PointMatrixConstraint, \
+   OrientMatrixConstraint, ParentMatrixBlendConstraint, AddLocalsConstraint
 #from Snowman3.rigger.rig_factory.objects.rig_objects.reverse_pole_vector import ReversePoleVector
 #from Snowman3.rigger.rig_factory.objects.rig_objects.text_curve import TextCurve
 #from Snowman3.rigger.rig_factory.objects.rig_objects.surface_point import SurfacePoint
